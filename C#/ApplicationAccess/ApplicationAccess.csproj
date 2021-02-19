@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <Copyright>Copyright © Alastair Wyse 2021</Copyright>
+    <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
+    <Description>ApplicationAccess provides flexible and configurable user permission and authorization management for applications.</Description>
+    <PackageReleaseNotes>First release.</PackageReleaseNotes>
+    <PackageTags>application access authorization authorisation permission permissions user group users groups</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess\ApplicationAccess.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess\ApplicationAccess.xml</DocumentationFile>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,939 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ApplicationAccess</name>
+    </assembly>
+    <members>
+        <member name="T:ApplicationAccess.AccessManager`4">
+            <summary>
+            Manages the access of users and groups of users to components and entities within an application.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <remarks>Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum IEquatable&lt;T&gt; and GetHashcode()).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
+        </member>
+        <member name="F:ApplicationAccess.AccessManager`4.userToGroupMap">
+            <summary>The DirectedGraph which stores the user to group mappings.</summary>
+        </member>
+        <member name="F:ApplicationAccess.AccessManager`4.userToComponentMap">
+            <summary>A dictionary which stores mappings between a user, and application component, and a level of access to that component.</summary>
+        </member>
+        <member name="F:ApplicationAccess.AccessManager`4.groupToComponentMap">
+            <summary>A dictionary which stores mappings between a group, and application component, and a level of access to that component.</summary>
+        </member>
+        <member name="F:ApplicationAccess.AccessManager`4.entities">
+            <summary>Holds all valid entity types and values within the access manager.  The Dictionary key holds the types of all entities, and each respective value holds the valid entity values within that type (e.g. the entity type could be 'ClientAccount', and values could be the names of all client accounts).</summary>
+        </member>
+        <member name="F:ApplicationAccess.AccessManager`4.userToEntityMap">
+            <summary>A dictionary which stores user to entity mappings.  The value stores another dictionary whose key contains the entity type and whose value contains the name of all entities of the specified type which are mapped to the user.</summary>
+        </member>
+        <member name="F:ApplicationAccess.AccessManager`4.groupToEntityMap">
+            <summary>A dictionary which stores group to entity mappings.  The value stores another dictionary whose key contains the entity type and whose value contains the name of all entities of the specified type which are mapped to the group.</summary>
+        </member>
+        <member name="P:ApplicationAccess.AccessManager`4.Users">
+            <summary>
+        Returns a collection of all users in the access manager.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.AccessManager`4.Groups">
+            <summary>
+        Returns a collection of all groups in the access manager.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.AccessManager`4.EntityTypes">
+            <summary>
+        Returns a collection of all entities in the access manager.
+      </summary>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.AccessManager class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddUser(`0)">
+            <summary>
+        Adds a user.
+      </summary><param name="user">The user to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.ContainsUser(`0)">
+            <summary>
+        Returns true if the specified user exists.
+      </summary><param name="user">The user to check for.</param><returns>True if the user exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveUser(`0)">
+            <summary>
+        Removes a user.
+      </summary><param name="user">The user to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddGroup(`1)">
+            <summary>
+        Adds a group.
+      </summary><param name="group">The group to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.ContainsGroup(`1)">
+            <summary>
+        Returns true if the specified group exists.
+      </summary><param name="group">The group to check for.</param><returns>True if the group exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveGroup(`1)">
+            <summary>
+        Removes a group.
+      </summary><param name="group">The group to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddUserToGroupMapping(`0,`1)">
+            <summary>
+        Adds a mapping between the specified user and group.
+      </summary><param name="user">The user in the mapping.</param><param name="group">The group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetUserToGroupMappings(`0)">
+            <summary>
+        Gets the groups that the specified user is mapped to (i.e. is a member of).
+      </summary><param name="user">The user to retrieve the groups for.</param><returns>A collection of groups the specified user is a member of.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveUserToGroupMapping(`0,`1)">
+            <summary>
+        Removes the mapping between the specified user and group.
+      </summary><param name="user">The user in the mapping.</param><param name="group">The group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddGroupToGroupMapping(`1,`1)">
+            <summary>
+        Adds a mapping between the specified groups.
+      </summary><param name="fromGroup">The 'from' group in the mapping.</param><param name="toGroup">The 'to' group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetGroupToGroupMappings(`1)">
+            <summary>
+        Gets the groups that the specified group is mapped to.
+      </summary><param name="group">The group to retrieve the mapped groups for.</param><returns>A collection of groups the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveGroupToGroupMapping(`1,`1)">
+            <summary>
+        Removes the mapping between the specified groups.
+      </summary><param name="fromGroup">The 'from' group in the mapping.</param><param name="toGroup">The 'to' group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <summary>
+        Adds a mapping between the specified user, application component, and level of access to that component.
+      </summary><param name="user">The user in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
+            <summary>
+        Gets the application component and access level pairs that the specified user is mapped to.
+      </summary><param name="user">The user to retrieve the mappings for.</param><returns>A collection of Tuples containing the application component and access level pairs that the specified user is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <summary>
+        Removes a mapping between the specified user, application component, and level of access to that component.
+      </summary><param name="user">The user in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <summary>
+        Adds a mapping between the specified group, application component, and level of access to that component.
+      </summary><param name="group">The group in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+            <summary>
+        Gets the application component and access level pairs that the specified group is mapped to.
+      </summary><param name="group">The group to retrieve the mappings for.</param><returns>A collection of Tuples containing the application component and access level pairs that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <summary>
+        Removes a mapping between the specified group, application component, and level of access to that component.
+      </summary><param name="group">The group in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddEntityType(System.String)">
+            <summary>
+        Adds an entity type.
+      </summary><param name="entityType">The entity type to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.ContainsEntityType(System.String)">
+            <summary>
+        Returns true if the specified entity type exists.
+      </summary><param name="entityType">The entity type to check for.</param><returns>True if the entity type exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveEntityType(System.String)">
+            <summary>
+        Removes an entity type.
+      </summary><param name="entityType">The entity type to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddEntity(System.String,System.String)">
+            <summary>
+        Adds an entity.
+      </summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetEntities(System.String)">
+            <summary>
+        Returns all entities of the specified type.
+      </summary><param name="entityType">The type of the entity.</param><returns>A collection of all entities of the specified type.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.ContainsEntity(System.String,System.String)">
+            <summary>
+        Returns true if the specified entity exists.
+      </summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to check for.</param><returns>True if the entity exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveEntity(System.String,System.String)">
+            <summary>
+        Removes an entity.
+      </summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <summary>
+        Adds a mapping between the specified user, and entity.
+      </summary><param name="user">The user in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetUserToEntityMappings(`0)">
+            <summary>
+        Gets the entities that the specified user is mapped to.
+      </summary><param name="user">The user to retrieve the mappings for.</param><returns>A collection of Tuples containing the entity type and entity that the specified user is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetUserToEntityMappings(`0,System.String)">
+            <summary>
+        Gets the entities of a given type that the specified user is mapped to.
+      </summary><param name="user">The user to retrieve the mappings for.</param><param name="entityType">The entity type to retrieve the mappings for.</param><returns>A collection of entities that the specified user is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <summary>
+        Removes a mapping between the specified user, and entity.
+      </summary><param name="user">The user in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+            <summary>
+        Adds a mapping between the specified group, and entity.
+      </summary><param name="group">The group in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetGroupToEntityMappings(`1)">
+            <summary>
+        Gets the entities that the specified group is mapped to.
+      </summary><param name="group">The group to retrieve the mappings for.</param><returns>A collection of Tuples containing the entity type and entity that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetGroupToEntityMappings(`1,System.String)">
+            <summary>
+        Gets the entities of a given type that the specified group is mapped to.
+      </summary><param name="group">The group to retrieve the mappings for.</param><param name="entityType">The entity type to retrieve the mappings for.</param><returns>A collection of entities that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+            <summary>
+        Removes a mapping between the specified group, and entity.
+      </summary><param name="group">The group in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.HasAccessToApplicationComponent(`0,`2,`3)">
+            <summary>
+        Checks whether the specified user (or a group that the user is a member of) has access to an application component at the specified level of access.
+      </summary><param name="user">The user to check for.</param><param name="applicationComponent">The application component.</param><param name="accessLevel">The level of access to the component.</param><returns>True if the user has access the component.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.HasAccessToEntity(`0,System.String,System.String)">
+            <summary>
+        Checks whether the specified user (or a group that the user is a member of) has access to the specified entity.
+      </summary><param name="user">The user to check for.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity.</param><returns>True if the user has access the entity.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.GetAccessibleEntities(`0,System.String)">
+            <summary>
+        Get all entities of a given type that the specified user (or a group that the user is a member of) has access to.
+      </summary><param name="user">The user to retrieve the entities for.</param><param name="entityType">The type of entities to retrieve.</param><returns>The entities the user has access to.</returns>
+        </member>
+        <member name="T:ApplicationAccess.AccessManager`4.ApplicationComponentAndAccessLevel">
+            <summary>
+            Container class which holds an application component and a level of access of that component.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.AccessManager`4.ApplicationComponentAndAccessLevel.ApplicationComponent">
+            <summary>
+            The application component.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.AccessManager`4.ApplicationComponentAndAccessLevel.AccessLevel">
+            <summary>
+            The level of access.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.AccessManager`4.ApplicationComponentAndAccessLevel.#ctor(`2,`3)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.AccessManager+ApplicationComponentAndAccessLevel class.
+            </summary>
+            <param name="applicationComponent">The application component.</param>
+            <param name="accessLevel">The level of access.</param>
+        </member>
+        <member name="T:ApplicationAccess.CircularReferenceException">
+            <summary>
+            The exception that is thrown when the specified action would result in a circular reference within a DirectedGraph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.CircularReferenceException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.CircularReferenceException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="T:ApplicationAccess.DirectedGraph`2">
+            <summary>
+            A directed graph with different definable types for leaf and non-leaf vertices.
+            </summary>
+            <typeparam name="TLeaf">The type of leaf vertices.</typeparam>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.DirectedGraph`2.leafVertices">
+            <summary>The leaf vertices in the graph.</summary>
+        </member>
+        <member name="F:ApplicationAccess.DirectedGraph`2.nonLeafVertices">
+            <summary>The non-leaf vertices in the graph.</summary>
+        </member>
+        <member name="F:ApplicationAccess.DirectedGraph`2.leafToNonLeafEdges">
+            <summary>The edges which join leaf and non-left vertices within the graph.</summary>
+        </member>
+        <member name="F:ApplicationAccess.DirectedGraph`2.nonLeafToNonLeafEdges">
+            <summary>The edges which join non-leaf and non-left vertices within the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.DirectedGraph`2.LeafVertices">
+            <summary>
+            Returns a collection of all leaf vertices in the graph.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.DirectedGraph`2.NonLeafVertices">
+            <summary>
+            Returns a collection of all non-leaf vertices in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.DirectedGraph class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.AddLeafVertex(`0)">
+            <summary>
+            Adds a leaf vertex to the graph.
+            </summary>
+            <param name="leafVertex">The leaf vertex to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.ContainsLeafVertex(`0)">
+            <summary>
+            Returns true if the specified leaf vertex exists in the graph.
+            </summary>
+            <param name="leafVertex">The leaf vertex to check for.</param>
+            <returns>True if the leaf vertex exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.RemoveLeafVertex(`0)">
+            <summary>
+            Removes a leaf vertex from the graph.
+            </summary>
+            <param name="leafVertex">The leaf vertex to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.AddNonLeafVertex(`1)">
+            <summary>
+            Adds a non-leaf vertex to the graph.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.ContainsNonLeafVertex(`1)">
+            <summary>
+            Returns true if the specified non-leaf vertex exists in the graph.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to check for.</param>
+            <returns>True if the non-leaf vertex exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.RemoveNonLeafVertex(`1)">
+            <summary>
+            Removes a non-leaf vertex from the graph.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.AddLeafToNonLeafEdge(`0,`1)">
+            <summary>
+            Adds an edge to the graph between the specified leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.GetLeafEdges(`0)">
+            <summary>
+            Gets the edges connected from the specified leaf vertex.
+            </summary>
+            <param name="leafVertex">The leaf vertex to retrieve the edges for.</param>
+            <returns>A collection of non-leaf vertices the specified leaf vertex is connected to by an edge.</returns>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.RemoveLeafToNonLeafEdge(`0,`1)">
+            <summary>
+            Removes the edge from the graph between the specified leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.AddNonLeafToNonLeafEdge(`1,`1)">
+            <summary>
+            Adds an edge to the graph between the specified non-leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.GetNonLeafEdges(`1)">
+            <summary>
+            Gets the edges connected from the specified non-leaf vertex.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to retrieve the edges for.</param>
+            <returns>A collection of non-leaf vertices the specified vertex is connected to by an edge.</returns>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.RemoveNonLeafToNonLeafEdge(`1,`1)">
+            <summary>
+            Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.TraverseFromLeaf(`0,System.Func{`1,System.Boolean})">
+            <summary>
+            Traverses the graph, invoking the specified action at each vertex (not including the start vertex).
+            </summary>
+            <param name="startVertex">The leaf vertex to begin traversing at.</param>
+            <param name="vertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.TraverseFromNonLeaf(`1,System.Func{`1,System.Boolean})">
+            <summary>
+            Traverses the graph, invoking the specified action at each vertex (including the start vertex).
+            </summary>
+            <param name="startVertex">The non-leaf vertex to begin traversing at.</param>
+            <param name="vertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.TraverseGraph(System.Func{`0,System.Boolean},System.Func{`1,System.Boolean})">
+            <summary>
+            Traverses the entire graph, invoking the specified actions at each leaf and non-leaf vertex.
+            </summary>
+            <param name="leafVertexAction">The action to perform at leaf vertices.  Accepts a single parameter which is the current leaf vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+            <param name="nonLeafVertexAction">The action to perform at non-leaf vertices.  Accepts a single parameter which is the current non-leaf vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.TraverseFromNonLeafRecurse(`1,System.Collections.Generic.HashSet{`1},System.Func{`1,System.Boolean})">
+            <summary>
+            Recurses to a non-leaf vertex as part of a traversal, invoking the specified action.
+            </summary>
+            <param name="nextVertex">The non-leaf vertex to recurse to.</param>
+            <param name="visitedVertices">The set of vertices which have already been visited as part of the traversal.</param>
+            <param name="vertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current non-leaf vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+            <returns>Whether or not traversal should continue.</returns>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.GetLeafEdges(`0,System.Boolean)">
+            <summary>
+            Gets the edges connected from the specified leaf vertex.
+            </summary>
+            <param name="leafVertex">The leaf vertex to retrieve the edges for.</param>
+            <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
+            <returns>A collection of non-leaf vertices the specified leaf vertex is connected to by an edge.</returns>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraph`2.GetNonLeafEdges(`1,System.Boolean)">
+            <summary>
+            Gets the edges connected from the specified non-leaf vertex.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to retrieve the edges for.</param>
+            <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
+            <returns>A collection of non-leaf vertices the specified vertex is connected to by an edge.</returns>
+        </member>
+        <member name="T:ApplicationAccess.EnumUniqueStringifier`1">
+            <summary>
+            An implementation of IUniqueStringifier&lt;T&gt; for enums.
+            </summary>
+            <typeparam name="T">The type of enum to convert.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.EnumUniqueStringifier`1.ToString(`0)">
+            <summary>
+            Converts an enum value into a string.
+            </summary>
+            <param name="inputObject">The enum value to convert.</param>
+            <returns>The enum as a string.</returns>
+        </member>
+        <member name="M:ApplicationAccess.EnumUniqueStringifier`1.FromString(System.String)">
+            <summary>
+            Converts a string into an enum value.
+            </summary>
+            <param name="stringifiedObject">The string representing the enum value.</param>
+            <returns>The enum value.</returns>
+        </member>
+        <member name="T:ApplicationAccess.IAccessManager`4">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;XXX&quot;]/*" />
+        </member>
+        <member name="P:ApplicationAccess.IAccessManager`4.Users">
+            <summary>
+        Returns a collection of all users in the access manager.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.IAccessManager`4.Groups">
+            <summary>
+        Returns a collection of all groups in the access manager.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.IAccessManager`4.EntityTypes">
+            <summary>
+        Returns a collection of all entities in the access manager.
+      </summary>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddUser(`0)">
+            <summary>
+        Adds a user.
+      </summary><param name="user">The user to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.ContainsUser(`0)">
+            <summary>
+        Returns true if the specified user exists.
+      </summary><param name="user">The user to check for.</param><returns>True if the user exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveUser(`0)">
+            <summary>
+        Removes a user.
+      </summary><param name="user">The user to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddGroup(`1)">
+            <summary>
+        Adds a group.
+      </summary><param name="group">The group to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.ContainsGroup(`1)">
+            <summary>
+        Returns true if the specified group exists.
+      </summary><param name="group">The group to check for.</param><returns>True if the group exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveGroup(`1)">
+            <summary>
+        Removes a group.
+      </summary><param name="group">The group to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddUserToGroupMapping(`0,`1)">
+            <summary>
+        Adds a mapping between the specified user and group.
+      </summary><param name="user">The user in the mapping.</param><param name="group">The group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetUserToGroupMappings(`0)">
+            <summary>
+        Gets the groups that the specified user is mapped to (i.e. is a member of).
+      </summary><param name="user">The user to retrieve the groups for.</param><returns>A collection of groups the specified user is a member of.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveUserToGroupMapping(`0,`1)">
+            <summary>
+        Removes the mapping between the specified user and group.
+      </summary><param name="user">The user in the mapping.</param><param name="group">The group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddGroupToGroupMapping(`1,`1)">
+            <summary>
+        Adds a mapping between the specified groups.
+      </summary><param name="fromGroup">The 'from' group in the mapping.</param><param name="toGroup">The 'to' group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetGroupToGroupMappings(`1)">
+            <summary>
+        Gets the groups that the specified group is mapped to.
+      </summary><param name="group">The group to retrieve the mapped groups for.</param><returns>A collection of groups the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveGroupToGroupMapping(`1,`1)">
+            <summary>
+        Removes the mapping between the specified groups.
+      </summary><param name="fromGroup">The 'from' group in the mapping.</param><param name="toGroup">The 'to' group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <summary>
+        Adds a mapping between the specified user, application component, and level of access to that component.
+      </summary><param name="user">The user in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
+            <summary>
+        Gets the application component and access level pairs that the specified user is mapped to.
+      </summary><param name="user">The user to retrieve the mappings for.</param><returns>A collection of Tuples containing the application component and access level pairs that the specified user is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <summary>
+        Removes a mapping between the specified user, application component, and level of access to that component.
+      </summary><param name="user">The user in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <summary>
+        Adds a mapping between the specified group, application component, and level of access to that component.
+      </summary><param name="group">The group in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+            <summary>
+        Gets the application component and access level pairs that the specified group is mapped to.
+      </summary><param name="group">The group to retrieve the mappings for.</param><returns>A collection of Tuples containing the application component and access level pairs that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <summary>
+        Removes a mapping between the specified group, application component, and level of access to that component.
+      </summary><param name="group">The group in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddEntityType(System.String)">
+            <summary>
+        Adds an entity type.
+      </summary><param name="entityType">The entity type to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.ContainsEntityType(System.String)">
+            <summary>
+        Returns true if the specified entity type exists.
+      </summary><param name="entityType">The entity type to check for.</param><returns>True if the entity type exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveEntityType(System.String)">
+            <summary>
+        Removes an entity type.
+      </summary><param name="entityType">The entity type to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddEntity(System.String,System.String)">
+            <summary>
+        Adds an entity.
+      </summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetEntities(System.String)">
+            <summary>
+        Returns all entities of the specified type.
+      </summary><param name="entityType">The type of the entity.</param><returns>A collection of all entities of the specified type.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.ContainsEntity(System.String,System.String)">
+            <summary>
+        Returns true if the specified entity exists.
+      </summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to check for.</param><returns>True if the entity exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveEntity(System.String,System.String)">
+            <summary>
+        Removes an entity.
+      </summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <summary>
+        Adds a mapping between the specified user, and entity.
+      </summary><param name="user">The user in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetUserToEntityMappings(`0)">
+            <summary>
+        Gets the entities that the specified user is mapped to.
+      </summary><param name="user">The user to retrieve the mappings for.</param><returns>A collection of Tuples containing the entity type and entity that the specified user is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetUserToEntityMappings(`0,System.String)">
+            <summary>
+        Gets the entities of a given type that the specified user is mapped to.
+      </summary><param name="user">The user to retrieve the mappings for.</param><param name="entityType">The entity type to retrieve the mappings for.</param><returns>A collection of entities that the specified user is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <summary>
+        Removes a mapping between the specified user, and entity.
+      </summary><param name="user">The user in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+            <summary>
+        Adds a mapping between the specified group, and entity.
+      </summary><param name="group">The group in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetGroupToEntityMappings(`1)">
+            <summary>
+        Gets the entities that the specified group is mapped to.
+      </summary><param name="group">The group to retrieve the mappings for.</param><returns>A collection of Tuples containing the entity type and entity that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetGroupToEntityMappings(`1,System.String)">
+            <summary>
+        Gets the entities of a given type that the specified group is mapped to.
+      </summary><param name="group">The group to retrieve the mappings for.</param><param name="entityType">The entity type to retrieve the mappings for.</param><returns>A collection of entities that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+            <summary>
+        Removes a mapping between the specified group, and entity.
+      </summary><param name="group">The group in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.HasAccess(`0,`2,`3)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManager`4.HasAccess(`0,`2,`3)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.HasAccess(`0,System.String,System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManager`4.HasAccess(`0,System.String,System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.IAccessManager`4.GetAccessibleEntities(`0,System.String)">
+            <summary>
+        Get all entities of a given type that the specified user (or a group that the user is a member of) has access to.
+      </summary><param name="user">The user to retrieve the entities for.</param><param name="entityType">The type of entities to retrieve.</param><returns>The entities the user has access to.</returns>
+        </member>
+        <member name="T:ApplicationAccess.IAccessManagerSerializer`1">
+            <summary>
+            Defines methods to serialize and deserialize an AccessManager.
+            </summary>
+            <typeparam name="TSerializedObject">The type of object to serialize to and from.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerSerializer`1.Serialize``4(ApplicationAccess.AccessManager{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})">
+            <summary>
+            Serializes the specified access manager.
+            </summary>
+            <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
+            <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
+            <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
+            <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
+            <param name="accessManager">The access manager to serialize.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <returns>An object representing the access manager.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerSerializer`1.Deserialize``4(`0,ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})">
+            <summary>
+            Deserializes an access manager.
+            </summary>
+            <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
+            <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
+            <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
+            <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
+            <param name="serializedAccessManager">The object to deserialize the access manager from.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <returns>The deserialized access manager.</returns>
+        </member>
+        <member name="T:ApplicationAccess.IDirectedGraphSerializer`1">
+            <summary>
+            Defines methods to serialize and deserialize a DirectedGraph.
+            </summary>
+            <typeparam name="TSerializedObject">The type of object to serialize to and from.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.IDirectedGraphSerializer`1.Serialize``2(ApplicationAccess.DirectedGraph{``0,``1},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1})">
+            <summary>
+            Serializes the specified graph.
+            </summary>
+            <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+            <param name="graph">The directed graph to serialize.</param>
+            <param name="leafStringifier">A string converter for leaf vertices in the graph.</param>
+            <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
+            <returns>An object representing the graph.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IDirectedGraphSerializer`1.Deserialize``2(`0,ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1})">
+            <summary>
+            Deserializes a graph.
+            </summary>
+            <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+            <param name="serializedGraph">The object to deserialize the graph from.</param>
+            <param name="leafStringifier">A string converter for leaf vertices in the graph.</param>
+            <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
+            <returns>The deserialized graph.</returns>
+        </member>
+        <member name="T:ApplicationAccess.IUniqueStringifier`1">
+            <summary>
+            Defines methods for converting objects of a specified type to and from strings which uniquely identify the object.
+            </summary>
+            <typeparam name="T">The type of objects to convert.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.IUniqueStringifier`1.ToString(`0)">
+            <summary>
+            Converts an object into a string which uniquely identifies that object.
+            </summary>
+            <param name="inputObject">The object to convert.</param>
+            <returns>A string which uniquely identifies that object.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IUniqueStringifier`1.FromString(System.String)">
+            <summary>
+            Converts a string which uniquely identifies an object into the object.
+            </summary>
+            <param name="stringifiedObject">The string representing the object.</param>
+            <returns>The object.</returns>
+        </member>
+        <member name="T:ApplicationAccess.LeafToNonLeafEdgeAlreadyExistsException`2">
+            <summary>
+            The exception that is thrown when a specified leaf to non-leaf edge of a DirectedGraph already exists in the graph.
+            </summary>
+            <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.LeafToNonLeafEdgeAlreadyExistsException`2.fromVertex">
+            <summary>The vertex which is the 'from' vertex of the edge which already exists in the graph.</summary>
+        </member>
+        <member name="F:ApplicationAccess.LeafToNonLeafEdgeAlreadyExistsException`2.toVertex">
+            <summary>The vertex which is the 'to' vertex of the edge which already exists in the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.LeafToNonLeafEdgeAlreadyExistsException`2.FromVertex">
+            <summary>
+            The vertex which is the 'from' vertex of the edge which already exists in the graph.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.LeafToNonLeafEdgeAlreadyExistsException`2.ToVertex">
+            <summary>
+            The vertex which is the 'to' vertex of the edge which already exists in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.LeafToNonLeafEdgeAlreadyExistsException`2.#ctor(System.String,`0,`1)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.LeafToNonLeafEdgeAlreadyExistsException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="fromVertex">The vertex which is the 'from' vertex of the edge which already exists in the graph.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge which already exists in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.LeafToNonLeafEdgeNotFoundException`2">
+            <summary>
+            The exception that is thrown when a specified leaf to non-leaf edge of a DirectedGraph does not exist in the graph.
+            </summary>
+            <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.LeafToNonLeafEdgeNotFoundException`2.fromVertex">
+            <summary>The vertex which is the 'from' vertex of the edge which does not exist in the graph.</summary>
+        </member>
+        <member name="F:ApplicationAccess.LeafToNonLeafEdgeNotFoundException`2.toVertex">
+            <summary>The vertex which is the 'to' vertex of the edge which does not exist in the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.LeafToNonLeafEdgeNotFoundException`2.FromVertex">
+            <summary>
+            The vertex which is the 'from' vertex of the edge which does not exist in the graph.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.LeafToNonLeafEdgeNotFoundException`2.ToVertex">
+            <summary>
+            The vertex which is the 'to' vertex of the edge which does not exist in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.LeafToNonLeafEdgeNotFoundException`2.#ctor(System.String,`0,`1)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.LeafToNonLeafEdgeNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="fromVertex">The vertex which is the 'from' vertex of the edge which does not exist in the graph.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge which does not exist in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.LeafVertexAlreadyExistsException`1">
+            <summary>
+            The exception that is thrown when a specified leaf vertex of a DirectedGraph already exists in the graph.
+            </summary>
+            <typeparam name="T">The type of leaf vertices in the graph.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.LeafVertexAlreadyExistsException`1.leafVertex">
+            <summary>The leaf vertex which already exists in the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.LeafVertexAlreadyExistsException`1.LeafVertex">
+            <summary>
+            The leaf vertex which already exists in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.LeafVertexAlreadyExistsException`1.#ctor(System.String,`0)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.LeafVertexAlreadyExistsException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="leafVertex">The leaf vertex which already exists in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.LeafVertexNotFoundException`1">
+            <summary>
+            The exception that is thrown when a specified leaf vertex of a DirectedGraph does not exist in the graph.
+            </summary>
+            <typeparam name="T">The type of leaf vertices in the graph.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.LeafVertexNotFoundException`1.leafVertex">
+            <summary>The leaf vertex which does not exist in the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.LeafVertexNotFoundException`1.LeafVertex">
+            <summary>
+            The leaf vertex which does not exist in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.LeafVertexNotFoundException`1.#ctor(System.String,`0)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.LeafVertexNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="leafVertex">The leaf vertex which does not exist in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.NonLeafToNonLeafEdgeAlreadyExistsException`1">
+            <summary>
+            The exception that is thrown when a specified non-leaf to non-leaf edge of a DirectedGraph already exists in the graph.
+            </summary>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.NonLeafToNonLeafEdgeAlreadyExistsException`1.fromVertex">
+            <summary>The vertex which is the 'from' vertex of the edge which already exists in the graph.</summary>
+        </member>
+        <member name="F:ApplicationAccess.NonLeafToNonLeafEdgeAlreadyExistsException`1.toVertex">
+            <summary>The vertex which is the 'to' vertex of the edge which already exists in the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.NonLeafToNonLeafEdgeAlreadyExistsException`1.FromVertex">
+            <summary>
+            The vertex which is the 'from' vertex of the edge which already exists in the graph.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.NonLeafToNonLeafEdgeAlreadyExistsException`1.ToVertex">
+            <summary>
+            The vertex which is the 'to' vertex of the edge which already exists in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.NonLeafToNonLeafEdgeAlreadyExistsException`1.#ctor(System.String,`0,`0)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.NonLeafToNonLeafEdgeAlreadyExistsException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="fromVertex">The vertex which is the 'from' vertex of the edge which already exists in the graph.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge which already exists in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.NonLeafToNonLeafEdgeNotFoundException`1">
+            <summary>
+            The exception that is thrown when a specified non-leaf to non-leaf edge of a DirectedGraph does not exist in the graph.
+            </summary>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.NonLeafToNonLeafEdgeNotFoundException`1.fromVertex">
+            <summary>The vertex which is the 'from' vertex of the edge which does not exist in the graph.</summary>
+        </member>
+        <member name="F:ApplicationAccess.NonLeafToNonLeafEdgeNotFoundException`1.toVertex">
+            <summary>The vertex which is the 'to' vertex of the edge which does not exist in the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.NonLeafToNonLeafEdgeNotFoundException`1.FromVertex">
+            <summary>
+            The vertex which is the 'from' vertex of the edge which does not exist in the graph.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.NonLeafToNonLeafEdgeNotFoundException`1.ToVertex">
+            <summary>
+            The vertex which is the 'to' vertex of the edge which does not exist in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.NonLeafToNonLeafEdgeNotFoundException`1.#ctor(System.String,`0,`0)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.NonLeafToNonLeafEdgeNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="fromVertex">The vertex which is the 'from' vertex of the edge which does not exist in the graph.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge which does not exist in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.NonLeafVertexAlreadyExistsException`1">
+            <summary>
+            The exception that is thrown when a specified non-leaf vertex of a DirectedGraph already exists in the graph.
+            </summary>
+            <typeparam name="T">The type of non-leaf vertices in the graph.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.NonLeafVertexAlreadyExistsException`1.nonLeafVertex">
+            <summary>The non-leaf vertex which already exists in the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.NonLeafVertexAlreadyExistsException`1.NonLeafVertex">
+            <summary>
+            The non-leaf vertex which already exists in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.NonLeafVertexAlreadyExistsException`1.#ctor(System.String,`0)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.NonLeafVertexAlreadyExistsException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="nonLeafVertex">The non-leaf vertex which already exists in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.NonLeafVertexNotFoundException`1">
+            <summary>
+            The exception that is thrown when a specified non-leaf vertex of a DirectedGraph does not exist in the graph.
+            </summary>
+            <typeparam name="T">The type of non-leaf vertices in the graph.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.NonLeafVertexNotFoundException`1.nonLeafVertex">
+            <summary>The mpm-leaf vertex which does not exist in the graph.</summary>
+        </member>
+        <member name="P:ApplicationAccess.NonLeafVertexNotFoundException`1.NonLeafVertex">
+            <summary>
+            The non-leaf vertex which does not exist in the graph.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.NonLeafVertexNotFoundException`1.#ctor(System.String,`0)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.NonLeafVertexNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="nonLeafVertex">The non-leaf vertex which does not exist in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.StringUniqueStringifier">
+            <summary>
+            An implementation of IUniqueStringifier&lt;T&gt; for strings.
+            </summary>
+            <remarks>Methods simply return the respective string parameters immediately.</remarks>
+        </member>
+    </members>
+</doc>

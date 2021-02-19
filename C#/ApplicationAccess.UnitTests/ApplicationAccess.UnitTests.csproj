@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+
+    <NoWin32Manifest>true</NoWin32Manifest>
+
+    <Authors>Alastair Wyse</Authors>
+
+    <Company>Alastair Wyse</Company>
+
+    <Description>Unit tests for the ApplicationAccess project.</Description>
+
+    <Copyright>Copyright © Alastair Wyse 2021</Copyright>
+
+    <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
+
+    <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
+  </ItemGroup>
+
+</Project>
