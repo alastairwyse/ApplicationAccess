@@ -15,16 +15,16 @@ If you're a developer of GUI applications and/or APIs requiring user authorizati
 
 The central class which manages authorization is the [AccessManager](C#/ApplicationAccess/AccessManager.cs).  It implements 3 main types of data mapping...
 
-**Users and Groups**
+**Users and Groups**  
 Users and groups are stored in a directed graph, where users are stored as leaf vertices/nodes (or 'start' vertices in terms of directed traversal), and groups are stored as non-leaf vertices.  Storing user to group mapping in a graph structure has a number of benefits...
 * Users can be members of multiple groups
 * Groups can be members of other groups
 * There's no limit to the depth of user &gt; group &gt; group hierarchy that can be mapped
 
-**Application Components and Access Levels**
+**Application Components and Access Levels**  
 Application components represent (as the name suggests) components within an application.  For a GUI application, each screen would likely be represented by an application component... in an API application, an application component could correspond to a single API endpoint.  Access levels represent typical levels of access like create, read, update, etc... in an API application they could correspond to REST verbs (GET, PUT, POST, etc...).
 
-**Entities**
+**Entities**  
 Entities have a generic name, and were designed to be a generic way to represent other types of entities/elements which need permissions mapped to them, but don't fit into the category of an application component.  Whilst application components are designed to represent elements like screens or API endpoints in an application, entities could represent more domain-specific elements like clients in a CRM system or products lines in an order management system.  Whereas application components are based on type parameters, entities are strings... this has a benefit in that new entities can be created dynamically during runtime.  In addition to checking whether a given user (or any of its parent groups) are mapped to an entity, the AccessManager class can return a list of all entities a user is mapped to... this is useful in situation where you want filter a set of data before making it available to the current user.  For example in the aforementioned CRM application scenario, a screen showing a list of recent client interactions could be filtered to only show interactions for clients that the current user has access to.  Entities are categorized/grouped into types for clearer organization.
 
 
