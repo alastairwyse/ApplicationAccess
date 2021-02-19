@@ -244,12 +244,14 @@ JObject serializedAccessManager = mySerializer.Serialize<String, String, Screen,
     new EnumUniqueStringifier<Screen>(),
     new EnumUniqueStringifier<AccessLevel>()
 );
+```
 
 Similarly deserialization is performed like this...
 
+```c#
 AccessManager<String, String, Screen, AccessLevel> deserializedAccessManager = mySerializer.Deserialize<String, String, Screen, AccessLevel>
 (
-    serializedAccessManager,
+    serializedAccessManager, 
     new StringUniqueStringifier(),
     new StringUniqueStringifier(),
     new EnumUniqueStringifier<Screen>(),
