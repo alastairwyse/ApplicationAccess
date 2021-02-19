@@ -13,7 +13,7 @@ If you're a developer of GUI applications and/or APIs requiring user authorizati
 
 ## Data Elements and Mappings
 
-The central class which manages authorization is the [AccessManager](C#/ApplicationAccess/AccessManager.cs).  It implements 3 main types of data mapping...
+The central class which manages authorization is the [AccessManager](C%23/ApplicationAccess/AccessManager.cs).  It implements 3 main types of data mapping...
 
 **Users and Groups**  
 Users and groups are stored in a directed graph, where users are stored as leaf vertices/nodes (or 'start' vertices in terms of directed traversal), and groups are stored as non-leaf vertices.  Storing user to group mapping in a graph structure has a number of benefits...
@@ -230,7 +230,7 @@ It's assumed the above calls to the 'HasAccess' and 'GetEntityMappings' methods 
 
 ### Serialization
 
-The [AccessManagerJsonSerializer](C#/ApplicationAccess.Serialization/AccessManagerJsonSerializer.cs) class performs serialization of an AccessManager to and from JSON.  The Serialize() and Deserialize() methods require implementations of interface IUniqueStringifier&lt;T&gt; for the generic types representing users, groups, application components, and access levels.  Classes 'StringUniqueStringifier' and 'EnumUniqueStringifier&lt;T&gt;' are included to handle string and enum generic types... other  generic types would require a custom implementation of IUniqueStringifier&lt;T&gt;.
+The [AccessManagerJsonSerializer](C%23/ApplicationAccess.Serialization/AccessManagerJsonSerializer.cs) class performs serialization of an AccessManager to and from JSON.  The Serialize() and Deserialize() methods require implementations of interface IUniqueStringifier&lt;T&gt; for the generic types representing users, groups, application components, and access levels.  Classes 'StringUniqueStringifier' and 'EnumUniqueStringifier&lt;T&gt;' are included to handle string and enum generic types... other  generic types would require a custom implementation of IUniqueStringifier&lt;T&gt;.
 
 Serialization of the above access manager would be performed as follows...
 
