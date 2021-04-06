@@ -284,7 +284,7 @@
     </member>
     <member name="M:ApplicationAccess.IAccessManager`4.GetAccessibleEntities(`0,System.String)">
       <summary>
-        Get all entities of a given type that the specified user (or a group that the user is a member of) has access to.
+        Gets all entities of a given type that the specified user (or a group that the user is a member of) has access to.
       </summary>
       <param name="user">The user to retrieve the entities for.</param>
       <param name="entityType">The type of entities to retrieve.</param>

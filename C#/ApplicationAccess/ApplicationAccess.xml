@@ -229,7 +229,7 @@
         </member>
         <member name="M:ApplicationAccess.AccessManager`4.GetAccessibleEntities(`0,System.String)">
             <summary>
-        Get all entities of a given type that the specified user (or a group that the user is a member of) has access to.
+        Gets all entities of a given type that the specified user (or a group that the user is a member of) has access to.
       </summary><param name="user">The user to retrieve the entities for.</param><param name="entityType">The type of entities to retrieve.</param><returns>The entities the user has access to.</returns>
         </member>
         <member name="T:ApplicationAccess.AccessManager`4.ApplicationComponentAndAccessLevel">
@@ -384,14 +384,14 @@
             Traverses the graph, invoking the specified action at each vertex (not including the start vertex).
             </summary>
             <param name="startVertex">The leaf vertex to begin traversing at.</param>
-            <param name="vertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+            <param name="vertexAction">The action to perform at each non-leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
         </member>
         <member name="M:ApplicationAccess.DirectedGraph`2.TraverseFromNonLeaf(`1,System.Func{`1,System.Boolean})">
             <summary>
             Traverses the graph, invoking the specified action at each vertex (including the start vertex).
             </summary>
             <param name="startVertex">The non-leaf vertex to begin traversing at.</param>
-            <param name="vertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+            <param name="vertexAction">The action to perform at each non-leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
         </member>
         <member name="M:ApplicationAccess.DirectedGraph`2.TraverseGraph(System.Func{`0,System.Boolean},System.Func{`1,System.Boolean})">
             <summary>
@@ -636,7 +636,7 @@
         </member>
         <member name="M:ApplicationAccess.IAccessManager`4.GetAccessibleEntities(`0,System.String)">
             <summary>
-        Get all entities of a given type that the specified user (or a group that the user is a member of) has access to.
+        Gets all entities of a given type that the specified user (or a group that the user is a member of) has access to.
       </summary><param name="user">The user to retrieve the entities for.</param><param name="entityType">The type of entities to retrieve.</param><returns>The entities the user has access to.</returns>
         </member>
         <member name="T:ApplicationAccess.IAccessManagerSerializer`1">

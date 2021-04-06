@@ -289,7 +289,7 @@ namespace ApplicationAccess
         /// Traverses the graph, invoking the specified action at each vertex (not including the start vertex).
         /// </summary>
         /// <param name="startVertex">The leaf vertex to begin traversing at.</param>
-        /// <param name="vertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        /// <param name="vertexAction">The action to perform at each non-leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
         public void TraverseFromLeaf(TLeaf startVertex, Func<TNonLeaf, Boolean> vertexAction)
         {
             ThrowExceptionIfLeafVertexDoesntExistInGraph(startVertex, nameof(startVertex));
@@ -308,7 +308,7 @@ namespace ApplicationAccess
         /// Traverses the graph, invoking the specified action at each vertex (including the start vertex).
         /// </summary>
         /// <param name="startVertex">The non-leaf vertex to begin traversing at.</param>
-        /// <param name="vertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        /// <param name="vertexAction">The action to perform at each non-leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
         public void TraverseFromNonLeaf(TNonLeaf startVertex, Func<TNonLeaf, Boolean> vertexAction)
         {
             ThrowExceptionIfNonLeafVertexDoesntExistInGraph(startVertex, nameof(startVertex));
