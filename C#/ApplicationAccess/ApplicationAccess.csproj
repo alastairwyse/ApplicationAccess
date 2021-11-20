@@ -13,11 +13,22 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
     <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess\ApplicationAccess.xml</DocumentationFile>
+    <WarningLevel>5</WarningLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
     <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess\ApplicationAccess.xml</DocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MoreComplexDataStructures" Version="1.9.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Utilities\ApplicationAccess.Utilities.csproj" />
+  </ItemGroup>
 
 </Project>

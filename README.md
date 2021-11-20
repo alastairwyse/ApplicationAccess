@@ -249,7 +249,7 @@ JObject serializedAccessManager = mySerializer.Serialize<String, String, Screen,
 Similarly deserialization is performed like this...
 
 ```c#
-AccessManager<String, String, Screen, AccessLevel> deserializedAccessManager = mySerializer.Deserialize<String, String, Screen, AccessLevel>
+AccessManager<String, String, Screen, AccessLevel> deserializedAccessManager = mySerializer.Deserialize<AccessManager<String, String, Screen, AccessLevel>, String, String, Screen, AccessLevel>
 (
     serializedAccessManager, 
     new StringUniqueStringifier(),

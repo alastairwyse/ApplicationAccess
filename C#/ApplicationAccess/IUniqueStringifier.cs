@@ -20,24 +20,13 @@ using System.Text;
 
 namespace ApplicationAccess
 {
-    /// <summary>
-    /// Defines methods for converting objects of a specified type to and from strings which uniquely identify the object.
-    /// </summary>
-    /// <typeparam name="T">The type of objects to convert.</typeparam>
+    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.IUniqueStringifier`1"]/*'/>
     public interface IUniqueStringifier<T>
     {
-        /// <summary>
-        /// Converts an object into a string which uniquely identifies that object.
-        /// </summary>
-        /// <param name="inputObject">The object to convert.</param>
-        /// <returns>A string which uniquely identifies that object.</returns>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IUniqueStringifier`1.ToString(`0)"]/*'/>
         String ToString(T inputObject);
 
-        /// <summary>
-        /// Converts a string which uniquely identifies an object into the object.
-        /// </summary>
-        /// <param name="stringifiedObject">The string representing the object.</param>
-        /// <returns>The object.</returns>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IUniqueStringifier`1.FromString(System.String)"]/*'/>
         T FromString(String stringifiedObject);
     }
 }

@@ -231,7 +231,7 @@ class AccessManager(Generic[TUser, TGroup, TComponent, TAccess]):
 
         # Check whether adding edge would create a circular reference
         circular_reference_check_action = self._CheckForCircularReferenceTraverserAction(from_group, "A mapping between groups '{0}' and '{1}' cannot be created as it would cause a circular reference.".format(str(from_group), str(to_group)), self._group_to_group_graph_edges)
-        self._traverse_from_group_recurse(to_group, set(), circular_reference_check_action)
+        self._traverse_user_and_group_graph_from_group_recurse(to_group, set(), circular_reference_check_action)
         if from_group not in self._group_to_group_graph_edges:
             self._group_to_group_graph_edges[from_group] = set()
         self._group_to_group_graph_edges[from_group].add(to_group)
@@ -787,9 +787,9 @@ class AccessManager(Generic[TUser, TGroup, TComponent, TAccess]):
         if start_user in self._user_to_group_graph_edges:
             visited_groups = set()
             for next_edge_group in self._user_to_group_graph_edges[start_user]:
-                self._traverse_from_group_recurse(next_edge_group, visited_groups, group_action)
+                self._traverse_user_and_group_graph_from_group_recurse(next_edge_group, visited_groups, group_action)
 
-    def _traverse_from_group_recurse(self, next_group: TGroup, visited_groups: Set[TGroup], group_action: "_UserToGroupGraphTraversalActionBase") -> bool:
+    def _traverse_user_and_group_graph_from_group_recurse(self, next_group: TGroup, visited_groups: Set[TGroup], group_action: "_UserToGroupGraphTraversalActionBase") -> bool:
         """Recurses to a group as part of a traversal, invoking the specified action.
 
         Args:
@@ -804,7 +804,7 @@ class AccessManager(Generic[TUser, TGroup, TComponent, TAccess]):
         if next_group in self._group_to_group_graph_edges:
             for next_edge_group in self._group_to_group_graph_edges[next_group]:
                 if next_edge_group not in visited_groups:
-                    keep_traversing = self._traverse_from_group_recurse(next_edge_group, visited_groups, group_action)
+                    keep_traversing = self._traverse_user_and_group_graph_from_group_recurse(next_edge_group, visited_groups, group_action)
                 if keep_traversing == False:
                     break
 
@@ -932,7 +932,7 @@ class AccessManager(Generic[TUser, TGroup, TComponent, TAccess]):
         """
 
         @property
-        def mapped_entities(self) -> bool:
+        def mapped_entities(self) -> Set[TGroup]:
             """The entities which are mapped to groups in the traversal path."""
             return self._mapped_entities
 

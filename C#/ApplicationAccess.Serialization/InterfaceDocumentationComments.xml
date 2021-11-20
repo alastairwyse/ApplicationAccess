@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<doc>
+  <assembly>
+    <name>ApplicationAccess.Serialization</name>
+  </assembly>
+  <members>
+    <member name="T:ApplicationAccess.Serialization.IAccessManagerSerializer`1">
+      <summary>
+        Defines methods to serialize and deserialize an AccessManager.
+      </summary>
+      <typeparam name="TSerializedObject">The type of object to serialize to and from.</typeparam>
+    </member>
+    <member name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})">
+      <summary>
+        Serializes the specified access manager.
+      </summary>
+      <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
+      <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
+      <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
+      <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
+      <param name="accessManager">The access manager to serialize.</param>
+      <param name="userStringifier">A string converter for users.</param>
+      <param name="groupStringifier">A string converter for groups.</param>
+      <param name="applicationComponentStringifier">A string converter for application components.</param>
+      <param name="accessLevelStringifier">A string converter for access levels.</param>
+      <returns>An object representing the access manager.</returns>
+    </member>
+    <member name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Deserialize``5(`0,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.IUniqueStringifier{``4})">
+      <summary>
+        Deserializes an access manager.
+      </summary>
+      <typeparam name="TAccessManager">The derivation of AccessManagerBase&lt;TUser, TGroup, TComponent, TAccess&gt; to create/deserialize to.</typeparam>
+      <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
+      <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
+      <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
+      <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
+      <param name="serializedAccessManager">The object to deserialize the access manager from.</param>
+      <param name="userStringifier">A string converter for users.</param>
+      <param name="groupStringifier">A string converter for groups.</param>
+      <param name="applicationComponentStringifier">A string converter for application components.</param>
+      <param name="accessLevelStringifier">A string converter for access levels.</param>
+      <returns>The deserialized access manager.</returns>
+    </member>
+    <member name="T:ApplicationAccess.Serialization.IDirectedGraphSerializer`1">
+      <summary>
+        Defines methods to serialize and deserialize a DirectedGraph.
+      </summary>
+      <typeparam name="TSerializedObject">The type of object to serialize to and from.</typeparam>
+    </member>
+    <member name="M:ApplicationAccess.Serialization.IDirectedGraphSerializer`1.Serialize``2(ApplicationAccess.DirectedGraph{``0,``1},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1})">
+      <summary>
+        Serializes the specified graph.
+      </summary>
+      <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
+      <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+      <param name="graph">The directed graph to serialize.</param>
+      <param name="leafStringifier">A string converter for leaf vertices in the graph.</param>
+      <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
+      <returns>An object representing the graph.</returns>
+    </member>
+    <member name="M:ApplicationAccess.Serialization.IDirectedGraphSerializer`1.Deserialize``3(`0,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2})">
+      <summary>
+        Deserializes a graph.
+      </summary>
+      <typeparam name="TDirectedGraph">The derivation of DirectedGraphBase&lt;TLeaf, TNonLeaf&gt; to create/deserialize to.</typeparam>
+      <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
+      <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+      <param name="serializedGraph">The object to deserialize the graph from.</param>
+      <param name="leafStringifier">>A string converter for leaf vertices in the graph.</param>
+      <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
+      <returns>The deserialized graph.</returns>
+    </member>
+  </members>
+</doc>

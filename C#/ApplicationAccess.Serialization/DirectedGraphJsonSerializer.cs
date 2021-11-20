@@ -15,8 +15,6 @@
  */
 
 using System;
-using System.IO;
-using ApplicationAccess;
 using Newtonsoft.Json.Linq;
 
 namespace ApplicationAccess.Serialization
@@ -26,12 +24,16 @@ namespace ApplicationAccess.Serialization
     /// </summary>
     public class DirectedGraphJsonSerializer : IDirectedGraphSerializer<JObject>
     {
+        #pragma warning disable 1591
+
         protected const String leafVertexPropertyName = "leafVertex";
         protected const String leafVerticesPropertyName = "leafVertices";
         protected const String nonLeafVertexPropertyName = "nonLeafVertex";
         protected const String nonLeafVerticesPropertyName = "nonLeafVertices";
         protected const String leafToNonLeafEdgesPropertyName = "leafToNonLeafEdges";
         protected const String nonLeafToNonLeafEdgesPropertyName = "nonLeafToNonLeafEdges";
+
+        #pragma warning restore 1591
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Serialization.DirectedGraphJsonSerializer class.
@@ -49,7 +51,7 @@ namespace ApplicationAccess.Serialization
         /// <param name="leafStringifier">A string converter for leaf vertices in the graph.</param>
         /// <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
         /// <returns>A JSON document representing the graph.</returns>
-        public JObject Serialize<TLeaf, TNonLeaf>(DirectedGraph<TLeaf, TNonLeaf> graph, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier)
+        public JObject Serialize<TLeaf, TNonLeaf>(DirectedGraphBase<TLeaf, TNonLeaf> graph, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier)
         {
             var returnDocument = new JObject();
 
@@ -102,13 +104,14 @@ namespace ApplicationAccess.Serialization
         /// <summary>
         /// Deserializes a graph from the specified JSON document.
         /// </summary>
+        /// <typeparam name="TDirectedGraph">The derivation of DirectedGraphBase&lt;TLeaf, TNonLeaf&gt; to create/deserialize to.</typeparam>
         /// <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
         /// <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
         /// <param name="jsonDocument">The JSON document to deserialize the graph from.</param>
         /// <param name="leafStringifier">A string converter for leaf vertices in the graph.</param>
         /// <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
         /// <returns>The deserialized graph.</returns>
-        public DirectedGraph<TLeaf, TNonLeaf> Deserialize<TLeaf, TNonLeaf>(JObject jsonDocument, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier)
+        public TDirectedGraph Deserialize<TDirectedGraph, TLeaf, TNonLeaf>(JObject jsonDocument, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier) where TDirectedGraph : DirectedGraphBase<TLeaf, TNonLeaf>, new()
         {
             foreach (String currentPropertyName in new String[] { leafVerticesPropertyName, nonLeafVerticesPropertyName, leafToNonLeafEdgesPropertyName, nonLeafToNonLeafEdgesPropertyName })
             {
@@ -118,7 +121,7 @@ namespace ApplicationAccess.Serialization
                     throw new ArgumentException($"Property '{currentPropertyName}' in JSON document in parameter '{nameof(jsonDocument)}' is not of type '{typeof(JArray)}'.", nameof(jsonDocument));
             }
 
-            var returnGraph = new DirectedGraph<TLeaf, TNonLeaf>();
+            var returnGraph = new TDirectedGraph();
 
             // Deserialize leaf vertices
             foreach (String currentLeafVertex in (JArray)jsonDocument[leafVerticesPropertyName])

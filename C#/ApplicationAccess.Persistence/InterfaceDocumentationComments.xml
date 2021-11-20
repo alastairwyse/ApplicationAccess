@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<doc>
+  <assembly>
+    <name>ApplicationAccess.Persistence</name>
+  </assembly>
+  <members>
+    <member name="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4">
+      <summary>
+        Defines methods to buffer events which change the structure of an AccessManager class.
+      </summary>
+      <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4.Flush">
+      <summary>
+        Flushes the buffers... i.e. transfers all stored events to another event processor, and clears all items stored in the buffers.
+      </summary>
+    </member>
+    <member name="T:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4">
+      <summary>
+        Defines methods to track/monitor the contents of an IAccessManagerEventBuffer implementation, and an event to flush the buffers.
+      </summary>
+      <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    </member>
+    <member name="E:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.BufferFlushed">
+      <summary>
+        Occurs when the buffers are flushed... i.e. when events stored in the buffers are processed.
+      </summary>
+    </member>
+    <member name="T:ApplicationAccess.Persistence.IAccessManagerEventPersister`4">
+      <summary>
+        Defines methods to persist events which change the structure of an AccessManager class to permanent storage.
+      </summary>
+      <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load">
+      <summary>
+        Loads the access manager from persistent storage.
+      </summary>
+      <returns>The access manager.</returns>
+    </member>
+    <member name="T:ApplicationAccess.Persistence.IDateTimeProvider">
+      <summary>
+        Defines a method which returns the current date and time.
+      </summary>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IDateTimeProvider.Now">
+      <summary>
+        Returns the current date and time.
+      </summary>
+      <returns>The current date and time.</returns>
+    </member>
+  </members>
+</doc>

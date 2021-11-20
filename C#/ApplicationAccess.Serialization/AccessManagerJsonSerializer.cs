@@ -29,6 +29,8 @@ namespace ApplicationAccess.Serialization
     /// </summary>
     public class AccessManagerJsonSerializer : IAccessManagerSerializer<JObject>
     {
+        #pragma warning disable 1591
+
         protected const String userToGroupMapPropertyName = "userToGroupMap";
         protected const String userToComponentMapPropertyName = "userToComponentMap";
         protected const String groupToComponentMapPropertyName = "groupToComponentMap";
@@ -43,6 +45,8 @@ namespace ApplicationAccess.Serialization
         protected const String entityTypePropertyName = "entityType";
         protected const String entityPropertyName = "entity";
         protected const String entitiesPropertyName = "entities";
+
+        #pragma warning restore 1591
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Serialization.AccessManagerJsonSerializer class.
@@ -66,7 +70,7 @@ namespace ApplicationAccess.Serialization
         /// <returns>A JSON document representing the access manager.</returns>
         public JObject Serialize<TUser, TGroup, TComponent, TAccess>
         (
-            AccessManager<TUser, TGroup, TComponent, TAccess> accessManager, 
+            AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager, 
             IUniqueStringifier<TUser> userStringifier, 
             IUniqueStringifier<TGroup> groupStringifier, 
             IUniqueStringifier<TComponent> applicationComponentStringifier, 
@@ -220,6 +224,7 @@ namespace ApplicationAccess.Serialization
         /// <summary>
         /// Deserializes an access manager from the specified JSON document.
         /// </summary>
+        /// <typeparam name="TAccessManager">The derivation of AccessManagerBase&lt;TUser, TGroup, TComponent,TAccess&gt; to create/deserialize to.</typeparam>
         /// <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
         /// <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
         /// <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
@@ -230,7 +235,7 @@ namespace ApplicationAccess.Serialization
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
         /// <returns>The deserialized access manager.</returns>
-        public AccessManager<TUser, TGroup, TComponent, TAccess> Deserialize<TUser, TGroup, TComponent, TAccess>
+        public TAccessManager Deserialize<TAccessManager, TUser, TGroup, TComponent, TAccess>
         (
             JObject jsonDocument, 
             IUniqueStringifier<TUser> userStringifier, 
@@ -238,6 +243,7 @@ namespace ApplicationAccess.Serialization
             IUniqueStringifier<TComponent> applicationComponentStringifier, 
             IUniqueStringifier<TAccess> accessLevelStringifier
         )
+            where TAccessManager : AccessManagerBase<TUser, TGroup, TComponent, TAccess>, new()
         {
             // Check that all top level properties exist and are of the correct type
             if (jsonDocument.ContainsKey(userToGroupMapPropertyName) == false)
@@ -253,12 +259,12 @@ namespace ApplicationAccess.Serialization
             }
 
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
-            var returnAccessManager = new AccessManager<TUser, TGroup, TComponent, TAccess>();
+            var returnAccessManager = new TAccessManager();
 
             // Deserialize the user to group map
             try
             {
-                DirectedGraph<TUser, TGroup> userToGroupMap = directedGraphSerializer.Deserialize<TUser, TGroup>(((JObject)jsonDocument[userToGroupMapPropertyName]), userStringifier, groupStringifier);
+                DirectedGraph<TUser, TGroup> userToGroupMap = directedGraphSerializer.Deserialize<DirectedGraph<TUser, TGroup>, TUser, TGroup>(((JObject)jsonDocument[userToGroupMapPropertyName]), userStringifier, groupStringifier);
                 foreach (TUser currentUser in userToGroupMap.LeafVertices)
                 {
                     returnAccessManager.AddUser(currentUser);
@@ -544,7 +550,7 @@ namespace ApplicationAccess.Serialization
         /// <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
         /// <param name="accessManager">The access manager to extract the user to group mapping data from.</param>
         /// <returns>The user to group mapping structure in the access manager</returns>
-        protected DirectedGraph<TUser, TGroup> ExtractUserToGroupMap<TUser, TGroup, TComponent, TAccess>(AccessManager<TUser, TGroup, TComponent, TAccess> accessManager)
+        protected DirectedGraph<TUser, TGroup> ExtractUserToGroupMap<TUser, TGroup, TComponent, TAccess>(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager)
         {
             var returnGraph = new DirectedGraph<TUser, TGroup>();
 

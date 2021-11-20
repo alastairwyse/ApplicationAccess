@@ -116,7 +116,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("JSON document in parameter 'jsonDocument' does not contain a 'leafVertices' property."));
@@ -133,7 +133,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("JSON document in parameter 'jsonDocument' does not contain a 'leafToNonLeafEdges' property."));
@@ -150,7 +150,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("JSON document in parameter 'jsonDocument' does not contain a 'nonLeafVertices' property."));
@@ -167,7 +167,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("JSON document in parameter 'jsonDocument' does not contain a 'nonLeafToNonLeafEdges' property."));
@@ -185,7 +185,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Property 'leafVertices' in JSON document in parameter 'jsonDocument' is not of type 'Newtonsoft.Json.Linq.JArray'."));
@@ -203,7 +203,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Property 'leafToNonLeafEdges' in JSON document in parameter 'jsonDocument' is not of type 'Newtonsoft.Json.Linq.JArray'."));
@@ -221,7 +221,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Property 'nonLeafVertices' in JSON document in parameter 'jsonDocument' is not of type 'Newtonsoft.Json.Linq.JArray'."));
@@ -239,7 +239,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Property 'nonLeafToNonLeafEdges' in JSON document in parameter 'jsonDocument' is not of type 'Newtonsoft.Json.Linq.JArray'."));
@@ -258,7 +258,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<AccessLevel, String>(testJsonDocument, new EnumUniqueStringifier<AccessLevel>(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<AccessLevel, String>, AccessLevel, String>(testJsonDocument, new EnumUniqueStringifier<AccessLevel>(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to deserialize leaf vertex 'InvalidAccessLevel'"));
@@ -276,7 +276,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, AccessLevel>(testJsonDocument, new StringUniqueStringifier(), new EnumUniqueStringifier<AccessLevel>());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, AccessLevel>, String, AccessLevel>(testJsonDocument, new StringUniqueStringifier(), new EnumUniqueStringifier<AccessLevel>());
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to deserialize non-leaf vertex 'InvalidAccessLevel'"));
@@ -298,7 +298,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Element of property 'leafToNonLeafEdges' in JSON document in parameter 'jsonDocument' does not contain a 'leafVertex' property."));
@@ -321,7 +321,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Element of property 'leafToNonLeafEdges' in JSON document in parameter 'jsonDocument' does not contain a 'nonLeafVertices' property."));
@@ -345,7 +345,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Element of property 'leafToNonLeafEdges' in JSON document in parameter 'jsonDocument' contains a 'leafVertex' property which is not of type 'Newtonsoft.Json.Linq.JValue'."));
@@ -369,7 +369,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Element of property 'leafToNonLeafEdges' in JSON document in parameter 'jsonDocument' contains a 'nonLeafVertices' property which is not of type 'Newtonsoft.Json.Linq.JArray'."));
@@ -394,7 +394,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<AccessLevel, String>(testJsonDocument, new EnumUniqueStringifier<AccessLevel>(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<AccessLevel, String>, AccessLevel, String>(testJsonDocument, new EnumUniqueStringifier<AccessLevel>(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to deserialize leaf to non-leaf edge between leaf vertex 'InvalidAccessLevel' and non-leaf vertex 'Grp1'."));
@@ -414,7 +414,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, AccessLevel>(testJsonDocument, new StringUniqueStringifier(), new EnumUniqueStringifier<AccessLevel>());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, AccessLevel>, String, AccessLevel>(testJsonDocument, new StringUniqueStringifier(), new EnumUniqueStringifier<AccessLevel>());
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to deserialize leaf to non-leaf edge between leaf vertex 'Per1' and non-leaf vertex 'InvalidAccessLevel'."));
@@ -434,7 +434,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to deserialize leaf to non-leaf edge between leaf vertex 'Per1' and non-leaf vertex 'Grp1'."));
@@ -457,7 +457,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Element of property 'nonLeafToNonLeafEdges' in JSON document in parameter 'jsonDocument' does not contain a 'nonLeafVertex' property."));
@@ -480,7 +480,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Element of property 'nonLeafToNonLeafEdges' in JSON document in parameter 'jsonDocument' does not contain a 'nonLeafVertices' property."));
@@ -504,7 +504,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Element of property 'nonLeafToNonLeafEdges' in JSON document in parameter 'jsonDocument' contains a 'nonLeafVertex' property which is not of type 'Newtonsoft.Json.Linq.JValue'."));
@@ -528,7 +528,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Element of property 'nonLeafToNonLeafEdges' in JSON document in parameter 'jsonDocument' contains a 'nonLeafVertices' property which is not of type 'Newtonsoft.Json.Linq.JArray'."));
@@ -553,7 +553,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, AccessLevel>(testJsonDocument, new StringUniqueStringifier(), new EnumUniqueStringifier<AccessLevel>());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, AccessLevel>, String, AccessLevel>(testJsonDocument, new StringUniqueStringifier(), new EnumUniqueStringifier<AccessLevel>());
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to deserialize non-leaf to non-leaf edge between non-leaf vertex 'InvalidAccessLevel' and non-leaf vertex 'View'."));
@@ -573,7 +573,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, AccessLevel>(testJsonDocument, new StringUniqueStringifier(), new EnumUniqueStringifier<AccessLevel>());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, AccessLevel>, String, AccessLevel>(testJsonDocument, new StringUniqueStringifier(), new EnumUniqueStringifier<AccessLevel>());
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to deserialize non-leaf to non-leaf edge between non-leaf vertex 'View' and non-leaf vertex 'InvalidAccessLevel'."));
@@ -593,7 +593,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+                testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to deserialize non-leaf to non-leaf edge between non-leaf vertex 'Grp1' and non-leaf vertex 'Grp2'."));
@@ -609,7 +609,7 @@ namespace ApplicationAccess.Serialization.UnitTests
             testJsonDocument.Add("nonLeafVertices", new JArray());
             testJsonDocument.Add("nonLeafToNonLeafEdges", new JArray());
 
-            testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+            testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
         }
 
         [Test]
@@ -674,7 +674,7 @@ namespace ApplicationAccess.Serialization.UnitTests
                 )
             );
 
-            testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
+            testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier());
         }
 
         [Test]
@@ -684,7 +684,7 @@ namespace ApplicationAccess.Serialization.UnitTests
             CreatePersonGroupGraph(testDirectedGraph);
 
             JObject serializedGraph = testDirectedGraphJsonSerializer.Serialize<String, String>(testDirectedGraph, new StringUniqueStringifier(), new StringUniqueStringifier());
-            DirectedGraph<String, String> result = testDirectedGraphJsonSerializer.Deserialize<String, String>(serializedGraph, new StringUniqueStringifier(), new StringUniqueStringifier());
+            DirectedGraphBase<String, String> result = testDirectedGraphJsonSerializer.Deserialize<DirectedGraph<String, String>, String, String>(serializedGraph, new StringUniqueStringifier(), new StringUniqueStringifier());
 
             var leafVertices = new HashSet<String>(result.LeafVertices);
             Assert.AreEqual(7, leafVertices.Count);

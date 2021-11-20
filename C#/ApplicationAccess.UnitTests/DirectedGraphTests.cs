@@ -542,7 +542,7 @@ namespace ApplicationAccess.UnitTests
         public void TraverseFromLeaf()
         {
             CreatePersonGroupGraph(testDirectedGraph);
-            var visitedNonLeaves = new List<String>();
+            var visitedNonLeaves = new HashSet<String>();
             var vertexAction = new Func<String, Boolean>((String currentVertex) =>
             {
                 visitedNonLeaves.Add(currentVertex);
@@ -553,9 +553,9 @@ namespace ApplicationAccess.UnitTests
             testDirectedGraph.TraverseFromLeaf("Per1", vertexAction);
 
             Assert.AreEqual(3, visitedNonLeaves.Count);
-            Assert.AreEqual("Grp1", visitedNonLeaves[0]);
-            Assert.AreEqual("Grp4", visitedNonLeaves[1]);
-            Assert.AreEqual("Grp3", visitedNonLeaves[2]);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp3"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp4"));
 
 
             visitedNonLeaves.Clear();
@@ -563,10 +563,10 @@ namespace ApplicationAccess.UnitTests
             testDirectedGraph.TraverseFromLeaf("Per3", vertexAction);
 
             Assert.AreEqual(4, visitedNonLeaves.Count);
-            Assert.AreEqual("Grp1", visitedNonLeaves[0]);
-            Assert.AreEqual("Grp4", visitedNonLeaves[1]);
-            Assert.AreEqual("Grp3", visitedNonLeaves[2]);
-            Assert.AreEqual("Grp2", visitedNonLeaves[3]);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp2"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp3"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp4"));
 
 
             visitedNonLeaves.Clear();
@@ -574,7 +574,7 @@ namespace ApplicationAccess.UnitTests
             testDirectedGraph.TraverseFromLeaf("Per7", vertexAction);
 
             Assert.AreEqual(1, visitedNonLeaves.Count);
-            Assert.AreEqual("Grp3", visitedNonLeaves[0]);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp3"));
         }
 
         [Test]
@@ -583,28 +583,6 @@ namespace ApplicationAccess.UnitTests
             CreatePersonGroupGraph(testDirectedGraph);
             var visitedNonLeaves = new HashSet<String>();
             var vertexAction = new Func<String, Boolean>((String currentVertex) =>
-            {
-                visitedNonLeaves.Add(currentVertex);
-
-                if (currentVertex == "Grp4")
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            });
-
-            testDirectedGraph.TraverseFromLeaf("Per1", vertexAction);
-
-            Assert.AreEqual(2, visitedNonLeaves.Count);
-            Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
-            Assert.IsTrue(visitedNonLeaves.Contains("Grp4"));
-
-
-            visitedNonLeaves.Clear();
-            vertexAction = new Func<String, Boolean>((String currentVertex) =>
             {
                 visitedNonLeaves.Add(currentVertex);
 
@@ -618,10 +596,11 @@ namespace ApplicationAccess.UnitTests
                 }
             });
 
-            testDirectedGraph.TraverseFromLeaf("Per1", vertexAction);
+            testDirectedGraph.TraverseFromLeaf("Per3", vertexAction);
 
-            Assert.AreEqual(1, visitedNonLeaves.Count);
+            Assert.GreaterOrEqual(visitedNonLeaves.Count, 1);
             Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
+            Assert.IsFalse(visitedNonLeaves.Contains("Grp4"));
         }
 
         [Test]
@@ -640,7 +619,7 @@ namespace ApplicationAccess.UnitTests
         public void TraverseFromNonLeaf()
         {
             CreatePersonGroupGraph(testDirectedGraph);
-            var visitedNonLeaves = new List<String>();
+            var visitedNonLeaves = new HashSet<String>();
             var vertexAction = new Func<String, Boolean>((String currentVertex) =>
             {
                 visitedNonLeaves.Add(currentVertex);
@@ -651,9 +630,9 @@ namespace ApplicationAccess.UnitTests
             testDirectedGraph.TraverseFromNonLeaf("Grp1", vertexAction);
 
             Assert.AreEqual(3, visitedNonLeaves.Count);
-            Assert.AreEqual("Grp1", visitedNonLeaves[0]);
-            Assert.AreEqual("Grp4", visitedNonLeaves[1]);
-            Assert.AreEqual("Grp3", visitedNonLeaves[2]);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp3"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp4"));
 
 
             visitedNonLeaves.Clear();
@@ -661,8 +640,8 @@ namespace ApplicationAccess.UnitTests
             testDirectedGraph.TraverseFromNonLeaf("Grp2", vertexAction);
 
             Assert.AreEqual(2, visitedNonLeaves.Count);
-            Assert.AreEqual("Grp2", visitedNonLeaves[0]);
-            Assert.AreEqual("Grp3", visitedNonLeaves[1]);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp2"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp3"));
 
 
             visitedNonLeaves.Clear();
@@ -670,7 +649,7 @@ namespace ApplicationAccess.UnitTests
             testDirectedGraph.TraverseFromNonLeaf("Grp3", vertexAction);
 
             Assert.AreEqual(1, visitedNonLeaves.Count);
-            Assert.AreEqual("Grp3", visitedNonLeaves[0]);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp3"));
         }
 
         [Test]
@@ -694,7 +673,7 @@ namespace ApplicationAccess.UnitTests
 
             testDirectedGraph.TraverseFromNonLeaf("Grp1", vertexAction);
 
-            Assert.AreEqual(2, visitedNonLeaves.Count);
+            Assert.GreaterOrEqual(visitedNonLeaves.Count, 2);
             Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
             Assert.IsTrue(visitedNonLeaves.Contains("Grp4"));
 
@@ -762,6 +741,9 @@ namespace ApplicationAccess.UnitTests
         {
             testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>();
             CreatePersonGroupGraph(testDirectedGraph);
+            // Add a group which is only connected to 'Per3' (hence should not be traversed to if traversal stops at 'Per3')
+            testDirectedGraph.AddNonLeafVertex("Grp5");
+            testDirectedGraph.AddLeafToNonLeafEdge("Per3", "Grp5");
             var visitedLeaves = new HashSet<String>();
             var visitedNonLeaves = new HashSet<String>();
             var leafVertexAction = new Func<String, Boolean>((String currentLeafVertex) =>
@@ -786,14 +768,9 @@ namespace ApplicationAccess.UnitTests
 
             ((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).TraverseGraph(leafVertexAction, nonLeafVertexAction);
 
-            Assert.AreEqual(3, visitedLeaves.Count);
-            Assert.IsTrue(visitedLeaves.Contains("Per1"));
-            Assert.IsTrue(visitedLeaves.Contains("Per2"));
+            Assert.GreaterOrEqual(visitedLeaves.Count, 1);
             Assert.IsTrue(visitedLeaves.Contains("Per3"));
-            Assert.AreEqual(3, visitedNonLeaves.Count);
-            Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
-            Assert.IsTrue(visitedNonLeaves.Contains("Grp4"));
-            Assert.IsTrue(visitedNonLeaves.Contains("Grp3"));
+            Assert.IsFalse(visitedNonLeaves.Contains("Grp5"));
         }
 
         [Test]
@@ -801,6 +778,9 @@ namespace ApplicationAccess.UnitTests
         {
             testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>();
             CreatePersonGroupGraph(testDirectedGraph);
+            // Add a group which is only connected to 'Grp2' (hence should not be traversed to if traversal stops at 'Grp2')
+            testDirectedGraph.AddNonLeafVertex("Grp5");
+            testDirectedGraph.AddNonLeafToNonLeafEdge("Grp2", "Grp5");
             var visitedLeaves = new HashSet<String>();
             var visitedNonLeaves = new HashSet<String>();
             var leafVertexAction = new Func<String, Boolean>((String currentLeafVertex) =>
@@ -813,7 +793,7 @@ namespace ApplicationAccess.UnitTests
             {
                 visitedNonLeaves.Add(currentNonLeafVertex);
 
-                if (currentNonLeafVertex == "Grp4")
+                if (currentNonLeafVertex == "Grp2")
                 {
                     return false;
                 }
@@ -825,11 +805,11 @@ namespace ApplicationAccess.UnitTests
 
             ((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).TraverseGraph(leafVertexAction, nonLeafVertexAction);
 
-            Assert.AreEqual(1, visitedLeaves.Count);
-            Assert.IsTrue(visitedLeaves.Contains("Per1"));
-            Assert.AreEqual(2, visitedNonLeaves.Count);
-            Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
-            Assert.IsTrue(visitedNonLeaves.Contains("Grp4"));
+            Assert.GreaterOrEqual(visitedLeaves.Count, 1);
+            Assert.IsTrue(visitedLeaves.Contains("Per3") || visitedLeaves.Contains("Per4") || visitedLeaves.Contains("Per5") || visitedLeaves.Contains("Per6"));
+            Assert.GreaterOrEqual(visitedNonLeaves.Count, 1);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp2"));
+            Assert.IsFalse(visitedNonLeaves.Contains("Grp5"));
         }
 
         #region Private/Protected Methods
@@ -892,7 +872,7 @@ namespace ApplicationAccess.UnitTests
             /// <summary>
             /// >The edges which join leaf and non-left vertices within the graph.
             /// </summary>
-            public Dictionary<TLeaf, HashSet<TNonLeaf>> LeafToNonLeafEdges
+            public IDictionary<TLeaf, ISet<TNonLeaf>> LeafToNonLeafEdges
             {
                 get { return leafToNonLeafEdges; }
             }
@@ -900,7 +880,7 @@ namespace ApplicationAccess.UnitTests
             /// <summary>
             /// The edges which join non-leaf and non-left vertices within the graph.
             /// </summary>
-            public Dictionary<TNonLeaf, HashSet<TNonLeaf>> NonLeafToNonLeafEdges
+            public IDictionary<TNonLeaf, ISet<TNonLeaf>> NonLeafToNonLeafEdges
             {
                 get { return nonLeafToNonLeafEdges; }
             }

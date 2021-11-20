@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ApplicationAccess.Serialization</name>
+    </assembly>
+    <members>
+        <member name="T:ApplicationAccess.Serialization.AccessManagerJsonSerializer">
+            <summary>
+            Serializes and deserializes an AccessManager to and from a JSON document.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Serialization.AccessManagerJsonSerializer class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})">
+            <summary>
+            Serializes the specified access manager to a JSON document.
+            </summary>
+            <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
+            <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
+            <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
+            <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
+            <param name="accessManager">The access manager to serialize.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <returns>A JSON document representing the access manager.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.Deserialize``5(Newtonsoft.Json.Linq.JObject,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.IUniqueStringifier{``4})">
+            <summary>
+            Deserializes an access manager from the specified JSON document.
+            </summary>
+            <typeparam name="TAccessManager">The derivation of AccessManagerBase&lt;TUser, TGroup, TComponent,TAccess&gt; to create/deserialize to.</typeparam>
+            <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
+            <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
+            <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
+            <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
+            <param name="jsonDocument">The JSON document to deserialize the access manager from.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <returns>The deserialized access manager.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.DeserializeEntityStructure(Newtonsoft.Json.Linq.JArray,System.String)">
+            <summary>
+            Deserializes an entity type to entity mapping structure from the specified JSON array.
+            </summary>
+            <param name="entityTypesValue">The JSON array to deserialize the structure from.</param>
+            <param name="jsonDocumentParameterName">The name of the JSON document parameter the array was read from.</param>
+            <returns>A dictionary containing the entity structure.</returns>
+            <remarks>Several internal members of the AccessManager class use a Dictionary&lt;String, HashSet&lt;String&gt;&gt; to store entity type to entity mapping.  This method provides a common deserialization routine for them.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.ExtractUserToGroupMap``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3})">
+            <summary>
+            Replicates and returns DirectedGraph representing the user to group mapping structure in the specified access manager.
+            </summary>
+            <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
+            <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
+            <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
+            <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
+            <param name="accessManager">The access manager to extract the user to group mapping data from.</param>
+            <returns>The user to group mapping structure in the access manager</returns>
+        </member>
+        <member name="T:ApplicationAccess.Serialization.DeserializationException">
+            <summary>
+            The exception that is thrown when deserialization fails.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.DeserializationException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Serialization.DeserializationException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.DeserializationException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Serialization.DeserializationException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="innerException">The exception that is the cause of the current exception.</param>
+        </member>
+        <member name="T:ApplicationAccess.Serialization.DirectedGraphJsonSerializer">
+            <summary>
+            Serializes and deserializes a DirectedGraph to and from a JSON document.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.DirectedGraphJsonSerializer.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Serialization.DirectedGraphJsonSerializer class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.DirectedGraphJsonSerializer.Serialize``2(ApplicationAccess.DirectedGraphBase{``0,``1},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1})">
+            <summary>
+            Serializes the specified graph to a JSON document.
+            </summary>
+            <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+            <param name="graph">The directed graph to serialize.</param>
+            <param name="leafStringifier">A string converter for leaf vertices in the graph.</param>
+            <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
+            <returns>A JSON document representing the graph.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.DirectedGraphJsonSerializer.Deserialize``3(Newtonsoft.Json.Linq.JObject,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2})">
+            <summary>
+            Deserializes a graph from the specified JSON document.
+            </summary>
+            <typeparam name="TDirectedGraph">The derivation of DirectedGraphBase&lt;TLeaf, TNonLeaf&gt; to create/deserialize to.</typeparam>
+            <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
+            <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
+            <param name="jsonDocument">The JSON document to deserialize the graph from.</param>
+            <param name="leafStringifier">A string converter for leaf vertices in the graph.</param>
+            <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
+            <returns>The deserialized graph.</returns>
+        </member>
+        <member name="T:ApplicationAccess.Serialization.IAccessManagerSerializer`1">
+            <summary>
+        Defines methods to serialize and deserialize an AccessManager.
+      </summary><typeparam name="TSerializedObject">The type of object to serialize to and from.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Deserialize``5(`0,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.IUniqueStringifier{``4})">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.Deserialize``5(Newtonsoft.Json.Linq.JObject,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.IUniqueStringifier{``4})&quot;]/*" />
+        </member>
+        <member name="T:ApplicationAccess.Serialization.IDirectedGraphSerializer`1">
+            <summary>
+        Defines methods to serialize and deserialize a DirectedGraph.
+      </summary><typeparam name="TSerializedObject">The type of object to serialize to and from.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Serialization.IDirectedGraphSerializer`1.Serialize``2(ApplicationAccess.DirectedGraphBase{``0,``1},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1})">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.Serialization.DirectedGraphJsonSerializer.Serialize``2(ApplicationAccess.DirectedGraphBase{``0,``1},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1})&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Serialization.IDirectedGraphSerializer`1.Deserialize``3(`0,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2})">
+            <summary>
+        Deserializes a graph.
+      </summary><typeparam name="TDirectedGraph">The derivation of DirectedGraphBase&lt;TLeaf, TNonLeaf&gt; to create/deserialize to.</typeparam><typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam><typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam><param name="serializedGraph">The object to deserialize the graph from.</param><param name="leafStringifier">&gt;A string converter for leaf vertices in the graph.</param><param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param><returns>The deserialized graph.</returns>
+        </member>
+    </members>
+</doc>

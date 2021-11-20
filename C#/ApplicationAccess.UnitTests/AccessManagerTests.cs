@@ -630,11 +630,11 @@ namespace ApplicationAccess.UnitTests
 
             testAccessManager.RemoveEntityType("ClientAccount");
 
-            foreach (KeyValuePair<String, Dictionary<String, HashSet<String>>> currentKvp in testAccessManager.UserToEntityMap)
+            foreach (KeyValuePair<String, IDictionary<String, ISet<String>>> currentKvp in testAccessManager.UserToEntityMap)
             {
                 Assert.False(currentKvp.Value.ContainsKey("ClientAccount"));
             }
-            foreach (KeyValuePair<String, Dictionary<String, HashSet<String>>> currentKvp in testAccessManager.GroupToEntityMap)
+            foreach (KeyValuePair<String, IDictionary<String, ISet<String>>> currentKvp in testAccessManager.GroupToEntityMap)
             {
                 Assert.False(currentKvp.Value.ContainsKey("ClientAccount"));
             }
@@ -762,14 +762,14 @@ namespace ApplicationAccess.UnitTests
 
             testAccessManager.RemoveEntity("ClientAccount", "CompanyB");
 
-            foreach (KeyValuePair<String, Dictionary<String, HashSet<String>>> currentKvp in testAccessManager.UserToEntityMap)
+            foreach (KeyValuePair<String, IDictionary<String, ISet<String>>> currentKvp in testAccessManager.UserToEntityMap)
             {
                 if (currentKvp.Value.ContainsKey("ClientAccount"))
                 {
                     Assert.False(currentKvp.Value["ClientAccount"].Contains("CompanyB"));
                 }
             }
-            foreach (KeyValuePair<String, Dictionary<String, HashSet<String>>> currentKvp in testAccessManager.GroupToEntityMap)
+            foreach (KeyValuePair<String, IDictionary<String, ISet<String>>> currentKvp in testAccessManager.GroupToEntityMap)
             {
                 if (currentKvp.Value.ContainsKey("ClientAccount"))
                 {
@@ -1515,22 +1515,6 @@ namespace ApplicationAccess.UnitTests
 
         #region Nested Classes
 
-        protected enum ApplicationScreen
-        {
-            Order, 
-            Summary, 
-            ManageProducts, 
-            Settings
-        }
-
-        protected enum AccessLevel
-        {
-            View, 
-            Create, 
-            Modify, 
-            Delete
-        }
-
         /// <summary>
         /// Version of the AccessManager class where protected members are exposed as public so that they can be unit tested.
         /// </summary>
@@ -1541,25 +1525,25 @@ namespace ApplicationAccess.UnitTests
         private class AccessManagerWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManager<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>The DirectedGraph which stores the user to group mappings.</summary>
-            public DirectedGraph<TUser, TGroup> UserToGroupMap
+            public DirectedGraphBase<TUser, TGroup> UserToGroupMap
             {
                 get { return userToGroupMap; }
             }
 
             /// <summary>Holds all valid entity types and values within the manager.  The Dictionary key holds the types of all entities, and each respective value holds the valid entity values within that type (e.g. the entity type could be 'ClientAccount', and values could be the names of all client accounts).</summary>
-            public Dictionary<String, HashSet<String>> Entities
+            public IDictionary<String, ISet<String>> Entities
             {
                 get { return entities; }
             }
 
             /// <summary>A dictionary which stores user to entity mappings.  The value stores another dictionary whose key contains the entity type and whose value contains the name of all entities of the specified type which are mapped to the user.</summary>
-            public Dictionary<TUser, Dictionary<String, HashSet<String>>> UserToEntityMap
+            public IDictionary<TUser, IDictionary<String, ISet<String>>> UserToEntityMap
             {
                 get { return userToEntityMap; }
             }
 
             /// <summary>A dictionary which stores group to entity mappings.  The value stores another dictionary whose key contains the entity type and whose value contains the name of all entities of the specified type which are mapped to the group.</summary>
-            public Dictionary<TGroup, Dictionary<String, HashSet<String>>> GroupToEntityMap
+            public IDictionary<TGroup, IDictionary<String, ISet<String>>> GroupToEntityMap
             {
                 get { return groupToEntityMap; }
             }

@@ -12,6 +12,10 @@
     <PackageTags>application access authorization authorisation permission permissions user group users groups serialize deserialize serialization deserialization json</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>ApplicationAccess.Serialization.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
