@@ -32,6 +32,56 @@
         Occurs when the buffers are flushed... i.e. when events stored in the buffers are processed.
       </summary>
     </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount">
+      <summary>
+        The number of user events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupEventBufferItemCount">
+      <summary>
+        The number of group events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount">
+      <summary>
+        The number of user to group mapping events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount">
+      <summary>
+        The number of group to group mapping events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+      <summary>
+        The number of user to application component and access level mapping events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+      <summary>
+        The number of group to application component and access level mapping events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityTypeEventBufferItemCount">
+      <summary>
+        The number of entity type events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityEventBufferItemCount">
+      <summary>
+        The number of entity events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount">
+      <summary>
+        The number of user to entity mapping events stored in the buffer.
+      </summary>
+    </member>
+    <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount">
+      <summary>
+        The number of group to entity mapping events stored in the buffer.
+      </summary>
+    </member>
     <member name="T:ApplicationAccess.Persistence.IAccessManagerEventPersister`4">
       <summary>
         Defines methods to persist events which change the structure of an AccessManager class to permanent storage.

@@ -247,6 +247,56 @@
         Occurs when the buffers are flushed... i.e. when events stored in the buffers are processed.
       </summary>
         </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount">
+            <summary>
+        The number of user events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupEventBufferItemCount">
+            <summary>
+        The number of group events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount">
+            <summary>
+        The number of user to group mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount">
+            <summary>
+        The number of group to group mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+            <summary>
+        The number of user to application component and access level mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+            <summary>
+        The number of group to application component and access level mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityTypeEventBufferItemCount">
+            <summary>
+        The number of entity type events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityEventBufferItemCount">
+            <summary>
+        The number of entity events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount">
+            <summary>
+        The number of user to entity mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount">
+            <summary>
+        The number of group to entity mapping events stored in the buffer.
+      </summary>
+        </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerEventPersister`4">
             <summary>
         Defines methods to persist events which change the structure of an AccessManager class to permanent storage.
@@ -596,7 +646,7 @@
             <param name="nextSequenceNumbers">The min-heap to add the event to.</param>
             <param name="eventBufferEnum">The enum representing the event buffer.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.MoveEventsToTemporaryQueue``2(``0@,``0@,System.Object,System.Int64)">
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.MoveEventsToTemporaryQueue``2(``0@,``0@,System.Object,System.Int64,System.Action{System.Int32})">
             <summary>
             Moves all events with sequence number below or equal to that specified, from an event buffer to a temporary event buffer.
             </summary>
@@ -606,6 +656,7 @@
             <param name="temporaryEventBuffer">The temporary event buffer to move events to.</param>
             <param name="eventBufferLockObject">Lock object used to serialize access to the event buffer parameter.</param>
             <param name="maxSequenceNumber">The maximum (inclusive) sequence number of events to move.  Only events with a sequence number below or equal to this maximum will be moved.</param>
+            <param name="bufferFlushStrategyEventCountSetAction">An action which sets the relevant 'EventBufferItemCount' property on the 'bufferFlushStrategy' member.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.InvokeEventPersisterAction(System.Action{ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3}},System.String)">
             <summary>
@@ -777,6 +828,182 @@
             <param name="group">The group in the mapping.</param>
             <param name="occurredTime">The time that the event originally occurred.</param>
             <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4">
+            <summary>
+            Provides common base functionality for implementations of IAccessManagerEventBufferFlushStrategy which use a worker thread to perform buffer flushes.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.userEventsBuffered">
+            <summary>The number of user events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupEventsBuffered">
+            <summary>The number of group events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.userToGroupMappingEventsBuffered">
+            <summary>The number of user to group mapping events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupToGroupMappingEventsBuffered">
+            <summary>The number of group to group mapping events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.userToApplicationComponentAndAccessLevelMappingEventsBuffered">
+            <summary>The number of user to application component and access level mapping events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupToApplicationComponentAndAccessLevelMappingEventsBuffered">
+            <summary>The number of group to application component and access level mapping events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.entityTypeEventsBuffered">
+            <summary>The number of entity type events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.entityEventsBuffered">
+            <summary>The number of entity events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.userToEntityMappingEventsBuffered">
+            <summary>The number of user to entity mapping events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupToEntityMappingEventsBuffered">
+            <summary>The number of group to entity mapping events currently buffered</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.bufferFlushingWorkerThread">
+            <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.flushingException">
+            <summary>Set with any exception which occurrs on the worker thread when flushing the buffers.  Null if no exception has occurred.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.stopMethodCalled">
+            <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.flushRemainingBufferedEventsOnStop">
+            <summary>Whether any events remaining in the buffers should be flushed when the Stop() method is called.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.workerThreadCompleteSignal">
+            <summary>Signal that is set when the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.FlushingException">
+            <summary>
+            Contains an exception which occurred on the worker thread during buffer flushing.  Null if no exception has occurred.
+            </summary>
+        </member>
+        <member name="E:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.BufferFlushed">
+            <summary>
+        Occurs when the buffers are flushed... i.e. when events stored in the buffers are processed.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.UserEventBufferItemCount">
+            <summary>
+        The number of user events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.GroupEventBufferItemCount">
+            <summary>
+        The number of group events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.UserToGroupMappingEventBufferItemCount">
+            <summary>
+        The number of user to group mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.GroupToGroupMappingEventBufferItemCount">
+            <summary>
+        The number of group to group mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+            <summary>
+        The number of user to application component and access level mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+            <summary>
+        The number of group to application component and access level mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.EntityTypeEventBufferItemCount">
+            <summary>
+        The number of entity type events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.EntityEventBufferItemCount">
+            <summary>
+        The number of entity events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.UserToEntityMappingEventBufferItemCount">
+            <summary>
+        The number of user to entity mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.GroupToEntityMappingEventBufferItemCount">
+            <summary>
+        The number of group to entity mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.#ctor(System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
+            </summary>
+            <param name="flushRemainingBufferedEventsOnStop">Whether any events remaining in the buffers should be flushed when the Stop() method is called.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Start">
+            <summary>
+            Starts the worker thread which performs buffer flushes.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Stop">
+            <summary>
+            Stops the worker thread which performs buffer flushes.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.BufferFlushingAction">
+            <summary>
+            The action to execute on the worker thread that implements the buffer flush strategy.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.JoinWorkerThread">
+            <summary>
+            Calls Join() on the worker thread, waiting until it terminates.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.CheckAndThrowFlushingException">
+            <summary>
+            Checks whether property 'FlushingException' has been set, and re-throws the exception in the case that it has.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.TotalEventsBufferred">
+            <summary>
+            The total number of events currently stored across all buffers.
+            </summary>
+            <remarks>Note that the counter members accessed in this property may be accessed by multiple threads (i.e. the worker thread in member bufferFlushingWorkerThread and the client code in the main thread).  This property should only be read from methods which have locks around the queues in the corresponding InMemoryEventBuffer class (e.g. overrides of the virtual 'Notify' methods defined in this class, which are called from the AddUser(), AddGroup(), etc... methods in the InMemoryEventBuffer class).</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.OnBufferFlushed(System.EventArgs)">
+            <summary>
+            Raises the BufferFlushed event.
+            </summary>
+            <param name="e">An EventArgs that contains the event data.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the WorkerThreadBufferFlushStrategyBase.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
         </member>
     </members>
 </doc>

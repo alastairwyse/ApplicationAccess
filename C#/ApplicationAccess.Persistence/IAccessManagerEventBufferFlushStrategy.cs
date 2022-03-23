@@ -19,9 +19,69 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4"]/*'/>
-    public interface IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
+    public interface IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess>
     {
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="E:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.BufferFlushed"]/*'/>
         event EventHandler BufferFlushed;
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount"]/*'/>
+        Int32 UserEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupEventBufferItemCount"]/*'/>
+        Int32 GroupEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount"]/*'/>
+        Int32 UserToGroupMappingEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount"]/*'/>
+        Int32 GroupToGroupMappingEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        Int32 UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        Int32 GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityTypeEventBufferItemCount"]/*'/>
+        Int32 EntityTypeEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityEventBufferItemCount"]/*'/>
+        Int32 EntityEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount"]/*'/>
+        Int32 UserToEntityMappingEventBufferItemCount
+        {
+            set;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount"]/*'/>
+        Int32 GroupToEntityMappingEventBufferItemCount
+        {
+            set;
+        }
     }
 }

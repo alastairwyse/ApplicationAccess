@@ -79,7 +79,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddUser(user);
 
-            mockBufferFlushStrategy.Received(1).AddUser(user);
+            mockBufferFlushStrategy.Received(1).UserEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.UserEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.UserEventBuffer.First.Value.EventAction);
             Assert.AreEqual(user, testInMemoryEventBuffer.UserEventBuffer.First.Value.User);
@@ -121,7 +121,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveUser(user);
 
-            mockBufferFlushStrategy.Received(1).RemoveUser(user);
+            mockBufferFlushStrategy.Received(1).UserEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.UserEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.UserEventBuffer.First.Value.EventAction);
             Assert.AreEqual(user, testInMemoryEventBuffer.UserEventBuffer.First.Value.User);
@@ -163,7 +163,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddGroup(group);
 
-            mockBufferFlushStrategy.Received(1).AddGroup(group);
+            mockBufferFlushStrategy.Received(1).GroupEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.GroupEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.GroupEventBuffer.First.Value.EventAction);
             Assert.AreEqual(group, testInMemoryEventBuffer.GroupEventBuffer.First.Value.Group);
@@ -205,7 +205,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveGroup(group);
 
-            mockBufferFlushStrategy.Received(1).RemoveGroup(group);
+            mockBufferFlushStrategy.Received(1).GroupEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.GroupEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.GroupEventBuffer.First.Value.EventAction);
             Assert.AreEqual(group, testInMemoryEventBuffer.GroupEventBuffer.First.Value.Group);
@@ -248,7 +248,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddUserToGroupMapping(user, group);
 
-            mockBufferFlushStrategy.Received(1).AddUserToGroupMapping(user, group);
+            mockBufferFlushStrategy.Received(1).UserToGroupMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(user, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.User);
@@ -293,7 +293,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveUserToGroupMapping(user, group);
 
-            mockBufferFlushStrategy.Received(1).RemoveUserToGroupMapping(user, group);
+            mockBufferFlushStrategy.Received(1).UserToGroupMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(user, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.User);
@@ -338,7 +338,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
 
-            mockBufferFlushStrategy.Received(1).AddGroupToGroupMapping(fromGroup, toGroup);
+            mockBufferFlushStrategy.Received(1).GroupToGroupMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(fromGroup, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.FromGroup);
@@ -383,7 +383,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
 
-            mockBufferFlushStrategy.Received(1).RemoveGroupToGroupMapping(fromGroup, toGroup);
+            mockBufferFlushStrategy.Received(1).GroupToGroupMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(fromGroup, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.FromGroup);
@@ -427,7 +427,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
 
-            mockBufferFlushStrategy.Received(1).AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
+            mockBufferFlushStrategy.Received(1).UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(user, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User);
@@ -471,7 +471,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
 
-            mockBufferFlushStrategy.Received(1).RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
+            mockBufferFlushStrategy.Received(1).UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(user, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User);
@@ -515,7 +515,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
 
-            mockBufferFlushStrategy.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
+            mockBufferFlushStrategy.Received(1).GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(group, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group);
@@ -559,7 +559,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
 
-            mockBufferFlushStrategy.Received(1).RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
+            mockBufferFlushStrategy.Received(1).GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(group, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group);
@@ -603,7 +603,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddEntityType(entityType);
 
-            mockBufferFlushStrategy.Received(1).AddEntityType(entityType);
+            mockBufferFlushStrategy.Received(1).EntityTypeEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.EntityTypeEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.EventAction);
             Assert.AreEqual(entityType, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.EntityType);
@@ -645,7 +645,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveEntityType(entityType);
 
-            mockBufferFlushStrategy.Received(1).RemoveEntityType(entityType);
+            mockBufferFlushStrategy.Received(1).EntityTypeEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.EntityTypeEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.EventAction);
             Assert.AreEqual(entityType, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.EntityType);
@@ -688,7 +688,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddEntity(entityType, entity);
 
-            mockBufferFlushStrategy.Received(1).AddEntity(entityType, entity);
+            mockBufferFlushStrategy.Received(1).EntityEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.EntityEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.EntityEventBuffer.First.Value.EventAction);
             Assert.AreEqual(entityType, testInMemoryEventBuffer.EntityEventBuffer.First.Value.EntityType);
@@ -733,7 +733,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveEntity(entityType, entity);
 
-            mockBufferFlushStrategy.Received(1).RemoveEntity(entityType, entity);
+            mockBufferFlushStrategy.Received(1).EntityEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.EntityEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.EntityEventBuffer.First.Value.EventAction);
             Assert.AreEqual(entityType, testInMemoryEventBuffer.EntityEventBuffer.First.Value.EntityType);
@@ -779,7 +779,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddUserToEntityMapping(user, entityType, entity);
 
-            mockBufferFlushStrategy.Received(1).AddUserToEntityMapping(user, entityType, entity);
+            mockBufferFlushStrategy.Received(1).UserToEntityMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(user, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.User);
@@ -827,7 +827,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveUserToEntityMapping(user, entityType, entity);
 
-            mockBufferFlushStrategy.Received(1).RemoveUserToEntityMapping(user, entityType, entity);
+            mockBufferFlushStrategy.Received(1).UserToEntityMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(user, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.User);
@@ -875,7 +875,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.AddGroupToEntityMapping(group, entityType, entity);
 
-            mockBufferFlushStrategy.Received(1).AddGroupToEntityMapping(group, entityType, entity);
+            mockBufferFlushStrategy.Received(1).GroupToEntityMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(group, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.Group);
@@ -923,7 +923,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testInMemoryEventBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
 
-            mockBufferFlushStrategy.Received(1).RemoveGroupToEntityMapping(group, entityType, entity);
+            mockBufferFlushStrategy.Received(1).GroupToEntityMappingEventBufferItemCount = 1;
             Assert.AreEqual(1, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.Count);
             Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.EventAction);
             Assert.AreEqual(group, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.Group);
@@ -1391,6 +1391,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         [Test]
         public void Flush()
         {
+            mockBufferFlushStrategy.ClearReceivedCalls();
             mockDateTimeProvider.UtcNow().Returns<DateTime>
             (
                 CreateDataTimeFromString("2021-06-12 13:43:00"),
@@ -1428,7 +1429,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             testInMemoryEventBuffer.AddGroup("group1");
             testInMemoryEventBuffer.AddUser("user1");
             testInMemoryEventBuffer.AddUser("user2");
-            testInMemoryEventBuffer.AddUser("group2");
+            testInMemoryEventBuffer.AddGroup("group2");
             testInMemoryEventBuffer.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View);
             testInMemoryEventBuffer.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
             testInMemoryEventBuffer.AddGroupToGroupMapping("group1", "group2");
@@ -1445,7 +1446,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             testInMemoryEventBuffer.RemoveGroupToGroupMapping("group1", "group2");
             testInMemoryEventBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
             testInMemoryEventBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View);
-            testInMemoryEventBuffer.RemoveUser("group2");
+            testInMemoryEventBuffer.RemoveGroup("group2");
             testInMemoryEventBuffer.RemoveUser("user2");
             testInMemoryEventBuffer.RemoveUser("user1");
             testInMemoryEventBuffer.RemoveGroup("group1");
@@ -1455,35 +1456,77 @@ namespace ApplicationAccess.Persistence.UnitTests
             testInMemoryEventBuffer.Flush();
 
             Received.InOrder(() => {
-                mockEventPersister.Received(1).AddEntityType("Clients", CreateDataTimeFromString("2021-06-12 13:43:00"));
-                mockEventPersister.Received(1).AddEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:01"));
-                mockEventPersister.Received(1).AddGroup("group1", CreateDataTimeFromString("2021-06-12 13:43:02"));
-                mockEventPersister.Received(1).AddUser("user1", CreateDataTimeFromString("2021-06-12 13:43:03"));
-                mockEventPersister.Received(1).AddUser("user2", CreateDataTimeFromString("2021-06-12 13:43:04"));
-                mockEventPersister.Received(1).AddUser("group2", CreateDataTimeFromString("2021-06-12 13:43:05"));
-                mockEventPersister.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View, CreateDataTimeFromString("2021-06-12 13:43:06"));
-                mockEventPersister.Received(1).AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify, CreateDataTimeFromString("2021-06-12 13:43:07"));
-                mockEventPersister.Received(1).AddGroupToGroupMapping("group1", "group2", CreateDataTimeFromString("2021-06-12 13:43:08"));
-                mockEventPersister.Received(1).AddUserToGroupMapping("user1", "group2", CreateDataTimeFromString("2021-06-12 13:43:09"));
-                mockEventPersister.Received(1).AddGroupToEntityMapping("group2", "Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:10"));
-                mockEventPersister.Received(1).AddUserToGroupMapping("user2", "group1", CreateDataTimeFromString("2021-06-12 13:43:11"));
-                mockEventPersister.Received(1).AddUserToEntityMapping("user1", "Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:12"));
-                mockEventPersister.Received(1).AddEntity("Clients", "CompanyB", CreateDataTimeFromString("2021-06-12 13:43:13"));
-                mockEventPersister.Received(1).RemoveEntity("Clients", "CompanyB", CreateDataTimeFromString("2021-06-12 13:43:14"));
-                mockEventPersister.Received(1).RemoveUserToEntityMapping("user1", "Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:15"));
-                mockEventPersister.Received(1).RemoveUserToGroupMapping("user2", "group1", CreateDataTimeFromString("2021-06-12 13:43:16"));
-                mockEventPersister.Received(1).RemoveGroupToEntityMapping("group2", "Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:17"));
-                mockEventPersister.Received(1).RemoveUserToGroupMapping("user1", "group2", CreateDataTimeFromString("2021-06-12 13:43:18"));
-                mockEventPersister.Received(1).RemoveGroupToGroupMapping("group1", "group2", CreateDataTimeFromString("2021-06-12 13:43:19"));
-                mockEventPersister.Received(1).RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify, CreateDataTimeFromString("2021-06-12 13:43:20"));
-                mockEventPersister.Received(1).RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View, CreateDataTimeFromString("2021-06-12 13:43:21"));
-                mockEventPersister.Received(1).RemoveUser("group2", CreateDataTimeFromString("2021-06-12 13:43:22"));
-                mockEventPersister.Received(1).RemoveUser("user2", CreateDataTimeFromString("2021-06-12 13:43:23"));
-                mockEventPersister.Received(1).RemoveUser("user1", CreateDataTimeFromString("2021-06-12 13:43:24"));
-                mockEventPersister.Received(1).RemoveGroup("group1", CreateDataTimeFromString("2021-06-12 13:43:25"));
-                mockEventPersister.Received(1).RemoveEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:26"));
-                mockEventPersister.Received(1).RemoveEntityType("Clients", CreateDataTimeFromString("2021-06-12 13:43:27"));
+                // These get called as the initial events are buffered
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 1;
+                mockBufferFlushStrategy.UserEventBufferItemCount = 1;
+                mockBufferFlushStrategy.UserEventBufferItemCount = 2;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 2;
+                mockBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 2;
+                mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 2;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 3;
+                mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 2;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 3;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 2;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 4;
+                mockBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 2;
+                mockBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 2;
+                mockBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 2;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 3;
+                mockBufferFlushStrategy.UserEventBufferItemCount = 3;
+                mockBufferFlushStrategy.UserEventBufferItemCount = 4;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 4;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 4;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 2;
+                // These are called as the buffers are cleared
+                mockBufferFlushStrategy.UserEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
+                // These are called as the buffered items are processed
+                mockEventPersister.AddEntityType("Clients", CreateDataTimeFromString("2021-06-12 13:43:00"));
+                mockEventPersister.AddEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:01"));
+                mockEventPersister.AddGroup("group1", CreateDataTimeFromString("2021-06-12 13:43:02"));
+                mockEventPersister.AddUser("user1", CreateDataTimeFromString("2021-06-12 13:43:03"));
+                mockEventPersister.AddUser("user2", CreateDataTimeFromString("2021-06-12 13:43:04"));
+                mockEventPersister.AddGroup("group2", CreateDataTimeFromString("2021-06-12 13:43:05"));
+                mockEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View, CreateDataTimeFromString("2021-06-12 13:43:06"));
+                mockEventPersister.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify, CreateDataTimeFromString("2021-06-12 13:43:07"));
+                mockEventPersister.AddGroupToGroupMapping("group1", "group2", CreateDataTimeFromString("2021-06-12 13:43:08"));
+                mockEventPersister.AddUserToGroupMapping("user1", "group2", CreateDataTimeFromString("2021-06-12 13:43:09"));
+                mockEventPersister.AddGroupToEntityMapping("group2", "Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:10"));
+                mockEventPersister.AddUserToGroupMapping("user2", "group1", CreateDataTimeFromString("2021-06-12 13:43:11"));
+                mockEventPersister.AddUserToEntityMapping("user1", "Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:12"));
+                mockEventPersister.AddEntity("Clients", "CompanyB", CreateDataTimeFromString("2021-06-12 13:43:13"));
+                mockEventPersister.RemoveEntity("Clients", "CompanyB", CreateDataTimeFromString("2021-06-12 13:43:14"));
+                mockEventPersister.RemoveUserToEntityMapping("user1", "Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:15"));
+                mockEventPersister.RemoveUserToGroupMapping("user2", "group1", CreateDataTimeFromString("2021-06-12 13:43:16"));
+                mockEventPersister.RemoveGroupToEntityMapping("group2", "Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:17"));
+                mockEventPersister.RemoveUserToGroupMapping("user1", "group2", CreateDataTimeFromString("2021-06-12 13:43:18"));
+                mockEventPersister.RemoveGroupToGroupMapping("group1", "group2", CreateDataTimeFromString("2021-06-12 13:43:19"));
+                mockEventPersister.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify, CreateDataTimeFromString("2021-06-12 13:43:20"));
+                mockEventPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View, CreateDataTimeFromString("2021-06-12 13:43:21"));
+                mockEventPersister.RemoveGroup("group2", CreateDataTimeFromString("2021-06-12 13:43:22"));
+                mockEventPersister.RemoveUser("user2", CreateDataTimeFromString("2021-06-12 13:43:23"));
+                mockEventPersister.RemoveUser("user1", CreateDataTimeFromString("2021-06-12 13:43:24"));
+                mockEventPersister.RemoveGroup("group1", CreateDataTimeFromString("2021-06-12 13:43:25"));
+                mockEventPersister.RemoveEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-12 13:43:26"));
+                mockEventPersister.RemoveEntityType("Clients", CreateDataTimeFromString("2021-06-12 13:43:27"));
             });
+            Assert.AreEqual(38, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(28, mockEventPersister.ReceivedCalls().Count());
         }
 
@@ -1491,7 +1534,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         /// Tests that any events which are buffered after the call to Flush() are not processed as part of that Flush() method call.
         /// </summary>
         [Test]
-        public void Flush_EventsCreateAfterCallToFlushAreNotProcessed()
+        public void Flush_EventsCreatedAfterCallToFlushAreNotProcessed()
         {
             // This tests that calls to the main public methods of InMemoryEventBuffer like AddUser(), AddGroup() etc... will NOT be included in Flush() processing, if they're called after the start of processing of a current Flush() call
             // This situation would arise in multi-thread environments where a separate thread is processing the flush strategy
@@ -1505,6 +1548,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String group3 = "group3";
             const String group4 = "group4";
 
+            mockBufferFlushStrategy.ClearReceivedCalls();
             mockDateTimeProvider.UtcNow().Returns<DateTime>
             (
                 CreateDataTimeFromString("2021-06-13 09:58:00"),
@@ -1545,31 +1589,44 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             Received.InOrder(() => {
                 // These are the calls to the flush strategy that occur within the main public methods of the InMemoryEventBuffer class
-                mockBufferFlushStrategy.Received(1).AddUser(user1);
-                mockBufferFlushStrategy.Received(1).AddUser(user2);
-                mockBufferFlushStrategy.Received(1).AddUser(user3);
-                mockBufferFlushStrategy.Received(1).AddGroup(group1);
-                mockBufferFlushStrategy.Received(1).AddGroup(group2);
-                mockBufferFlushStrategy.Received(1).AddUserToGroupMapping(user1, group1);
-                mockBufferFlushStrategy.Received(1).AddUserToGroupMapping(user2, group1);
-                // These will get called as the Flush() method starts
-                mockEventPersister.Received(1).AddUser(user1, CreateDataTimeFromString("2021-06-13 09:58:00"));
-                mockEventPersister.Received(1).AddUser(user2, CreateDataTimeFromString("2021-06-13 09:58:01"));
-                mockEventPersister.Received(1).AddUser(user3, CreateDataTimeFromString("2021-06-13 09:58:02"));
+                mockBufferFlushStrategy.UserEventBufferItemCount = 1;
+                mockBufferFlushStrategy.UserEventBufferItemCount = 2;
+                mockBufferFlushStrategy.UserEventBufferItemCount = 3;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 2;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 2;
+                // These will get called as the Flush() method starts...
+                //    ...these as buffered items are moved to temporary queues
+                mockBufferFlushStrategy.UserEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
+                //    ...and these as the buffered items are processed
+                mockEventPersister.AddUser(user1, CreateDataTimeFromString("2021-06-13 09:58:00"));
+                mockEventPersister.AddUser(user2, CreateDataTimeFromString("2021-06-13 09:58:01"));
+                mockEventPersister.AddUser(user3, CreateDataTimeFromString("2021-06-13 09:58:02"));
                 // When AddUser(user3) is called, we simulate calling the public methods again, and hence expect further calls to the flush strategy...
-                mockBufferFlushStrategy.Received(1).AddGroup(group3);
-                mockBufferFlushStrategy.Received(1).AddGroup(group4);
-                mockBufferFlushStrategy.Received(1).AddGroupToGroupMapping(group1, group2);
-                mockBufferFlushStrategy.Received(1).AddEntityType("Clients");
-                mockBufferFlushStrategy.Received(1).AddEntity("Clients", "CompanyA");
-                mockBufferFlushStrategy.Received(1).AddGroupToEntityMapping(group3, "Clients", "CompanyA");
-                mockBufferFlushStrategy.Received(1).AddGroupToEntityMapping(group4, "Clients", "CompanyA");
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 2;
+                mockBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 2;
                 // ...and once these are complete, the processing of the call to Flush() continues
-                mockEventPersister.Received(1).AddGroup(group1, CreateDataTimeFromString("2021-06-13 09:58:03"));
-                mockEventPersister.Received(1).AddGroup(group2, CreateDataTimeFromString("2021-06-13 09:58:04"));
-                mockEventPersister.Received(1).AddUserToGroupMapping(user1, group1, CreateDataTimeFromString("2021-06-13 09:58:05"));
-                mockEventPersister.Received(1).AddUserToGroupMapping(user2, group1, CreateDataTimeFromString("2021-06-13 09:58:06"));
+                mockEventPersister.AddGroup(group1, CreateDataTimeFromString("2021-06-13 09:58:03"));
+                mockEventPersister.AddGroup(group2, CreateDataTimeFromString("2021-06-13 09:58:04"));
+                mockEventPersister.AddUserToGroupMapping(user1, group1, CreateDataTimeFromString("2021-06-13 09:58:05"));
+                mockEventPersister.AddUserToGroupMapping(user2, group1, CreateDataTimeFromString("2021-06-13 09:58:06"));
             });
+            Assert.AreEqual(24, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(7, mockEventPersister.ReceivedCalls().Count());
             // These method calls would occur as part of a subsequent Flush() call, and hence should not be received
             mockEventPersister.DidNotReceive().AddGroup(group3, Arg.Any<DateTime>());
@@ -1582,20 +1639,35 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             // Test that a subsequent call to Flush() processes the remaining buffered events correctly
+            mockBufferFlushStrategy.ClearReceivedCalls();
             mockEventPersister.ClearReceivedCalls();
 
             testInMemoryEventBuffer.Flush();
 
             Received.InOrder(() =>
-            {
-                mockEventPersister.Received(1).AddGroup(group3, CreateDataTimeFromString("2021-06-13 09:58:07"));
-                mockEventPersister.Received(1).AddGroup(group4, CreateDataTimeFromString("2021-06-13 09:58:08"));
-                mockEventPersister.Received(1).AddGroupToGroupMapping(group1, group2, CreateDataTimeFromString("2021-06-13 09:58:09"));
-                mockEventPersister.Received(1).AddEntityType("Clients", CreateDataTimeFromString("2021-06-13 09:58:10"));
-                mockEventPersister.Received(1).AddEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-13 09:58:11"));
-                mockEventPersister.Received(1).AddGroupToEntityMapping(group3, "Clients", "CompanyA", CreateDataTimeFromString("2021-06-13 09:58:12"));
-                mockEventPersister.Received(1).AddGroupToEntityMapping(group4, "Clients", "CompanyA", CreateDataTimeFromString("2021-06-13 09:58:13"));
+            {                
+                // These will get called as the Flush() method starts...
+                //    ...these as buffered items are moved to temporary queues
+                mockBufferFlushStrategy.UserEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
+                //    ...and these as the buffered items are processed
+                mockEventPersister.AddGroup(group3, CreateDataTimeFromString("2021-06-13 09:58:07"));
+                mockEventPersister.AddGroup(group4, CreateDataTimeFromString("2021-06-13 09:58:08"));
+                mockEventPersister.AddGroupToGroupMapping(group1, group2, CreateDataTimeFromString("2021-06-13 09:58:09"));
+                mockEventPersister.AddEntityType("Clients", CreateDataTimeFromString("2021-06-13 09:58:10"));
+                mockEventPersister.AddEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-13 09:58:11"));
+                mockEventPersister.AddGroupToEntityMapping(group3, "Clients", "CompanyA", CreateDataTimeFromString("2021-06-13 09:58:12"));
+                mockEventPersister.AddGroupToEntityMapping(group4, "Clients", "CompanyA", CreateDataTimeFromString("2021-06-13 09:58:13"));
             });
+            Assert.AreEqual(10, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(7, mockEventPersister.ReceivedCalls().Count());
         }
 
@@ -1624,6 +1696,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             var nullAccessManagerEventValidator = new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>();
             var testInMemoryEventBuffer2 = new InMemoryEventBufferForFlushTesting<String, String, ApplicationScreen, AccessLevel>(nullAccessManagerEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            mockBufferFlushStrategy.ClearReceivedCalls();
             var beforeMoveEventsToTemporaryQueuesAction = new Action(() =>
             {
                 testInMemoryEventBuffer2.AddEntityType("Accounts");
@@ -1645,31 +1718,73 @@ namespace ApplicationAccess.Persistence.UnitTests
             testInMemoryEventBuffer2.Flush();
 
             Received.InOrder(() => {
-                mockEventPersister.Received(1).AddUser("user1", CreateDataTimeFromString("2021-06-14 20:09:00"));
-                mockEventPersister.Received(1).AddGroup("group1", CreateDataTimeFromString("2021-06-14 20:09:01"));
-                mockEventPersister.Received(1).AddGroup("group2", CreateDataTimeFromString("2021-06-14 20:09:02"));
-                mockEventPersister.Received(1).AddGroup("group3", CreateDataTimeFromString("2021-06-14 20:09:03"));
-                mockEventPersister.Received(1).AddGroup("group4", CreateDataTimeFromString("2021-06-14 20:09:04"));
-                mockEventPersister.Received(1).AddEntityType("Clients", CreateDataTimeFromString("2021-06-14 20:09:05"));
-                mockEventPersister.Received(1).AddEntityType("Products", CreateDataTimeFromString("2021-06-14 20:09:06"));
+                // These get called as the initial events are buffered
+                mockBufferFlushStrategy.UserEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 1;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 2;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 3;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 4;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 2;
+                // These are called at the start of the Flush() method as part of action 'beforeMoveEventsToTemporaryQueuesAction'
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 3;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 4;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 1;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 2;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 3;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 4;
+                // These are called as the Flush() method starts.  Note that entity and entity type events generated as part of action 'beforeMoveEventsToTemporaryQueuesAction' occur after Flush() starts and hence are returned to the relevant event queues (counts of 2 and 4 for entity type and entity events respectively).
+                mockBufferFlushStrategy.UserEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 2;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 4;
+                mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
+                // These are called as the buffered items are processed
+                mockEventPersister.AddUser("user1", CreateDataTimeFromString("2021-06-14 20:09:00"));
+                mockEventPersister.AddGroup("group1", CreateDataTimeFromString("2021-06-14 20:09:01"));
+                mockEventPersister.AddGroup("group2", CreateDataTimeFromString("2021-06-14 20:09:02"));
+                mockEventPersister.AddGroup("group3", CreateDataTimeFromString("2021-06-14 20:09:03"));
+                mockEventPersister.AddGroup("group4", CreateDataTimeFromString("2021-06-14 20:09:04"));
+                mockEventPersister.AddEntityType("Clients", CreateDataTimeFromString("2021-06-14 20:09:05"));
+                mockEventPersister.AddEntityType("Products", CreateDataTimeFromString("2021-06-14 20:09:06"));
             });
+            Assert.AreEqual(23, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(7, mockEventPersister.ReceivedCalls().Count());
 
 
             // Test that a subsequent call to Flush() processes the remaining buffered events correctly
+            mockBufferFlushStrategy.ClearReceivedCalls();
             mockEventPersister.ClearReceivedCalls();
 
             testInMemoryEventBuffer2.Flush();
 
             Received.InOrder(() =>
             {
-                mockEventPersister.Received(1).AddEntityType("Accounts", CreateDataTimeFromString("2021-06-14 20:09:07"));
-                mockEventPersister.Received(1).RemoveEntityType("Accounts", CreateDataTimeFromString("2021-06-14 20:09:08"));
-                mockEventPersister.Received(1).AddEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-14 20:09:09"));
-                mockEventPersister.Received(1).AddEntity("Clients", "CompanyB", CreateDataTimeFromString("2021-06-14 20:09:10"));
-                mockEventPersister.Received(1).AddEntity("Clients", "CompanyC", CreateDataTimeFromString("2021-06-14 20:09:11"));
-                mockEventPersister.Received(1).RemoveEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-14 20:09:12"));
+                // These are called as the buffers are cleared
+                mockBufferFlushStrategy.UserEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
+                mockBufferFlushStrategy.EntityEventBufferItemCount = 0;
+                mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
+                mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
+                // These are called as the buffered items are processed
+                mockEventPersister.AddEntityType("Accounts", CreateDataTimeFromString("2021-06-14 20:09:07"));
+                mockEventPersister.RemoveEntityType("Accounts", CreateDataTimeFromString("2021-06-14 20:09:08"));
+                mockEventPersister.AddEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-14 20:09:09"));
+                mockEventPersister.AddEntity("Clients", "CompanyB", CreateDataTimeFromString("2021-06-14 20:09:10"));
+                mockEventPersister.AddEntity("Clients", "CompanyC", CreateDataTimeFromString("2021-06-14 20:09:11"));
+                mockEventPersister.RemoveEntity("Clients", "CompanyA", CreateDataTimeFromString("2021-06-14 20:09:12"));
             });
+            Assert.AreEqual(10, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(6, mockEventPersister.ReceivedCalls().Count());
         }
 
@@ -1744,14 +1859,22 @@ namespace ApplicationAccess.Persistence.UnitTests
             /// <param name="temporaryEventBuffer">The temporary event buffer to move events to.</param>
             /// <param name="eventBufferLockObject">Lock object used to serialize access to the event buffer parameter.</param>
             /// <param name="maxSequenceNumber">The maximum (inclusive) sequence number of events to move.  Only events with a sequence number below or equal to this maximum will be moved.</param>
-            protected override void MoveEventsToTemporaryQueue<TEventBuffer, TEventBufferItemType>(ref TEventBuffer eventBuffer, out TEventBuffer temporaryEventBuffer, Object eventBufferLockObject, Int64 maxSequenceNumber)
+            /// <param name="bufferFlushStrategyEventCountSetAction">An action which sets the relevant 'EventBufferItemCount' property on the 'bufferFlushStrategy' member.</param>
+            protected override void MoveEventsToTemporaryQueue<TEventBuffer, TEventBufferItemType>
+            (
+                ref TEventBuffer eventBuffer, 
+                out TEventBuffer temporaryEventBuffer, 
+                Object eventBufferLockObject, 
+                Int64 maxSequenceNumber,
+                Action<Int32> bufferFlushStrategyEventCountSetAction
+            )
             {
                 if (beforeMoveEventsToTemporaryQueueActionInvoked == false && eventBuffer is LinkedList<UserEventBufferItem<TUser>>)
                 {
                     beforeMoveEventsToTemporaryQueueAction.Invoke();
                     beforeMoveEventsToTemporaryQueueActionInvoked = true;
                 }
-                base.MoveEventsToTemporaryQueue<TEventBuffer, TEventBufferItemType>(ref eventBuffer, out temporaryEventBuffer, eventBufferLockObject, maxSequenceNumber);
+                base.MoveEventsToTemporaryQueue<TEventBuffer, TEventBufferItemType>(ref eventBuffer, out temporaryEventBuffer, eventBufferLockObject, maxSequenceNumber, bufferFlushStrategyEventCountSetAction);
             }
         }
 
