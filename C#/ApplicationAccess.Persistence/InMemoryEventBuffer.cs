@@ -150,7 +150,7 @@ namespace ApplicationAccess.Persistence
         ) : this(eventValidator, bufferFlushStrategy, eventPersister)
         {
             if (lastEventSequenceNumber < 0)
-                throw new ArgumentOutOfRangeException(nameof(lastEventSequenceNumber), $"Parameter '{nameof(lastEventSequenceNumber)}' must be greater than or equal to 0.");
+                throw new ArgumentOutOfRangeException(nameof(lastEventSequenceNumber), $"Parameter '{nameof(lastEventSequenceNumber)}' with value {lastEventSequenceNumber} cannot be less than 0.");
 
             this.lastEventSequenceNumber = lastEventSequenceNumber;
         }
@@ -173,11 +173,7 @@ namespace ApplicationAccess.Persistence
             this.dateTimeProvider = dateTimeProvider;
         }
 
-        // TODO: Should this pragma be removed and comments added
-        //   Expect problem is that the shared InterfaceDocumentationComments.xml is in a different project, so how to refernce?
-        //   InterfaceDocumentationComments.xml is copied on build, so can it just be referenced??
-#pragma warning disable 1591
-
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
         public void AddUser(TUser user)
         {
             Action<TUser> postValidationAction = (actionUser) =>
@@ -192,6 +188,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
         public void RemoveUser(TUser user)
         {
             Action<TUser> postValidationAction = (actionUser) =>
@@ -206,6 +203,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
         public void AddGroup(TGroup group)
         {
             Action<TGroup> postValidationAction = (actionGroup) =>
@@ -220,6 +218,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
         public void RemoveGroup(TGroup group)
         {
             Action<TGroup> postValidationAction = (actionGroup) =>
@@ -234,6 +233,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
             Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
@@ -248,6 +248,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
@@ -262,6 +263,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
@@ -276,6 +278,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
@@ -290,6 +293,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
@@ -304,6 +308,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
@@ -318,6 +323,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
@@ -332,6 +338,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
@@ -346,6 +353,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
         public void AddEntityType(string entityType)
         {
             Action<string> postValidationAction = (actionEntityType) =>
@@ -360,6 +368,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
         public void RemoveEntityType(string entityType)
         {
             Action<string> postValidationAction = (actionEntityType) =>
@@ -373,7 +382,8 @@ namespace ApplicationAccess.Persistence
                 ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveEntityType(entityType, postValidationAction));
             }
         }
-    
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
         public void AddEntity(string entityType, string entity)
         {
             Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
@@ -388,6 +398,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
         public void RemoveEntity(string entityType, string entity)
         {
             Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
@@ -402,6 +413,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
         public void AddUserToEntityMapping(TUser user, string entityType, string entity)
         {
             Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
@@ -416,6 +428,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
         public void RemoveUserToEntityMapping(TUser user, string entityType, string entity)
         {
             Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
@@ -430,6 +443,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
         public void AddGroupToEntityMapping(TGroup group, string entityType, string entity)
         {
             Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
@@ -444,6 +458,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
         public void RemoveGroupToEntityMapping(TGroup group, string entityType, string entity)
         {
             Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
@@ -458,6 +473,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4.Flush"]/*'/>
         public void Flush()
         {
             // Move all events to temporary queues
@@ -978,10 +994,14 @@ namespace ApplicationAccess.Persistence
             throw new NotImplementedException();
         }
 
+        #pragma warning disable 1591
+
         ~InMemoryEventBuffer()
         {
             Dispose(false);
         }
+
+        #pragma warning restore 1591
 
         /// <summary>
         /// Provides a method to free unmanaged resources used by this class.
@@ -1008,8 +1028,8 @@ namespace ApplicationAccess.Persistence
 
         #region Nested Classes
 
-        #pragma warning disable 0693
-        
+        #pragma warning disable 1591
+
         /// <summary>
         /// Represents one of the event buffer queues.
         /// </summary>
@@ -1067,8 +1087,6 @@ namespace ApplicationAccess.Persistence
                 return eventSequenceNumber.CompareTo(other.eventSequenceNumber);
             }
         }
-
-        #pragma warning restore 0693
 
         #pragma warning restore 1591
 

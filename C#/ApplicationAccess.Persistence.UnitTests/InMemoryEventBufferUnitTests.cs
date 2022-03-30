@@ -24,7 +24,6 @@ using ApplicationAccess.Validation;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
-using NSubstitute.Core;
 
 namespace ApplicationAccess.Persistence.UnitTests
 {
@@ -60,7 +59,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 var testInMemoryEventBuffer2 = new InMemoryEventBuffer<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, -1);
             });
 
-            Assert.That(e.Message, Does.StartWith("Parameter 'lastEventSequenceNumber' must be greater than or equal to 0."));
+            Assert.That(e.Message, Does.StartWith("Parameter 'lastEventSequenceNumber' with value -2 cannot be less than 0."));
             Assert.AreEqual(e.ParamName, "lastEventSequenceNumber");
         }
 

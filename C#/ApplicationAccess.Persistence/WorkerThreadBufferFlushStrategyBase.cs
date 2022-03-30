@@ -87,7 +87,7 @@ namespace ApplicationAccess.Persistence
         public event EventHandler BufferFlushed;
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount"]/*'/>
-        public Int32 UserEventBufferItemCount
+        public virtual Int32 UserEventBufferItemCount
         {
             set 
             {
@@ -97,7 +97,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupEventBufferItemCount"]/*'/>
-        public Int32 GroupEventBufferItemCount
+        public virtual Int32 GroupEventBufferItemCount
         {
             set
             {
@@ -107,7 +107,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount"]/*'/>
-        public Int32 UserToGroupMappingEventBufferItemCount
+        public virtual Int32 UserToGroupMappingEventBufferItemCount
         {
             set
             {
@@ -117,7 +117,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount"]/*'/>
-        public Int32 GroupToGroupMappingEventBufferItemCount
+        public virtual Int32 GroupToGroupMappingEventBufferItemCount
         {
             set
             {
@@ -127,7 +127,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
-        public Int32 UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount
+        public virtual Int32 UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
             set
             {
@@ -137,7 +137,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
-        public Int32 GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount
+        public virtual Int32 GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
             set
             {
@@ -147,7 +147,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityTypeEventBufferItemCount"]/*'/>
-        public Int32 EntityTypeEventBufferItemCount
+        public virtual Int32 EntityTypeEventBufferItemCount
         {
             set
             {
@@ -157,7 +157,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityEventBufferItemCount"]/*'/>
-        public Int32 EntityEventBufferItemCount
+        public virtual Int32 EntityEventBufferItemCount
         {
             set
             {
@@ -167,7 +167,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount"]/*'/>
-        public Int32 UserToEntityMappingEventBufferItemCount
+        public virtual Int32 UserToEntityMappingEventBufferItemCount
         {
             set
             {
@@ -177,7 +177,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount"]/*'/>
-        public Int32 GroupToEntityMappingEventBufferItemCount
+        public virtual Int32 GroupToEntityMappingEventBufferItemCount
         {
             set
             {
@@ -270,7 +270,7 @@ namespace ApplicationAccess.Persistence
                         Interlocked.Exchange(ref flushingException, wrappedException);
                     }
                     // If no exception has occurred, and 'flushRemainingBufferedEventsOnStop' is set true, flush any remaining buffered events
-                    if (flushingException == null && TotalEventsBufferred > 0 && flushRemainingBufferedEventsOnStop == true)
+                    if (flushingException == null && TotalEventsBuffered > 0 && flushRemainingBufferedEventsOnStop == true)
                     {
                         try
                         {
@@ -316,11 +316,20 @@ namespace ApplicationAccess.Persistence
         /// The total number of events currently stored across all buffers.
         /// </summary>
         /// <remarks>Note that the counter members accessed in this property may be accessed by multiple threads (i.e. the worker thread in member bufferFlushingWorkerThread and the client code in the main thread).  This property should only be read from methods which have locks around the queues in the corresponding InMemoryEventBuffer class (e.g. overrides of the virtual 'Notify' methods defined in this class, which are called from the AddUser(), AddGroup(), etc... methods in the InMemoryEventBuffer class).</remarks>
-        protected virtual long TotalEventsBufferred
+        protected virtual long TotalEventsBuffered
         {
             get
             {
-                return userEventsBuffered;
+                return userEventsBuffered +
+                    groupEventsBuffered +
+                    userToGroupMappingEventsBuffered +
+                    groupToGroupMappingEventsBuffered +
+                    userToApplicationComponentAndAccessLevelMappingEventsBuffered +
+                    groupToApplicationComponentAndAccessLevelMappingEventsBuffered +
+                    entityTypeEventsBuffered +
+                    entityEventsBuffered +
+                    userToEntityMappingEventsBuffered +
+                    groupToEntityMappingEventsBuffered;
             }
         }
 

@@ -607,6 +607,71 @@
             <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddUser(`0)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveUser(`0)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddGroup(`1)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveGroup(`1)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddUserToGroupMapping(`0,`1)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveUserToGroupMapping(`0,`1)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddGroupToGroupMapping(`1,`1)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveGroupToGroupMapping(`1,`1)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddEntityType(System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveEntityType(System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddEntity(System.String,System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveEntity(System.String,System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+            <!-- No matching elements were found for the following include tag --><include file="InterfaceDocumentationComments.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.Flush">
+            <summary>
+        Flushes the buffers... i.e. transfers all stored events to another event processor, and clears all items stored in the buffers.
+      </summary>
+        </member>
         <member name="M:ApplicationAccess.Persistence.InMemoryEventBuffer`4.ThrowExceptionIfValidationFails(ApplicationAccess.Validation.ValidationResult)">
             <summary>
             Re-throws the exception which caused validation failure, if the exception exists.
@@ -703,14 +768,122 @@
             <param name="eventSequenceNumber">The sequence number of the event.</param>
             <param name="eventBuffer"> The buffer that the event is stored in.</param>
         </member>
-        <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4">
+        <member name="T:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4">
             <summary>
-            A buffer flush strategy that flushes/processes the buffers when the total number of buffered items reaches a pre-defined limit.
+            A buffer flush strategy that flushes/processes the buffered events at a regular interval.
             </summary>
             <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
             <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
             <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.flushLoopInterval">
+            <summary>The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.loopIterationCount">
+            <summary>The number of iterations of the worker thread to flush/process.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
+            </summary>
+            <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4">
+            <summary>
+            A buffer flush strategy that flushes/processes the buffers when the total number of buffered events reaches a pre-defined limit.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.bufferSizeLimit">
+            <summary>The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.bufferProcessSignal">
+            <summary>Signal which is used to trigger the worker thread when the specified number of events are bufferred.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.UserEventBufferItemCount">
+            <summary>
+        The number of user events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.GroupEventBufferItemCount">
+            <summary>
+        The number of group events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount">
+            <summary>
+        The number of user to group mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount">
+            <summary>
+        The number of group to group mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+            <summary>
+        The number of user to application component and access level mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+            <summary>
+        The number of group to application component and access level mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.EntityTypeEventBufferItemCount">
+            <summary>
+        The number of entity type events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.EntityEventBufferItemCount">
+            <summary>
+        The number of entity events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount">
+            <summary>
+        The number of user to entity mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount">
+            <summary>
+        The number of group to entity mapping events stored in the buffer.
+      </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.#ctor(System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
+            </summary>
+            <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.#ctor(System.Int32,System.Threading.ManualResetEvent)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
+            </summary>
+            <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+            <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.Stop">
+            <summary>
+            Stops the worker thread which performs buffer flushes.
+            </summary>
+            <remarks>This is the same as the base class method, but with the addition of a call to bufferProcessSignal.Set()... without this, the call to JoinWorkerThread() will wait forever (since the worker thread is waiting on member 'bufferProcessSignal').</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.CheckBufferLimitReached">
+            <summary>
+            Checks whether the size limit for the buffers has been reached, and if so signals the worker thread to process/flush the buffers.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
         </member>
         <member name="T:ApplicationAccess.Persistence.UserEventBufferItem`1">
             <summary>
@@ -982,7 +1155,7 @@
             Checks whether property 'FlushingException' has been set, and re-throws the exception in the case that it has.
             </summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.TotalEventsBufferred">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.TotalEventsBuffered">
             <summary>
             The total number of events currently stored across all buffers.
             </summary>
