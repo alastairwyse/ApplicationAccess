@@ -15,8 +15,7 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading;
 
 namespace ApplicationAccess.Persistence
 {
@@ -32,7 +31,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</summary>
         protected Int32 flushLoopInterval;
         /// <summary>The number of iterations of the worker thread to flush/process.</summary>
-        protected Int32 loopIterationCount;
+        protected Int32 flushLoopIterationCount;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
@@ -44,8 +43,41 @@ namespace ApplicationAccess.Persistence
             if (flushLoopInterval < 1)
                 throw new ArgumentOutOfRangeException(nameof(flushLoopInterval), $"Parameter '{nameof(flushLoopInterval)}' with value {flushLoopInterval} cannot be less than 1.");
 
+            base.BufferFlushingAction = () =>
+            {
+                while (stopMethodCalled == false)
+                {
+                    OnBufferFlushed(EventArgs.Empty);
+                    Thread.Sleep(flushLoopInterval);
+                    // If the code is being tested, break out of processing after the specified number of iterations
+                    if (workerThreadCompleteSignal != null)
+                    {
+                        flushLoopIterationCount--;
+                        if (flushLoopIterationCount == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+            };
             this.flushLoopInterval = flushLoopInterval;
             workerThreadCompleteSignal = null;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
+        /// </summary>
+        /// <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
+        /// <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
+        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, ManualResetEvent workerThreadCompleteSignal, Int32 flushLoopIterationCount)
+            : this(flushLoopInterval)
+        {
+            if (flushLoopIterationCount < 1)
+                throw new ArgumentOutOfRangeException(nameof(flushLoopIterationCount), $"Parameter '{nameof(flushLoopIterationCount)}' with value {flushLoopIterationCount} cannot be less than 1.");
+
+            base.workerThreadCompleteSignal = workerThreadCompleteSignal;
+            this.flushLoopIterationCount = flushLoopIterationCount;
         }
     }
 }

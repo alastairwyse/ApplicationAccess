@@ -47,6 +47,17 @@ namespace ApplicationAccess.Persistence.UnitTests
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;
+                // The following property sets simulate resetting that occurs in the InMemoryEventBuffer.Flush() method
+                testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.EntityEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
             };
             testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
             testSizeLimitedBufferFlushStrategy.Start();
@@ -247,33 +258,31 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const string exceptionMessage = "Mock worker thread exception.";
             testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) =>
-            {
-                // Throws an exception on the second raising of the event
-                if (flushEventsRaised == 1)
-                    throw new Exception(exceptionMessage);
-                flushEventsRaised++;
-            };
+            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
             testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
 
             testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
             testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
             testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
+            // Sleep to try to ensure the worker thread has enough time to throw the exception
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Assert.AreEqual(1, flushEventsRaised);
+            Exception e = Assert.Throws<Exception>(delegate
+            {
+                testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
+            });
 
-            // The following property sets simulate resetting that occurs in the InMemoryEventBuffer.Flush() method
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.EntityEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
+            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
+            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
+        }
+
+        [Test]
+        public void Stop_ExceptionOccursOnWorkerThreadProcessingRemainingEvents()
+        {
+            const string exceptionMessage = "Mock worker thread exception.";
+            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
+            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
+            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
 
             testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
 
@@ -295,18 +304,6 @@ namespace ApplicationAccess.Persistence.UnitTests
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
             Assert.AreEqual(1, flushEventsRaised);
-
-            // The following property sets simulate resetting that occurs in the InMemoryEventBuffer.Flush() method
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.EntityEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
-            testSizeLimitedBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
 
             testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
             testSizeLimitedBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;

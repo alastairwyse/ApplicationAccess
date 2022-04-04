@@ -780,7 +780,7 @@
         <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.flushLoopInterval">
             <summary>The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.loopIterationCount">
+        <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.flushLoopIterationCount">
             <summary>The number of iterations of the worker thread to flush/process.</summary>
         </member>
         <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32)">
@@ -788,6 +788,14 @@
             Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
             </summary>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32,System.Threading.ManualResetEvent,System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
+            </summary>
+            <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+            <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
+            <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
         </member>
         <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4">
             <summary>
@@ -1050,9 +1058,6 @@
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.stopMethodCalled">
             <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.flushRemainingBufferedEventsOnStop">
-            <summary>Whether any events remaining in the buffers should be flushed when the Stop() method is called.</summary>
-        </member>
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.workerThreadCompleteSignal">
             <summary>Signal that is set when the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
         </member>
@@ -1124,12 +1129,6 @@
             Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.#ctor(System.Boolean)">
-            <summary>
-            Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
-            </summary>
-            <param name="flushRemainingBufferedEventsOnStop">Whether any events remaining in the buffers should be flushed when the Stop() method is called.</param>
-        </member>
         <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Start">
             <summary>
             Starts the worker thread which performs buffer flushes.
@@ -1166,6 +1165,13 @@
             Raises the BufferFlushed event.
             </summary>
             <param name="e">An EventArgs that contains the event data.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.ThrowExceptionIfParameterLessThanZero(System.String,System.Int32)">
+            <summary>
+            Throws an ArgumentOutOfRangeException if the value of the specified integer parameter is less than 0.
+            </summary>
+            <param name="parameterName">The name of the parameter.</param>
+            <param name="parameterValue">The value of the parameter.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Dispose">
             <summary>

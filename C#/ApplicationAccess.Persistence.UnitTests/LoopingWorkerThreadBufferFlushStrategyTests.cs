@@ -27,12 +27,33 @@ namespace ApplicationAccess.Persistence.UnitTests
     /// </summary>
     public class LoopingWorkerThreadBufferFlushStrategyTests
     {
+        private ManualResetEvent workerThreadCompleteSignal;
+        private EventHandler flushHandler;
         private LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel> testLoopingWorkerThreadBufferFlushStrategy;
+        private Int32 flushEventsRaised;
 
         [SetUp]
         protected void SetUp()
         {
-            testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(500);
+            flushEventsRaised = 0;
+            workerThreadCompleteSignal = new ManualResetEvent(false);
+            testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(250, workerThreadCompleteSignal, 2); 
+            flushHandler = (Object sender, EventArgs e) =>
+            {
+                flushEventsRaised++;
+                // The following property sets simulate resetting that occurs in the InMemoryEventBuffer.Flush() method
+                testLoopingWorkerThreadBufferFlushStrategy.UserEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.GroupEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.EntityEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
+                testLoopingWorkerThreadBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
+            };
+            testLoopingWorkerThreadBufferFlushStrategy.BufferFlushed += flushHandler;
         }
 
         [TearDown]
@@ -53,5 +74,49 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(e.ParamName, "flushLoopInterval");
         }
 
+        [Test]
+        public void Constructor_FlushLoopIterationCountParameterLessThan1()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(1000, new ManualResetEvent(false), 0);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Parameter 'flushLoopIterationCount' with value 0 cannot be less than 1."));
+            Assert.AreEqual(e.ParamName, "flushLoopIterationCount");
+        }
+
+        [Test]
+        public void BufferFlushedEventsRaised()
+        {
+            testLoopingWorkerThreadBufferFlushStrategy.Start();
+            workerThreadCompleteSignal.WaitOne();
+
+            Assert.AreEqual(2, flushEventsRaised);
+        }
+
+        [Test]
+        public void Stop()
+        {
+            var secondCallToFlushSignal = new ManualResetEvent(false);
+            testLoopingWorkerThreadBufferFlushStrategy.BufferFlushed -= flushHandler; flushHandler = (Object sender, EventArgs e) =>
+            {
+                // On the second raising of the event, simulate adding a buffered event and set the 'secondCallToFlushSignal' call (main thread then immediately calls Stop() which simulates events being buffered after Stop() is called)
+                if (flushEventsRaised == 1)
+                {
+                    testLoopingWorkerThreadBufferFlushStrategy.UserEventBufferItemCount = 1;
+                    secondCallToFlushSignal.Set();
+                }
+                flushEventsRaised++;
+            };
+            testLoopingWorkerThreadBufferFlushStrategy.BufferFlushed += flushHandler;
+
+            testLoopingWorkerThreadBufferFlushStrategy.Start();
+            secondCallToFlushSignal.WaitOne();
+            testLoopingWorkerThreadBufferFlushStrategy.Stop();
+            workerThreadCompleteSignal.WaitOne();
+
+            Assert.AreEqual(3, flushEventsRaised);
+        }
     }
 }

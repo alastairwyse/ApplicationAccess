@@ -15,8 +15,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace ApplicationAccess.Persistence
@@ -68,8 +66,6 @@ namespace ApplicationAccess.Persistence
         private Exception flushingException;
         /// <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
         protected volatile Boolean stopMethodCalled;
-        /// <summary>Whether any events remaining in the buffers should be flushed when the Stop() method is called.</summary>
-        protected volatile Boolean flushRemainingBufferedEventsOnStop;
         /// <summary>Signal that is set when the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
         protected ManualResetEvent workerThreadCompleteSignal;
         /// <summary>Indicates whether the object has been disposed.</summary>
@@ -91,7 +87,9 @@ namespace ApplicationAccess.Persistence
         {
             set 
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref userEventsBuffered, value);
             }
         }
@@ -101,7 +99,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref groupEventsBuffered, value);
             }
         }
@@ -111,7 +111,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref userToGroupMappingEventsBuffered, value);
             }
         }
@@ -121,7 +123,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref groupToGroupMappingEventsBuffered, value);
             }
         }
@@ -131,7 +135,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref userToApplicationComponentAndAccessLevelMappingEventsBuffered, value);
             }
         }
@@ -141,7 +147,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref groupToApplicationComponentAndAccessLevelMappingEventsBuffered, value);
             }
         }
@@ -151,7 +159,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref entityTypeEventsBuffered, value);
             }
         }
@@ -161,7 +171,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref entityEventsBuffered, value);
             }
         }
@@ -171,7 +183,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref userToEntityMappingEventsBuffered, value);
             }
         }
@@ -181,7 +195,9 @@ namespace ApplicationAccess.Persistence
         {
             set
             {
+                ThrowExceptionIfParameterLessThanZero(nameof(value), value);
                 CheckAndThrowFlushingException();
+
                 Interlocked.Exchange(ref groupToEntityMappingEventsBuffered, value);
             }
         }
@@ -204,19 +220,8 @@ namespace ApplicationAccess.Persistence
 
             flushingException = null;
             stopMethodCalled = false;
-            flushRemainingBufferedEventsOnStop = true;
             workerThreadCompleteSignal = null;
             disposed = false;
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
-        /// </summary>
-        /// <param name="flushRemainingBufferedEventsOnStop">Whether any events remaining in the buffers should be flushed when the Stop() method is called.</param>
-        public WorkerThreadBufferFlushStrategyBase(Boolean flushRemainingBufferedEventsOnStop)
-            : this()
-        {
-            this.flushRemainingBufferedEventsOnStop = flushRemainingBufferedEventsOnStop;
         }
 
         /// <summary>
@@ -269,8 +274,8 @@ namespace ApplicationAccess.Persistence
                         var wrappedException = new Exception($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
                         Interlocked.Exchange(ref flushingException, wrappedException);
                     }
-                    // If no exception has occurred, and 'flushRemainingBufferedEventsOnStop' is set true, flush any remaining buffered events
-                    if (flushingException == null && TotalEventsBuffered > 0 && flushRemainingBufferedEventsOnStop == true)
+                    // If no exception has occurred, flush any remaining buffered events
+                    if (flushingException == null && TotalEventsBuffered > 0)
                     {
                         try
                         {
@@ -343,6 +348,17 @@ namespace ApplicationAccess.Persistence
             {
                 BufferFlushed(this, e);
             }
+        }
+
+        /// <summary>
+        /// Throws an ArgumentOutOfRangeException if the value of the specified integer parameter is less than 0.
+        /// </summary>
+        /// <param name="parameterName">The name of the parameter.</param>
+        /// <param name="parameterValue">The value of the parameter.</param>
+        protected void ThrowExceptionIfParameterLessThanZero(String parameterName, Int32 parameterValue)
+        {
+            if (parameterValue < 0)
+                throw new ArgumentOutOfRangeException(parameterName, $"Parameter '{parameterName}' with value {parameterValue} cannot be less than 0.");
         }
 
         #endregion

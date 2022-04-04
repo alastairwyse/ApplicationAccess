@@ -39,7 +39,11 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.UserEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                // Since the Flush() method of InMemoryEventBuffer sets item counts to 0, need to ensure those setter calls don't trigger repeated flushes by filtering them out
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -49,7 +53,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.GroupEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -59,7 +66,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.UserToGroupMappingEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -69,7 +79,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.GroupToGroupMappingEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -79,7 +92,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -89,7 +105,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -99,7 +118,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.EntityTypeEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -109,7 +131,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.EntityEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -119,7 +144,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.UserToEntityMappingEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -129,7 +157,10 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.GroupToEntityMappingEventBufferItemCount = value;
-                CheckBufferLimitReached();
+                if (value > 0)
+                {
+                    CheckBufferLimitReached();
+                }
             }
         }
 
@@ -141,7 +172,7 @@ namespace ApplicationAccess.Persistence
             : base()
         {
             if (bufferSizeLimit < 1)
-                throw new ArgumentOutOfRangeException($"Parameter '{nameof(bufferSizeLimit)}' with value {bufferSizeLimit} cannot be less than 1.", nameof(bufferSizeLimit));
+                throw new ArgumentOutOfRangeException(nameof(bufferSizeLimit), $"Parameter '{nameof(bufferSizeLimit)}' with value {bufferSizeLimit} cannot be less than 1.");
 
             base.BufferFlushingAction = () =>
             {
