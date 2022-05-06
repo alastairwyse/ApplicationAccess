@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ApplicationAccess.Utilities</name>
+    </assembly>
+    <members>
+        <member name="T:ApplicationAccess.Utilities.DefaultDateTimeProvider">
+            <summary>
+            Returns the current date and time using the static DateTime struct.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultDateTimeProvider.Now">
+            <summary>
+        Returns the current date and time.
+      </summary><returns>The current date and time.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultDateTimeProvider.UtcNow">
+            <summary>
+        Returns the current date and time expressed as the Coordinated Universal Time (UTC).
+      </summary><returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
+        </member>
+        <member name="T:ApplicationAccess.Utilities.IDateTimeProvider">
+            <summary>
+        Defines methods which returns the current date and time.
+      </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now">
+            <summary>
+        Returns the current date and time.
+      </summary><returns>The current date and time.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow">
+            <summary>
+        Returns the current date and time expressed as the Coordinated Universal Time (UTC).
+      </summary><returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
+        </member>
+        <member name="T:ApplicationAccess.Utilities.LockManager">
+            <summary>
+            Allows definition of dependencies between objects used for mutual-exclusion locks, and provides methods to lock these in a consistent order to prevent deadlocks.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.LockManager.registeredObjects">
+            <summary>All the lock objects registered in the manager.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.LockManager.registeredObjectSequenceNumbers">
+            <summary>Holds the lock order sequence number which is mapped to each registered object.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.LockManager.dependsOnDepenencies">
+            <summary>The lock object dependencies, where the dictionary key object depends on the value objects.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.LockManager.dependedOnByDepenencies">
+            <summary>The lock object dependencies, where the dictionary key object is depended on by the value objects.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.LockManager.nextSequenceNumber">
+            <summary>A sequence number used to denote the order in which a lock should be acquired on an object.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.LockManager.lockObjectDependencyCache">
+            <summary>For a given lock object and dependency pattern, caches the objects which either depend on, or are dependent on the object, in the order the the locks should be applied.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Utilities.LockManager class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.RegisterLockObject(System.Object)">
+            <summary>
+            Registers an object in the lock manager.
+            </summary>
+            <param name="lockObject">The object to register.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.RegisterLockObjects(System.Collections.Generic.IEnumerable{System.Object})">
+            <summary>
+            Registers a collection of objects in the lock manager.
+            </summary>
+            <param name="lockObjects">The objects to register.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.RegisterLockObjectDependency(System.Object,System.Object)">
+            <summary>
+            Registers a dependency between two objects previously registered in the lock manager.
+            </summary>
+            <param name="dependencyFromObject">The object that the dependency is from.</param>
+            <param name="dependencyToObject">The object that the dependency is to.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.AcquireLocksAndInvokeAction(System.Object,ApplicationAccess.Utilities.LockObjectDependencyPattern,System.Action)">
+            <summary>
+            Acquires locks on the specified object and objects which it's associated with (either all objects which it depends on, or which depend on it), the invokes the specified action.
+            </summary>
+            <param name="lockObject">The object to lock.</param>
+            <param name="lockObjectDependencyPattern">Whether to additionally lock all objects on which parameter 'lockObject' depends, or all objects which depend on parameter 'lockObject'.</param>
+            <param name="action">The action to invoke.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.AcquireLocksAndInvokeAction(System.Collections.Generic.List{System.Object},System.Int32,System.Action)">
+            <summary>
+            Recursively acquires locks on the specified objects, the invokes the specified action.
+            </summary>
+            <param name="lockObjects">The sequence of objects to acquire locks on.</param>
+            <param name="nextObjectIndex">The index of the object in the sequence to acquire a lock on next, or equal to the length of parameter 'lockObjects' if all locks have been acquired.</param>
+            <param name="action">The action to invoke once all locks are acquired.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.TraverseDependencyGraph(System.Object,ApplicationAccess.Utilities.LockObjectDependencyPattern,System.Collections.Generic.HashSet{System.Object},System.Action{System.Object})">
+            <summary>
+            Traverses the graph of object depedencies, invoking the specified action on each object encountered.
+            </summary>
+            <param name="nextObject">The next object to traverse to.</param>
+            <param name="lockObjectDependencyPattern">The 'direction' to traverse the graph, either to objects which 'nextObject' depends on, or objects which depend on it.</param>
+            <param name="visitedObjects">Objects which have already been visited as part of the traversal.</param>
+            <param name="objectAction">The action to perform on the object.  Accepts a single parameter which is the object to perform the action on.</param>
+        </member>
+        <member name="T:ApplicationAccess.Utilities.LockManager.LockObjectAndSequenceNumber">
+            <summary>
+            Container class which holds a lock object and a sequence number used to define the order which a lock is acquired on the object.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Utilities.LockManager.LockObjectAndSequenceNumber.LockObject">
+            <summary>
+            The object a lock is acquired on.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Utilities.LockManager.LockObjectAndSequenceNumber.SequenceNumber">
+            <summary>
+            The order in which a lock should be acquired on the object as compared to other objects.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.LockObjectAndSequenceNumber.#ctor(System.Object,System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Utilities.LockManager+LockObjectAndSequenceNumber class.
+            </summary>
+            <param name="lockObject">The object a lock is acquired on.</param>
+            <param name="sequenceNumber">The order in which a lock should be acquired on the object as compared to other objects.</param>
+        </member>
+        <member name="T:ApplicationAccess.Utilities.LockManager.LockObjectAndDependencyPattern">
+            <summary>
+            Container class which holds a lock object and a dependency pattern for the lock object.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Utilities.LockManager.LockObjectAndDependencyPattern.LockObject">
+            <summary>
+            The object a lock is acquired on.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Utilities.LockManager.LockObjectAndDependencyPattern.DependencyPattern">
+            <summary>
+            The lock object dependency pattern.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.LockObjectAndDependencyPattern.#ctor(System.Object,ApplicationAccess.Utilities.LockObjectDependencyPattern)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Utilities.LockManager+LockObjectAndDependencyPattern class.
+            </summary>
+            <param name="lockObject">The lock object dependency pattern.</param>
+            <param name="dependencyPattern">The lock object dependency pattern.</param>
+        </member>
+        <member name="T:ApplicationAccess.Utilities.LockObjectDependencyPattern">
+            <summary>
+            Defines different patterns of dependency between objects with respect to acquiring mutual-exclusion locks.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.LockObjectDependencyPattern.ObjectAndObjectsItDependsOn">
+            <summary>Acquire locks on a specified object, and the objects it depends on.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt">
+            <summary>Acquire locks on a specified object, and the objects which depend on it.</summary>
+        </member>
+    </members>
+</doc>

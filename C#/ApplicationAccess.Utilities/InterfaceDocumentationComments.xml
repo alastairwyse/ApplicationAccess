@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>ApplicationAccess.Utilities</name>
+  </assembly>
+  <members>
+    <member name="T:ApplicationAccess.Utilities.IDateTimeProvider">
+      <summary>
+        Defines methods which returns the current date and time.
+      </summary>
+    </member>
+    <member name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now">
+      <summary>
+        Returns the current date and time.
+      </summary>
+      <returns>The current date and time.</returns>
+    </member>
+    <member name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow">
+      <summary>
+        Returns the current date and time expressed as the Coordinated Universal Time (UTC).
+      </summary>
+      <returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
+    </member>
+  </members>
+</doc>

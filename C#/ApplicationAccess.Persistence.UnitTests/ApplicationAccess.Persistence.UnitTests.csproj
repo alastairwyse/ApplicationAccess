@@ -18,10 +18,4 @@
     <ProjectReference Include="..\ApplicationAccess.Validation\ApplicationAccess.Validation.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="NMock2">
-      <HintPath>..\Referenced Libraries\NMock2.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

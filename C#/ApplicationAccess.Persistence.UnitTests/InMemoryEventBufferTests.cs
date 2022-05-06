@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Validation;
+using ApplicationAccess.Utilities;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
@@ -30,7 +31,7 @@ namespace ApplicationAccess.Persistence.UnitTests
     /// <summary>
     /// Unit tests for the ApplicationAccess.Persistence.InMemoryEventBuffer class.
     /// </summary>
-    public class InMemoryEventBufferUnitTests
+    public class InMemoryEventBufferTests
     {
         private InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testInMemoryEventBuffer;
         private IMethodCallInterceptor methodCallInterceptor;
@@ -2007,7 +2008,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             }
 
             /// <summary>
-            ///  Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.InMemoryEventBuffer+InMemoryEventBufferWithProtectedMembers class.
+            ///  Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.InMemoryEventBufferTests+InMemoryEventBufferWithProtectedMembers class.
             /// </summary>
             /// <param name="eventValidator">The validator to use to validate events.</param>
             /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>

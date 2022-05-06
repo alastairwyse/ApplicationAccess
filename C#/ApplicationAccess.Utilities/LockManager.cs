@@ -242,6 +242,8 @@ namespace ApplicationAccess.Utilities
 
         #region Nested Classes
 
+        #pragma warning disable 1591
+
         /// <summary>
         /// Container class which holds a lock object and a sequence number used to define the order which a lock is acquired on the object.
         /// </summary>
@@ -331,6 +333,8 @@ namespace ApplicationAccess.Utilities
                 return (lockObject.GetHashCode() * prime1 + dependencyPattern.GetHashCode() * 11);
             }
         }
+
+        #pragma warning restore 1591
 
         #endregion
     }

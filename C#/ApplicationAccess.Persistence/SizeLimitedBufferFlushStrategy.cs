@@ -31,7 +31,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</summary>
         protected Int32 bufferSizeLimit;
         /// <summary>Signal which is used to trigger the worker thread when the specified number of events are bufferred.</summary>
-        protected AutoResetEvent bufferProcessSignal;
+        protected ManualResetEvent bufferProcessSignal;
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount"]/*'/>
         public override Int32 UserEventBufferItemCount
@@ -183,10 +183,11 @@ namespace ApplicationAccess.Persistence
                     {
                         OnBufferFlushed(EventArgs.Empty);
                     }
+                    bufferProcessSignal.Reset();
                 }
             };
             this.bufferSizeLimit = bufferSizeLimit;
-            bufferProcessSignal = new AutoResetEvent(false);
+            bufferProcessSignal = new ManualResetEvent(false);
         }
 
         /// <summary>

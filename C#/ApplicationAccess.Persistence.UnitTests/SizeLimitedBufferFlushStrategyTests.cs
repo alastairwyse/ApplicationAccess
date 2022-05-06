@@ -313,5 +313,43 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             Assert.AreEqual(2, flushEventsRaised);
         }
+
+        /// <summary>
+        /// Tests a scenario where 'bufferSizeLimit' is reached, and then immediately after that another event is buffered before the worker thread has zeroed the queue item counts.  Ensures that this does not trigger another immediate subsequent flush (as was happening when member 'bufferProcessSignal' was an AutoResetEvent rather than a ManualResetEvent).
+        /// </summary>
+        [Test]
+        public void UserEventBufferItemCount_AdditionalItemBufferedBeforeCountsAreReset()
+        {
+            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
+            flushHandler = (Object sender, EventArgs e) =>
+            {
+                flushEventsRaised++;
+                Thread.Sleep(250);
+                // The following property sets simulate resetting that occurs in the InMemoryEventBuffer.Flush() method
+                testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.EntityEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
+                testSizeLimitedBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
+            };
+            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
+
+            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
+            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 2;
+            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 3;
+            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 4;
+            // Sleep to try to ensure the worker thread has enough time to sleep itself and complete one flush process
+            Thread.Sleep(500);
+
+            testSizeLimitedBufferFlushStrategy.Stop();
+            workerThreadCompleteSignal.WaitOne();
+
+            Assert.AreEqual(1, flushEventsRaised);
+        }
     }
 }

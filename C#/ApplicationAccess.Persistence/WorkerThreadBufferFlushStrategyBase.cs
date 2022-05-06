@@ -28,17 +28,6 @@ namespace ApplicationAccess.Persistence
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public abstract class WorkerThreadBufferFlushStrategyBase<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
-        // Threading and Concurrency Doco: TODO -> Tidy Up
-        // Notify*() methods should be called by InMemoryEventBuffer at the point of the buffer contents being moved to temp queue
-        //   I.e.  at the end of MoveEventsToTemporaryQueue(), and this is under a ME lock... and will be done by this classes' worker thread, seeing as it stems from the Flush() method
-        //   Putting on this queue is serialized... the only other thing which touches
-        //   Don't forget there's two concerns here... they queue itself, and this userEventsBuffered counter
-        //     Make sure that both are only modified whilst in locks
-        //     And convince myself it's OK to check their value when not under lock (or are they in fact under lock??)
-        // Review AppAccess doc... 'C:\Development\C#\ApplicationMetrics\Documentation\2021-09-07 WorkerThreadBufferProcessorBase Thread Access 1.JPG'
-        //   Make a formalized version in Visio... something I can refer back to so I don't have to rehash this locking in my head again
-
-
         /// <summary>The number of user events currently buffered</summary>
         private Int32 userEventsBuffered;
         /// <summary>The number of group events currently buffered</summary>
@@ -66,7 +55,7 @@ namespace ApplicationAccess.Persistence
         private Exception flushingException;
         /// <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
         protected volatile Boolean stopMethodCalled;
-        /// <summary>Signal that is set when the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
+        /// <summary>Signal that is set after the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
         protected ManualResetEvent workerThreadCompleteSignal;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected bool disposed;

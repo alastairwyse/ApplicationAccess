@@ -16,15 +16,15 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Utilities
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IDateTimeProvider"]/*'/>
+    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Utilities.IDateTimeProvider"]/*'/>
     public interface IDateTimeProvider
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IDateTimeProvider.Now"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now"]/*'/>
         DateTime Now();
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IDateTimeProvider.UtcNow"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow"]/*'/>
         DateTime UtcNow();
     }
 }

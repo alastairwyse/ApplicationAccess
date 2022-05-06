@@ -16,20 +16,20 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Utilities
 {
     /// <summary>
     /// Returns the current date and time using the static DateTime struct.
     /// </summary>
     public class DefaultDateTimeProvider : IDateTimeProvider
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IDateTimeProvider.Now"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now"]/*'/>
         public DateTime Now()
         {
             return DateTime.Now;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IDateTimeProvider.UtcNow"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow"]/*'/>
         public DateTime UtcNow()
         {
             return DateTime.UtcNow;

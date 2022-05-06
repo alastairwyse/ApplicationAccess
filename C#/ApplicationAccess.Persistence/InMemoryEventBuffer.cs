@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using ApplicationAccess.Validation;
+using ApplicationAccess.Utilities;
 using MoreComplexDataStructures;
 
 namespace ApplicationAccess.Persistence
@@ -68,25 +69,25 @@ namespace ApplicationAccess.Persistence
         protected LinkedList<GroupToEntityMappingEventBufferItem<TGroup>> groupToEntityMappingEventBuffer;
 
         // Separate lock objects are required.  The queues cannot be locked directly as they are reassigned whilst locked as part of the flush process
-        /// <summary>Lock objects for the user event queue.</summary>
+        /// <summary>Lock object for the user event queue.</summary>
         protected Object userEventBufferLock;
-        /// <summary>Lock objects for the group event queue.</summary>
+        /// <summary>Lock object for the group event queue.</summary>
         protected Object groupEventBufferLock;
-        /// <summary>Lock objects for the user to group mapping event queue.</summary>
+        /// <summary>Lock object for the user to group mapping event queue.</summary>
         protected Object userToGroupMappingEventBufferLock;
-        /// <summary>Lock objects for the group to group mapping event queue.</summary>
+        /// <summary>Lock object for the group to group mapping event queue.</summary>
         protected Object groupToGroupMappingEventBufferLock;
-        /// <summary>Lock objects for the user to application component and access level mapping event queue.</summary>
+        /// <summary>Lock object for the user to application component and access level mapping event queue.</summary>
         protected Object userToApplicationComponentAndAccessLevelMappingEventBufferLock;
-        /// <summary>Lock objects for the group to application component and access level mapping event queue.</summary>
+        /// <summary>Lock object for the group to application component and access level mapping event queue.</summary>
         protected Object groupToApplicationComponentAndAccessLevelMappingEventBufferLock;
-        /// <summary>Lock objects for the entity type event queue.</summary>
+        /// <summary>Lock object for the entity type event queue.</summary>
         protected Object entityTypeEventBufferLock;
-        /// <summary>Lock objects for the entity event queue.</summary>
+        /// <summary>Lock object for the entity event queue.</summary>
         protected Object entityEventBufferLock;
-        /// <summary>Lock objects for the user to entity mapping event queue.</summary>
+        /// <summary>Lock object for the user to entity mapping event queue.</summary>
         protected Object userToEntityMappingEventBufferLock;
-        /// <summary>Lock objects for the group to entity mapping event queue.</summary>
+        /// <summary>Lock object for the group to entity mapping event queue.</summary>
         protected Object groupToEntityMappingEventBufferLock;
 
         /// <summary>

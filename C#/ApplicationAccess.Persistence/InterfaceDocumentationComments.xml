@@ -97,16 +97,5 @@
       </summary>
       <returns>The access manager.</returns>
     </member>
-    <member name="T:ApplicationAccess.Persistence.IDateTimeProvider">
-      <summary>
-        Defines a method which returns the current date and time.
-      </summary>
-    </member>
-    <member name="M:ApplicationAccess.Persistence.IDateTimeProvider.Now">
-      <summary>
-        Returns the current date and time.
-      </summary>
-      <returns>The current date and time.</returns>
-    </member>
   </members>
 </doc>
