@@ -15,182 +15,73 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ApplicationAccess.Persistence
 {
-    /// <summary>
-    /// Defines methods to persist events which change the structure of an AccessManager class to permanent storage, with the option to retrospectively persist historic events.
-    /// </summary>
-    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"]/*'/>
     public interface IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventPersister<TUser, TGroup, TComponent, TAccess>
     {
-        // TODO: Move comments to InterfaceDocumentationComments.xml
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Int64,System.DateTime)"]/*'/>
+        void AddUser(TUser user, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds a user.
-        /// </summary>
-        /// <param name="user">The user to add.</param>
-        /// <param name="occurredTime">The historic date and time that the user was added.</param>
-        void AddUser(TUser user, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUser(`0,System.Int64,System.DateTime)"]/*'/>
+        void RemoveUser(TUser user, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes a user.
-        /// </summary>
-        /// <param name="user">The user to remove.</param>
-        /// <param name="occurredTime">The historic date and time that the user was removed.</param>
-        void RemoveUser(TUser user, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroup(`1,System.Int64,System.DateTime)"]/*'/>
+        void AddGroup(TGroup group, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds a group.
-        /// </summary>
-        /// <param name="group">The group to add.</param>
-        /// <param name="occurredTime">The historic date and time that the group was added.</param>
-        void AddGroup(TGroup group, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroup(`1,System.Int64,System.DateTime)"]/*'/>
+        void RemoveGroup(TGroup group, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes a group.
-        /// </summary>
-        /// <param name="group">The group to remove.</param>
-        /// <param name="occurredTime">The historic date and time that the group was removed.</param>
-        void RemoveGroup(TGroup group, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToGroupMapping(`0,`1,System.Int64,System.DateTime)"]/*'/>
+        void AddUserToGroupMapping(TUser user, TGroup group, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds a mapping between the specified user and group.
-        /// </summary>
-        /// <param name="user">The user in the mapping.</param>
-        /// <param name="group">The group in the mapping.</param>
-        /// <param name="occurredTime">The historic date and time that the user to group mapping was added.</param>
-        void AddUserToGroupMapping(TUser user, TGroup group, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToGroupMapping(`0,`1,System.Int64,System.DateTime)"]/*'/>
+        void RemoveUserToGroupMapping(TUser user, TGroup group, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes a mapping between the specified user and group.
-        /// </summary>
-        /// <param name="user">The user in the mapping.</param>
-        /// <param name="group">The group in the mapping.</param>
-        /// <param name="occurredTime">The historic date and time that the user to group mapping was removed.</param>
-        void RemoveUserToGroupMapping(TUser user, TGroup group, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToGroupMapping(`1,`1,System.Int64,System.DateTime)"]/*'/>
+        void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds a mapping between the specified groups.
-        /// </summary>
-        /// <param name="fromGroup">The 'from' group in the mapping.</param>
-        /// <param name="toGroup">The 'to' group in the mapping.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping between the groups was added.</param>
-        void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Int64,System.DateTime)"]/*'/>
+        void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes a mapping between the specified groups.
-        /// </summary>
-        /// <param name="fromGroup">The 'from' group in the mapping.</param>
-        /// <param name="toGroup">The 'to' group in the mapping.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping between the groups was removed.</param>
-        void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Int64,System.DateTime)"]/*'/>
+        void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds a mapping between the specified user, application component, and level of access to that component.
-        /// </summary>
-        /// <param name="user">The user in the mapping.</param>
-        /// <param name="applicationComponent">The application component in the mapping.</param>
-        /// <param name="accessLevel">The level of access to the component.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping was added.</param>
-        void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Int64,System.DateTime)"]/*'/>
+        void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes a mapping between the specified user, application component, and level of access to that component.
-        /// </summary>
-        /// <param name="user">The user in the mapping.</param>
-        /// <param name="applicationComponent">The application component in the mapping.</param>
-        /// <param name="accessLevel">The level of access to the component.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping was removed.</param>
-        void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Int64,System.DateTime)"]/*'/>
+        void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds a mapping between the specified group, application component, and level of access to that component.
-        /// </summary>
-        /// <param name="group">The group in the mapping.</param>
-        /// <param name="applicationComponent">The application component in the mapping.</param>
-        /// <param name="accessLevel">The level of access to the component.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping was added.</param>
-        void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Int64,System.DateTime)"]/*'/>
+        void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes a mapping between the specified group, application component, and level of access to that component.
-        /// </summary>
-        /// <param name="group">The group in the mapping.</param>
-        /// <param name="applicationComponent">The application component in the mapping.</param>
-        /// <param name="accessLevel">The level of access to the component.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping was removed.</param>
-        void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntityType(System.String,System.Int64,System.DateTime)"]/*'/>
+        void AddEntityType(String entityType, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds an entity type.
-        /// </summary>
-        /// <param name="entityType">The entity type to add.</param>
-        /// <param name="occurredTime">The historic date and time that the entity type was added.</param>
-        void AddEntityType(String entityType, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntityType(System.String,System.Int64,System.DateTime)"]/*'/>
+        void RemoveEntityType(String entityType, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes an entity type.
-        /// </summary>
-        /// <param name="entityType">The entity type to remove.</param>
-        /// <param name="occurredTime">The historic date and time that the entity type was removed.</param>
-        void RemoveEntityType(String entityType, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntity(System.String,System.String,System.Int64,System.DateTime)"]/*'/>
+        void AddEntity(String entityType, String entity, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds an entity.
-        /// </summary>
-        /// <param name="entityType">The type of the entity.</param>
-        /// <param name="entity">The entity to add.</param>
-        /// <param name="occurredTime">The historic date and time that the entity was added.</param>
-        void AddEntity(String entityType, String entity, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntity(System.String,System.String,System.Int64,System.DateTime)"]/*'/>
+        void RemoveEntity(String entityType, String entity, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes an entity.
-        /// </summary>
-        /// <param name="entityType">The type of the entity.</param>
-        /// <param name="entity">The entity to remove.</param>
-        /// <param name="occurredTime">The historic date and time that the entity was removed.</param>
-        void RemoveEntity(String entityType, String entity, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Int64,System.DateTime)"]/*'/>
+        void AddUserToEntityMapping(TUser user, String entityType, String entity, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds a mapping between the specified user, and entity.
-        /// </summary>
-        /// <param name="user">The user in the mapping.</param>
-        /// <param name="entityType">The type of the entity.</param>
-        /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping was added.</param>
-        void AddUserToEntityMapping(TUser user, String entityType, String entity, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Int64,System.DateTime)"]/*'/>
+        void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes a mapping between the specified user, and entity.
-        /// </summary>
-        /// <param name="user">The user in the mapping.</param>
-        /// <param name="entityType">The type of the entity.</param>
-        /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping was removed.</param>
-        void RemoveUserToEntityMapping(TUser user, String entityType, String entity, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Int64,System.DateTime)"]/*'/>
+        void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Adds a mapping between the specified group, and entity.
-        /// </summary>
-        /// <param name="group">The group in the mapping.</param>
-        /// <param name="entityType">The type of the entity.</param>
-        /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping was added.</param>
-        void AddGroupToEntityMapping(TGroup group, String entityType, String entity, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Int64,System.DateTime)"]/*'/>
+        void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Int64 sequenceNumber, DateTime occurredTime);
 
-        /// <summary>
-        /// Removes a mapping between the specified group, and entity.
-        /// </summary>
-        /// <param name="group">The group in the mapping.</param>
-        /// <param name="entityType">The type of the entity.</param>
-        /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="occurredTime">The historic date and time that the mapping was removed.</param>
-        void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, DateTime occurredTime);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Int64)"]/*'/>
+        AccessManager<TUser, TGroup, TComponent, TAccess> Load(Int64 sequenceNumber);
     }
 }

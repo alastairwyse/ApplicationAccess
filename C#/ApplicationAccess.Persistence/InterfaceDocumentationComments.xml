@@ -1,100 +1,222 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <doc>
   <assembly>
     <name>ApplicationAccess.Persistence</name>
   </assembly>
   <members>
     <member name="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4">
-      <summary>
-        Defines methods to buffer events which change the structure of an AccessManager class.
-      </summary>
+      <summary>Defines methods to buffer events which change the structure of an AccessManager class.</summary>
       <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
       <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
       <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
       <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     </member>
     <member name="M:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4.Flush">
-      <summary>
-        Flushes the buffers... i.e. transfers all stored events to another event processor, and clears all items stored in the buffers.
-      </summary>
+      <summary>Flushes the buffers... i.e. transfers all stored events to another event processor, and clears all items stored in the buffers.</summary>
     </member>
     <member name="T:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4">
-      <summary>
-        Defines methods to track/monitor the contents of an IAccessManagerEventBuffer implementation, and an event to flush the buffers.
-      </summary>
+      <summary>Defines methods to track/monitor the contents of an IAccessManagerEventBuffer implementation, and an event to flush the buffers.</summary>
       <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
       <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
       <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
       <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     </member>
     <member name="E:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.BufferFlushed">
-      <summary>
-        Occurs when the buffers are flushed... i.e. when events stored in the buffers are processed.
-      </summary>
+      <summary>Occurs when the buffers are flushed... i.e. when events stored in the buffers are processed.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount">
-      <summary>
-        The number of user events stored in the buffer.
-      </summary>
+      <summary>The number of user events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupEventBufferItemCount">
-      <summary>
-        The number of group events stored in the buffer.
-      </summary>
+      <summary>The number of group events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount">
-      <summary>
-        The number of user to group mapping events stored in the buffer.
-      </summary>
+      <summary>The number of user to group mapping events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount">
-      <summary>
-        The number of group to group mapping events stored in the buffer.
-      </summary>
+      <summary>The number of group to group mapping events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
-      <summary>
-        The number of user to application component and access level mapping events stored in the buffer.
-      </summary>
+      <summary>The number of user to application component and access level mapping events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
-      <summary>
-        The number of group to application component and access level mapping events stored in the buffer.
-      </summary>
+      <summary>The number of group to application component and access level mapping events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityTypeEventBufferItemCount">
-      <summary>
-        The number of entity type events stored in the buffer.
-      </summary>
+      <summary>The number of entity type events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityEventBufferItemCount">
-      <summary>
-        The number of entity events stored in the buffer.
-      </summary>
+      <summary>The number of entity events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount">
-      <summary>
-        The number of user to entity mapping events stored in the buffer.
-      </summary>
+      <summary>The number of user to entity mapping events stored in the buffer.</summary>
     </member>
     <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount">
-      <summary>
-        The number of group to entity mapping events stored in the buffer.
-      </summary>
+      <summary>The number of group to entity mapping events stored in the buffer.</summary>
     </member>
     <member name="T:ApplicationAccess.Persistence.IAccessManagerEventPersister`4">
-      <summary>
-        Defines methods to persist events which change the structure of an AccessManager class to permanent storage.
-      </summary>
+      <summary>Defines methods to persist events which change the structure of an AccessManager class to permanent storage.</summary>
       <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
       <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
       <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
       <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     </member>
     <member name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load">
-      <summary>
-        Loads the access manager from persistent storage.
-      </summary>
+      <summary>Loads the access manager from persistent storage.</summary>
+      <returns>The access manager.</returns>
+    </member>
+    <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4">
+      <summary>Defines methods to persist events which change the structure of an AccessManager class to permanent storage.  Designed to operate behind a component which buffers the events, and hence methods include a unique sequence number for each event, and the date/time in the past when the even occurred.</summary>
+      <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Int64,System.DateTime)">
+      <summary>Adds a user.</summary>
+      <param name="user">The user to add.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the user was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUser(`0,System.Int64,System.DateTime)">
+      <summary>Removes a user.</summary>
+      <param name="user">The user to remove.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the user was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroup(`1,System.Int64,System.DateTime)">
+      <summary>Adds a group.</summary>
+      <param name="group">The group to add.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the group was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroup(`1,System.Int64,System.DateTime)">
+      <summary>Removes a group.</summary>
+      <param name="group">The group to remove.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the group was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToGroupMapping(`0,`1,System.Int64,System.DateTime)">
+      <summary>Adds a mapping between the specified user and group.</summary>
+      <param name="user">The user in the mapping.</param>
+      <param name="group">The group in the mapping.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the user to group mapping was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToGroupMapping(`0,`1,System.Int64,System.DateTime)">
+      <summary>Removes a mapping between the specified user and group.</summary>
+      <param name="user">The user in the mapping.</param>
+      <param name="group">The group in the mapping.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the user to group mapping was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToGroupMapping(`1,`1,System.Int64,System.DateTime)">
+      <summary>Adds a mapping between the specified groups.</summary>
+      <param name="fromGroup">The 'from' group in the mapping.</param>
+      <param name="toGroup">The 'to' group in the mapping.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping between the groups was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Int64,System.DateTime)">
+      <summary>Removes a mapping between the specified groups.</summary>
+      <param name="fromGroup">The 'from' group in the mapping.</param>
+      <param name="toGroup">The 'to' group in the mapping.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping between the groups was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Int64,System.DateTime)">
+      <summary>Adds a mapping between the specified user, application component, and level of access to that component.</summary>
+      <param name="user">The user in the mapping.</param>
+      <param name="applicationComponent">The application component in the mapping.</param>
+      <param name="accessLevel">The level of access to the component.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Int64,System.DateTime)">
+      <summary>Removes a mapping between the specified user, application component, and level of access to that component.</summary>
+      <param name="user">The user in the mapping.</param>
+      <param name="applicationComponent">The application component in the mapping.</param>
+      <param name="accessLevel">The level of access to the component.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Int64,System.DateTime)">
+      <summary>Adds a mapping between the specified group, application component, and level of access to that component.</summary>
+      <param name="group">The group in the mapping.</param>
+      <param name="applicationComponent">The application component in the mapping.</param>
+      <param name="accessLevel">The level of access to the component.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Int64,System.DateTime)">
+      <summary>Removes a mapping between the specified group, application component, and level of access to that component.</summary>
+      <param name="group">The group in the mapping.</param>
+      <param name="applicationComponent">The application component in the mapping.</param>
+      <param name="accessLevel">The level of access to the component.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntityType(System.String,System.Int64,System.DateTime)">
+      <summary>Adds an entity type.</summary>
+      <param name="entityType">The entity type to add.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the entity type was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntityType(System.String,System.Int64,System.DateTime)">
+      <summary>Removes an entity type.</summary>
+      <param name="entityType">The entity type to remove.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the entity type was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntity(System.String,System.String,System.Int64,System.DateTime)">
+      <summary>Adds an entity.</summary>
+      <param name="entityType">The type of the entity.</param>
+      <param name="entity">The entity to add.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the entity was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntity(System.String,System.String,System.Int64,System.DateTime)">
+      <summary>Removes an entity.</summary>
+      <param name="entityType">The type of the entity.</param>
+      <param name="entity">The entity to remove.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the entity was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Int64,System.DateTime)">
+      <summary>Adds a mapping between the specified user, and entity.</summary>
+      <param name="user">The user in the mapping.</param>
+      <param name="entityType">The type of the entity.</param>
+      <param name="entity">The entity in the mapping.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Int64,System.DateTime)">
+      <summary>Removes a mapping between the specified user, and entity.</summary>
+      <param name="user">The user in the mapping.</param>
+      <param name="entityType">The type of the entity.</param>
+      <param name="entity">The entity in the mapping.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Int64,System.DateTime)">
+      <summary>Adds a mapping between the specified group, and entity.</summary>
+      <param name="group">The group in the mapping.</param>
+      <param name="entityType">The type of the entity.</param>
+      <param name="entity">The entity in the mapping.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping was added.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Int64,System.DateTime)">
+      <summary>Removes a mapping between the specified group, and entity.</summary>
+      <param name="group">The group in the mapping.</param>
+      <param name="entityType">The type of the entity.</param>
+      <param name="entity">The entity in the mapping.</param>
+      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="occurredTime">The historic date and time that the mapping was removed.</param>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Int64)">
+      <summary>Loads the access manager with state corresponding to the specified sequence number from persistent storage.</summary>
+      <param name="sequenceNumber">The sequence number corresponding to the state of the access manager.</param>
       <returns>The access manager.</returns>
     </member>
   </members>

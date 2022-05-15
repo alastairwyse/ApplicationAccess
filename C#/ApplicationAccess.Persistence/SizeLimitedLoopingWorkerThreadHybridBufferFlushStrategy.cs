@@ -58,7 +58,7 @@ namespace ApplicationAccess.Persistence
                 throw new ArgumentOutOfRangeException(nameof(flushLoopInterval), $"Parameter '{nameof(flushLoopInterval)}' with value {flushLoopInterval} cannot be less than 1.");
 
             this.flushLoopInterval = flushLoopInterval;
-            dateTimeProvider = new DefaultDateTimeProvider();
+            dateTimeProvider = new StopwatchDateTimeProvider();
             isFlushing = false;
             lastFlushCompleteTimeLockObject = new Object();
             loopingTriggerThreadLoopCompleteSignal = null;

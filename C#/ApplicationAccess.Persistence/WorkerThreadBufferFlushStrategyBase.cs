@@ -72,6 +72,7 @@ namespace ApplicationAccess.Persistence
         public event EventHandler BufferFlushed;
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 UserEventBufferItemCount
         {
             set 
@@ -84,6 +85,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 GroupEventBufferItemCount
         {
             set
@@ -96,6 +98,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 UserToGroupMappingEventBufferItemCount
         {
             set
@@ -108,6 +111,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 GroupToGroupMappingEventBufferItemCount
         {
             set
@@ -120,6 +124,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
             set
@@ -132,6 +137,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
             set
@@ -144,6 +150,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityTypeEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 EntityTypeEventBufferItemCount
         {
             set
@@ -156,6 +163,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 EntityEventBufferItemCount
         {
             set
@@ -168,6 +176,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 UserToEntityMappingEventBufferItemCount
         {
             set
@@ -180,6 +189,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 GroupToEntityMappingEventBufferItemCount
         {
             set
@@ -230,6 +240,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Stops the worker thread which performs buffer flushes.
         /// </summary>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual void Stop()
         {
             // Check whether any exceptions have occurred on the worker thread and re-throw
@@ -260,7 +271,7 @@ namespace ApplicationAccess.Persistence
                     }
                     catch (Exception e)
                     {
-                        var wrappedException = new Exception($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
+                        var wrappedException = new BufferFlushingException($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
                         Interlocked.Exchange(ref flushingException, wrappedException);
                     }
                     // If no exception has occurred, flush any remaining buffered events
@@ -272,7 +283,7 @@ namespace ApplicationAccess.Persistence
                         }
                         catch (Exception e)
                         {
-                            var wrappedException = new Exception($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
+                            var wrappedException = new BufferFlushingException($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
                             Interlocked.Exchange(ref flushingException, wrappedException);
                         }
                     }

@@ -111,7 +111,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 0;
             });
@@ -146,7 +146,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 0;
             });
@@ -181,7 +181,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
             });
@@ -216,7 +216,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
             });
@@ -251,7 +251,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
             });
@@ -286,7 +286,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
             });
@@ -321,7 +321,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
             });
@@ -356,7 +356,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.EntityEventBufferItemCount = 0;
             });
@@ -391,7 +391,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
             });
@@ -426,7 +426,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to process the above buffered events
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
             });
@@ -449,7 +449,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to throw the exception
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
             });
@@ -468,7 +468,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.Stop();
             });

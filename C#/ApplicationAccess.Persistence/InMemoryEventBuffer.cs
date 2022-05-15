@@ -109,7 +109,7 @@ namespace ApplicationAccess.Persistence
             bufferFlushedEventHandler = (Object sender, EventArgs e) => { Flush(); };
             bufferFlushStrategy.BufferFlushed += bufferFlushedEventHandler;
             this.eventPersister = eventPersister;
-            dateTimeProvider = new DefaultDateTimeProvider();
+            dateTimeProvider = new StopwatchDateTimeProvider();
             lastEventSequenceNumber = -1;
 
             userEventBuffer = new LinkedList<UserEventBufferItem<TUser>>();
@@ -175,6 +175,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddUser(TUser user)
         {
             Action<TUser> postValidationAction = (actionUser) =>
@@ -190,6 +191,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveUser(TUser user)
         {
             Action<TUser> postValidationAction = (actionUser) =>
@@ -205,6 +207,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddGroup(TGroup group)
         {
             Action<TGroup> postValidationAction = (actionGroup) =>
@@ -220,6 +223,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveGroup(TGroup group)
         {
             Action<TGroup> postValidationAction = (actionGroup) =>
@@ -235,6 +239,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
             Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
@@ -250,6 +255,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
@@ -265,6 +271,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
@@ -280,6 +287,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
@@ -295,6 +303,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
@@ -310,6 +319,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
@@ -325,6 +335,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
@@ -340,6 +351,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
@@ -355,6 +367,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddEntityType(string entityType)
         {
             Action<string> postValidationAction = (actionEntityType) =>
@@ -370,6 +383,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveEntityType(string entityType)
         {
             Action<string> postValidationAction = (actionEntityType) =>
@@ -385,6 +399,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddEntity(string entityType, string entity)
         {
             Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
@@ -400,6 +415,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveEntity(string entityType, string entity)
         {
             Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
@@ -415,6 +431,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddUserToEntityMapping(TUser user, string entityType, string entity)
         {
             Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
@@ -430,6 +447,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveUserToEntityMapping(TUser user, string entityType, string entity)
         {
             Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
@@ -445,6 +463,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddGroupToEntityMapping(TGroup group, string entityType, string entity)
         {
             Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
@@ -460,6 +479,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveGroupToEntityMapping(TGroup group, string entityType, string entity)
         {
             Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
@@ -475,6 +495,7 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4.Flush"]/*'/>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void Flush()
         {
             // Move all events to temporary queues
@@ -531,8 +552,8 @@ namespace ApplicationAccess.Persistence
                         ProcessKWayMergeStep<LinkedList<UserEventBufferItem<TUser>>, UserEventBufferItem<TUser>>
                         (
                             tempUserEventBuffer,
-                            (eventPersister) => { eventPersister.AddUser(tempUserEventBuffer.First.Value.User, tempUserEventBuffer.First.Value.OccurredTime); },
-                            (eventPersister) => { eventPersister.RemoveUser(tempUserEventBuffer.First.Value.User, tempUserEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.AddUser(tempUserEventBuffer.First.Value.User, tempUserEventBuffer.First.Value.SequenceNumber, tempUserEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.RemoveUser(tempUserEventBuffer.First.Value.User, tempUserEventBuffer.First.Value.SequenceNumber, tempUserEventBuffer.First.Value.OccurredTime); },
                             "user",
                             EventBuffer.User, 
                             nextSequenceNumbers
@@ -543,8 +564,8 @@ namespace ApplicationAccess.Persistence
                         ProcessKWayMergeStep<LinkedList<GroupEventBufferItem<TGroup>>, GroupEventBufferItem<TGroup>>
                         (
                             tempGroupEventBuffer,
-                            (eventPersister) => { eventPersister.AddGroup(tempGroupEventBuffer.First.Value.Group, tempGroupEventBuffer.First.Value.OccurredTime); },
-                            (eventPersister) => { eventPersister.RemoveGroup(tempGroupEventBuffer.First.Value.Group, tempGroupEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.AddGroup(tempGroupEventBuffer.First.Value.Group, tempGroupEventBuffer.First.Value.SequenceNumber, tempGroupEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.RemoveGroup(tempGroupEventBuffer.First.Value.Group, tempGroupEventBuffer.First.Value.SequenceNumber, tempGroupEventBuffer.First.Value.OccurredTime); },
                             "group",
                             EventBuffer.Group,
                             nextSequenceNumbers
@@ -555,8 +576,8 @@ namespace ApplicationAccess.Persistence
                         ProcessKWayMergeStep<LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>>, UserToGroupMappingEventBufferItem<TUser, TGroup>>
                         (
                             tempUserToGroupMappingEventBuffer,
-                            (eventPersister) => { eventPersister.AddUserToGroupMapping(tempUserToGroupMappingEventBuffer.First.Value.User, tempUserToGroupMappingEventBuffer.First.Value.Group, tempUserToGroupMappingEventBuffer.First.Value.OccurredTime); },
-                            (eventPersister) => { eventPersister.RemoveUserToGroupMapping(tempUserToGroupMappingEventBuffer.First.Value.User, tempUserToGroupMappingEventBuffer.First.Value.Group, tempUserToGroupMappingEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.AddUserToGroupMapping(tempUserToGroupMappingEventBuffer.First.Value.User, tempUserToGroupMappingEventBuffer.First.Value.Group, tempUserToGroupMappingEventBuffer.First.Value.SequenceNumber, tempUserToGroupMappingEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.RemoveUserToGroupMapping(tempUserToGroupMappingEventBuffer.First.Value.User, tempUserToGroupMappingEventBuffer.First.Value.Group, tempUserToGroupMappingEventBuffer.First.Value.SequenceNumber, tempUserToGroupMappingEventBuffer.First.Value.OccurredTime); },
                             "user to group mapping",
                             EventBuffer.UserToGroupMapping,
                             nextSequenceNumbers
@@ -567,8 +588,8 @@ namespace ApplicationAccess.Persistence
                         ProcessKWayMergeStep<LinkedList<GroupToGroupMappingEventBufferItem<TGroup>>, GroupToGroupMappingEventBufferItem<TGroup>>
                         (
                             tempGroupToGroupMappingEventBuffer,
-                            (eventPersister) => { eventPersister.AddGroupToGroupMapping(tempGroupToGroupMappingEventBuffer.First.Value.FromGroup, tempGroupToGroupMappingEventBuffer.First.Value.ToGroup, tempGroupToGroupMappingEventBuffer.First.Value.OccurredTime); },
-                            (eventPersister) => { eventPersister.RemoveGroupToGroupMapping(tempGroupToGroupMappingEventBuffer.First.Value.FromGroup, tempGroupToGroupMappingEventBuffer.First.Value.ToGroup, tempGroupToGroupMappingEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.AddGroupToGroupMapping(tempGroupToGroupMappingEventBuffer.First.Value.FromGroup, tempGroupToGroupMappingEventBuffer.First.Value.ToGroup, tempGroupToGroupMappingEventBuffer.First.Value.SequenceNumber, tempGroupToGroupMappingEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.RemoveGroupToGroupMapping(tempGroupToGroupMappingEventBuffer.First.Value.FromGroup, tempGroupToGroupMappingEventBuffer.First.Value.ToGroup, tempGroupToGroupMappingEventBuffer.First.Value.SequenceNumber, tempGroupToGroupMappingEventBuffer.First.Value.OccurredTime); },
                             "group to group mapping",
                             EventBuffer.GroupToGroupMapping,
                             nextSequenceNumbers
@@ -586,6 +607,7 @@ namespace ApplicationAccess.Persistence
                                     tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User,
                                     tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent,
                                     tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel,
+                                    tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber,
                                     tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime
                                 ); 
                             },
@@ -596,6 +618,7 @@ namespace ApplicationAccess.Persistence
                                     tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User,
                                     tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent,
                                     tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel,
+                                    tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber,
                                     tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime
                                 );
                             },
@@ -616,6 +639,7 @@ namespace ApplicationAccess.Persistence
                                     tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group,
                                     tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent,
                                     tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel,
+                                    tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber,
                                     tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime
                                 );
                             },
@@ -626,6 +650,7 @@ namespace ApplicationAccess.Persistence
                                     tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group,
                                     tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent,
                                     tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel,
+                                    tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber,
                                     tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime
                                 );
                             },
@@ -639,8 +664,8 @@ namespace ApplicationAccess.Persistence
                         ProcessKWayMergeStep<LinkedList<EntityTypeEventBufferItem>, EntityTypeEventBufferItem>
                         (
                             tempEntityTypeEventBuffer,
-                            (eventPersister) => { eventPersister.AddEntityType(tempEntityTypeEventBuffer.First.Value.EntityType, tempEntityTypeEventBuffer.First.Value.OccurredTime); },
-                            (eventPersister) => { eventPersister.RemoveEntityType(tempEntityTypeEventBuffer.First.Value.EntityType, tempEntityTypeEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.AddEntityType(tempEntityTypeEventBuffer.First.Value.EntityType, tempEntityTypeEventBuffer.First.Value.SequenceNumber, tempEntityTypeEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.RemoveEntityType(tempEntityTypeEventBuffer.First.Value.EntityType, tempEntityTypeEventBuffer.First.Value.SequenceNumber, tempEntityTypeEventBuffer.First.Value.OccurredTime); },
                             "entity type",
                             EventBuffer.EntityType,
                             nextSequenceNumbers
@@ -651,8 +676,8 @@ namespace ApplicationAccess.Persistence
                         ProcessKWayMergeStep<LinkedList<EntityEventBufferItem>, EntityEventBufferItem>
                         (
                             tempEntityEventBuffer,
-                            (eventPersister) => { eventPersister.AddEntity(tempEntityEventBuffer.First.Value.EntityType, tempEntityEventBuffer.First.Value.Entity, tempEntityEventBuffer.First.Value.OccurredTime); },
-                            (eventPersister) => { eventPersister.RemoveEntity(tempEntityEventBuffer.First.Value.EntityType, tempEntityEventBuffer.First.Value.Entity, tempEntityEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.AddEntity(tempEntityEventBuffer.First.Value.EntityType, tempEntityEventBuffer.First.Value.Entity, tempEntityEventBuffer.First.Value.SequenceNumber, tempEntityEventBuffer.First.Value.OccurredTime); },
+                            (eventPersister) => { eventPersister.RemoveEntity(tempEntityEventBuffer.First.Value.EntityType, tempEntityEventBuffer.First.Value.Entity, tempEntityEventBuffer.First.Value.SequenceNumber, tempEntityEventBuffer.First.Value.OccurredTime); },
                             "entity",
                             EventBuffer.Entity,
                             nextSequenceNumbers
@@ -669,7 +694,8 @@ namespace ApplicationAccess.Persistence
                                 (
                                     tempUserToEntityMappingEventBuffer.First.Value.User,
                                     tempUserToEntityMappingEventBuffer.First.Value.EntityType, 
-                                    tempUserToEntityMappingEventBuffer.First.Value.Entity, 
+                                    tempUserToEntityMappingEventBuffer.First.Value.Entity,
+                                    tempUserToEntityMappingEventBuffer.First.Value.SequenceNumber,
                                     tempUserToEntityMappingEventBuffer.First.Value.OccurredTime
                                 ); 
                             },
@@ -680,6 +706,7 @@ namespace ApplicationAccess.Persistence
                                     tempUserToEntityMappingEventBuffer.First.Value.User,
                                     tempUserToEntityMappingEventBuffer.First.Value.EntityType,
                                     tempUserToEntityMappingEventBuffer.First.Value.Entity,
+                                    tempUserToEntityMappingEventBuffer.First.Value.SequenceNumber,
                                     tempUserToEntityMappingEventBuffer.First.Value.OccurredTime
                                 );
                             },
@@ -700,6 +727,7 @@ namespace ApplicationAccess.Persistence
                                     tempGroupToEntityMappingEventBuffer.First.Value.Group,
                                     tempGroupToEntityMappingEventBuffer.First.Value.EntityType,
                                     tempGroupToEntityMappingEventBuffer.First.Value.Entity,
+                                    tempGroupToEntityMappingEventBuffer.First.Value.SequenceNumber,
                                     tempGroupToEntityMappingEventBuffer.First.Value.OccurredTime
                                 );
                             },
@@ -710,6 +738,7 @@ namespace ApplicationAccess.Persistence
                                     tempGroupToEntityMappingEventBuffer.First.Value.Group,
                                     tempGroupToEntityMappingEventBuffer.First.Value.EntityType,
                                     tempGroupToEntityMappingEventBuffer.First.Value.Entity,
+                                    tempGroupToEntityMappingEventBuffer.First.Value.SequenceNumber,
                                     tempGroupToEntityMappingEventBuffer.First.Value.OccurredTime
                                 );
                             },

@@ -267,7 +267,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Sleep to try to ensure the worker thread has enough time to throw the exception
             Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
             });
@@ -286,7 +286,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
 
-            Exception e = Assert.Throws<Exception>(delegate
+            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
             {
                 testSizeLimitedBufferFlushStrategy.Stop();
             });

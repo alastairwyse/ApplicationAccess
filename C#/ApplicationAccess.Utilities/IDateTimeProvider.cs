@@ -21,6 +21,8 @@ namespace ApplicationAccess.Utilities
     /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Utilities.IDateTimeProvider"]/*'/>
     public interface IDateTimeProvider
     {
+        // TODO: Think about removing Now() method as it's not used (as of 2022-05) and better practice is to always use UtcNow()
+
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now"]/*'/>
         DateTime Now();
 

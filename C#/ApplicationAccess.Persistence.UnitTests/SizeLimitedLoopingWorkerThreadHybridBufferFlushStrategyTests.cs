@@ -214,6 +214,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Thread.Sleep(500);
             // Signal the flush to complete
             flushCompleteSignal.Set();
+            Thread.Sleep(250);
             // Should have slept for the full 'flushLoopInterval' after signalling the buffer flushing worker thread
             Assert.AreEqual(250, testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.LastWaitInterval);
             // Generate some events to trigger a 'size limit' flush

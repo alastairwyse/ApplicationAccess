@@ -21,8 +21,6 @@ namespace ApplicationAccess.Persistence
     /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IAccessManagerEventPersister`4"]/*'/>
     public interface IAccessManagerEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
-        // TODO: Do we want a Save() method aswell?  It's just a nice optional utility method, and can be implemented using existing methods from IAccessManagerEventProcessor
-
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load"]/*'/>
         AccessManager<TUser, TGroup, TComponent, TAccess> Load();
     }

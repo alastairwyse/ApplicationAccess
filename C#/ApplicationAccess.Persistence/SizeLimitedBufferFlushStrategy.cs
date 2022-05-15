@@ -205,6 +205,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Stops the worker thread which performs buffer flushes.
         /// </summary>
+        /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         /// <remarks>This is the same as the base class method, but with the addition of a call to bufferProcessSignal.Set()... without this, the call to JoinWorkerThread() will wait forever (since the worker thread is waiting on member 'bufferProcessSignal').</remarks>
         public override void Stop()
         {
