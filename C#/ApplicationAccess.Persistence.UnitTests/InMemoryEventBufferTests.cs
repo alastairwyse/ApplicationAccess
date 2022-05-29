@@ -38,6 +38,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         private IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel> mockEventValidator;
         private IAccessManagerEventBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel> mockBufferFlushStrategy;
         private IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
+        private IGuidProvider mockGuidProvider;
         private IDateTimeProvider mockDateTimeProvider;
 
         [SetUp]
@@ -47,9 +48,10 @@ namespace ApplicationAccess.Persistence.UnitTests
             methodCallInterceptor = Substitute.For<IMethodCallInterceptor>();
             mockEventValidator = Substitute.For<IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
+            mockGuidProvider = Substitute.For<IGuidProvider>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
             var methodInterceptingValidator = new MethodInterceptingAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(methodCallInterceptor, new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>());
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(methodInterceptingValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(methodInterceptingValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
         }
 
         [Test]
@@ -93,7 +95,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddUser(user, Arg.Any<Action<String>>()).Returns(validationResult);
@@ -135,7 +137,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveUser(user, Arg.Any<Action<String>>()).Returns(validationResult);
@@ -177,7 +179,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddGroup(group, Arg.Any<Action<String>>()).Returns(validationResult);
@@ -219,7 +221,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveGroup(group, Arg.Any<Action<String>>()).Returns(validationResult);
@@ -264,7 +266,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddUserToGroupMapping(user, group, Arg.Any<Action<String, String>>()).Returns(validationResult);
@@ -309,7 +311,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveUserToGroupMapping(user, group, Arg.Any<Action<String, String>>()).Returns(validationResult);
@@ -354,7 +356,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddGroupToGroupMapping(fromGroup, toGroup, Arg.Any<Action<String, String>>()).Returns(validationResult);
@@ -399,7 +401,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveGroupToGroupMapping(fromGroup, toGroup, Arg.Any<Action<String, String>>()).Returns(validationResult);
@@ -443,7 +445,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View, Arg.Any<Action<String, ApplicationScreen, AccessLevel>>()).Returns(validationResult);
@@ -487,7 +489,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View, Arg.Any<Action<String, ApplicationScreen, AccessLevel>>()).Returns(validationResult);
@@ -531,7 +533,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create, Arg.Any<Action<String, ApplicationScreen, AccessLevel>>()).Returns(validationResult);
@@ -575,7 +577,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create, Arg.Any<Action<String, ApplicationScreen, AccessLevel>>()).Returns(validationResult);
@@ -617,7 +619,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String entityType = "ClientAccount";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddEntityType(entityType, Arg.Any<Action<String>>()).Returns(validationResult);
@@ -659,7 +661,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String entityType = "ClientAccount";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveEntityType(entityType, Arg.Any<Action<String>>()).Returns(validationResult);
@@ -704,7 +706,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddEntity(entityType, entity, Arg.Any<Action<String, String>>()).Returns(validationResult);
@@ -749,7 +751,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveEntity(entityType, entity, Arg.Any<Action<String, String>>()).Returns(validationResult);
@@ -797,7 +799,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddUserToEntityMapping(user, entityType, entity, Arg.Any<Action<String, String, String>>()).Returns(validationResult);
@@ -845,7 +847,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveUserToEntityMapping(user, entityType, entity, Arg.Any<Action<String, String, String>>()).Returns(validationResult);
@@ -893,7 +895,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddGroupToEntityMapping(group, entityType, entity, Arg.Any<Action<String, String, String>>()).Returns(validationResult);
@@ -941,7 +943,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveGroupToEntityMapping(group, entityType, entity, Arg.Any<Action<String, String, String>>()).Returns(validationResult);
@@ -958,11 +960,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterAddUserFails()
         {
             const String user = "user1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000001");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:55");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddUser(user, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddUser(user, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddUser(user);
 
@@ -979,11 +983,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterRemoveUserFails()
         {
             const String user = "user1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000002");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 11:39:55");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveUser(user, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveUser(user, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveUser(user);
 
@@ -1000,11 +1006,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterAddGroupFails()
         {
             const String group = "group1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000003");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-10 22:50:15");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddGroup(group, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddGroup(group, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddGroup(group);
 
@@ -1021,11 +1029,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterRemoveGroupFails()
         {
             const String group = "group1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000004");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 22:51:55");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveGroup(group, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveGroup(group, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveGroup(group);
 
@@ -1043,11 +1053,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String group = "group1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000005");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-11 22:56:15");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddUserToGroupMapping(user, group, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddUserToGroupMapping(user, group, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddUserToGroupMapping(user, group);
 
@@ -1065,11 +1077,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String group = "group1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000006");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 22:59:07");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToGroupMapping(user, group, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToGroupMapping(user, group, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveUserToGroupMapping(user, group);
 
@@ -1087,11 +1101,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String fromGroup = "group1";
             const String toGroup = "group2";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000007");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-11 23:02:15");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddGroupToGroupMapping(fromGroup, toGroup, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddGroupToGroupMapping(fromGroup, toGroup, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
 
@@ -1109,11 +1125,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String fromGroup = "group1";
             const String toGroup = "group2";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000008");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 23:02:16");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToGroupMapping(fromGroup, toGroup, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToGroupMapping(fromGroup, toGroup, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
 
@@ -1130,11 +1148,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterAddUserToApplicationComponentAndAccessLevelMappingFails()
         {
             const String user = "user1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000009");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-11 23:05:16");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Order, AccessLevel.Delete, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Order, AccessLevel.Delete, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Order, AccessLevel.Delete);
 
@@ -1151,11 +1171,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterRemoveUserToApplicationComponentAndAccessLevelMappingFails()
         {
             const String user = "user1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-00000000000a");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 23:07:17");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Settings, AccessLevel.Modify, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Settings, AccessLevel.Modify, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Settings, AccessLevel.Modify);
 
@@ -1172,11 +1194,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterAddGroupToApplicationComponentAndAccessLevelMappingFails()
         {
             const String group = "group1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-00000000000b");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-11 23:10:18");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Delete, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Delete, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Delete);
 
@@ -1193,11 +1217,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterRemoveGroupToApplicationComponentAndAccessLevelMappingFails()
         {
             const String group = "group1";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-00000000000c");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 23:10:19");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Settings, AccessLevel.Modify, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Settings, AccessLevel.Modify, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Settings, AccessLevel.Modify);
 
@@ -1214,11 +1240,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterAddEntityTypeFails()
         {
             const String entityType = "Products";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-00000000000d");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-12 12:07:20");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddEntityType(entityType, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddEntityType(entityType, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddEntityType(entityType);
 
@@ -1235,11 +1263,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Flush_CallToPersisterRemoveEntityTypeFails()
         {
             const String entityType = "Products";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-00000000000e");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-12 12:08:21");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveEntityType(entityType, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveEntityType(entityType, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveEntityType(entityType);
 
@@ -1257,11 +1287,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String entityType = "Clients";
             const String entity = "CompanyA";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-00000000000f");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-12 12:09:22");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddEntity(entityType, entity, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddEntity(entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddEntity(entityType, entity);
 
@@ -1279,11 +1311,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String entityType = "Clients";
             const String entity = "CompanyA";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000010");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-12 12:10:23");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveEntity(entityType, entity, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveEntity(entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveEntity(entityType, entity);
 
@@ -1302,11 +1336,13 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String entityType = "Clients";
             const String entity = "CompanyA";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000011");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-12 12:18:24");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddUserToEntityMapping(user, entityType, entity, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddUserToEntityMapping(user, entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddUserToEntityMapping(user, entityType, entity);
 
@@ -1325,11 +1361,13 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String entityType = "Clients";
             const String entity = "CompanyA";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000012");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-12 12:19:24");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToEntityMapping(user, entityType, entity, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToEntityMapping(user, entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveUserToEntityMapping(user, entityType, entity);
 
@@ -1348,11 +1386,13 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String group = "group1";
             const String entityType = "Clients";
             const String entity = "CompanyB";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000013");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-12 13:16:27");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.AddGroupToEntityMapping(group, entityType, entity, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.AddGroupToEntityMapping(group, entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.AddGroupToEntityMapping(group, entityType, entity);
 
@@ -1371,11 +1411,13 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String group = "group1";
             const String entityType = "Clients";
             const String entity = "CompanyB";
+            Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000014");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-12 13:17:28");
             var mockException = new Exception("Failed to persist event.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToEntityMapping(group, entityType, entity, 0, eventOccurredTime)).Do((callInfo) => throw mockException);
+            mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToEntityMapping(group, entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
             testInMemoryEventBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
 
@@ -1391,7 +1433,66 @@ namespace ApplicationAccess.Persistence.UnitTests
         [Test]
         public void Flush()
         {
+            var guid0 = Guid.Parse("00000000-0000-0000-0000-000000000000");
+            var guid1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var guid2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
+            var guid3 = Guid.Parse("00000000-0000-0000-0000-000000000003");
+            var guid4 = Guid.Parse("00000000-0000-0000-0000-000000000004");
+            var guid5 = Guid.Parse("00000000-0000-0000-0000-000000000005");
+            var guid6 = Guid.Parse("00000000-0000-0000-0000-000000000006");
+            var guid7 = Guid.Parse("00000000-0000-0000-0000-000000000007");
+            var guid8 = Guid.Parse("00000000-0000-0000-0000-000000000008");
+            var guid9 = Guid.Parse("00000000-0000-0000-0000-000000000009");
+            var guid10 = Guid.Parse("00000000-0000-0000-0000-00000000000a");
+            var guid11 = Guid.Parse("00000000-0000-0000-0000-00000000000b");
+            var guid12 = Guid.Parse("00000000-0000-0000-0000-00000000000c");
+            var guid13 = Guid.Parse("00000000-0000-0000-0000-00000000000d");
+            var guid14 = Guid.Parse("00000000-0000-0000-0000-00000000000e");
+            var guid15 = Guid.Parse("00000000-0000-0000-0000-00000000000f");
+            var guid16 = Guid.Parse("00000000-0000-0000-0000-000000000010");
+            var guid17 = Guid.Parse("00000000-0000-0000-0000-000000000011");
+            var guid18 = Guid.Parse("00000000-0000-0000-0000-000000000012");
+            var guid19 = Guid.Parse("00000000-0000-0000-0000-000000000013");
+            var guid20 = Guid.Parse("00000000-0000-0000-0000-000000000014");
+            var guid21 = Guid.Parse("00000000-0000-0000-0000-000000000015");
+            var guid22 = Guid.Parse("00000000-0000-0000-0000-000000000016");
+            var guid23 = Guid.Parse("00000000-0000-0000-0000-000000000017");
+            var guid24 = Guid.Parse("00000000-0000-0000-0000-000000000018");
+            var guid25 = Guid.Parse("00000000-0000-0000-0000-000000000019");
+            var guid26 = Guid.Parse("00000000-0000-0000-0000-00000000001a");
+            var guid27 = Guid.Parse("00000000-0000-0000-0000-00000000001b");
             mockBufferFlushStrategy.ClearReceivedCalls();
+            mockGuidProvider.NewGuid().Returns<Guid>
+            (
+                guid0,
+                guid1,
+                guid2,
+                guid3,
+                guid4,
+                guid5,
+                guid6,
+                guid7,
+                guid8,
+                guid9,
+                guid10,
+                guid11,
+                guid12,
+                guid13,
+                guid14,
+                guid15,
+                guid16,
+                guid17,
+                guid18,
+                guid19,
+                guid20,
+                guid21,
+                guid22,
+                guid23,
+                guid24, 
+                guid25,
+                guid26,
+                guid27
+            );
             mockDateTimeProvider.UtcNow().Returns<DateTime>
             (
                 CreateDataTimeFromString("2021-06-12 13:43:00"),
@@ -1497,34 +1598,34 @@ namespace ApplicationAccess.Persistence.UnitTests
                 mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
                 mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
                 // These are called as the buffered items are processed
-                mockEventPersister.AddEntityType("Clients", 0, CreateDataTimeFromString("2021-06-12 13:43:00"));
-                mockEventPersister.AddEntity("Clients", "CompanyA", 1, CreateDataTimeFromString("2021-06-12 13:43:01"));
-                mockEventPersister.AddGroup("group1", 2, CreateDataTimeFromString("2021-06-12 13:43:02"));
-                mockEventPersister.AddUser("user1", 3, CreateDataTimeFromString("2021-06-12 13:43:03"));
-                mockEventPersister.AddUser("user2", 4, CreateDataTimeFromString("2021-06-12 13:43:04"));
-                mockEventPersister.AddGroup("group2", 5, CreateDataTimeFromString("2021-06-12 13:43:05"));
-                mockEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View, 6, CreateDataTimeFromString("2021-06-12 13:43:06"));
-                mockEventPersister.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify, 7, CreateDataTimeFromString("2021-06-12 13:43:07"));
-                mockEventPersister.AddGroupToGroupMapping("group1", "group2", 8, CreateDataTimeFromString("2021-06-12 13:43:08"));
-                mockEventPersister.AddUserToGroupMapping("user1", "group2", 9, CreateDataTimeFromString("2021-06-12 13:43:09"));
-                mockEventPersister.AddGroupToEntityMapping("group2", "Clients", "CompanyA", 10, CreateDataTimeFromString("2021-06-12 13:43:10"));
-                mockEventPersister.AddUserToGroupMapping("user2", "group1", 11, CreateDataTimeFromString("2021-06-12 13:43:11"));
-                mockEventPersister.AddUserToEntityMapping("user1", "Clients", "CompanyA", 12, CreateDataTimeFromString("2021-06-12 13:43:12"));
-                mockEventPersister.AddEntity("Clients", "CompanyB", 13, CreateDataTimeFromString("2021-06-12 13:43:13"));
-                mockEventPersister.RemoveEntity("Clients", "CompanyB", 14, CreateDataTimeFromString("2021-06-12 13:43:14"));
-                mockEventPersister.RemoveUserToEntityMapping("user1", "Clients", "CompanyA", 15, CreateDataTimeFromString("2021-06-12 13:43:15"));
-                mockEventPersister.RemoveUserToGroupMapping("user2", "group1", 16, CreateDataTimeFromString("2021-06-12 13:43:16"));
-                mockEventPersister.RemoveGroupToEntityMapping("group2", "Clients", "CompanyA", 17, CreateDataTimeFromString("2021-06-12 13:43:17"));
-                mockEventPersister.RemoveUserToGroupMapping("user1", "group2", 18, CreateDataTimeFromString("2021-06-12 13:43:18"));
-                mockEventPersister.RemoveGroupToGroupMapping("group1", "group2", 19, CreateDataTimeFromString("2021-06-12 13:43:19"));
-                mockEventPersister.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify, 20, CreateDataTimeFromString("2021-06-12 13:43:20"));
-                mockEventPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View, 21, CreateDataTimeFromString("2021-06-12 13:43:21"));
-                mockEventPersister.RemoveGroup("group2", 22, CreateDataTimeFromString("2021-06-12 13:43:22"));
-                mockEventPersister.RemoveUser("user2", 23, CreateDataTimeFromString("2021-06-12 13:43:23"));
-                mockEventPersister.RemoveUser("user1", 24, CreateDataTimeFromString("2021-06-12 13:43:24"));
-                mockEventPersister.RemoveGroup("group1", 25, CreateDataTimeFromString("2021-06-12 13:43:25"));
-                mockEventPersister.RemoveEntity("Clients", "CompanyA", 26, CreateDataTimeFromString("2021-06-12 13:43:26"));
-                mockEventPersister.RemoveEntityType("Clients", 27, CreateDataTimeFromString("2021-06-12 13:43:27"));
+                mockEventPersister.AddEntityType("Clients", guid0, CreateDataTimeFromString("2021-06-12 13:43:00"));
+                mockEventPersister.AddEntity("Clients", "CompanyA", guid1, CreateDataTimeFromString("2021-06-12 13:43:01"));
+                mockEventPersister.AddGroup("group1", guid2, CreateDataTimeFromString("2021-06-12 13:43:02"));
+                mockEventPersister.AddUser("user1", guid3, CreateDataTimeFromString("2021-06-12 13:43:03"));
+                mockEventPersister.AddUser("user2", guid4, CreateDataTimeFromString("2021-06-12 13:43:04"));
+                mockEventPersister.AddGroup("group2", guid5, CreateDataTimeFromString("2021-06-12 13:43:05"));
+                mockEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View, guid6, CreateDataTimeFromString("2021-06-12 13:43:06"));
+                mockEventPersister.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify, guid7, CreateDataTimeFromString("2021-06-12 13:43:07"));
+                mockEventPersister.AddGroupToGroupMapping("group1", "group2", guid8, CreateDataTimeFromString("2021-06-12 13:43:08"));
+                mockEventPersister.AddUserToGroupMapping("user1", "group2", guid9, CreateDataTimeFromString("2021-06-12 13:43:09"));
+                mockEventPersister.AddGroupToEntityMapping("group2", "Clients", "CompanyA", guid10, CreateDataTimeFromString("2021-06-12 13:43:10"));
+                mockEventPersister.AddUserToGroupMapping("user2", "group1", guid11, CreateDataTimeFromString("2021-06-12 13:43:11"));
+                mockEventPersister.AddUserToEntityMapping("user1", "Clients", "CompanyA", guid12, CreateDataTimeFromString("2021-06-12 13:43:12"));
+                mockEventPersister.AddEntity("Clients", "CompanyB", guid13, CreateDataTimeFromString("2021-06-12 13:43:13"));
+                mockEventPersister.RemoveEntity("Clients", "CompanyB", guid14, CreateDataTimeFromString("2021-06-12 13:43:14"));
+                mockEventPersister.RemoveUserToEntityMapping("user1", "Clients", "CompanyA", guid15, CreateDataTimeFromString("2021-06-12 13:43:15"));
+                mockEventPersister.RemoveUserToGroupMapping("user2", "group1", guid16, CreateDataTimeFromString("2021-06-12 13:43:16"));
+                mockEventPersister.RemoveGroupToEntityMapping("group2", "Clients", "CompanyA", guid17, CreateDataTimeFromString("2021-06-12 13:43:17"));
+                mockEventPersister.RemoveUserToGroupMapping("user1", "group2", guid18, CreateDataTimeFromString("2021-06-12 13:43:18"));
+                mockEventPersister.RemoveGroupToGroupMapping("group1", "group2", guid19, CreateDataTimeFromString("2021-06-12 13:43:19"));
+                mockEventPersister.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify, guid20, CreateDataTimeFromString("2021-06-12 13:43:20"));
+                mockEventPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View, guid21, CreateDataTimeFromString("2021-06-12 13:43:21"));
+                mockEventPersister.RemoveGroup("group2", guid22, CreateDataTimeFromString("2021-06-12 13:43:22"));
+                mockEventPersister.RemoveUser("user2", guid23, CreateDataTimeFromString("2021-06-12 13:43:23"));
+                mockEventPersister.RemoveUser("user1", guid24, CreateDataTimeFromString("2021-06-12 13:43:24"));
+                mockEventPersister.RemoveGroup("group1", guid25, CreateDataTimeFromString("2021-06-12 13:43:25"));
+                mockEventPersister.RemoveEntity("Clients", "CompanyA", guid26, CreateDataTimeFromString("2021-06-12 13:43:26"));
+                mockEventPersister.RemoveEntityType("Clients", guid27, CreateDataTimeFromString("2021-06-12 13:43:27"));
             });
             Assert.AreEqual(38, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(28, mockEventPersister.ReceivedCalls().Count());
@@ -1548,7 +1649,38 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String group3 = "group3";
             const String group4 = "group4";
 
+            var guid0 = Guid.Parse("00000000-0000-0000-0000-000000000000");
+            var guid1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var guid2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
+            var guid3 = Guid.Parse("00000000-0000-0000-0000-000000000003");
+            var guid4 = Guid.Parse("00000000-0000-0000-0000-000000000004");
+            var guid5 = Guid.Parse("00000000-0000-0000-0000-000000000005");
+            var guid6 = Guid.Parse("00000000-0000-0000-0000-000000000006");
+            var guid7 = Guid.Parse("00000000-0000-0000-0000-000000000007");
+            var guid8 = Guid.Parse("00000000-0000-0000-0000-000000000008");
+            var guid9 = Guid.Parse("00000000-0000-0000-0000-000000000009");
+            var guid10 = Guid.Parse("00000000-0000-0000-0000-00000000000a");
+            var guid11 = Guid.Parse("00000000-0000-0000-0000-00000000000b");
+            var guid12 = Guid.Parse("00000000-0000-0000-0000-00000000000c");
+            var guid13 = Guid.Parse("00000000-0000-0000-0000-00000000000d");
             mockBufferFlushStrategy.ClearReceivedCalls();
+            mockGuidProvider.NewGuid().Returns<Guid>
+            (
+                guid0,
+                guid1,
+                guid2,
+                guid3,
+                guid4,
+                guid5,
+                guid6,
+                guid7,
+                guid8,
+                guid9,
+                guid10,
+                guid11,
+                guid12,
+                guid13
+            );
             mockDateTimeProvider.UtcNow().Returns<DateTime>
             (
                 CreateDataTimeFromString("2021-06-13 09:58:00"),
@@ -1567,7 +1699,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 CreateDataTimeFromString("2021-06-13 09:58:13")
             );
 
-            mockEventPersister.When((eventPersister) => eventPersister.AddUser(user3, 2, CreateDataTimeFromString("2021-06-13 09:58:02"))).Do((callInfo) =>
+            mockEventPersister.When((eventPersister) => eventPersister.AddUser(user3, guid2, CreateDataTimeFromString("2021-06-13 09:58:02"))).Do((callInfo) =>
             {
                 testInMemoryEventBuffer.AddGroup(group3);
                 testInMemoryEventBuffer.AddGroup(group4);
@@ -1609,9 +1741,9 @@ namespace ApplicationAccess.Persistence.UnitTests
                 mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
                 mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
                 //    ...and these as the buffered items are processed
-                mockEventPersister.AddUser(user1, 0, CreateDataTimeFromString("2021-06-13 09:58:00"));
-                mockEventPersister.AddUser(user2, 1, CreateDataTimeFromString("2021-06-13 09:58:01"));
-                mockEventPersister.AddUser(user3, 2, CreateDataTimeFromString("2021-06-13 09:58:02"));
+                mockEventPersister.AddUser(user1, guid0, CreateDataTimeFromString("2021-06-13 09:58:00"));
+                mockEventPersister.AddUser(user2, guid1, CreateDataTimeFromString("2021-06-13 09:58:01"));
+                mockEventPersister.AddUser(user3, guid2, CreateDataTimeFromString("2021-06-13 09:58:02"));
                 // When AddUser(user3) is called, we simulate calling the public methods again, and hence expect further calls to the flush strategy...
                 mockBufferFlushStrategy.GroupEventBufferItemCount = 1;
                 mockBufferFlushStrategy.GroupEventBufferItemCount = 2;
@@ -1621,21 +1753,21 @@ namespace ApplicationAccess.Persistence.UnitTests
                 mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 1;
                 mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 2;
                 // ...and once these are complete, the processing of the call to Flush() continues
-                mockEventPersister.AddGroup(group1, 3, CreateDataTimeFromString("2021-06-13 09:58:03"));
-                mockEventPersister.AddGroup(group2, 4, CreateDataTimeFromString("2021-06-13 09:58:04"));
-                mockEventPersister.AddUserToGroupMapping(user1, group1, 5, CreateDataTimeFromString("2021-06-13 09:58:05"));
-                mockEventPersister.AddUserToGroupMapping(user2, group1, 6, CreateDataTimeFromString("2021-06-13 09:58:06"));
+                mockEventPersister.AddGroup(group1, guid3, CreateDataTimeFromString("2021-06-13 09:58:03"));
+                mockEventPersister.AddGroup(group2, guid4, CreateDataTimeFromString("2021-06-13 09:58:04"));
+                mockEventPersister.AddUserToGroupMapping(user1, group1, guid5, CreateDataTimeFromString("2021-06-13 09:58:05"));
+                mockEventPersister.AddUserToGroupMapping(user2, group1, guid6, CreateDataTimeFromString("2021-06-13 09:58:06"));
             });
             Assert.AreEqual(24, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(7, mockEventPersister.ReceivedCalls().Count());
             // These method calls would occur as part of a subsequent Flush() call, and hence should not be received
-            mockEventPersister.DidNotReceive().AddGroup(group3, Arg.Any<Int64>(), Arg.Any<DateTime>());
-            mockEventPersister.DidNotReceive().AddGroup(group4, Arg.Any<Int64>(), Arg.Any<DateTime>());
-            mockEventPersister.DidNotReceive().AddGroupToGroupMapping(group1, group2, Arg.Any<Int64>(), Arg.Any<DateTime>());
-            mockEventPersister.DidNotReceive().AddEntityType("Clients", Arg.Any<Int64>(), Arg.Any<DateTime>());
-            mockEventPersister.DidNotReceive().AddEntity("Clients", "CompanyA", Arg.Any<Int64>(), Arg.Any<DateTime>());
-            mockEventPersister.DidNotReceive().AddGroupToEntityMapping(group3, "Clients", "CompanyA", Arg.Any<Int64>(), Arg.Any<DateTime>());
-            mockEventPersister.DidNotReceive().AddGroupToEntityMapping(group4, "Clients", "CompanyA", Arg.Any<Int64>(), Arg.Any<DateTime>());
+            mockEventPersister.DidNotReceive().AddGroup(group3, Arg.Any<Guid>(), Arg.Any<DateTime>());
+            mockEventPersister.DidNotReceive().AddGroup(group4, Arg.Any<Guid>(), Arg.Any<DateTime>());
+            mockEventPersister.DidNotReceive().AddGroupToGroupMapping(group1, group2, Arg.Any<Guid>(), Arg.Any<DateTime>());
+            mockEventPersister.DidNotReceive().AddEntityType("Clients", Arg.Any<Guid>(), Arg.Any<DateTime>());
+            mockEventPersister.DidNotReceive().AddEntity("Clients", "CompanyA", Arg.Any<Guid>(), Arg.Any<DateTime>());
+            mockEventPersister.DidNotReceive().AddGroupToEntityMapping(group3, "Clients", "CompanyA", Arg.Any<Guid>(), Arg.Any<DateTime>());
+            mockEventPersister.DidNotReceive().AddGroupToEntityMapping(group4, "Clients", "CompanyA", Arg.Any<Guid>(), Arg.Any<DateTime>());
 
 
             // Test that a subsequent call to Flush() processes the remaining buffered events correctly
@@ -1659,13 +1791,13 @@ namespace ApplicationAccess.Persistence.UnitTests
                 mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
                 mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
                 //    ...and these as the buffered items are processed
-                mockEventPersister.AddGroup(group3, 7, CreateDataTimeFromString("2021-06-13 09:58:07"));
-                mockEventPersister.AddGroup(group4, 8, CreateDataTimeFromString("2021-06-13 09:58:08"));
-                mockEventPersister.AddGroupToGroupMapping(group1, group2, 9, CreateDataTimeFromString("2021-06-13 09:58:09"));
-                mockEventPersister.AddEntityType("Clients", 10, CreateDataTimeFromString("2021-06-13 09:58:10"));
-                mockEventPersister.AddEntity("Clients", "CompanyA", 11, CreateDataTimeFromString("2021-06-13 09:58:11"));
-                mockEventPersister.AddGroupToEntityMapping(group3, "Clients", "CompanyA", 12, CreateDataTimeFromString("2021-06-13 09:58:12"));
-                mockEventPersister.AddGroupToEntityMapping(group4, "Clients", "CompanyA", 13, CreateDataTimeFromString("2021-06-13 09:58:13"));
+                mockEventPersister.AddGroup(group3, guid7, CreateDataTimeFromString("2021-06-13 09:58:07"));
+                mockEventPersister.AddGroup(group4, guid8, CreateDataTimeFromString("2021-06-13 09:58:08"));
+                mockEventPersister.AddGroupToGroupMapping(group1, group2, guid9, CreateDataTimeFromString("2021-06-13 09:58:09"));
+                mockEventPersister.AddEntityType("Clients", guid10, CreateDataTimeFromString("2021-06-13 09:58:10"));
+                mockEventPersister.AddEntity("Clients", "CompanyA", guid11, CreateDataTimeFromString("2021-06-13 09:58:11"));
+                mockEventPersister.AddGroupToEntityMapping(group3, "Clients", "CompanyA", guid12, CreateDataTimeFromString("2021-06-13 09:58:12"));
+                mockEventPersister.AddGroupToEntityMapping(group4, "Clients", "CompanyA", guid13, CreateDataTimeFromString("2021-06-13 09:58:13"));
             });
             Assert.AreEqual(10, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(7, mockEventPersister.ReceivedCalls().Count());
@@ -1677,6 +1809,19 @@ namespace ApplicationAccess.Persistence.UnitTests
         [Test]
         public void Flush_NewEventsCreatedWhilstMovingEventsToTemporaryQueuesNotProcessed()
         {
+            var guid0 = Guid.Parse("00000000-0000-0000-0000-000000000000");
+            var guid1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var guid2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
+            var guid3 = Guid.Parse("00000000-0000-0000-0000-000000000003");
+            var guid4 = Guid.Parse("00000000-0000-0000-0000-000000000004");
+            var guid5 = Guid.Parse("00000000-0000-0000-0000-000000000005");
+            var guid6 = Guid.Parse("00000000-0000-0000-0000-000000000006");
+            var guid7 = Guid.Parse("00000000-0000-0000-0000-000000000007");
+            var guid8 = Guid.Parse("00000000-0000-0000-0000-000000000008");
+            var guid9 = Guid.Parse("00000000-0000-0000-0000-000000000009");
+            var guid10 = Guid.Parse("00000000-0000-0000-0000-00000000000a");
+            var guid11 = Guid.Parse("00000000-0000-0000-0000-00000000000b");
+            var guid12 = Guid.Parse("00000000-0000-0000-0000-00000000000c");
             mockDateTimeProvider.UtcNow().Returns<DateTime>
             (
                 CreateDataTimeFromString("2021-06-14 20:09:00"),
@@ -1692,10 +1837,26 @@ namespace ApplicationAccess.Persistence.UnitTests
                 CreateDataTimeFromString("2021-06-14 20:09:10"),
                 CreateDataTimeFromString("2021-06-14 20:09:11"),
                 CreateDataTimeFromString("2021-06-14 20:09:12")
+            ); 
+            mockGuidProvider.NewGuid().Returns<Guid>
+            (
+                guid0,
+                guid1,
+                guid2,
+                guid3,
+                guid4,
+                guid5,
+                guid6,
+                guid7,
+                guid8,
+                guid9,
+                guid10,
+                guid11,
+                guid12
             );
 
             var nullAccessManagerEventValidator = new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>();
-            var testInMemoryEventBuffer2 = new InMemoryEventBufferForFlushTesting<String, String, ApplicationScreen, AccessLevel>(nullAccessManagerEventValidator, mockBufferFlushStrategy, mockEventPersister, mockDateTimeProvider);
+            var testInMemoryEventBuffer2 = new InMemoryEventBufferForFlushTesting<String, String, ApplicationScreen, AccessLevel>(nullAccessManagerEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             mockBufferFlushStrategy.ClearReceivedCalls();
             var beforeMoveEventsToTemporaryQueuesAction = new Action(() =>
             {
@@ -1745,13 +1906,13 @@ namespace ApplicationAccess.Persistence.UnitTests
                 mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
                 mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
                 // These are called as the buffered items are processed
-                mockEventPersister.AddUser("user1", 0, CreateDataTimeFromString("2021-06-14 20:09:00"));
-                mockEventPersister.AddGroup("group1", 1, CreateDataTimeFromString("2021-06-14 20:09:01"));
-                mockEventPersister.AddGroup("group2", 2, CreateDataTimeFromString("2021-06-14 20:09:02"));
-                mockEventPersister.AddGroup("group3", 3, CreateDataTimeFromString("2021-06-14 20:09:03"));
-                mockEventPersister.AddGroup("group4", 4, CreateDataTimeFromString("2021-06-14 20:09:04"));
-                mockEventPersister.AddEntityType("Clients", 5, CreateDataTimeFromString("2021-06-14 20:09:05"));
-                mockEventPersister.AddEntityType("Products", 6, CreateDataTimeFromString("2021-06-14 20:09:06"));
+                mockEventPersister.AddUser("user1", guid0, CreateDataTimeFromString("2021-06-14 20:09:00"));
+                mockEventPersister.AddGroup("group1", guid1, CreateDataTimeFromString("2021-06-14 20:09:01"));
+                mockEventPersister.AddGroup("group2", guid2, CreateDataTimeFromString("2021-06-14 20:09:02"));
+                mockEventPersister.AddGroup("group3", guid3, CreateDataTimeFromString("2021-06-14 20:09:03"));
+                mockEventPersister.AddGroup("group4", guid4, CreateDataTimeFromString("2021-06-14 20:09:04"));
+                mockEventPersister.AddEntityType("Clients", guid5, CreateDataTimeFromString("2021-06-14 20:09:05"));
+                mockEventPersister.AddEntityType("Products", guid6, CreateDataTimeFromString("2021-06-14 20:09:06"));
             });
             Assert.AreEqual(23, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(7, mockEventPersister.ReceivedCalls().Count());
@@ -1777,12 +1938,12 @@ namespace ApplicationAccess.Persistence.UnitTests
                 mockBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
                 mockBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
                 // These are called as the buffered items are processed
-                mockEventPersister.AddEntityType("Accounts", 7, CreateDataTimeFromString("2021-06-14 20:09:07"));
-                mockEventPersister.RemoveEntityType("Accounts", 8, CreateDataTimeFromString("2021-06-14 20:09:08"));
-                mockEventPersister.AddEntity("Clients", "CompanyA", 9, CreateDataTimeFromString("2021-06-14 20:09:09"));
-                mockEventPersister.AddEntity("Clients", "CompanyB", 10, CreateDataTimeFromString("2021-06-14 20:09:10"));
-                mockEventPersister.AddEntity("Clients", "CompanyC", 11, CreateDataTimeFromString("2021-06-14 20:09:11"));
-                mockEventPersister.RemoveEntity("Clients", "CompanyA", 12, CreateDataTimeFromString("2021-06-14 20:09:12"));
+                mockEventPersister.AddEntityType("Accounts", guid7, CreateDataTimeFromString("2021-06-14 20:09:07"));
+                mockEventPersister.RemoveEntityType("Accounts", guid8, CreateDataTimeFromString("2021-06-14 20:09:08"));
+                mockEventPersister.AddEntity("Clients", "CompanyA", guid9, CreateDataTimeFromString("2021-06-14 20:09:09"));
+                mockEventPersister.AddEntity("Clients", "CompanyB", guid10, CreateDataTimeFromString("2021-06-14 20:09:10"));
+                mockEventPersister.AddEntity("Clients", "CompanyC", guid11, CreateDataTimeFromString("2021-06-14 20:09:11"));
+                mockEventPersister.RemoveEntity("Clients", "CompanyA", guid12, CreateDataTimeFromString("2021-06-14 20:09:12"));
             });
             Assert.AreEqual(10, mockBufferFlushStrategy.ReceivedCalls().Count());
             Assert.AreEqual(6, mockEventPersister.ReceivedCalls().Count());
@@ -1837,14 +1998,16 @@ namespace ApplicationAccess.Persistence.UnitTests
             /// <param name="eventValidator">The validator to use to validate events.</param>
             /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
             /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
+            /// <param name="guidProvider">The provider to use for random Guids.</param>
             /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             public InMemoryEventBufferForFlushTesting
             (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
                 IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy, 
-                IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister, 
+                IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
+                IGuidProvider guidProvider,
                 IDateTimeProvider dateTimeProvider
-            ) : base(eventValidator, bufferFlushStrategy, eventPersister, dateTimeProvider)
+            ) : base(eventValidator, bufferFlushStrategy, eventPersister, guidProvider, dateTimeProvider)
             {
                 this.beforeMoveEventsToTemporaryQueueAction = new Action(() => { });
                 beforeMoveEventsToTemporaryQueueActionInvoked = false;
@@ -2013,15 +2176,17 @@ namespace ApplicationAccess.Persistence.UnitTests
             /// <param name="eventValidator">The validator to use to validate events.</param>
             /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
             /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
+            /// <param name="guidProvider">The provider to use for random Guids.</param>
             /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             public InMemoryEventBufferWithProtectedMembers
             (
                 IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
                 IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
                 IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
+                IGuidProvider guidProvider,
                 IDateTimeProvider dateTimeProvider
             )
-                : base(eventValidator, bufferFlushStrategy, eventPersister, dateTimeProvider)
+                : base(eventValidator, bufferFlushStrategy, eventPersister, guidProvider, dateTimeProvider)
             {
             }
         }

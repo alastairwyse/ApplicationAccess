@@ -21,5 +21,16 @@
       </summary>
       <returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
     </member>
+    <member name="T:ApplicationAccess.Utilities.IGuidProvider">
+      <summary>
+        Defines a method which returns random Guids.
+      </summary>
+    </member>
+    <member name="M:ApplicationAccess.Utilities.IGuidProvider.NewGuid">
+      <summary>
+        Creates a new random Guid.
+      </summary>
+      <returns>A new GUID object.</returns>
+    </member>
   </members>
 </doc>

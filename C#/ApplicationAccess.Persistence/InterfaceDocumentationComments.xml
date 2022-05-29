@@ -72,151 +72,156 @@
       <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
       <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Guid,System.DateTime)">
       <summary>Adds a user.</summary>
       <param name="user">The user to add.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the user was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUser(`0,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUser(`0,System.Guid,System.DateTime)">
       <summary>Removes a user.</summary>
       <param name="user">The user to remove.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the user was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroup(`1,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroup(`1,System.Guid,System.DateTime)">
       <summary>Adds a group.</summary>
       <param name="group">The group to add.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the group was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroup(`1,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroup(`1,System.Guid,System.DateTime)">
       <summary>Removes a group.</summary>
       <param name="group">The group to remove.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the group was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToGroupMapping(`0,`1,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime)">
       <summary>Adds a mapping between the specified user and group.</summary>
       <param name="user">The user in the mapping.</param>
       <param name="group">The group in the mapping.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the user to group mapping was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToGroupMapping(`0,`1,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime)">
       <summary>Removes a mapping between the specified user and group.</summary>
       <param name="user">The user in the mapping.</param>
       <param name="group">The group in the mapping.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the user to group mapping was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToGroupMapping(`1,`1,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)">
       <summary>Adds a mapping between the specified groups.</summary>
       <param name="fromGroup">The 'from' group in the mapping.</param>
       <param name="toGroup">The 'to' group in the mapping.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping between the groups was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)">
       <summary>Removes a mapping between the specified groups.</summary>
       <param name="fromGroup">The 'from' group in the mapping.</param>
       <param name="toGroup">The 'to' group in the mapping.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping between the groups was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)">
       <summary>Adds a mapping between the specified user, application component, and level of access to that component.</summary>
       <param name="user">The user in the mapping.</param>
       <param name="applicationComponent">The application component in the mapping.</param>
       <param name="accessLevel">The level of access to the component.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)">
       <summary>Removes a mapping between the specified user, application component, and level of access to that component.</summary>
       <param name="user">The user in the mapping.</param>
       <param name="applicationComponent">The application component in the mapping.</param>
       <param name="accessLevel">The level of access to the component.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)">
       <summary>Adds a mapping between the specified group, application component, and level of access to that component.</summary>
       <param name="group">The group in the mapping.</param>
       <param name="applicationComponent">The application component in the mapping.</param>
       <param name="accessLevel">The level of access to the component.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)">
       <summary>Removes a mapping between the specified group, application component, and level of access to that component.</summary>
       <param name="group">The group in the mapping.</param>
       <param name="applicationComponent">The application component in the mapping.</param>
       <param name="accessLevel">The level of access to the component.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntityType(System.String,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntityType(System.String,System.Guid,System.DateTime)">
       <summary>Adds an entity type.</summary>
       <param name="entityType">The entity type to add.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the entity type was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntityType(System.String,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntityType(System.String,System.Guid,System.DateTime)">
       <summary>Removes an entity type.</summary>
       <param name="entityType">The entity type to remove.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the entity type was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntity(System.String,System.String,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntity(System.String,System.String,System.Guid,System.DateTime)">
       <summary>Adds an entity.</summary>
       <param name="entityType">The type of the entity.</param>
       <param name="entity">The entity to add.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the entity was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntity(System.String,System.String,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntity(System.String,System.String,System.Guid,System.DateTime)">
       <summary>Removes an entity.</summary>
       <param name="entityType">The type of the entity.</param>
       <param name="entity">The entity to remove.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the entity was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)">
       <summary>Adds a mapping between the specified user, and entity.</summary>
       <param name="user">The user in the mapping.</param>
       <param name="entityType">The type of the entity.</param>
       <param name="entity">The entity in the mapping.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)">
       <summary>Removes a mapping between the specified user, and entity.</summary>
       <param name="user">The user in the mapping.</param>
       <param name="entityType">The type of the entity.</param>
       <param name="entity">The entity in the mapping.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
       <summary>Adds a mapping between the specified group, and entity.</summary>
       <param name="group">The group in the mapping.</param>
       <param name="entityType">The type of the entity.</param>
       <param name="entity">The entity in the mapping.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was added.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Int64,System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
       <summary>Removes a mapping between the specified group, and entity.</summary>
       <param name="group">The group in the mapping.</param>
       <param name="entityType">The type of the entity.</param>
       <param name="entity">The entity in the mapping.</param>
-      <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+      <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Int64)">
-      <summary>Loads the access manager with state corresponding to the specified sequence number from persistent storage.</summary>
-      <param name="sequenceNumber">The sequence number corresponding to the state of the access manager.</param>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Guid)">
+      <summary>Loads the access manager with state corresponding to the specified event id from persistent storage.</summary>
+      <param name="eventId">The id of the most recent event persisted into the access manager, at the desired state to load.</param>
+      <returns>The access manager.</returns>
+    </member>
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.DateTime)">
+      <summary>Loads the access manager with state corresponding to the specified timestamp from persistent storage.</summary>
+      <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
       <returns>The access manager.</returns>
     </member>
   </members>
