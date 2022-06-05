@@ -17,6 +17,7 @@
 using System;
 using System.Threading;
 using ApplicationAccess.UnitTests;
+using ApplicationMetrics.MetricLoggers;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
@@ -44,7 +45,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             millisecondsToWaitBeforeStop = 250;
             flushEventsRaised = 0;
             workerThreadCompleteSignal = new ManualResetEvent(false);
-            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(3, workerThreadCompleteSignal);
+            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(3, new NullMetricLogger(), workerThreadCompleteSignal);
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;

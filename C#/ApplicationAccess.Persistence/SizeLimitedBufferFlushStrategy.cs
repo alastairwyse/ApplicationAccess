@@ -16,6 +16,7 @@
 
 using System;
 using System.Threading;
+using ApplicationMetrics;
 
 namespace ApplicationAccess.Persistence
 {
@@ -181,6 +182,7 @@ namespace ApplicationAccess.Persistence
                     bufferProcessSignal.WaitOne();
                     if (stopMethodCalled == false)
                     {
+                        metricLogger.Increment(new BufferFlushOperationsTriggered());
                         OnBufferFlushed(EventArgs.Empty);
                     }
                     bufferProcessSignal.Reset();
@@ -194,10 +196,22 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger)
+            : this(bufferSizeLimit)
+        {
+            this.metricLogger = metricLogger;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
+        /// </summary>
+        /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, ManualResetEvent workerThreadCompleteSignal)
-            : this(bufferSizeLimit)
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger, ManualResetEvent workerThreadCompleteSignal)
+            : this(bufferSizeLimit, metricLogger)
         {
             base.workerThreadCompleteSignal = workerThreadCompleteSignal;
         }

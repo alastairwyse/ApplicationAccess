@@ -36,15 +36,25 @@ namespace ApplicationAccess.Persistence.SqlServer
 
 
         #pragma warning disable 1591
-        protected const string addUserStoredProcedureName = "AddUser";
+        protected const String addUserStoredProcedureName = "AddUser";
 
-        protected const string userParameterName = "@User";
-        protected const string eventIdParameterName = "@EventId";
-        protected const string transactionTimeParameterName = "@TransactionTime";
+        protected const String userParameterName = "@User";
+        protected const String eventIdParameterName = "@EventId";
+        protected const String transactionTimeParameterName = "@TransactionTime";
         #pragma warning restore 1591
+        /// <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
+        protected const Int32 columnSizeLimit = 450;
 
         /// <summary>The string to use to connect to the SQL Server database.</summary>
         protected string connectionString;
+        /// <summary>A string converter for users.</summary>
+        protected IUniqueStringifier<TUser> userStringifier;
+        /// <summary>A string converter for groups.</summary>
+        protected IUniqueStringifier<TGroup> groupStringifier;
+        /// <summary>A string converter for application components.</summary>
+        protected IUniqueStringifier<TComponent> applicationComponentStringifier;
+        /// <summary>A string converter for access levels</summary>
+        protected IUniqueStringifier<TAccess> accessLevelStringifier;
         /// <summary>The connection to the SQL Server database.</summary>
         protected SqlConnection connection;
         /// <summary>Indicates whether the object has been disposed.</summary>
@@ -54,12 +64,25 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
         /// </summary>
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
-        public SqlServerAccessManagerTemporalEventPersister(string connectionString)
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        public SqlServerAccessManagerTemporalEventPersister(
+            string connectionString, 
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier)
         {
             if (String.IsNullOrWhiteSpace(connectionString) == true)
                 throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.");
 
             this.connectionString = connectionString;
+            this.userStringifier = userStringifier;
+            this.groupStringifier = groupStringifier;
+            this.applicationComponentStringifier = applicationComponentStringifier;
+            this.accessLevelStringifier = accessLevelStringifier;
             connection = new SqlConnection(connectionString);
         }
 
@@ -216,13 +239,18 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Guid,System.DateTime)"]/*'/>
         public void AddUser(TUser user, Guid eventId, DateTime occurredTime)
         {
-            // TODO 2022-05-29:
-            //   Need to take stringifiers for types as parameters
-            //   Need to have exception handler for strings greater than 450 chars (or whatever SQL Server limit is)
+            String userAsString = userStringifier.ToString(user);
+            // TODO: Move to protected method, as this will need to be called from almost all public methods
+            if (userAsString.Length > columnSizeLimit)
+                throw new ArgumentOutOfRangeException(nameof(user), $"Parameter '{nameof(user)}' with value '{user}' is longer than the maximum allowable columns size of {columnSizeLimit}.");
 
             var command = new SqlCommand(addUserStoredProcedureName, connection);
             command.CommandType = CommandType.StoredProcedure;
-            //command.Parameters.AddWithValue(userParameterName, )
+            command.Parameters.Add(userParameterName, SqlDbType.NVarChar).Value = userAsString;
+
+            // TODO: Add guid and date time param
+            //   https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/sql/date-and-time-data
+
             try
             {
                 command.ExecuteNonQuery();

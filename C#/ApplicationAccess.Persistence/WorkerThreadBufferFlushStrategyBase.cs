@@ -16,6 +16,8 @@
 
 using System;
 using System.Threading;
+using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Persistence
 {
@@ -49,6 +51,8 @@ namespace ApplicationAccess.Persistence
         /// <summary>The number of group to entity mapping events currently buffered</summary>
         private Int32 groupToEntityMappingEventsBuffered;
 
+        /// <summary>The logger for metrics.</summary>
+        protected IMetricLogger metricLogger;
         /// <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
         private Thread bufferFlushingWorkerThread;
         /// <summary>Set with any exception which occurrs on the worker thread when flushing the buffers.  Null if no exception has occurred.</summary>
@@ -217,10 +221,21 @@ namespace ApplicationAccess.Persistence
             userToEntityMappingEventsBuffered = 0;
             groupToEntityMappingEventsBuffered = 0;
 
+            metricLogger = new NullMetricLogger();
             flushingException = null;
             stopMethodCalled = false;
             workerThreadCompleteSignal = null;
             disposed = false;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
+        /// </summary>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public WorkerThreadBufferFlushStrategyBase(IMetricLogger metricLogger)
+            : this()
+        {
+            this.metricLogger = metricLogger;
         }
 
         /// <summary>
@@ -277,6 +292,7 @@ namespace ApplicationAccess.Persistence
                     // If no exception has occurred, flush any remaining buffered events
                     if (flushingException == null && TotalEventsBuffered > 0)
                     {
+                        metricLogger.Add(new EventsBufferedAfterFlushStrategyStop(), TotalEventsBuffered);
                         try
                         {
                             OnBufferFlushed(EventArgs.Empty);

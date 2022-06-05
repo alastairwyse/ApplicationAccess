@@ -13,8 +13,23 @@
             <typeparam name="TComponent">The persister to use to write flushed events to permanent storage.</typeparam>
             <typeparam name="TAccess">The sequence number used for the last event buffered.</typeparam>
         </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.columnSizeLimit">
+            <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionString">
             <summary>The string to use to connect to the SQL Server database.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.userStringifier">
+            <summary>A string converter for users.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.groupStringifier">
+            <summary>A string converter for groups.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.applicationComponentStringifier">
+            <summary>A string converter for application components.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.accessLevelStringifier">
+            <summary>A string converter for access levels</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connection">
             <summary>The connection to the SQL Server database.</summary>
@@ -22,11 +37,15 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Connect">
             <summary>

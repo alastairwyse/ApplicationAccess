@@ -17,6 +17,7 @@
 using System;
 using System.Threading;
 using ApplicationAccess.UnitTests;
+using ApplicationMetrics.MetricLoggers;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
@@ -37,7 +38,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             flushEventsRaised = 0;
             workerThreadCompleteSignal = new ManualResetEvent(false);
-            testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(250, workerThreadCompleteSignal, 2); 
+            testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(250, new NullMetricLogger(), workerThreadCompleteSignal, 2); 
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;
@@ -79,7 +80,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(1000, new ManualResetEvent(false), 0);
+                testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(1000, new NullMetricLogger(), new ManualResetEvent(false), 0);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'flushLoopIterationCount' with value 0 cannot be less than 1."));

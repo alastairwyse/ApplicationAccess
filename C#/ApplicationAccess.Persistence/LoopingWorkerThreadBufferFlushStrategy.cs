@@ -16,6 +16,7 @@
 
 using System;
 using System.Threading;
+using ApplicationMetrics;
 
 namespace ApplicationAccess.Persistence
 {
@@ -47,6 +48,7 @@ namespace ApplicationAccess.Persistence
             {
                 while (stopMethodCalled == false)
                 {
+                    metricLogger.Increment(new BufferFlushOperationsTriggered());
                     OnBufferFlushed(EventArgs.Empty);
                     Thread.Sleep(flushLoopInterval);
                     // If the code is being tested, break out of processing after the specified number of iterations
@@ -68,10 +70,23 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
         /// </summary>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, IMetricLogger metricLogger)
+            : this(flushLoopInterval)
+        {
+            this.metricLogger = metricLogger;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
+        /// </summary>
+        /// <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
         /// <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
-        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, ManualResetEvent workerThreadCompleteSignal, Int32 flushLoopIterationCount)
-            : this(flushLoopInterval)
+        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
+        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, IMetricLogger metricLogger, ManualResetEvent workerThreadCompleteSignal, Int32 flushLoopIterationCount)
+            : this(flushLoopInterval, metricLogger)
         {
             if (flushLoopIterationCount < 1)
                 throw new ArgumentOutOfRangeException(nameof(flushLoopIterationCount), $"Parameter '{nameof(flushLoopIterationCount)}' with value {flushLoopIterationCount} cannot be less than 1.");

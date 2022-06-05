@@ -68,8 +68,8 @@ CREATE TABLE ApplicationAccess.dbo.UserToGroupMappings
     TransactionTo    datetime2  NOT NULL
 )
 
-CREATE INDEX UserIndex ON UserToGroupMappings (UserId, TransactionFrom);
-CREATE INDEX GroupIndex ON UserToGroupMappings (GroupId, TransactionFrom);
+CREATE INDEX UserIndex ON UserToGroupMappings (UserId, TransactionTo);
+CREATE INDEX GroupIndex ON UserToGroupMappings (GroupId, TransactionTo);
 
 
 ----------------------------------------
@@ -225,6 +225,28 @@ BEGIN
 		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
 		THROW 50001, @ErrorMessage, 1;
 	END CATCH
+	
+	-- TODO: Removes for...
+	--   UserToAppComponent
+	--   UserToEntity
+
+	BEGIN TRY
+		UPDATE  dbo.UserToGroupMappings 
+		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+		WHERE   UserId = 
+				( 
+					SELECT  Id 
+					FROM    dbo.Users Users
+					WHERE   [User] = @User 
+					  AND   @TransactionTime BETWEEN Users.TransactionFrom AND Users.TransactionTo 
+				)
+	      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+	END TRY
+	BEGIN CATCH
+		ROLLBACK TRANSACTION
+		SET @ErrorMessage = N'Error occurred when removing User to Group mappings for User ''' + @User + ''': ' + ERROR_MESSAGE() + '.';
+		THROW 50001, @ErrorMessage, 1;
+	END CATCH
 
 	BEGIN TRY
 		UPDATE  dbo.Users 
@@ -245,7 +267,7 @@ GO
 
 CREATE PROCEDURE dbo.AddGroup
 (
-    @Group             nvarchar(450),
+    @Group            nvarchar(450),
     @EventId          uniqueidentifier, 
     @TransactionTime  datetime2
 )
@@ -322,6 +344,29 @@ BEGIN
 	BEGIN CATCH
 		ROLLBACK TRANSACTION
 		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+		THROW 50001, @ErrorMessage, 1;
+	END CATCH
+	
+	-- TODO: Removes for...
+	--   GroupToGroup
+	--   GroupToAppComponent
+	--   GroupToEntity
+
+	BEGIN TRY
+		UPDATE  dbo.UserToGroupMappings 
+		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+		WHERE   GroupId = 
+				( 
+					SELECT  Id 
+					FROM    dbo.Groups Groups
+					WHERE   [Group] = @Group 
+					  AND   @TransactionTime BETWEEN Groups.TransactionFrom AND Groups.TransactionTo 
+				)
+	      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+	END TRY
+	BEGIN CATCH
+		ROLLBACK TRANSACTION
+		SET @ErrorMessage = N'Error occurred when removing User to Group mappings for Group ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
 		THROW 50001, @ErrorMessage, 1;
 	END CATCH
 

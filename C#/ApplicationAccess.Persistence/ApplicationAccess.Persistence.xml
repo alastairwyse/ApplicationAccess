@@ -733,20 +733,29 @@
             </summary>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32,System.Threading.ManualResetEvent,System.Int32)">
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
             </summary>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Threading.ManualResetEvent,System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
+            </summary>
+            <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+            <param name="metricLogger">The logger for metrics.</param>
             <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
             <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddUserEventBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddUserEventsBuffered">
             <summary>
             Count metric which records the total number of 'AddUser' events buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveUserEventBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveUserEventsBuffered">
             <summary>
             Count metric which records the total number of 'RemoveUser' events buffered.
             </summary>
@@ -754,6 +763,171 @@
         <member name="T:ApplicationAccess.Persistence.UserEventsBuffered">
             <summary>
             Status metric which records the number of 'User' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddGroupEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddGroup' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveGroupEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveGroup' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.GroupEventsBuffered">
+            <summary>
+            Status metric which records the number of 'Group' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddUserToGroupMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddUserToGroupMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveUserToGroupMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveUserToGroupMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.UserToGroupMappingEventsBuffered">
+            <summary>
+            Status metric which records the number of 'UserToGroupMapping' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddGroupToGroupMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddGroupToGroupMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveGroupToGroupMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveGroupToGroupMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.GroupToGroupMappingEventsBuffered">
+            <summary>
+            Status metric which records the number of 'GroupToGroupMapping' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddUserToApplicationComponentAndAccessLevelMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddUserToApplicationComponentAndAccessLevelMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveUserToApplicationComponentAndAccessLevelMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveUserToApplicationComponentAndAccessLevelMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.UserToApplicationComponentAndAccessLevelMappingEventsBuffered">
+            <summary>
+            Status metric which records the number of 'UserToApplicationComponentAndAccessLevelMapping' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddGroupToApplicationComponentAndAccessLevelMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddGroupToApplicationComponentAndAccessLevelMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveGroupToApplicationComponentAndAccessLevelMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveGroupToApplicationComponentAndAccessLevelMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.GroupToApplicationComponentAndAccessLevelMappingEventsBuffered">
+            <summary>
+            Status metric which records the number of 'GroupToApplicationComponentAndAccessLevelMapping' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddEntityTypeEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddEntityType' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveEntityTypeEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveEntityType' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EntityTypeEventsBuffered">
+            <summary>
+            Status metric which records the number of 'EntityType' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddEntityEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddEntity' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveEntityEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveEntity' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EntityEventsBuffered">
+            <summary>
+            Status metric which records the number of 'Entity' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddUserToEntityMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddUserToEntityMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveUserToEntityMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveUserToEntityMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.UserToEntityMappingEventsBuffered">
+            <summary>
+            Status metric which records the number of 'UserToEntityMapping' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.AddGroupToEntityMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'AddGroupToEntityMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.RemoveGroupToEntityMappingEventsBuffered">
+            <summary>
+            Count metric which records the total number of 'RemoveGroupToEntityMapping' events buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.GroupToEntityMappingEventsBuffered">
+            <summary>
+            Status metric which records the number of 'GroupToEntityMapping' events currently buffered.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.BufferedEventsFlushed">
+            <summary>
+            Amount metric which records the number of buffered events flushed.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsTriggered">
+            <summary>
+            Count metric which records the number of buffer flush operations completed.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsCompleted">
+            <summary>
+            Count metric which records the number of buffer flush operations completed.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.FlushTime">
+            <summary>
+            Interval metric which records the time taken to perform buffer flush operations.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventsExcludedFromFlush">
+            <summary>
+            Amount metric which records the number of events excluded from flush operations (i.e. left in the buffer as they occurred after the start of the flush operation).
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventsBufferedAfterFlushStrategyStop">
+            <summary>
+            Amount metric which records the number of events still buffered when the Stop() method was called on the buffer flush strategy object.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4">
@@ -807,11 +981,19 @@
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.#ctor(System.Int32,System.Threading.ManualResetEvent)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Threading.ManualResetEvent)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
+            </summary>
+            <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+            <param name="metricLogger">The logger for metrics.</param>
             <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
@@ -1064,6 +1246,9 @@
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupToEntityMappingEventsBuffered">
             <summary>The number of group to entity mapping events currently buffered</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.bufferFlushingWorkerThread">
             <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
         </member>
@@ -1131,6 +1316,12 @@
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
             </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.#ctor(ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
+            </summary>
+            <param name="metricLogger">The logger for metrics.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Start">
             <summary>
