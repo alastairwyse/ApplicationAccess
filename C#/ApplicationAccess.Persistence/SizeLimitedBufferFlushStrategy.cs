@@ -182,8 +182,8 @@ namespace ApplicationAccess.Persistence
                     bufferProcessSignal.WaitOne();
                     if (stopMethodCalled == false)
                     {
-                        metricLogger.Increment(new BufferFlushOperationsTriggered());
                         OnBufferFlushed(EventArgs.Empty);
+                        metricLogger.Increment(new BufferFlushOperationsTriggeredBySizeLimit());
                     }
                     bufferProcessSignal.Reset();
                 }
@@ -239,7 +239,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Checks whether the size limit for the buffers has been reached, and if so signals the worker thread to process/flush the buffers.
         /// </summary>
-        protected void CheckBufferLimitReached()
+        protected virtual void CheckBufferLimitReached()
         {
             if (TotalEventsBuffered >= bufferSizeLimit)
             {

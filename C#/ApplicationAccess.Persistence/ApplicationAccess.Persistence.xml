@@ -905,9 +905,14 @@
             Amount metric which records the number of buffered events flushed.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsTriggered">
+        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsTriggeredBySizeLimit">
             <summary>
-            Count metric which records the number of buffer flush operations completed.
+            Count metric which records the number of buffer flush operations triggered by the buffer size limit being reached.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsTriggeredByLoopIntervalExpiration">
+            <summary>
+            Count metric which records the number of buffer flush operations triggered by the worker thread loop interval expiring.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsCompleted">
@@ -929,6 +934,23 @@
             <summary>
             Amount metric which records the number of events still buffered when the Stop() method was called on the buffer flush strategy object.
             </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress">
+            <summary>
+            Count metric which records the number of times the worker thread loop interval expired while a flush operation was already in progress.
+            </summary>
+            <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.BufferFlushLoopIntervalSleepTime">
+            <summary>
+            Amount metric which records the time in milliseconds the buffer flushing worker thread slept for.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.SizeLimitBufferFlushesTriggeredDuringLoopInterval">
+            <summary>
+            Count metric which records the number of times a buffer flush is triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping.
+            </summary>
+            <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
         </member>
         <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4">
             <summary>
@@ -1055,6 +1077,14 @@
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
+            </summary>
+            <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+            <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
         <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
@@ -1062,6 +1092,15 @@
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
+            </summary>
+            <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+            <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <param name="metricLogger">The logger for metrics.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider,System.Threading.AutoResetEvent,System.Threading.ManualResetEvent)">
             <summary>
@@ -1082,6 +1121,11 @@
         <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.Stop">
             <summary>
             Stops the worker thread which performs buffer flushes.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.CheckBufferLimitReached">
+            <summary>
+            Checks whether the size limit for the buffers has been reached, and if so signals the worker thread to process/flush the buffers.
             </summary>
         </member>
         <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.Dispose(System.Boolean)">

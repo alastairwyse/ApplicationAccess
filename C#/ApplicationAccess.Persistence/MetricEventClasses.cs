@@ -489,14 +489,29 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the number of buffer flush operations completed.
+    /// Count metric which records the number of buffer flush operations triggered by the buffer size limit being reached.
     /// </summary>
-    public class BufferFlushOperationsTriggered : CountMetric
+    public class BufferFlushOperationsTriggeredBySizeLimit : CountMetric
     {
-        protected static String staticName = "BufferFlushOperationsTriggered";
-        protected static String staticDescription = "The number of buffer flush operations triggered";
+        protected static String staticName = "BufferFlushOperationsTriggeredBySizeLimit";
+        protected static String staticDescription = "The number of buffer flush operations triggered by the buffer size limit being reached";
 
-        public BufferFlushOperationsTriggered()
+        public BufferFlushOperationsTriggeredBySizeLimit()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records the number of buffer flush operations triggered by the worker thread loop interval expiring.
+    /// </summary>
+    public class BufferFlushOperationsTriggeredByLoopIntervalExpiration : CountMetric
+    {
+        protected static String staticName = "BufferFlushOperationsTriggeredByLoopIntervalExpiration";
+        protected static String staticDescription = "The number of buffer flush operations triggered by the worker thread loop interval expiring";
+
+        public BufferFlushOperationsTriggeredByLoopIntervalExpiration()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -557,6 +572,53 @@ namespace ApplicationAccess.Persistence
         protected static String staticDescription = "The number of events still buffered when the Stop() method was called on the buffer flush strategy object";
 
         public EventsBufferedAfterFlushStrategyStop()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records the number of times the worker thread loop interval expired while a flush operation was already in progress.
+    /// </summary>
+    /// <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
+    public class BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress : CountMetric
+    {
+        protected static String staticName = "BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress";
+        protected static String staticDescription = "The number of times the worker thread loop interval expired while a flush operation was already in progress";
+
+        public BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the time in milliseconds the buffer flushing worker thread slept for.
+    /// </summary>
+    public class BufferFlushLoopIntervalSleepTime : AmountMetric
+    {
+        protected static String staticName = "BufferFlushLoopIntervalSleepTime";
+        protected static String staticDescription = "The time in milliseconds the buffer flushing worker thread slept for";
+
+        public BufferFlushLoopIntervalSleepTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records the number of times a buffer flush is triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping.
+    /// </summary>
+    /// <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
+    public class SizeLimitBufferFlushesTriggeredDuringLoopInterval : CountMetric
+    {
+        protected static String staticName = "SizeLimitBufferFlushesTriggeredDuringLoopInterval";
+        protected static String staticDescription = "The number of times a buffer flush is triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping";
+
+        public SizeLimitBufferFlushesTriggeredDuringLoopInterval()
         {
             base.name = staticName;
             base.description = staticDescription;

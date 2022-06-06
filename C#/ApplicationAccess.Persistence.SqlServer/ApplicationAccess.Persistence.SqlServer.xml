@@ -226,6 +226,22 @@
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Load(System.DateTime)">
             <summary>Loads the access manager with state corresponding to the specified timestamp from persistent storage.</summary><param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param><returns>The access manager.</returns>
         </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteUserStoredProcedure(System.String,`0,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove a user.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteGroupStoredProcedure(System.String,`1,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove a group.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteStoredProcedure(Microsoft.Data.SqlClient.SqlCommand)">
+            <summary>
+            Attempts to execute the stored procedure contained in the specified SqlCommand object.
+            </summary>
+            <param name="command">The command containing details of the stored procedure.</param>
+        </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Dispose">
             <summary>
             Releases the unmanaged resources used by the SqlServerAccessManagerTemporalEventPersister.

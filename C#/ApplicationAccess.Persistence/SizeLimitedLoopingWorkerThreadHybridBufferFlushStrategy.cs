@@ -17,6 +17,7 @@
 using System;
 using System.Threading;
 using ApplicationAccess.Utilities;
+using ApplicationMetrics;
 
 namespace ApplicationAccess.Persistence
 {
@@ -70,7 +71,7 @@ namespace ApplicationAccess.Persistence
                     bufferProcessSignal.WaitOne();
                     if (stopMethodCalled == false)
                     {
-                        isFlushing = true;
+                        isFlushing = true; 
                         OnBufferFlushed(EventArgs.Empty);
                         lock (lastFlushCompleteTimeLockObject)
                         {
@@ -103,12 +104,14 @@ namespace ApplicationAccess.Persistence
                         {
                             // A flush has occurred since the last loop iteration
                             //   Sleep for the flush loop interval less the time since the last flush completed
+                            metricLogger.Increment(new SizeLimitBufferFlushesTriggeredDuringLoopInterval());
                             Int32 sleepTime = Convert.ToInt32((lastFlushCompleteTimeCopy.AddMilliseconds(flushLoopInterval) - dateTimeProvider.UtcNow()).TotalMilliseconds);
                             lastWaitInterval = sleepTime;
                             previousLoopIterationLastFlushCompleteTime = lastFlushCompleteTimeCopy;
                             if (sleepTime > 0)
                             {
                                 Thread.Sleep(sleepTime);
+                                metricLogger.Add(new BufferFlushLoopIntervalSleepTime(), sleepTime);
                             }
                         }
                         else
@@ -116,16 +119,20 @@ namespace ApplicationAccess.Persistence
                             // No flush has occurred since the last loop iteration so trigger a buffer flush/process
                             previousLoopIterationLastFlushCompleteTime = lastFlushCompleteTimeCopy;
                             bufferProcessSignal.Set();
+                            metricLogger.Increment(new BufferFlushOperationsTriggeredByLoopIntervalExpiration());
                             lastWaitInterval = flushLoopInterval;
                             Thread.Sleep(flushLoopInterval);
+                            metricLogger.Add(new BufferFlushLoopIntervalSleepTime(), lastWaitInterval);
                         }
                     }
                     else
                     {
                         // Buffers are currently being flushed/processed so sleep for the full loop interval
+                        metricLogger.Increment(new BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress());
                         previousLoopIterationLastFlushCompleteTime = lastFlushCompleteTimeCopy;
                         lastWaitInterval = flushLoopInterval;
                         Thread.Sleep(flushLoopInterval);
+                        metricLogger.Add(new BufferFlushLoopIntervalSleepTime(), lastWaitInterval);
                     }
 
                     if (loopingTriggerThreadLoopCompleteSignal != null && stopMethodCalled == false)
@@ -142,11 +149,36 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, IMetricLogger metricLogger)
+            : this(bufferSizeLimit, flushLoopInterval)
+        {
+            this.metricLogger = metricLogger;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
+        /// </summary>
+        /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, IDateTimeProvider dateTimeProvider)
             : this(bufferSizeLimit, flushLoopInterval)
         {
             this.dateTimeProvider = dateTimeProvider;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
+        /// </summary>
+        /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, IDateTimeProvider dateTimeProvider, IMetricLogger metricLogger)
+            : this(bufferSizeLimit, flushLoopInterval, dateTimeProvider)
+        {
+            this.metricLogger = metricLogger;
         }
 
         /// <summary>
@@ -188,6 +220,22 @@ namespace ApplicationAccess.Persistence
             base.Stop();
             loopingTriggerThread.Join();
         }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Checks whether the size limit for the buffers has been reached, and if so signals the worker thread to process/flush the buffers.
+        /// </summary>
+        protected override void CheckBufferLimitReached()
+        {
+            if (TotalEventsBuffered >= bufferSizeLimit)
+            {
+                bufferProcessSignal.Set();
+                metricLogger.Increment(new BufferFlushOperationsTriggeredBySizeLimit());
+            }
+        }
+
+        #endregion
 
         #region Finalize / Dispose Methods
 
