@@ -587,12 +587,11 @@ namespace ApplicationAccess.Persistence
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void Flush()
         {
+            Int32 flushedEventCount = 0;
             metricLogger.Begin(new FlushTime());
 
             try
             {
-                Int32 flushedEventCount = 0;
-
                 // Move all events to temporary queues
                 LinkedList<UserEventBufferItem<TUser>> tempUserEventBuffer = null;
                 LinkedList<GroupEventBufferItem<TGroup>> tempGroupEventBuffer = null;
@@ -857,15 +856,15 @@ namespace ApplicationAccess.Persistence
                             throw new NotImplementedException($"No K-merge step implementation exists for {nameof(EventBuffer)} 'nameof{nextSequenceNumber.EventBuffer}'.");
                     }
                 }
-
-                metricLogger.End(new FlushTime());
-                metricLogger.Add(new BufferedEventsFlushed(), flushedEventCount);
-                metricLogger.Increment(new BufferFlushOperationsCompleted());
             }
-            finally
+            catch
             {
                 metricLogger.CancelBegin(new FlushTime());
             }
+
+            metricLogger.End(new FlushTime());
+            metricLogger.Add(new BufferedEventsFlushed(), flushedEventCount);
+            metricLogger.Increment(new BufferFlushOperationsCompleted());
         }
 
         #region Private/Protected Methods
