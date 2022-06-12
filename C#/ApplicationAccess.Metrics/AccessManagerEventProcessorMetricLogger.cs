@@ -65,115 +65,324 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
         public void RemoveUser(TUser user)
         {
-
+            metricLogger.Begin(new UserRemoveTime());
+            try
+            {
+                eventProcessor.RemoveUser(user);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new UserRemoveTime());
+                throw;
+            }
+            metricLogger.End(new UserRemoveTime());
+            metricLogger.Increment(new UsersRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
         public void AddGroup(TGroup group)
         {
-
+            metricLogger.Begin(new GroupAddTime());
+            try
+            {
+                eventProcessor.AddGroup(group);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GroupAddTime());
+                throw;
+            }
+            metricLogger.End(new GroupAddTime());
+            metricLogger.Increment(new GroupsAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
         public void RemoveGroup(TGroup group)
         {
-
+            metricLogger.Begin(new GroupRemoveTime());
+            try
+            {
+                eventProcessor.RemoveGroup(group);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GroupRemoveTime());
+                throw;
+            }
+            metricLogger.End(new GroupRemoveTime());
+            metricLogger.Increment(new GroupsRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
-
+            metricLogger.Begin(new UserToGroupMappingAddTime());
+            try
+            {
+                eventProcessor.AddUserToGroupMapping(user, group);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new UserToGroupMappingAddTime());
+                throw;
+            }
+            metricLogger.End(new UserToGroupMappingAddTime());
+            metricLogger.Increment(new UserToGroupMappingsAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
-
+            metricLogger.Begin(new UserToGroupMappingRemoveTime());
+            try
+            {
+                eventProcessor.RemoveUserToGroupMapping(user, group);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new UserToGroupMappingRemoveTime());
+                throw;
+            }
+            metricLogger.End(new UserToGroupMappingRemoveTime());
+            metricLogger.Increment(new UserToGroupMappingsRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-
+            metricLogger.Begin(new GroupToGroupMappingAddTime());
+            try
+            {
+                eventProcessor.AddGroupToGroupMapping(fromGroup, toGroup);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GroupToGroupMappingAddTime());
+                throw;
+            }
+            metricLogger.End(new GroupToGroupMappingAddTime());
+            metricLogger.Increment(new GroupToGroupMappingsAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-
+            metricLogger.Begin(new GroupToGroupMappingRemoveTime());
+            try
+            {
+                eventProcessor.RemoveGroupToGroupMapping(fromGroup, toGroup);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GroupToGroupMappingRemoveTime());
+                throw;
+            }
+            metricLogger.End(new GroupToGroupMappingRemoveTime());
+            metricLogger.Increment(new GroupToGroupMappingsRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-
+            metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+            try
+            {
+                eventProcessor.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+                throw;
+            }
+            metricLogger.End(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+            metricLogger.Increment(new UserToApplicationComponentAndAccessLevelMappingsAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-
+            metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+            try
+            {
+                eventProcessor.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+                throw;
+            }
+            metricLogger.End(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+            metricLogger.Increment(new UserToApplicationComponentAndAccessLevelMappingsRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-
+            metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+            try
+            {
+                eventProcessor.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+                throw;
+            }
+            metricLogger.End(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+            metricLogger.Increment(new GroupToApplicationComponentAndAccessLevelMappingsAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-
+            metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+            try
+            {
+                eventProcessor.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+                throw;
+            }
+            metricLogger.End(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+            metricLogger.Increment(new GroupToApplicationComponentAndAccessLevelMappingsRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
         public void AddEntityType(String entityType)
         {
-
+            metricLogger.Begin(new EntityTypeAddTime());
+            try
+            {
+                eventProcessor.AddEntityType(entityType);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new EntityTypeAddTime());
+                throw;
+            }
+            metricLogger.End(new EntityTypeAddTime());
+            metricLogger.Increment(new EntityTypesAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
         public void RemoveEntityType(String entityType)
         {
-
+            metricLogger.Begin(new EntityTypeRemoveTime());
+            try
+            {
+                eventProcessor.RemoveEntityType(entityType);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new EntityTypeRemoveTime());
+                throw;
+            }
+            metricLogger.End(new EntityTypeRemoveTime());
+            metricLogger.Increment(new EntityTypesRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
         public void AddEntity(String entityType, String entity)
         {
-
+            metricLogger.Begin(new EntityAddTime());
+            try
+            {
+                eventProcessor.AddEntity(entityType, entity);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new EntityAddTime());
+                throw;
+            }
+            metricLogger.End(new EntityAddTime());
+            metricLogger.Increment(new EntitiesAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
         public void RemoveEntity(String entityType, String entity)
         {
-
+            metricLogger.Begin(new EntityRemoveTime());
+            try
+            {
+                eventProcessor.RemoveEntity(entityType, entity);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new EntityRemoveTime());
+                throw;
+            }
+            metricLogger.End(new EntityRemoveTime());
+            metricLogger.Increment(new EntitiesRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
-
+            metricLogger.Begin(new UserToEntityMappingAddTime());
+            try
+            {
+                eventProcessor.AddUserToEntityMapping(user, entityType, entity);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new UserToEntityMappingAddTime());
+                throw;
+            }
+            metricLogger.End(new UserToEntityMappingAddTime());
+            metricLogger.Increment(new UserToEntityMappingsAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
-
+            metricLogger.Begin(new UserToEntityMappingRemoveTime());
+            try
+            {
+                eventProcessor.RemoveUserToEntityMapping(user, entityType, entity);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new UserToEntityMappingRemoveTime());
+                throw;
+            }
+            metricLogger.End(new UserToEntityMappingRemoveTime());
+            metricLogger.Increment(new UserToEntityMappingsRemoved());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
-
+            metricLogger.Begin(new GroupToEntityMappingAddTime());
+            try
+            {
+                eventProcessor.AddGroupToEntityMapping(group, entityType, entity);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GroupToEntityMappingAddTime());
+                throw;
+            }
+            metricLogger.End(new GroupToEntityMappingAddTime());
+            metricLogger.Increment(new GroupToEntityMappingsAdded());
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
-
+            metricLogger.Begin(new GroupToEntityMappingRemoveTime());
+            try
+            {
+                eventProcessor.RemoveGroupToEntityMapping(group, entityType, entity);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GroupToEntityMappingRemoveTime());
+                throw;
+            }
+            metricLogger.End(new GroupToEntityMappingRemoveTime());
+            metricLogger.Increment(new GroupToEntityMappingsRemoved());
         }
     }
 }
