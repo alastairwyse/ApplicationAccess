@@ -1192,5 +1192,65 @@ namespace ApplicationAccess.Metrics
         }
     }
 
+    /// <summary>
+    /// Status metric which records the number of users stored in an AccessManager instance.
+    /// </summary>
+    public class UsersStored : StatusMetric
+    {
+        protected static String staticName = "UsersStored";
+        protected static String staticDescription = "The number of users stored in an AccessManager instance";
+
+        public UsersStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of groups stored in an AccessManager instance.
+    /// </summary>
+    public class GroupsStored : StatusMetric
+    {
+        protected static String staticName = "GroupsStored";
+        protected static String staticDescription = "The number of groups stored in an AccessManager instance";
+
+        public GroupsStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of user to group mappings stored in an AccessManager instance.
+    /// </summary>
+    public class UserToGroupMappingsStored : StatusMetric
+    {
+        protected static String staticName = "UserToGroupMappingsStored";
+        protected static String staticDescription = "The number of user to group mappings stored in an AccessManager instance";
+
+        public UserToGroupMappingsStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of group to group mappings stored in an AccessManager instance.
+    /// </summary>
+    public class GroupToGroupMappingsStored : StatusMetric
+    {
+        protected static String staticName = "GroupToGroupMappingsStored";
+        protected static String staticDescription = "The number of group to group mappings stored in an AccessManager instance";
+
+        public GroupToGroupMappingsStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
     #pragma warning restore 1591
 }

@@ -860,6 +860,7 @@ namespace ApplicationAccess.Persistence
             catch
             {
                 metricLogger.CancelBegin(new FlushTime());
+                throw;
             }
 
             metricLogger.End(new FlushTime());

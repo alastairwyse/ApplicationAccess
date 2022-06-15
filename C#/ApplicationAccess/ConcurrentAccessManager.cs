@@ -53,6 +53,17 @@ namespace ApplicationAccess
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.ConcurrentAccessManager class.
         /// </summary>
+        /// <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
+        public ConcurrentAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph)
+            : base(new ConcurrentCollectionFactory(), concurrentDirectedGraph)
+        {
+            lockManager = new LockManager();
+            InitializeLockObjects();
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.ConcurrentAccessManager class.
+        /// </summary>
         /// <param name="collectionFactory">A mock collection factory.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
         public ConcurrentAccessManager(ICollectionFactory collectionFactory)
