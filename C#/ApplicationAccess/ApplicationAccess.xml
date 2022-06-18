@@ -595,6 +595,188 @@
             Initializes the classes' lock objects and dependencies.
             </summary>
         </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddUser(`0,System.Action{`0,System.Action})">
+            <summary>
+            Adds a user.
+            </summary>
+            <param name="user">The user to add.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the user, allowing arbitrary code to be run before and/or after adding the user, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the user being added, and the action which actually adds the user.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the user.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveUser(`0,System.Action{`0,System.Action})">
+            <summary>
+            Removes a user.
+            </summary>
+            <param name="user">The user to remove.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the user, allowing arbitrary code to be run before and/or after removing the user, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the user being removed, and the action which actually removes the user.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the user.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddGroup(`1,System.Action{`1,System.Action})">
+            <summary>
+            Adds a group.
+            </summary>
+            <param name="group">The group to add.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the group, allowing arbitrary code to be run before and/or after adding the group, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the group being added, and the action which actually adds the group.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the group.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveGroup(`1,System.Action{`1,System.Action})">
+            <summary>
+            Removes a group.
+            </summary>
+            <param name="group">The group to remove.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the group, allowing arbitrary code to be run before and/or after removing the group, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the group being removed, and the action which actually removes the group.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the group.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddUserToGroupMapping(`0,`1,System.Action{`0,`1,System.Action})">
+            <summary>
+            Adds a mapping between the specified user and group.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="group">The group in the mapping.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the user in the mapping, the group in the mapping, and the action which actually adds the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveUserToGroupMapping(`0,`1,System.Action{`0,`1,System.Action})">
+            <summary>
+            Removes the mapping between the specified user and group.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="group">The group in the mapping.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the user in the mapping, the group in the mapping, and the action which actually removes the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddGroupToGroupMapping(`1,`1,System.Action{`1,`1,System.Action})">
+            <summary>
+            Adds a mapping between the specified groups.
+            </summary>
+            <param name="fromGroup">The 'from' group in the mapping.</param>
+            <param name="toGroup">The 'to' group in the mapping.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' group in the mapping, the 'to' group in the mapping, and the action which actually adds the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveGroupToGroupMapping(`1,`1,System.Action{`1,`1,System.Action})">
+            <summary>
+            Removes the mapping between the specified groups.
+            </summary>
+            <param name="fromGroup">The 'from' group in the mapping.</param>
+            <param name="toGroup">The 'to' group in the mapping.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' group in the mapping, the 'to' group in the mapping, and the action which actually removes the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Action{`0,`2,`3,System.Action})">
+            <summary>
+            Adds a mapping between the specified user, application component, and level of access to that component.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="applicationComponent">The application component in the mapping.</param>
+            <param name="accessLevel">The level of access to the component.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the user in the mapping, the application component in the mapping, the level of access to the component, and the action which actually adds the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Action{`0,`2,`3,System.Action})">
+            <summary>
+            Removes a mapping between the specified user, application component, and level of access to that component.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="applicationComponent">The application component in the mapping.</param>
+            <param name="accessLevel">The level of access to the component.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the user in the mapping, the application component in the mapping, the level of access to the component, and the action which actually removes the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Action{`1,`2,`3,System.Action})">
+            <summary>
+            Adds a mapping between the specified group, application component, and level of access to that component.
+            </summary>
+            <param name="group">The group in the mapping.</param>
+            <param name="applicationComponent">The application component in the mapping.</param>
+            <param name="accessLevel">The level of access to the component.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the group in the mapping, the application component in the mapping, the level of access to the component, and the action which actually adds the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Action{`1,`2,`3,System.Action})">
+            <summary>
+            Removes a mapping between the specified group, application component, and level of access to that component.
+            </summary>
+            <param name="group">The group in the mapping.</param>
+            <param name="applicationComponent">The application component in the mapping.</param>
+            <param name="accessLevel">The level of access to the component.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the group in the mapping, the application component in the mapping, the level of access to the component, and the action which actually removes the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddEntityType(System.String,System.Action{System.String,System.Action})">
+            <summary>
+            Adds an entity type.
+            </summary>
+            <param name="entityType">The entity type to add.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the entity type, allowing arbitrary code to be run before and/or after adding the entity type, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the entity type being added, and the action which actually adds the entity type.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the entity type.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveEntityType(System.String,System.Action{System.String,System.Action})">
+            <summary>
+            Removes an entity type.
+            </summary>
+            <param name="entityType">The entity type to remove.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the entity type, allowing arbitrary code to be run before and/or after removing the entity type, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the entity type being removed, and the action which actually removes the entity type.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the entity type.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddEntity(System.String,System.String,System.Action{System.String,System.String,System.Action})">
+            <summary>
+            Adds an entity.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity to add.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the entity, allowing arbitrary code to be run before and/or after adding the entity, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the type of the entity, the entity being added, and the action which actually adds the entity.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the entity.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveEntity(System.String,System.String,System.Action{System.String,System.String,System.Action})">
+            <summary>
+            Removes an entity.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity to remove.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the entity, allowing arbitrary code to be run before and/or after removing the entity, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the type of the entity, the entity being removed, and the action which actually removes the entity.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the entity.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String,System.Action})">
+            <summary>
+            Adds a mapping between the specified user, and entity.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity in the mapping.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the user in the mapping, the type of the entity, the entity in the mapping, and the action which actually adds the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String,System.Action})">
+            <summary>
+            Removes a mapping between the specified user, and entity.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity in the mapping.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the user in the mapping, the type of the entity, the entity in the mapping, and the action which actually removes the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Action{`1,System.String,System.String,System.Action})">
+            <summary>
+            Adds a mapping between the specified group, and entity.
+            </summary>
+            <param name="group">The group in the mapping.</param>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity in the mapping.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the group in the mapping, the type of the entity, the entity in the mapping, and the action which actually adds the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Action{`1,System.String,System.String,System.Action})">
+            <summary>
+            Removes a mapping between the specified group, and entity.
+            </summary>
+            <param name="group">The group in the mapping.</param>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity in the mapping.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the group in the mapping, the type of the entity, the entity in the mapping, and the action which actually removes the mapping.</param>
+            <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
+        </member>
         <member name="T:ApplicationAccess.ConcurrentCollectionFactory">
             <summary>
             Returns instances of concurrent collections in the System.Collections.Concurrent namespace.
