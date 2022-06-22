@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2021 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2022 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
         /// </summary>
         /// <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
-        /// <remarks>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set false.</remarks>
+        /// <remarks>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set true.</remarks>
         public ConcurrentDirectedGraph(Boolean acquireLocks)
             : base(new ConcurrentCollectionFactory())
         {
@@ -76,49 +76,113 @@ namespace ApplicationAccess
             InitializeLockObjects();
         }
 
-        #pragma warning disable 1591
-
+        /// <summary>
+        /// Adds a leaf vertex to the graph.
+        /// </summary>
+        /// <param name="leafVertex">The leaf vertex to add.</param>
         public override void AddLeafVertex(TLeaf leafVertex)
         {
-            AcquireLocksAndInvokeAction(leafVerticesLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() => { base.AddLeafVertex(leafVertex); }));
+            Action<TLeaf, Action> wrappingAction = (actionLeaf, baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.AddLeafVertex(leafVertex, wrappingAction);
         }
 
+        /// <summary>
+        /// Removes a leaf vertex from the graph.
+        /// </summary>
+        /// <param name="leafVertex">The leaf vertex to remove.</param>
         public override void RemoveLeafVertex(TLeaf leafVertex)
         {
-            AcquireLocksAndInvokeAction(leafVerticesLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() => { base.RemoveLeafVertex(leafVertex); }));
+            Action<TLeaf, Action> wrappingAction = (actionLeaf, baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.RemoveLeafVertex(leafVertex, wrappingAction);
         }
 
+        /// <summary>
+        /// Adds a non-leaf vertex to the graph.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to add.</param>
         public override void AddNonLeafVertex(TNonLeaf nonLeafVertex)
         {
-            AcquireLocksAndInvokeAction(nonLeafVerticesLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() => { base.AddNonLeafVertex(nonLeafVertex); }));
+            Action<TNonLeaf, Action> wrappingAction = (actionNonLeafVertex, baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.AddNonLeafVertex(nonLeafVertex, wrappingAction);
         }
 
+        /// <summary>
+        /// Removes a non-leaf vertex from the graph.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
         public override void RemoveNonLeafVertex(TNonLeaf nonLeafVertex)
         {
-            AcquireLocksAndInvokeAction(nonLeafVerticesLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() => { base.RemoveNonLeafVertex(nonLeafVertex); }));
+            Action<TNonLeaf, Action> wrappingAction = (actionNonLeafVertex, baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.RemoveNonLeafVertex(nonLeafVertex, wrappingAction);
         }
 
+        /// <summary>
+        /// Adds an edge to the graph between the specified leaf and non-leaf vertices.
+        /// </summary>
+        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
         public override void AddLeafToNonLeafEdge(TLeaf fromVertex, TNonLeaf toVertex)
         {
-            AcquireLocksAndInvokeAction(leafToNonLeafEdgesLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() => { base.AddLeafToNonLeafEdge(fromVertex, toVertex); }));
+            Action<TLeaf, TNonLeaf, Action> wrappingAction = (actionFromVertex, actiontTVertex, baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.AddLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
 
+        /// <summary>
+        /// Removes the edge from the graph between the specified leaf and non-leaf vertices.
+        /// </summary>
+        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
         public override void RemoveLeafToNonLeafEdge(TLeaf fromVertex, TNonLeaf toVertex)
         {
-            AcquireLocksAndInvokeAction(leafToNonLeafEdgesLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() => { base.RemoveLeafToNonLeafEdge(fromVertex, toVertex); }));
+            Action<TLeaf, TNonLeaf, Action> wrappingAction = (actionFromVertex, actiontTVertex, baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.RemoveLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
 
+        /// <summary>
+        /// Adds an edge to the graph between the specified non-leaf and non-leaf vertices.
+        /// </summary>
+        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
         public override void AddNonLeafToNonLeafEdge(TNonLeaf fromVertex, TNonLeaf toVertex)
         {
-            AcquireLocksAndInvokeAction(nonLeafToNonLeafEdgesLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() => { base.AddNonLeafToNonLeafEdge(fromVertex, toVertex); }));
+            Action<TNonLeaf, TNonLeaf, Action> wrappingAction = (actionFromVertex, actiontTVertex, baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.AddNonLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
 
+        /// <summary>
+        /// Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
+        /// </summary>
+        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
         public override void RemoveNonLeafToNonLeafEdge(TNonLeaf fromVertex, TNonLeaf toVertex)
         {
-            AcquireLocksAndInvokeAction(nonLeafToNonLeafEdgesLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() => { base.RemoveNonLeafToNonLeafEdge(fromVertex, toVertex); }));
+            Action<TNonLeaf, TNonLeaf, Action> wrappingAction = (actionFromVertex, actiontTVertex, baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.RemoveNonLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
-
-        #pragma warning restore 1591
 
         #region Private/Protected Methods
 
@@ -141,13 +205,129 @@ namespace ApplicationAccess
         }
 
         /// <summary>
+        /// Adds a leaf vertex to the graph.
+        /// </summary>
+        /// <param name="leafVertex">The leaf vertex to add.</param>
+        /// <param name="wrappingAction">An action which wraps the operation to add the leaf vertex, allowing arbitrary code to be run before and/or after adding the leaf vertex, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the leaf vertex being added, and the action which actually adds the leaf vertex.</param>
+        protected void AddLeafVertex(TLeaf leafVertex, Action<TLeaf, Action> wrappingAction)
+        {
+            Action baseAction = () => 
+            { 
+                wrappingAction.Invoke(leafVertex, () => { base.AddLeafVertex(leafVertex); });
+            };
+            AcquireLocksAndInvokeAction(leafVerticesLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, baseAction);
+        }
+
+        /// <summary>
+        /// Removes a leaf vertex from the graph.
+        /// </summary>
+        /// <param name="leafVertex">The leaf vertex to remove.</param>
+        /// <param name="wrappingAction">An action which wraps the operation to remove the leaf vertex, allowing arbitrary code to be run before and/or after removing the leaf vertex, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the leaf vertex being removed, and the action which actually removes the leaf vertex.</param>
+        protected void RemoveLeafVertex(TLeaf leafVertex, Action<TLeaf, Action> wrappingAction)
+        {
+            Action baseAction = () =>
+            {
+                wrappingAction.Invoke(leafVertex, () => { base.RemoveLeafVertex(leafVertex); });
+            };
+            AcquireLocksAndInvokeAction(leafVerticesLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, baseAction);
+        }
+
+        /// <summary>
+        /// Adds a non-leaf vertex to the graph.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to add.</param>
+        /// <param name="wrappingAction">An action which wraps the operation to add the non-leaf vertex, allowing arbitrary code to be run before and/or after adding the non-leaf vertex, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the non-leaf vertex being added, and the action which actually adds the non-leaf vertex.</param>
+        protected void AddNonLeafVertex(TNonLeaf nonLeafVertex, Action<TNonLeaf, Action> wrappingAction)
+        {
+            Action baseAction = () =>
+            {
+                wrappingAction.Invoke(nonLeafVertex, () => { base.AddNonLeafVertex(nonLeafVertex); });
+            };
+            AcquireLocksAndInvokeAction(nonLeafVerticesLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, baseAction);
+        }
+
+        /// <summary>
+        /// Removes a non-leaf vertex from the graph.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
+        /// <param name="wrappingAction">An action which wraps the operation to remove the non-leaf vertex, allowing arbitrary code to be run before and/or after removing the non-leaf vertex, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the non-leaf vertex being removed, and the action which actually removes the non-leaf vertex.</param>
+        protected void RemoveNonLeafVertex(TNonLeaf nonLeafVertex, Action<TNonLeaf, Action> wrappingAction)
+        {
+            Action baseAction = () =>
+            {
+                wrappingAction.Invoke(nonLeafVertex, () => { base.RemoveNonLeafVertex(nonLeafVertex); });
+            };
+            AcquireLocksAndInvokeAction(nonLeafVerticesLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, baseAction);
+        }
+
+        /// <summary>
+        /// Adds an edge to the graph between the specified leaf and non-leaf vertices.
+        /// </summary>
+        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        /// <param name="wrappingAction">An action which wraps the operation to add the edge, allowing arbitrary code to be run before and/or after adding the edge, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' vertex the edge connects, the 'to' vertex the edge connects, and the action which actually adds the edge.</param>
+        protected void AddLeafToNonLeafEdge(TLeaf fromVertex, TNonLeaf toVertex, Action<TLeaf, TNonLeaf, Action> wrappingAction)
+        {
+            Action baseAction = () =>
+            {
+                wrappingAction.Invoke(fromVertex, toVertex, () => { base.AddLeafToNonLeafEdge(fromVertex, toVertex); });
+            };
+            AcquireLocksAndInvokeAction(leafToNonLeafEdgesLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, baseAction);
+        }
+
+        /// <summary>
+        /// Removes the edge from the graph between the specified leaf and non-leaf vertices.
+        /// </summary>
+        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        /// <param name="wrappingAction">An action which wraps the operation to remove the edge, allowing arbitrary code to be run before and/or after removing the edge, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' vertex the edge connects, the 'to' vertex the edge connects, and the action which actually removes the edge.</param>
+        protected void RemoveLeafToNonLeafEdge(TLeaf fromVertex, TNonLeaf toVertex, Action<TLeaf, TNonLeaf, Action> wrappingAction)
+        {
+            Action baseAction = () =>
+            {
+                wrappingAction.Invoke(fromVertex, toVertex, () => { base.RemoveLeafToNonLeafEdge(fromVertex, toVertex); });
+            };
+            AcquireLocksAndInvokeAction(leafToNonLeafEdgesLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, baseAction);
+        }
+
+        /// <summary>
+        /// Adds an edge to the graph between the specified non-leaf and non-leaf vertices.
+        /// </summary>
+        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        /// <param name="wrappingAction">An action which wraps the operation to add the edge, allowing arbitrary code to be run before and/or after adding the edge, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' vertex the edge connects, the 'to' vertex the edge connects, and the action which actually adds the edge.</param>
+        protected void AddNonLeafToNonLeafEdge(TNonLeaf fromVertex, TNonLeaf toVertex, Action<TNonLeaf, TNonLeaf, Action> wrappingAction)
+        {
+            Action baseAction = () =>
+            {
+                wrappingAction.Invoke(fromVertex, toVertex, () => { base.AddNonLeafToNonLeafEdge(fromVertex, toVertex); });
+            };
+            AcquireLocksAndInvokeAction(nonLeafToNonLeafEdgesLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, baseAction);
+        }
+
+        /// <summary>
+        /// Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
+        /// </summary>
+        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        /// <param name="wrappingAction">An action which wraps the operation to remove the edge, allowing arbitrary code to be run before and/or after removing the edge, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' vertex the edge connects, the 'to' vertex the edge connects, and the action which actually removes the edge.</param>
+        protected void RemoveNonLeafToNonLeafEdge(TNonLeaf fromVertex, TNonLeaf toVertex, Action<TNonLeaf, TNonLeaf, Action> wrappingAction)
+        {
+            Action baseAction = () =>
+            {
+                wrappingAction.Invoke(fromVertex, toVertex, () => { base.RemoveNonLeafToNonLeafEdge(fromVertex, toVertex); });
+            };
+            AcquireLocksAndInvokeAction(nonLeafToNonLeafEdgesLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, baseAction);
+        }
+
+        /// <summary>
         /// Uses the 'lockManager' member to acquire locks on the specified lock object (and associated objects) depending on the value of member 'acquireLocks', and invokes the specified action.
         /// </summary>
         /// <param name="lockObject">The object to lock (if 'acquireLocks' is true).</param>
         /// <param name="lockObjectDependencyPattern">The dependency pattern to apply to acquire locks on objects associated with the object specified by the 'lockObject' parameter.</param>
         /// <param name="action">The action to invoke.</param>
         protected void AcquireLocksAndInvokeAction(Object lockObject, LockObjectDependencyPattern lockObjectDependencyPattern, Action action)
-        { 
+        {
             if (acquireLocks == false)
             {
                 action.Invoke();
@@ -157,7 +337,7 @@ namespace ApplicationAccess
                 lockManager.AcquireLocksAndInvokeAction(lockObject, lockObjectDependencyPattern, action);
             }
         }
-        
+
         #endregion
     }
 }

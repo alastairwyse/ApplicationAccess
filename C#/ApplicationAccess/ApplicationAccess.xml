@@ -833,7 +833,7 @@
             Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
             </summary>
             <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
-            <remarks>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set false.</remarks>
+            <remarks>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set true.</remarks>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean)">
             <summary>
@@ -843,10 +843,122 @@
             <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddLeafVertex(`0)">
+            <summary>
+            Adds a leaf vertex to the graph.
+            </summary>
+            <param name="leafVertex">The leaf vertex to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveLeafVertex(`0)">
+            <summary>
+            Removes a leaf vertex from the graph.
+            </summary>
+            <param name="leafVertex">The leaf vertex to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddNonLeafVertex(`1)">
+            <summary>
+            Adds a non-leaf vertex to the graph.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveNonLeafVertex(`1)">
+            <summary>
+            Removes a non-leaf vertex from the graph.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddLeafToNonLeafEdge(`0,`1)">
+            <summary>
+            Adds an edge to the graph between the specified leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveLeafToNonLeafEdge(`0,`1)">
+            <summary>
+            Removes the edge from the graph between the specified leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddNonLeafToNonLeafEdge(`1,`1)">
+            <summary>
+            Adds an edge to the graph between the specified non-leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveNonLeafToNonLeafEdge(`1,`1)">
+            <summary>
+            Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.InitializeLockObjects">
             <summary>
             Initializes the classes' lock objects and dependencies.
             </summary>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddLeafVertex(`0,System.Action{`0,System.Action})">
+            <summary>
+            Adds a leaf vertex to the graph.
+            </summary>
+            <param name="leafVertex">The leaf vertex to add.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the leaf vertex, allowing arbitrary code to be run before and/or after adding the leaf vertex, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the leaf vertex being added, and the action which actually adds the leaf vertex.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveLeafVertex(`0,System.Action{`0,System.Action})">
+            <summary>
+            Removes a leaf vertex from the graph.
+            </summary>
+            <param name="leafVertex">The leaf vertex to remove.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the leaf vertex, allowing arbitrary code to be run before and/or after removing the leaf vertex, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the leaf vertex being removed, and the action which actually removes the leaf vertex.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddNonLeafVertex(`1,System.Action{`1,System.Action})">
+            <summary>
+            Adds a non-leaf vertex to the graph.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to add.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the non-leaf vertex, allowing arbitrary code to be run before and/or after adding the non-leaf vertex, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the non-leaf vertex being added, and the action which actually adds the non-leaf vertex.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveNonLeafVertex(`1,System.Action{`1,System.Action})">
+            <summary>
+            Removes a non-leaf vertex from the graph.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the non-leaf vertex, allowing arbitrary code to be run before and/or after removing the non-leaf vertex, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the non-leaf vertex being removed, and the action which actually removes the non-leaf vertex.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddLeafToNonLeafEdge(`0,`1,System.Action{`0,`1,System.Action})">
+            <summary>
+            Adds an edge to the graph between the specified leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the edge, allowing arbitrary code to be run before and/or after adding the edge, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' vertex the edge connects, the 'to' vertex the edge connects, and the action which actually adds the edge.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveLeafToNonLeafEdge(`0,`1,System.Action{`0,`1,System.Action})">
+            <summary>
+            Removes the edge from the graph between the specified leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the edge, allowing arbitrary code to be run before and/or after removing the edge, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' vertex the edge connects, the 'to' vertex the edge connects, and the action which actually removes the edge.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddNonLeafToNonLeafEdge(`1,`1,System.Action{`1,`1,System.Action})">
+            <summary>
+            Adds an edge to the graph between the specified non-leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+            <param name="wrappingAction">An action which wraps the operation to add the edge, allowing arbitrary code to be run before and/or after adding the edge, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' vertex the edge connects, the 'to' vertex the edge connects, and the action which actually adds the edge.</param>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveNonLeafToNonLeafEdge(`1,`1,System.Action{`1,`1,System.Action})">
+            <summary>
+            Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
+            </summary>
+            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
+            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+            <param name="wrappingAction">An action which wraps the operation to remove the edge, allowing arbitrary code to be run before and/or after removing the edge, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' vertex the edge connects, the 'to' vertex the edge connects, and the action which actually removes the edge.</param>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AcquireLocksAndInvokeAction(System.Object,ApplicationAccess.Utilities.LockObjectDependencyPattern,System.Action)">
             <summary>
@@ -1047,6 +1159,14 @@
             </summary>
             <param name="startVertex">The non-leaf vertex to begin traversing at.</param>
             <param name="vertexAction">The action to perform at each non-leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraphBase`2.RemoveNonLeafVertex(`1,System.Action{`0,`1},System.Action{`1,`1})">
+            <summary>
+            Removes a non-leaf vertex from the graph.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
+            <param name="leafToNonLeafEdgePostRemovalAction">An action which is invoked after removing a leaf to non-leaf edge containing the specified non-leaf vertex.  Accepts 2 parameters: the 'from' vertex in the edge being removed, and the the 'to' vertex in the edge being removed.</param>
+            <param name="nonLeafToNonLeafEdgePostRemovalAction">An action which is invoked after removing a non-leaf to non-leaf edge containing the specified non-leaf vertex.  Accepts 2 parameters: the 'from' vertex in the edge being removed, and the the 'to' vertex in the edge being removed.</param>
         </member>
         <member name="M:ApplicationAccess.DirectedGraphBase`2.TraverseGraph(System.Func{`0,System.Boolean},System.Func{`1,System.Boolean})">
             <summary>

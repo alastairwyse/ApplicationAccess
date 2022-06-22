@@ -8,4 +8,8 @@
     <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess.Utilities\ApplicationAccess.Utilities.xml</DocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ApplicationMetrics" Version="4.0.0" />
+  </ItemGroup>
+
 </Project>

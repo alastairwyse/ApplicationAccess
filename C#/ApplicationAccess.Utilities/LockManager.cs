@@ -189,7 +189,6 @@ namespace ApplicationAccess.Utilities
             {
                 lock(lockObjects[nextObjectIndex])
                 {
-                    Console.WriteLine(System.Threading.Monitor.IsEntered(lockObjects[nextObjectIndex]));
                     AcquireLocksAndInvokeAction(lockObjects, nextObjectIndex + 1, action);
                 }
             }

@@ -49,7 +49,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>The delegate which handles when a BufferFlushed event is raised.</summary>
         protected EventHandler bufferFlushedEventHandler;
         /// <summary>Indicates whether the object has been disposed.</summary>
-        protected bool disposed;
+        protected Boolean disposed;
         /// <summary>The sequence number used for the last event buffered.</summary>
         protected Int64 lastEventSequenceNumber;
 

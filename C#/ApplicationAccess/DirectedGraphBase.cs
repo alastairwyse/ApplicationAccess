@@ -138,44 +138,7 @@ namespace ApplicationAccess
         /// <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
         public virtual void RemoveNonLeafVertex(TNonLeaf nonLeafVertex)
         {
-            ThrowExceptionIfNonLeafVertexDoesntExistInGraph(nonLeafVertex, nameof(nonLeafVertex));
-
-            // Remove the edges connected 'from' the vertex
-            if (nonLeafToNonLeafEdges.ContainsKey(nonLeafVertex) == true)
-            {
-                nonLeafToNonLeafEdges.Remove(nonLeafVertex);
-            }
-
-            // Find the edges connected 'to' the vertex
-            var connectedLeafVertices = new HashSet<TLeaf>();
-            var connectedNonLeafVertices = new HashSet<TNonLeaf>();
-            foreach(KeyValuePair<TLeaf, ISet<TNonLeaf>> currentKvp in leafToNonLeafEdges)
-            {
-                if (currentKvp.Value.Contains(nonLeafVertex) == true)
-                {
-                    connectedLeafVertices.Add(currentKvp.Key);
-                }
-            }
-            foreach(KeyValuePair<TNonLeaf, ISet<TNonLeaf>> currentKvp in nonLeafToNonLeafEdges)
-            {
-                if (currentKvp.Value.Contains(nonLeafVertex) == true)
-                {
-                    connectedNonLeafVertices.Add(currentKvp.Key);
-                }
-            }
-
-            // Remove the edges connected 'to' the vertex
-            foreach (TLeaf currentConnectedLeafVertex in connectedLeafVertices)
-            {
-                leafToNonLeafEdges[currentConnectedLeafVertex].Remove(nonLeafVertex);
-            }
-            foreach (TNonLeaf currentConnectedNonLeafVertex in connectedNonLeafVertices)
-            {
-                nonLeafToNonLeafEdges[currentConnectedNonLeafVertex].Remove(nonLeafVertex);
-            }
-
-            // Remove the vertex
-            nonLeafVertices.Remove(nonLeafVertex);
+            this.RemoveNonLeafVertex(nonLeafVertex, (fromVertex, toVertex) => { }, (fromVertex, toVertex) => { });
         }
 
         /// <summary>
@@ -322,6 +285,56 @@ namespace ApplicationAccess
         }
 
         #region Private/Protected Methods
+
+        /// <summary>
+        /// Removes a non-leaf vertex from the graph.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
+        /// <param name="leafToNonLeafEdgePostRemovalAction">An action which is invoked after removing a leaf to non-leaf edge containing the specified non-leaf vertex.  Accepts 2 parameters: the 'from' vertex in the edge being removed, and the the 'to' vertex in the edge being removed.</param>
+        /// <param name="nonLeafToNonLeafEdgePostRemovalAction">An action which is invoked after removing a non-leaf to non-leaf edge containing the specified non-leaf vertex.  Accepts 2 parameters: the 'from' vertex in the edge being removed, and the the 'to' vertex in the edge being removed.</param>
+        protected void RemoveNonLeafVertex(TNonLeaf nonLeafVertex, Action<TLeaf, TNonLeaf> leafToNonLeafEdgePostRemovalAction, Action<TNonLeaf, TNonLeaf> nonLeafToNonLeafEdgePostRemovalAction)
+        {
+            ThrowExceptionIfNonLeafVertexDoesntExistInGraph(nonLeafVertex, nameof(nonLeafVertex));
+
+            // Remove the edges connected 'from' the vertex
+            if (nonLeafToNonLeafEdges.ContainsKey(nonLeafVertex) == true)
+            {
+                nonLeafToNonLeafEdges.Remove(nonLeafVertex);
+            }
+
+            // Find the edges connected 'to' the vertex
+            var connectedLeafVertices = new HashSet<TLeaf>();
+            var connectedNonLeafVertices = new HashSet<TNonLeaf>();
+            foreach (KeyValuePair<TLeaf, ISet<TNonLeaf>> currentKvp in leafToNonLeafEdges)
+            {
+                if (currentKvp.Value.Contains(nonLeafVertex) == true)
+                {
+                    connectedLeafVertices.Add(currentKvp.Key);
+                }
+            }
+            foreach (KeyValuePair<TNonLeaf, ISet<TNonLeaf>> currentKvp in nonLeafToNonLeafEdges)
+            {
+                if (currentKvp.Value.Contains(nonLeafVertex) == true)
+                {
+                    connectedNonLeafVertices.Add(currentKvp.Key);
+                }
+            }
+
+            // Remove the edges connected 'to' the vertex
+            foreach (TLeaf currentConnectedLeafVertex in connectedLeafVertices)
+            {
+                leafToNonLeafEdges[currentConnectedLeafVertex].Remove(nonLeafVertex);
+                leafToNonLeafEdgePostRemovalAction.Invoke(currentConnectedLeafVertex, nonLeafVertex);
+            }
+            foreach (TNonLeaf currentConnectedNonLeafVertex in connectedNonLeafVertices)
+            {
+                nonLeafToNonLeafEdges[currentConnectedNonLeafVertex].Remove(nonLeafVertex);
+                nonLeafToNonLeafEdgePostRemovalAction.Invoke(currentConnectedNonLeafVertex, nonLeafVertex);
+            }
+
+            // Remove the vertex
+            nonLeafVertices.Remove(nonLeafVertex);
+        }
 
         /// <summary>
         /// Traverses the entire graph, invoking the specified actions at each leaf and non-leaf vertex.

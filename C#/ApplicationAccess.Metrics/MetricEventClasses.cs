@@ -21,6 +21,8 @@ namespace ApplicationAccess.Metrics
 {
     #pragma warning disable 1591
 
+    #region IAccessManager Metrics
+
     /// <summary>
     /// Count metric which records the total number of calls to the AddUser() method.
     /// </summary>
@@ -1192,6 +1194,10 @@ namespace ApplicationAccess.Metrics
         }
     }
 
+    #endregion
+
+    #region AccessManager Metrics
+
     /// <summary>
     /// Status metric which records the number of users stored in an AccessManager instance.
     /// </summary>
@@ -1252,5 +1258,132 @@ namespace ApplicationAccess.Metrics
         }
     }
 
-    #pragma warning restore 1591
+    /// <summary>
+    /// Status metric which records the number of user to application component and access level mappings stored in an AccessManager instance.
+    /// </summary>
+    public class UserToApplicationComponentAndAccessLevelMappingsStored : StatusMetric
+    {
+        protected static String staticName = "UserToApplicationComponentAndAccessLevelMappingsStored";
+        protected static String staticDescription = "The number of user to application component and access level mappings stored in an AccessManager instance";
+
+        public UserToApplicationComponentAndAccessLevelMappingsStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of group to application component and access level mappings stored in an AccessManager instance.
+    /// </summary>
+    public class GroupToApplicationComponentAndAccessLevelMappingsStored : StatusMetric
+    {
+        protected static String staticName = "GroupToApplicationComponentAndAccessLevelMappingsStored";
+        protected static String staticDescription = "The number of group to application component and access level mappings stored in an AccessManager instance";
+
+        public GroupToApplicationComponentAndAccessLevelMappingsStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of entity types stored in an AccessManager instance.
+    /// </summary>
+    public class EntityTypesStored : StatusMetric
+    {
+        protected static String staticName = "EntityTypesStored";
+        protected static String staticDescription = "The number of entity types stored in an AccessManager instance";
+
+        public EntityTypesStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of entities stored in an AccessManager instance.
+    /// </summary>
+    public class EntitiesStored : StatusMetric
+    {
+        protected static String staticName = "EntitiesStored";
+        protected static String staticDescription = "The number of entities stored in an AccessManager instance";
+
+        public EntitiesStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+
+    #endregion
+
+    #region DirectedGraph Metrics
+
+    /// <summary>
+    /// Status metric which records the number of leaf vertices stored in a DirectedGraph instance.
+    /// </summary>
+    public class LeafVerticesStored : StatusMetric
+    {
+        protected static String staticName = "LeafVerticesStored";
+        protected static String staticDescription = "The number of leaf vertices stored in a DirectedGraph instance";
+
+        public LeafVerticesStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of non-leaf vertices stored in a DirectedGraph instance.
+    /// </summary>
+    public class NonLeafVerticesStored : StatusMetric
+    {
+        protected static String staticName = "NonLeafVerticesStored";
+        protected static String staticDescription = "The number of non-leaf vertices stored in a DirectedGraph instance";
+
+        public NonLeafVerticesStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of leaf to non-leaf edges stored in a DirectedGraph instance.
+    /// </summary>
+    public class LeafToNonLeafEdgesStored : StatusMetric
+    {
+        protected static String staticName = "LeafToNonLeafEdgesStored";
+        protected static String staticDescription = "The number of leaf to non-leaf edges stored in a DirectedGraph instance";
+
+        public LeafToNonLeafEdgesStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of non-leaf to non-leaf edges stored in a DirectedGraph instance.
+    /// </summary>
+    public class NonLeafToNonLeafEdgesStored : StatusMetric
+    {
+        protected static String staticName = "NonLeafToNonLeafEdgesStored";
+        protected static String staticDescription = "The number of non-leaf to non-leaf edges stored in a DirectedGraph instance";
+
+        public NonLeafToNonLeafEdgesStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    #endregion
+
+#pragma warning restore 1591
 }

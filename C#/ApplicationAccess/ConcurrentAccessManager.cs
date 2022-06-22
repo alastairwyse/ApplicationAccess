@@ -99,29 +99,6 @@ namespace ApplicationAccess
             this.AddUser(user, wrappingAction);
         }
 
-        // TODO: REMOVE
-        //   Sample metrics logging code
-        public void HowWouldThisWork()
-        {
-            // Method like this would be in a derived class
-
-            Action<TUser, Action> wrappingAction = (user, baseAction) =>
-            {
-
-                try
-                {
-                    Console.WriteLine("Starting interval metric");
-                    baseAction.Invoke();
-                    Console.WriteLine("Ending interval metric");
-                }
-                catch
-                {
-                    Console.WriteLine("Cancelling interval metric");
-                }
-            };
-            this.AddUser(default(TUser), wrappingAction);
-        }
-
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
         public override void RemoveUser(TUser user)
         {
