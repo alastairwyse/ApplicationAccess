@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MoreComplexDataStructures;
 using ApplicationMetrics;
 using ApplicationAccess.Utilities;
 
@@ -40,8 +41,12 @@ namespace ApplicationAccess.Metrics
         protected Int32 entityCount;
         /// <summary>The number of user to entity mappings stored.</summary>
         protected Int32 userToEntityMappingCount;
+        /// <summary>The number of user to entity mappings stored for each user.</summary>
+        protected FrequencyTable<TUser> userToEntityMappingCountPerUser;
         /// <summary>The number of group tp entity mappings stored.</summary>
         protected Int32 groupToEntityMappingCount;
+        /// <summary>The number of group to entity mappings stored for each user.</summary>
+        protected FrequencyTable<TGroup> groupToEntityMappingCountPerGroup;
 
         /// <summary>Whether interval metrics should be logged for methods belonging to the IAccessManagerQueryProcessor interface.</summary>
         protected Boolean logQueryProcessorIntervalMetrics;
@@ -88,7 +93,9 @@ namespace ApplicationAccess.Metrics
             groupToApplicationComponentAndAccessLevelMappingCount = 0;
             entityCount = 0;
             userToEntityMappingCount = 0;
+            userToEntityMappingCountPerUser = new FrequencyTable<TUser>();
             groupToEntityMappingCount = 0;
+            groupToEntityMappingCountPerGroup = new FrequencyTable<TGroup>();
 
             this.logQueryProcessorIntervalMetrics = logQueryProcessorIntervalMetrics;
             this.metricLogger = metricLogger;
@@ -115,10 +122,30 @@ namespace ApplicationAccess.Metrics
         {
             Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
             {
-                baseAction.Invoke();
+                Int32 newUserToApplicationComponentAndAccessLevelMappingCount = userToApplicationComponentAndAccessLevelMappingCount;
+                if (userToComponentMap.ContainsKey(user) == true)
+                {
+                    newUserToApplicationComponentAndAccessLevelMappingCount -= userToComponentMap[user].Count;
+                }
+                BeginIntervalMetricIfLoggingEnabled(new UserRemoveTime());
+                try
+                {
+                    baseAction.Invoke();
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new UserRemoveTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new UserRemoveTime());
+                IncrementCountMetricIfLoggingEnabled(new UsersRemoved());
+                userToApplicationComponentAndAccessLevelMappingCount = newUserToApplicationComponentAndAccessLevelMappingCount;
+                SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
+                userToEntityMappingCount -= userToEntityMappingCountPerUser.GetFrequency(user);
+                userToEntityMappingCountPerUser.DecrementBy(user, userToEntityMappingCountPerUser.GetFrequency(user));
+                SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
             };
             this.RemoveUser(user, wrappingAction);
-            throw new NotImplementedException();
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
@@ -136,10 +163,30 @@ namespace ApplicationAccess.Metrics
         {
             Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
             {
-                baseAction.Invoke();
+                Int32 newGroupToApplicationComponentAndAccessLevelMappingCount = groupToApplicationComponentAndAccessLevelMappingCount;
+                if (groupToComponentMap.ContainsKey(group) == true)
+                {
+                    newGroupToApplicationComponentAndAccessLevelMappingCount -= groupToComponentMap[group].Count;
+                }
+                BeginIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
+                try
+                {
+                    baseAction.Invoke();
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
+                IncrementCountMetricIfLoggingEnabled(new GroupsRemoved());
+                groupToApplicationComponentAndAccessLevelMappingCount = newGroupToApplicationComponentAndAccessLevelMappingCount;
+                SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
+                groupToEntityMappingCount -= groupToEntityMappingCountPerGroup.GetFrequency(group);
+                groupToEntityMappingCountPerGroup.DecrementBy(group, groupToEntityMappingCountPerGroup.GetFrequency(group));
+                SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
             this.RemoveGroup(group, wrappingAction);
-            throw new NotImplementedException();
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
@@ -303,9 +350,10 @@ namespace ApplicationAccess.Metrics
                 Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction = (preRemovalActionUser, preRemovalActionEntityType, preRemovalActionEntities, preRemovalActionCount) => { userToEntityMappingCount -= preRemovalActionCount; };
                 Action<TGroup, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction = (preRemovalActionGroup, preRemovalActionEntityType, preRemovalActionEntities, preRemovalActionCount) => { groupToEntityMappingCount -= preRemovalActionCount; };
 
+                Int32 newEntityCount = entityCount;
                 if (entities.ContainsKey(entityType) == true)
                 {
-                    entityCount -= entities[entityType].Count;
+                    newEntityCount -= entities[entityType].Count;
                 }    
                 BeginIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
                 try
@@ -320,6 +368,7 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new EntityTypesRemoved());
                 SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
+                entityCount = newEntityCount;
                 SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
@@ -396,6 +445,7 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
                 IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingsAdded());
                 userToEntityMappingCount++;
+                userToEntityMappingCountPerUser.Increment(user);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
             };
             this.AddUserToEntityMapping(user, entityType, entity, wrappingAction);
@@ -419,6 +469,7 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingsRemoved());
                 userToEntityMappingCount--;
+                userToEntityMappingCountPerUser.Decrement(user);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
             };
             this.RemoveUserToEntityMapping(user, entityType, entity, wrappingAction);
@@ -442,6 +493,7 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingsAdded());
                 groupToEntityMappingCount++;
+                groupToEntityMappingCountPerGroup.Increment(group);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
             this.AddGroupToEntityMapping(group, entityType, entity, wrappingAction);
@@ -465,6 +517,7 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingsRemoved());
                 groupToEntityMappingCount--;
+                groupToEntityMappingCountPerGroup.Decrement(group);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), userToEntityMappingCount);
             };
             this.RemoveGroupToEntityMapping(group, entityType, entity, wrappingAction);

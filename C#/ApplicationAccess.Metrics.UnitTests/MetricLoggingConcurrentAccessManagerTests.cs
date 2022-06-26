@@ -88,21 +88,141 @@ namespace ApplicationAccess.Metrics.UnitTests
         [Test]
         public void RemoveUser_ExceptionWhenRemoving()
         {
-            throw new NotImplementedException();
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddUser("user3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group2");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group3");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group3");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user3", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "BusinessUnit", "Sales");
+            mockMetricLogger.ClearReceivedCalls();
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testMetricLoggingConcurrentAccessManager.RemoveUser("user1");
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<UserRemoveTime>());
+            mockMetricLogger.Received(1).CancelBegin(Arg.Any<UserRemoveTime>());
+            mockMetricLogger.DidNotReceive().Increment(Arg.Any<UsersRemoved>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<UsersStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToGroupMappingsStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToEntityMappingsStored>(), Arg.Any<Int64>());
         }
 
         [Test]
         public void RemoveUser()
         {
-            throw new NotImplementedException();
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddUser("user3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group2");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group3");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group2");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group3");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group3");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Create);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user3", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "BusinessUnit", "Sales");
+            mockMetricLogger.ClearReceivedCalls();
+
+            testMetricLoggingConcurrentAccessManager.RemoveUser("user1");
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<UserRemoveTime>());
+            mockMetricLogger.Received(1).End(Arg.Any<UserRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<UsersRemoved>());
+            mockMetricLogger.Received(1).Set(Arg.Any<UsersStored>(), 2);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 5);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 3);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 5);
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Users.Contains("user1"));
         }
 
         [Test]
         public void RemoveUser_MetricLoggingDisabled()
         {
             testMetricLoggingConcurrentAccessManager.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddUser("user3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group2");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group3");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group2");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group3");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group3");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Create);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user3", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user3", "BusinessUnit", "Sales");
 
-            throw new NotImplementedException();
+            testMetricLoggingConcurrentAccessManager.RemoveUser("user1");
+
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Users.Contains("user1"));
         }
 
         [Test]
@@ -152,21 +272,161 @@ namespace ApplicationAccess.Metrics.UnitTests
         [Test]
         public void RemoveGroup_ExceptionWhenRemoving()
         {
-            throw new NotImplementedException();
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddUser("user3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group4");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group5");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group1");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group1", "group3");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group3", "group4");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group1", "group4");
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group4", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "Sales");
+            mockMetricLogger.ClearReceivedCalls();
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testMetricLoggingConcurrentAccessManager.RemoveGroup("group2");
+            });
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupRemoveTime>());
+            mockMetricLogger.Received(1).CancelBegin(Arg.Any<GroupRemoveTime>());
+            mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupsRemoved>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupsStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToGroupMappingsStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToGroupMappingsStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToEntityMappingsStored>(), Arg.Any<Int64>());
         }
 
         [Test]
         public void RemoveGroup()
         {
-            throw new NotImplementedException();
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddUser("user3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group4");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group5");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group2");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group2");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group1", "group3");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group3", "group4");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group1", "group4");
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.Order, AccessLevel.Create);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group4", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "Sales");
+            mockMetricLogger.ClearReceivedCalls();
+
+            testMetricLoggingConcurrentAccessManager.RemoveGroup("group2");
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupRemoveTime>());
+            mockMetricLogger.Received(1).End(Arg.Any<GroupRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GroupsRemoved>());
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupsStored>(), 4);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 2);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 4);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 3);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 5);
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains("group2"));
+
+
+            mockMetricLogger.ClearReceivedCalls();
+            testMetricLoggingConcurrentAccessManager.RemoveGroup("group3");
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupRemoveTime>());
+            mockMetricLogger.Received(1).End(Arg.Any<GroupRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GroupsRemoved>());
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupsStored>(), 3);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 2);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 1);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 1);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 3);
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains("group3"));
         }
 
         [Test]
         public void RemoveGroup_MetricLoggingDisabled()
         {
             testMetricLoggingConcurrentAccessManager.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddUser("user3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group4");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group5");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user2", "group2");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group2");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group1", "group3");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group3", "group4");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group1", "group4");
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.Order, AccessLevel.Create);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group4", ApplicationScreen.Order, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "Sales");
 
-            throw new NotImplementedException();
+            testMetricLoggingConcurrentAccessManager.RemoveGroup("group2");
+
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains("group2"));
         }
 
         [Test]
