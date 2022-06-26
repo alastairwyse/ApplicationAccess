@@ -63,6 +63,15 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void AddLeafVertex_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentDirectedGraph.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
+
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<LeafVerticesStored>(), Arg.Any<Int64>());
+        }
+
+        [Test]
         public void RemoveLeafVertex()
         {
             testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
@@ -91,6 +100,20 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveLeafVertex_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentDirectedGraph.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddLeafToNonLeafEdge("Per1", "Grp1");
+
+            testMetricLoggingConcurrentDirectedGraph.RemoveLeafVertex("Per1");
+
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<LeafVerticesStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<LeafToNonLeafEdgesStored>(), Arg.Any<Int64>());
+        }
+
+        [Test]
         public void AddNonLeafVertex()
         {
             Assert.AreEqual(0, testMetricLoggingConcurrentDirectedGraph.NonLeafVertices.Count());
@@ -111,6 +134,15 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.AreEqual(3, testMetricLoggingConcurrentDirectedGraph.NonLeafVertices.Count());
             mockMetricLogger.Received(1).Set(Arg.Any<NonLeafVerticesStored>(), 3);
+        }
+
+        [Test]
+        public void AddNonLeafVertex_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentDirectedGraph.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<NonLeafVerticesStored>(), Arg.Any<Int64>());
         }
 
         [Test]
@@ -156,6 +188,26 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveNonLeafVertex_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentDirectedGraph.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp2");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp3");
+            testMetricLoggingConcurrentDirectedGraph.AddLeafToNonLeafEdge("Per1", "Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddLeafToNonLeafEdge("Per1", "Grp2");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafToNonLeafEdge("Grp1", "Grp2");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafToNonLeafEdge("Grp2", "Grp3");
+
+            testMetricLoggingConcurrentDirectedGraph.RemoveNonLeafVertex("Grp2");
+
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<LeafToNonLeafEdgesStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<NonLeafToNonLeafEdgesStored>(), Arg.Any<Int64>());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<NonLeafVerticesStored>(), Arg.Any<Int64>());
+        }
+
+        [Test]
         public void AddLeafToNonLeafEdge()
         {
             testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
@@ -188,6 +240,18 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<LeafToNonLeafEdgesStored>(), 7);
             mockMetricLogger.Received(1).Set(Arg.Any<LeafToNonLeafEdgesStored>(), 8);
             mockMetricLogger.Received(1).Set(Arg.Any<LeafToNonLeafEdgesStored>(), 9);
+        }
+
+        [Test]
+        public void AddLeafToNonLeafEdge_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentDirectedGraph.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+
+            testMetricLoggingConcurrentDirectedGraph.AddLeafToNonLeafEdge("Per1", "Grp1");
+
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<LeafToNonLeafEdgesStored>(), Arg.Any<Int64>());
         }
 
         [Test]
@@ -231,6 +295,19 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveLeafToNonLeafEdge_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentDirectedGraph.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddLeafToNonLeafEdge("Per1", "Grp1");
+
+            testMetricLoggingConcurrentDirectedGraph.RemoveLeafToNonLeafEdge("Per1", "Grp1");
+
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<LeafToNonLeafEdgesStored>(), Arg.Any<Int64>());
+        }
+
+        [Test]
         public void AddNonLeafToNonLeafEdge()
         {
             testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
@@ -252,6 +329,18 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             testMetricLoggingConcurrentDirectedGraph.AddNonLeafToNonLeafEdge("Grp2", "Grp3");
             mockMetricLogger.Received(1).Set(Arg.Any<NonLeafToNonLeafEdgesStored>(), 2);
+        }
+
+        [Test]
+        public void AddNonLeafToNonLeafEdge_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentDirectedGraph.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp2");
+
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafToNonLeafEdge("Grp1", "Grp2");
+
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<NonLeafToNonLeafEdgesStored>(), Arg.Any<Int64>());
         }
 
         [Test]
@@ -279,6 +368,19 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             testMetricLoggingConcurrentDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp2", "Grp3");
             mockMetricLogger.Received(1).Set(Arg.Any<NonLeafToNonLeafEdgesStored>(), 0);
+        }
+
+        [Test]
+        public void RemoveNonLeafToNonLeafEdge_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentDirectedGraph.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp2");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafToNonLeafEdge("Grp1", "Grp2");
+
+            testMetricLoggingConcurrentDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp1", "Grp2");
+
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<NonLeafToNonLeafEdgesStored>(), Arg.Any<Int64>());
         }
     }
 }

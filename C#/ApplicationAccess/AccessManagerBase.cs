@@ -412,24 +412,7 @@ namespace ApplicationAccess
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
         public virtual void RemoveEntityType(String entityType)
         {
-            if (entities.ContainsKey(entityType) == false)
-                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
-
-            foreach (KeyValuePair<TUser, IDictionary<String, ISet<String>>> currentKvp in userToEntityMap)
-            {
-                if (currentKvp.Value.ContainsKey(entityType) == true)
-                {
-                    currentKvp.Value.Remove(entityType);
-                }
-            }
-            foreach (KeyValuePair<TGroup, IDictionary<String, ISet<String>>> currentKvp in groupToEntityMap)
-            {
-                if (currentKvp.Value.ContainsKey(entityType) == true)
-                {
-                    currentKvp.Value.Remove(entityType);
-                }
-            }
-            entities.Remove(entityType);
+            this.RemoveEntityType(entityType, (actionUser, actionEntityType, actionEntities, actionEntityCount) => { }, (actionGroup, actionEntityType, actionEntities, actionEntityCount) => { });
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
@@ -463,26 +446,7 @@ namespace ApplicationAccess
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
         public virtual void RemoveEntity(String entityType, String entity)
         {
-            if (entities.ContainsKey(entityType) == false)
-                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
-            if (entities[entityType].Contains(entity) == false)
-                ThrowEntityDoesntExistException(entity, nameof(entity));
-
-            foreach (KeyValuePair<TUser, IDictionary<String, ISet<String>>> currentKvp in userToEntityMap)
-            {
-                if (currentKvp.Value.ContainsKey(entityType) == true && currentKvp.Value[entityType].Contains(entity) == true)
-                {
-                    currentKvp.Value[entityType].Remove(entity);
-                }
-            }
-            foreach (KeyValuePair<TGroup, IDictionary<String, ISet<String>>> currentKvp in groupToEntityMap)
-            {
-                if (currentKvp.Value.ContainsKey(entityType) == true && currentKvp.Value[entityType].Contains(entity) == true)
-                {
-                    currentKvp.Value[entityType].Remove(entity);
-                }
-            }
-            entities[entityType].Remove(entity);
+            this.RemoveEntity(entityType, entity, (actionUser, actionEntityType, actionEntity) => { }, (actionGroup, actionEntityType, actionEntity) => { });
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
@@ -733,9 +697,72 @@ namespace ApplicationAccess
             return returnEntities;
         }
 
-        #pragma warning disable 1591
-
         #region Private/Protected Methods
+
+        /// <summary>
+        /// Removes an entity type.
+        /// </summary>
+        /// <param name="entityType">The entity type to remove.</param>
+        /// <param name="userToEntityTypeMappingPreRemovalAction">An action which is invoked before removing the entity type mappings for a user.  Accepts 4 parameters: the user in the mappings, the type of the entity of the mappings being removed, the entities in the mappings, and the number of entities in the mappings.</param>
+        /// <param name="groupToEntityTypeMappingPreRemovalAction">An action which is invoked before removing the entity type mappings for a group.  Accepts 4 parameters: the group in the mappings, the type of the entity of the mappings being removed, the entities in the mappings, and the number of entities in the mappings.</param>
+        public virtual void RemoveEntityType(String entityType, Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction, Action<TGroup, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction)
+        {
+            if (entities.ContainsKey(entityType) == false)
+                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
+
+            foreach (KeyValuePair<TUser, IDictionary<String, ISet<String>>> currentKvp in userToEntityMap)
+            {
+                if (currentKvp.Value.ContainsKey(entityType) == true)
+                {
+                    userToEntityTypeMappingPreRemovalAction.Invoke(currentKvp.Key, entityType, currentKvp.Value[entityType], currentKvp.Value[entityType].Count);
+                    currentKvp.Value.Remove(entityType);
+                }
+            }
+            foreach (KeyValuePair<TGroup, IDictionary<String, ISet<String>>> currentKvp in groupToEntityMap)
+            {
+                if (currentKvp.Value.ContainsKey(entityType) == true)
+                {
+                    groupToEntityTypeMappingPreRemovalAction.Invoke(currentKvp.Key, entityType, currentKvp.Value[entityType], currentKvp.Value[entityType].Count);
+                    currentKvp.Value.Remove(entityType);
+                }
+            }
+            entities.Remove(entityType);
+        }
+
+        /// <summary>
+        /// Removes an entity.
+        /// </summary>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity to remove.</param>
+        /// <param name="userToEntityMappingPostRemovalAction">An action which is invoked after removing a user to entity mapping.  Accepts 3 parameters: the user in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
+        /// <param name="groupToEntityMappingPostRemovalAction">An action which is invoked after removing a group to entity mapping.  Accepts 3 parameters: the group in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
+        public virtual void RemoveEntity(String entityType, String entity, Action<TUser, String, String> userToEntityMappingPostRemovalAction, Action<TGroup, String, String> groupToEntityMappingPostRemovalAction)
+        {
+            if (entities.ContainsKey(entityType) == false)
+                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
+            if (entities[entityType].Contains(entity) == false)
+                ThrowEntityDoesntExistException(entity, nameof(entity));
+
+            foreach (KeyValuePair<TUser, IDictionary<String, ISet<String>>> currentKvp in userToEntityMap)
+            {
+                if (currentKvp.Value.ContainsKey(entityType) == true && currentKvp.Value[entityType].Contains(entity) == true)
+                {
+                    currentKvp.Value[entityType].Remove(entity);
+                    userToEntityMappingPostRemovalAction.Invoke(currentKvp.Key, entityType, entity);
+                }
+            }
+            foreach (KeyValuePair<TGroup, IDictionary<String, ISet<String>>> currentKvp in groupToEntityMap)
+            {
+                if (currentKvp.Value.ContainsKey(entityType) == true && currentKvp.Value[entityType].Contains(entity) == true)
+                {
+                    currentKvp.Value[entityType].Remove(entity);
+                    groupToEntityMappingPostRemovalAction.Invoke(currentKvp.Key, entityType, entity);
+                }
+            }
+            entities[entityType].Remove(entity);
+        }
+
+        #pragma warning disable 1591
 
         protected void ThrowUserDoesntExistException(TUser user, String parameterName)
         {

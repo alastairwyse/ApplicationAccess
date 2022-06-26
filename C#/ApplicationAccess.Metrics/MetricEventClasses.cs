@@ -1318,6 +1318,35 @@ namespace ApplicationAccess.Metrics
         }
     }
 
+    /// <summary>
+    /// Status metric which records the number of user to entity mappings stored in an AccessManager instance.
+    /// </summary>
+    public class UserToEntityMappingsStored : StatusMetric
+    {
+        protected static String staticName = "UserToEntityMappingsStored";
+        protected static String staticDescription = "The number of user to entity mappings stored in an AccessManager instance";
+
+        public UserToEntityMappingsStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Status metric which records the number of group to entity mappings stored in an AccessManager instance.
+    /// </summary>
+    public class GroupToEntityMappingsStored : StatusMetric
+    {
+        protected static String staticName = "GroupToEntityMappingsStored";
+        protected static String staticDescription = "The number of group to entity mappings stored in an AccessManager instance";
+
+        public GroupToEntityMappingsStored()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
 
     #endregion
 

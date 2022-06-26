@@ -27,11 +27,23 @@ namespace ApplicationAccess.Metrics
         protected Int32 nonLeafToNonLeafEdgeCount;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
+        /// <summary>Whether logging of metrics is enabled.</summary>
+        protected volatile Boolean metricLoggingEnabled;
 
         /// <summary>The logger for metrics.</summary>
         public IMetricLogger MetricLogger
         {
             get { return metricLogger; }
+        }
+
+        /// <summary>
+        /// Whether logging of metrics is enabled.
+        /// </summary>
+        /// <remarks>Generally this would be set true, but may need to be set false in some situations (e.g. when loading contents from a database).</remarks>
+        public Boolean MetricLoggingEnabled
+        {
+            get { return metricLoggingEnabled; }
+            set { metricLoggingEnabled = value; }
         }
 
         /// <summary>
@@ -44,6 +56,7 @@ namespace ApplicationAccess.Metrics
             leafToNonLeafEdgeCount = 0;
             nonLeafToNonLeafEdgeCount = 0;
             this.metricLogger = metricLogger;
+            metricLoggingEnabled = true;
         }
 
         /// <summary>
@@ -58,6 +71,7 @@ namespace ApplicationAccess.Metrics
             leafToNonLeafEdgeCount = 0;
             nonLeafToNonLeafEdgeCount = 0;
             this.metricLogger = metricLogger;
+            metricLoggingEnabled = true;
         }
 
         /// <summary>
@@ -73,6 +87,7 @@ namespace ApplicationAccess.Metrics
             leafToNonLeafEdgeCount = 0;
             nonLeafToNonLeafEdgeCount = 0;
             this.metricLogger = metricLogger;
+            metricLoggingEnabled = true;
         }
 
         /// <summary>
@@ -84,7 +99,7 @@ namespace ApplicationAccess.Metrics
             Action<TLeaf, Action> wrappingAction = (actionLeaf, baseAction) =>
             {
                 baseAction.Invoke();
-                metricLogger.Set(new LeafVerticesStored(), leafVertices.Count);
+                SetStatusMetricIfLoggingEnabled(new LeafVerticesStored(), leafVertices.Count);
             };
             this.AddLeafVertex(leafVertex, wrappingAction);
         }
@@ -102,8 +117,8 @@ namespace ApplicationAccess.Metrics
                     leafToNonLeafEdgeCount -= leafToNonLeafEdges[leafVertex].Count;
                 }
                 baseAction.Invoke();
-                metricLogger.Set(new LeafVerticesStored(), leafVertices.Count);
-                metricLogger.Set(new LeafToNonLeafEdgesStored(), leafToNonLeafEdgeCount);
+                SetStatusMetricIfLoggingEnabled(new LeafVerticesStored(), leafVertices.Count);
+                SetStatusMetricIfLoggingEnabled(new LeafToNonLeafEdgesStored(), leafToNonLeafEdgeCount);
             };
             this.RemoveLeafVertex(leafVertex, wrappingAction);
         }
@@ -117,7 +132,7 @@ namespace ApplicationAccess.Metrics
             Action<TNonLeaf, Action> wrappingAction = (actionNonLeafVertex, baseAction) =>
             {
                 baseAction.Invoke();
-                metricLogger.Set(new NonLeafVerticesStored(), nonLeafVertices.Count);
+                SetStatusMetricIfLoggingEnabled(new NonLeafVerticesStored(), nonLeafVertices.Count);
             };
             this.AddNonLeafVertex(nonLeafVertex, wrappingAction);
         }
@@ -130,16 +145,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TNonLeaf, Action> wrappingAction = (actionNonLeafVertex, baseAction) =>
             {
+                Action<TLeaf, TNonLeaf> leafToNonLeafEdgePostRemovalAction = (fromVertex, toVertex) => { leafToNonLeafEdgeCount--; };
+                Action<TNonLeaf, TNonLeaf> nonLeafToNonLeafEdgePostRemovalAction = (fromVertex, toVertex) => { nonLeafToNonLeafEdgeCount--; };
+
                 if (nonLeafToNonLeafEdges.ContainsKey(nonLeafVertex) == true)
                 {
                     nonLeafToNonLeafEdgeCount -= nonLeafToNonLeafEdges[nonLeafVertex].Count;
                 }
-                Action<TLeaf, TNonLeaf> leafToNonLeafEdgePostRemovalAction = (fromVertex, toVertex) => { leafToNonLeafEdgeCount--; };
-                Action<TNonLeaf, TNonLeaf> nonLeafToNonLeafEdgePostRemovalAction = (fromVertex, toVertex) => { nonLeafToNonLeafEdgeCount--; };
                 base.RemoveNonLeafVertex(nonLeafVertex, leafToNonLeafEdgePostRemovalAction, nonLeafToNonLeafEdgePostRemovalAction);
-                metricLogger.Set(new LeafToNonLeafEdgesStored(), leafToNonLeafEdgeCount);
-                metricLogger.Set(new NonLeafToNonLeafEdgesStored(), nonLeafToNonLeafEdgeCount);
-                metricLogger.Set(new NonLeafVerticesStored(), nonLeafVertices.Count);
+                SetStatusMetricIfLoggingEnabled(new LeafToNonLeafEdgesStored(), leafToNonLeafEdgeCount);
+                SetStatusMetricIfLoggingEnabled(new NonLeafToNonLeafEdgesStored(), nonLeafToNonLeafEdgeCount);
+                SetStatusMetricIfLoggingEnabled(new NonLeafVerticesStored(), nonLeafVertices.Count);
             };
             this.RemoveNonLeafVertex(nonLeafVertex, wrappingAction);
         }
@@ -155,7 +171,7 @@ namespace ApplicationAccess.Metrics
             {
                 baseAction.Invoke();
                 leafToNonLeafEdgeCount++;
-                metricLogger.Set(new LeafToNonLeafEdgesStored(), leafToNonLeafEdgeCount);
+                SetStatusMetricIfLoggingEnabled(new LeafToNonLeafEdgesStored(), leafToNonLeafEdgeCount);
             };
             this.AddLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
@@ -171,7 +187,7 @@ namespace ApplicationAccess.Metrics
             {
                 baseAction.Invoke();
                 leafToNonLeafEdgeCount--;
-                metricLogger.Set(new LeafToNonLeafEdgesStored(), leafToNonLeafEdgeCount);
+                SetStatusMetricIfLoggingEnabled(new LeafToNonLeafEdgesStored(), leafToNonLeafEdgeCount);
             };
             this.RemoveLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
@@ -187,7 +203,7 @@ namespace ApplicationAccess.Metrics
             {
                 baseAction.Invoke();
                 nonLeafToNonLeafEdgeCount++;
-                metricLogger.Set(new NonLeafToNonLeafEdgesStored(), nonLeafToNonLeafEdgeCount);
+                SetStatusMetricIfLoggingEnabled(new NonLeafToNonLeafEdgesStored(), nonLeafToNonLeafEdgeCount);
             };
             this.AddNonLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
@@ -203,9 +219,24 @@ namespace ApplicationAccess.Metrics
             {
                 baseAction.Invoke();
                 nonLeafToNonLeafEdgeCount--;
-                metricLogger.Set(new NonLeafToNonLeafEdgesStored(), nonLeafToNonLeafEdgeCount);
+                SetStatusMetricIfLoggingEnabled(new NonLeafToNonLeafEdgesStored(), nonLeafToNonLeafEdgeCount);
             };
             this.RemoveNonLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Logs the specified status metric if logging is enabled.
+        /// </summary>
+        /// <param name="statusMetric">The status metric to log.</param>
+        /// <param name="value">The value associated with the instance of the status metric.</param>
+        protected void SetStatusMetricIfLoggingEnabled(StatusMetric statusMetric, Int64 value)
+        {
+            if (metricLoggingEnabled == true)
+                metricLogger.Set(statusMetric, value);
+        }
+
+        #endregion
     }
 }

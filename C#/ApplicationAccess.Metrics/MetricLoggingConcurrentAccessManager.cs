@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using ApplicationMetrics;
-using MoreComplexDataStructures;
 using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Metrics
@@ -39,10 +38,10 @@ namespace ApplicationAccess.Metrics
         protected Int32 groupToApplicationComponentAndAccessLevelMappingCount;
         /// <summary>The number of entities in the access manager.</summary>
         protected Int32 entityCount;
-        /// <summary>The number of entity mappings stored per user.</summary>
-        protected FrequencyTable<TUser> entityMappingCountsPerUser;
-        /// <summary>The number of entity mappings stored per group.</summary>
-        protected FrequencyTable<TGroup> entityMappingCountsPerGroup;
+        /// <summary>The number of user to entity mappings stored.</summary>
+        protected Int32 userToEntityMappingCount;
+        /// <summary>The number of group tp entity mappings stored.</summary>
+        protected Int32 groupToEntityMappingCount;
 
         /// <summary>Whether interval metrics should be logged for methods belonging to the IAccessManagerQueryProcessor interface.</summary>
         protected Boolean logQueryProcessorIntervalMetrics;
@@ -50,6 +49,8 @@ namespace ApplicationAccess.Metrics
         protected IMetricLogger metricLogger;
         /// <summary>Metric mapper used by the 'userToGroupMap' DirectedGraph member, e.g. to map metrics for 'leaf vertices' to metrics for 'users'.</summary>
         protected MappingMetricLogger mappingMetricLogger;
+        /// <summary>Whether logging of metrics is enabled.</summary>
+        protected volatile Boolean metricLoggingEnabled;
 
 
         // 2022-06-18 TODO:
@@ -60,6 +61,19 @@ namespace ApplicationAccess.Metrics
 
 
 
+        /// <summary>
+        /// Whether logging of metrics is enabled.
+        /// </summary>
+        /// <remarks>Generally this would be set true, but may need to be set false in some situations (e.g. when loading contents from a database).</remarks>
+        public Boolean MetricLoggingEnabled
+        {
+            get { return metricLoggingEnabled; }
+            set 
+            { 
+                metricLoggingEnabled = value;
+                ((MetricLoggingConcurrentDirectedGraph<TUser, TGroup>)userToGroupMap).MetricLoggingEnabled = value;
+            }
+        }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager class.
@@ -73,8 +87,8 @@ namespace ApplicationAccess.Metrics
             userToApplicationComponentAndAccessLevelMappingCount = 0;
             groupToApplicationComponentAndAccessLevelMappingCount = 0;
             entityCount = 0;
-            entityMappingCountsPerUser = new FrequencyTable<TUser>();
-            entityMappingCountsPerGroup = new FrequencyTable<TGroup>();
+            userToEntityMappingCount = 0;
+            groupToEntityMappingCount = 0;
 
             this.logQueryProcessorIntervalMetrics = logQueryProcessorIntervalMetrics;
             this.metricLogger = metricLogger;
@@ -82,6 +96,7 @@ namespace ApplicationAccess.Metrics
             //   TODO: Find a cleaner way to do this... ideally don't want to expose the 'MetricLoggingConcurrentDirectedGraph.MetricLogger' property at all.
             mappingMetricLogger = (MappingMetricLogger)((MetricLoggingConcurrentDirectedGraph<TUser, TGroup>)userToGroupMap).MetricLogger;
             AdMappingMetricLoggerMappings();
+            metricLoggingEnabled = true;
         }
 
         // TODO: Need to change location of 'InterfaceDocumentationComments.xml' in all overridden methods
@@ -171,20 +186,20 @@ namespace ApplicationAccess.Metrics
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+                BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+                    CancelIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
                     throw;
                 }
-                metricLogger.End(new UserToApplicationComponentAndAccessLevelMappingAddTime());
-                metricLogger.Increment(new UserToApplicationComponentAndAccessLevelMappingsAdded());
+                EndIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+                IncrementCountMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsAdded());
                 userToApplicationComponentAndAccessLevelMappingCount++;
-                metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
+                SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
             };
             this.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, wrappingAction);
         }
@@ -194,20 +209,20 @@ namespace ApplicationAccess.Metrics
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+                BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
                     throw;
                 }
-                metricLogger.End(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
-                metricLogger.Increment(new UserToApplicationComponentAndAccessLevelMappingsRemoved());
+                EndIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+                IncrementCountMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsRemoved());
                 userToApplicationComponentAndAccessLevelMappingCount--;
-                metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
+                SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
             };
             this.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, wrappingAction);
         }
@@ -217,20 +232,20 @@ namespace ApplicationAccess.Metrics
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+                BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+                    CancelIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
                     throw;
                 }
-                metricLogger.End(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
-                metricLogger.Increment(new GroupToApplicationComponentAndAccessLevelMappingsAdded());
+                EndIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+                IncrementCountMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsAdded());
                 groupToApplicationComponentAndAccessLevelMappingCount++;
-                metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
+                SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
             };
             this.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, wrappingAction);
         }
@@ -240,20 +255,20 @@ namespace ApplicationAccess.Metrics
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+                BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
                     throw;
                 }
-                metricLogger.End(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
-                metricLogger.Increment(new GroupToApplicationComponentAndAccessLevelMappingsRemoved());
+                EndIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+                IncrementCountMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsRemoved());
                 groupToApplicationComponentAndAccessLevelMappingCount--;
-                metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
+                SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
             };
             this.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, wrappingAction);
         }
@@ -261,14 +276,198 @@ namespace ApplicationAccess.Metrics
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
         public override void AddEntityType(String entityType)
         {
-            // TODO: 2022-06-23
-            //   Set EntityTypesStored (from entities.Count)
-
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
             {
-                baseAction.Invoke();
+                BeginIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
+                try
+                {
+                    baseAction.Invoke();
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
+                IncrementCountMetricIfLoggingEnabled(new EntityTypesAdded());
+                SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
             };
             this.AddEntityType(entityType, wrappingAction);
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
+        public override void RemoveEntityType(String entityType)
+        {
+            Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
+            {
+                Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction = (preRemovalActionUser, preRemovalActionEntityType, preRemovalActionEntities, preRemovalActionCount) => { userToEntityMappingCount -= preRemovalActionCount; };
+                Action<TGroup, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction = (preRemovalActionGroup, preRemovalActionEntityType, preRemovalActionEntities, preRemovalActionCount) => { groupToEntityMappingCount -= preRemovalActionCount; };
+
+                if (entities.ContainsKey(entityType) == true)
+                {
+                    entityCount -= entities[entityType].Count;
+                }    
+                BeginIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
+                try
+                {
+                    base.RemoveEntityType(entityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
+                IncrementCountMetricIfLoggingEnabled(new EntityTypesRemoved());
+                SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
+                SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
+                SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
+                SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
+            };
+            this.RemoveEntityType(entityType, wrappingAction);
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
+        public override void AddEntity(String entityType, String entity)
+        {
+            Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
+            {
+                BeginIntervalMetricIfLoggingEnabled(new EntityAddTime());
+                try
+                {
+                    baseAction.Invoke();
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new EntityAddTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new EntityAddTime());
+                IncrementCountMetricIfLoggingEnabled(new EntitiesAdded());
+                entityCount++;
+                SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
+            };
+            this.AddEntity(entityType, entity, wrappingAction);
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
+        public override void RemoveEntity(String entityType, String entity)
+        {
+            Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
+            {
+                Action<TUser, String, String> userToEntityMappingPostRemovalAction = (postRemovalActionUser, postRemovalActionEntityType, postRemovalActionEntity) => { userToEntityMappingCount--; };
+                Action<TGroup, String, String> groupToEntityMappingPostRemovalAction = (postRemovalActionGroup, postRemovalActionEntityType, postRemovalActionEntity) => { groupToEntityMappingCount--; };
+
+                BeginIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
+                try
+                {
+                    base.RemoveEntity(entityType, entity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
+                IncrementCountMetricIfLoggingEnabled(new EntitiesRemoved());
+                entityCount--;
+                SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
+                SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
+                SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
+            };
+            this.RemoveEntity(entityType, entity, wrappingAction);
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        public override void AddUserToEntityMapping(TUser user, String entityType, String entity)
+        {
+            Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
+            {
+                BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
+                try
+                {
+                    baseAction.Invoke();
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
+                IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingsAdded());
+                userToEntityMappingCount++;
+                SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
+            };
+            this.AddUserToEntityMapping(user, entityType, entity, wrappingAction);
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
+        {
+            Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
+            {
+                BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
+                try
+                {
+                    baseAction.Invoke();
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
+                IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingsRemoved());
+                userToEntityMappingCount--;
+                SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
+            };
+            this.RemoveUserToEntityMapping(user, entityType, entity, wrappingAction);
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
+        {
+            Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
+            {
+                BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
+                try
+                {
+                    baseAction.Invoke();
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
+                IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingsAdded());
+                groupToEntityMappingCount++;
+                SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
+            };
+            this.AddGroupToEntityMapping(group, entityType, entity, wrappingAction);
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
+        {
+            Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
+            {
+                BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
+                try
+                {
+                    baseAction.Invoke();
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
+                IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingsRemoved());
+                groupToEntityMappingCount--;
+                SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), userToEntityMappingCount);
+            };
+            this.RemoveGroupToEntityMapping(group, entityType, entity, wrappingAction);
         }
 
         #region Private/Protected Methods
@@ -302,18 +501,18 @@ namespace ApplicationAccess.Metrics
         {
             Action<TEventProcessorMethodParam, Action> wrappingAction = (actionParameter, baseAction) =>
             {
-                metricLogger.Begin(new TIntervalMetric());
+                BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new TIntervalMetric());
+                    CancelIntervalMetricIfLoggingEnabled(new TIntervalMetric());
                     throw;
                 }
-                metricLogger.End(new TIntervalMetric());
-                metricLogger.Increment(new TCountMetric());
+                EndIntervalMetricIfLoggingEnabled(new TIntervalMetric());
+                IncrementCountMetricIfLoggingEnabled(new TCountMetric());
             };
             eventProcessorMethodAction.Invoke(parameterValue, wrappingAction);
         }
@@ -339,20 +538,82 @@ namespace ApplicationAccess.Metrics
         {
             Action<TEventProcessorMethodParam1, TEventProcessorMethodParam2, Action> wrappingAction = (actionParameter1, actionParameter2, baseAction) =>
             {
-                metricLogger.Begin(new TIntervalMetric());
+                BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new TIntervalMetric());
+                    CancelIntervalMetricIfLoggingEnabled(new TIntervalMetric());
                     throw;
                 }
-                metricLogger.End(new TIntervalMetric());
-                metricLogger.Increment(new TCountMetric());
+                EndIntervalMetricIfLoggingEnabled(new TIntervalMetric());
+                IncrementCountMetricIfLoggingEnabled(new TCountMetric());
             };
             eventProcessorMethodAction.Invoke(parameterValue1, parameterValue2, wrappingAction);
+        }
+
+        /// <summary>
+        /// Logs the specified count metric if logging is enabled.
+        /// </summary>
+        /// <param name="statusMetric">The count metric to log.</param>
+        protected void IncrementCountMetricIfLoggingEnabled(CountMetric countMetric)
+        {
+            if (metricLoggingEnabled == true)
+                metricLogger.Increment(countMetric);
+        }
+
+        /// <summary>
+        /// Logs the specified amount metric if logging is enabled.
+        /// </summary>
+        /// <param name="amountMetric">The amount metric to log.</param>
+        /// <param name="value">The amount associated with the instance of the amount metric.</param>
+        protected void AddStatusMetricIfLoggingEnabled(AmountMetric amountMetric, Int64 amount)
+        {
+            if (metricLoggingEnabled == true)
+                metricLogger.Add(amountMetric, amount);
+        }
+
+        /// <summary>
+        /// Logs the specified status metric if logging is enabled.
+        /// </summary>
+        /// <param name="statusMetric">The status metric to log.</param>
+        /// <param name="value">The value associated with the instance of the status metric.</param>
+        protected void SetStatusMetricIfLoggingEnabled(StatusMetric statusMetric, Int64 value)
+        {
+            if (metricLoggingEnabled == true)
+                metricLogger.Set(statusMetric, value);
+        }
+
+        /// <summary>
+        /// Logs the starting of the specified interval metric if logging is enabled.
+        /// </summary>
+        /// <param name="intervalMetric">The interval metric to start.</param>
+        protected void BeginIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
+        {
+            if (metricLoggingEnabled == true)
+                metricLogger.Begin(intervalMetric);
+        }
+
+        /// <summary>
+        /// Logs the completion of the specified interval metric if logging is enabled.
+        /// </summary>
+        /// <param name="intervalMetric">The interval metric to complete.</param>
+        protected void EndIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
+        {
+            if (metricLoggingEnabled == true)
+                metricLogger.End(intervalMetric);
+        }
+
+        /// <summary>
+        /// Logs the cancellation of the starting of the specified interval metric if logging is enabled.
+        /// </summary>
+        /// <param name="intervalMetric">The interval metric to cancel.</param>
+        protected void CancelIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
+        {
+            if (metricLoggingEnabled == true)
+                metricLogger.CancelBegin(intervalMetric);
         }
 
         #endregion
