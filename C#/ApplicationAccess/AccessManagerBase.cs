@@ -102,7 +102,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsUser(`0)"]/*'/>
-        public Boolean ContainsUser(TUser user)
+        public virtual Boolean ContainsUser(TUser user)
         {
             return userToGroupMap.ContainsLeafVertex(user);
         }
@@ -142,7 +142,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsGroup(`1)"]/*'/>
-        public Boolean ContainsGroup(TGroup group)
+        public virtual Boolean ContainsGroup(TGroup group)
         {
             return userToGroupMap.ContainsNonLeafVertex(group);
         }
@@ -190,7 +190,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToGroupMappings(`0)"]/*'/>
-        public IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
+        public virtual IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
         {
             try
             {
@@ -250,7 +250,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToGroupMappings(`1)"]/*'/>
-        public IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
+        public virtual IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
         {
             try
             {
@@ -302,7 +302,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)"]/*'/>
-        public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
+        public virtual IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
@@ -357,7 +357,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)"]/*'/>
-        public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
+        public virtual IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
                 ThrowGroupDoesntExistException(group, nameof(group));
@@ -404,7 +404,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntityType(System.String)"]/*'/>
-        public Boolean ContainsEntityType(String entityType)
+        public virtual Boolean ContainsEntityType(String entityType)
         {
             return entities.ContainsKey(entityType);
         }
@@ -429,7 +429,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntities(System.String)"]/*'/>
-        public IEnumerable<String> GetEntities(String entityType)
+        public virtual IEnumerable<String> GetEntities(String entityType)
         {
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
@@ -438,7 +438,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntity(System.String,System.String)"]/*'/>
-        public Boolean ContainsEntity(String entityType, String entity)
+        public virtual Boolean ContainsEntity(String entityType, String entity)
         {
             return (entities.ContainsKey(entityType) && entities[entityType].Contains(entity));
         }
@@ -474,7 +474,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0)"]/*'/>
-        public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
+        public virtual IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
@@ -492,7 +492,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0,System.String)"]/*'/>
-        public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
+        public virtual IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
@@ -553,7 +553,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1)"]/*'/>
-        public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
+        public virtual IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
                 ThrowGroupDoesntExistException(group, nameof(group));
@@ -571,7 +571,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1,System.String)"]/*'/>
-        public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
+        public virtual IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
                 ThrowGroupDoesntExistException(group, nameof(group));
@@ -608,7 +608,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)"]/*'/>
-        public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
+        public virtual Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
             {
@@ -638,7 +638,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)"]/*'/>
-        public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
+        public virtual Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
             {
@@ -671,7 +671,7 @@ namespace ApplicationAccess
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetAccessibleEntities(`0,System.String)"]/*'/>
-        public HashSet<String> GetAccessibleEntities(TUser user, String entityType)
+        public virtual HashSet<String> GetAccessibleEntities(TUser user, String entityType)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
