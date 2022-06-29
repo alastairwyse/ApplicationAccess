@@ -853,7 +853,7 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         default:
-                            throw new NotImplementedException($"No K-merge step implementation exists for {nameof(EventBuffer)} 'nameof{nextSequenceNumber.EventBuffer}'.");
+                            throw new NotImplementedException($"No K-merge step implementation exists for {nameof(EventBuffer)} '{nameof(nextSequenceNumber.EventBuffer)}'.");
                     }
                 }
             }

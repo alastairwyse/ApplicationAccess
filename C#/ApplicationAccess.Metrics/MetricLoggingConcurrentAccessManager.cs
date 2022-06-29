@@ -100,7 +100,7 @@ namespace ApplicationAccess.Metrics
             // Casting should never fail, since we just newed the 'userToGroupMap' and 'MetricLogger' properties to these types.
             //   TODO: Find a cleaner way to do this... ideally don't want to expose the 'MetricLoggingConcurrentDirectedGraph.MetricLogger' property at all.
             mappingMetricLogger = (MappingMetricLogger)((MetricLoggingConcurrentDirectedGraph<TUser, TGroup>)userToGroupMap).MetricLogger;
-            AdMappingMetricLoggerMappings();
+            AddMappingMetricLoggerMappings();
             metricLoggingEnabled = true;
         }
 
@@ -696,7 +696,7 @@ namespace ApplicationAccess.Metrics
         /// <summary>
         /// Adds required metric class mappings to the 'mappingMetricLogger' member.
         /// </summary>
-        protected void AdMappingMetricLoggerMappings()
+        protected void AddMappingMetricLoggerMappings()
         {
             mappingMetricLogger.AddStatusMetricMapping(typeof(LeafVerticesStored), new UsersStored());
             mappingMetricLogger.AddStatusMetricMapping(typeof(NonLeafVerticesStored), new GroupsStored());
