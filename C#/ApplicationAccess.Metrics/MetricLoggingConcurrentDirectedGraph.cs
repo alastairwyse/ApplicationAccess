@@ -91,6 +91,17 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
+        /// Removes all vertices and edges from the graph.
+        /// </summary>
+        /// <remarks>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of vertices and edges stored in the graph.</remarks>
+        public override void Clear()
+        {
+            base.Clear();
+            leafToNonLeafEdgeCount = 0;
+            nonLeafToNonLeafEdgeCount = 0;
+        }
+
+        /// <summary>
         /// Adds a leaf vertex to the graph.
         /// </summary>
         /// <param name="leafVertex">The leaf vertex to add.</param>

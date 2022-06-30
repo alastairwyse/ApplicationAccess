@@ -17,8 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using ApplicationAccess;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
@@ -35,6 +33,41 @@ namespace ApplicationAccess.UnitTests
         protected void SetUp()
         {
             testAccessManager = new AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>();
+        }
+
+        [Test]
+        public void Clear()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddEntityType("ClientAccount");
+            testAccessManager.AddEntityType("BusinessUnit");
+            testAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddGroupToGroupMapping("group1", "group2");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddGroupToGroupMapping("group3", "group4");
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+            Assert.AreNotEqual(0, testAccessManager.Users.Count());
+            Assert.AreNotEqual(0, testAccessManager.Groups.Count());
+
+            testAccessManager.Clear();
+
+            Assert.AreEqual(0, testAccessManager.Users.Count());
+            Assert.AreEqual(0, testAccessManager.Groups.Count());
+            Assert.IsFalse(testAccessManager.UserToComponentMapContainsKey("user2"));
+            Assert.IsFalse(testAccessManager.GroupToComponentMapContainsKey("group1"));
+            Assert.AreEqual(0, testAccessManager.Entities.Count());
+            Assert.AreEqual(0, testAccessManager.UserToEntityMap.Count());
+            Assert.AreEqual(0, testAccessManager.GroupToEntityMap.Count());
         }
 
         [Test]

@@ -78,6 +78,19 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void Clear()
+        {
+            CreatePersonGroupGraph(testDirectedGraph);
+            Assert.AreNotEqual(0, testDirectedGraph.LeafVertices.Count());
+            Assert.AreNotEqual(0, testDirectedGraph.NonLeafVertices.Count());
+
+            testDirectedGraph.Clear();
+
+            Assert.AreEqual(0, testDirectedGraph.LeafVertices.Count());
+            Assert.AreEqual(0, testDirectedGraph.NonLeafVertices.Count());
+        }
+
+        [Test]
         public void AddLeafVertex_LeafVertexAlreadyExists()
         {
             testDirectedGraph.AddLeafVertex("abc");

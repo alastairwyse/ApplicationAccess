@@ -67,7 +67,7 @@ namespace ApplicationAccess
 
         public void Clear()
         {
-            throw new NotImplementedException();
+            dictionary.Clear();
         }
 
         /// <summary>

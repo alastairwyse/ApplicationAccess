@@ -73,6 +73,20 @@ namespace ApplicationAccess
             InitializeLockObjects();
         }
 
+        /// <summary>
+        /// Removes all items and mappings from the graph.
+        /// </summary>
+        /// <remarks>
+        /// <para>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</para>
+        /// <para>Note that mutual-exclusion locks are not held whilst this method is invoked, since the method is designed to be called outside of normal operational use of the class, e.g. during a load operation when an instance of the class is being initialized.</para>
+        /// </remarks>
+        public override void Clear()
+        {
+            // TODO: think about adding an AcquireAllLocksAndInvokeAction() (or similar) method on the LockManager so that it is possible to lock whilst this method executes
+
+            base.Clear();
+        }
+
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
         public override void AddUser(TUser user)
         {

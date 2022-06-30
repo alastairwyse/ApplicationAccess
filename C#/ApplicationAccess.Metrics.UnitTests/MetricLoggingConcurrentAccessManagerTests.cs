@@ -41,7 +41,42 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
         }
 
-        // TODO: Tests in MetricLoggingConcurrentDirectedGraphTests should be replicated here, but checking the relevant mapped metrics
+        [Test]
+        public void Clear()
+        {
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group4");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group1");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group1", "group2");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group3", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+            Assert.AreNotEqual(0, testMetricLoggingConcurrentAccessManager.Users.Count());
+            Assert.AreNotEqual(0, testMetricLoggingConcurrentAccessManager.Groups.Count());
+
+            testMetricLoggingConcurrentAccessManager.Clear();
+
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.Users.Count());
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.Groups.Count());
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.EntityCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.FrequencyCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCountPerUser.FrequencyCount);
+        }
 
         [Test]
         public void AddUser_ExceptionWhenAdding()
@@ -1917,6 +1952,26 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void HasAccessToApplicationComponent_IntervalMetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            String testUser = "user1";
+            String testGroup = "group1";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping(testUser, testGroup);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, ApplicationScreen.Order, AccessLevel.Delete);
+            mockMetricLogger.ClearReceivedCalls();
+
+            Boolean result = testMetricLoggingConcurrentAccessManager.HasAccessToApplicationComponent(testUser, ApplicationScreen.Order, AccessLevel.Delete);
+
+            Assert.IsTrue(result);
+            mockMetricLogger.DidNotReceive().Begin(Arg.Any<HasAccessToApplicationComponentQueryTime>());
+            mockMetricLogger.DidNotReceive().End(Arg.Any<HasAccessToApplicationComponentQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToApplicationComponentQueries>());
+        }
+
+        [Test]
         public void HasAccessToEntity_ExceptionWhenQuerying()
         {
             String testUser = "user1";
@@ -1983,6 +2038,30 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result);
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void HasAccessToEntity_IntervalMetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            String testUser = "user1";
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping(testUser, testGroup);
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            mockMetricLogger.ClearReceivedCalls();
+
+            Boolean result = testMetricLoggingConcurrentAccessManager.HasAccessToEntity(testUser, testEntityType, testEntity);
+
+            Assert.IsTrue(result);
+            mockMetricLogger.DidNotReceive().Begin(Arg.Any<HasAccessToEntityQueryTime>());
+            mockMetricLogger.DidNotReceive().End(Arg.Any<HasAccessToEntityQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToEntityQueries>());
         }
 
         [Test]
@@ -2053,6 +2132,30 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(testEntity));
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetAccessibleEntities_IntervalMetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            String testUser = "user1";
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping(testUser, testGroup);
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            mockMetricLogger.ClearReceivedCalls();
+
+            HashSet<String> result = testMetricLoggingConcurrentAccessManager.GetAccessibleEntities(testUser, testEntityType);
+
+            Assert.IsTrue(result.Contains(testEntity));
+            mockMetricLogger.DidNotReceive().Begin(Arg.Any<GetAccessibleEntitiesQueryTime>());
+            mockMetricLogger.DidNotReceive().End(Arg.Any<GetAccessibleEntitiesQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetAccessibleEntitiesQueries>());
         }
 
         #region Nested Classes

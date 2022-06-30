@@ -88,6 +88,20 @@ namespace ApplicationAccess
             groupToEntityMap = this.collectionFactory.GetDictionaryInstance<TGroup, IDictionary<String, ISet<String>>>();
         }
 
+        /// <summary>
+        /// Removes all items and mappings from the graph.
+        /// </summary>
+        /// <remarks>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</remarks>
+        public virtual void Clear()
+        {
+            userToGroupMap.Clear();
+            userToComponentMap.Clear();
+            groupToComponentMap.Clear();
+            entities.Clear();
+            userToEntityMap.Clear();
+            groupToEntityMap.Clear();
+        }
+
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
         public virtual void AddUser(TUser user)
         {

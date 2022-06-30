@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using MoreComplexDataStructures;
 using ApplicationMetrics;
 using ApplicationAccess.Utilities;
@@ -67,7 +66,7 @@ namespace ApplicationAccess.Metrics
         public Boolean MetricLoggingEnabled
         {
             get 
-            { 
+            {
                 return metricLoggingEnabled; 
             }
 
@@ -87,13 +86,7 @@ namespace ApplicationAccess.Metrics
         public MetricLoggingConcurrentAccessManager(Boolean logQueryProcessorIntervalMetrics, IMetricLogger metricLogger)
             : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(false, new MappingMetricLogger(metricLogger)))
         {
-            userToApplicationComponentAndAccessLevelMappingCount = 0;
-            groupToApplicationComponentAndAccessLevelMappingCount = 0;
-            entityCount = 0;
-            userToEntityMappingCount = 0;
-            userToEntityMappingCountPerUser = new FrequencyTable<TUser>();
-            groupToEntityMappingCount = 0;
-            groupToEntityMappingCountPerGroup = new FrequencyTable<TGroup>();
+            InitializeItemAndMappingCountFields();
 
             this.logQueryProcessorIntervalMetrics = logQueryProcessorIntervalMetrics;
             this.metricLogger = metricLogger;
@@ -102,6 +95,19 @@ namespace ApplicationAccess.Metrics
             mappingMetricLogger = (MappingMetricLogger)((MetricLoggingConcurrentDirectedGraph<TUser, TGroup>)userToGroupMap).MetricLogger;
             AddMappingMetricLoggerMappings();
             metricLoggingEnabled = true;
+        }
+
+        /// <summary>
+        /// Removes all items and mappings from the graph.
+        /// </summary>
+        /// <remarks>
+        /// <para>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</para>
+        /// <para>Note that mutual-exclusion locks are not held whilst this method is invoked, since the method is designed to be called outside of normal operational use of the class, e.g. during a load operation when an instance of the class is being initialized.</para>
+        /// </remarks>
+        public override void Clear()
+        {
+            base.Clear();
+            InitializeItemAndMappingCountFields();
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
@@ -635,17 +641,17 @@ namespace ApplicationAccess.Metrics
         public override Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Boolean result;
-            BeginIntervalMetricIfLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
+            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
             try
             {
                 result = base.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
             }
             catch
             {
-                CancelIntervalMetricIfLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
+                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
                 throw;
             }
-            EndIntervalMetricIfLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
+            EndIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
             IncrementCountMetricIfLoggingEnabled(new HasAccessToApplicationComponentQueries());
 
             return result;
@@ -655,17 +661,17 @@ namespace ApplicationAccess.Metrics
         public override Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             Boolean result;
-            BeginIntervalMetricIfLoggingEnabled(new HasAccessToEntityQueryTime());
+            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToEntityQueryTime());
             try
             {
                 result = base.HasAccessToEntity(user, entityType, entity);
             }
             catch
             {
-                CancelIntervalMetricIfLoggingEnabled(new HasAccessToEntityQueryTime());
+                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToEntityQueryTime());
                 throw;
             }
-            EndIntervalMetricIfLoggingEnabled(new HasAccessToEntityQueryTime());
+            EndIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToEntityQueryTime());
             IncrementCountMetricIfLoggingEnabled(new HasAccessToEntityQueries());
 
             return result;
@@ -675,23 +681,37 @@ namespace ApplicationAccess.Metrics
         public override HashSet<String> GetAccessibleEntities(TUser user, String entityType)
         {
             HashSet<String> result;
-            BeginIntervalMetricIfLoggingEnabled(new GetAccessibleEntitiesQueryTime());
+            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new GetAccessibleEntitiesQueryTime());
             try
             {
                 result = base.GetAccessibleEntities(user, entityType);
             }
             catch
             {
-                CancelIntervalMetricIfLoggingEnabled(new GetAccessibleEntitiesQueryTime());
+                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new GetAccessibleEntitiesQueryTime());
                 throw;
             }
-            EndIntervalMetricIfLoggingEnabled(new GetAccessibleEntitiesQueryTime());
+            EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetAccessibleEntitiesQueryTime());
             IncrementCountMetricIfLoggingEnabled(new GetAccessibleEntitiesQueries());
 
             return result;
         }
 
         #region Private/Protected Methods
+
+        /// <summary>
+        /// Initializes the class fields which store counts of items and mappings.
+        /// </summary>
+        protected void InitializeItemAndMappingCountFields()
+        {
+            userToApplicationComponentAndAccessLevelMappingCount = 0;
+            groupToApplicationComponentAndAccessLevelMappingCount = 0;
+            entityCount = 0;
+            userToEntityMappingCount = 0;
+            userToEntityMappingCountPerUser = new FrequencyTable<TUser>();
+            groupToEntityMappingCount = 0;
+            groupToEntityMappingCountPerGroup = new FrequencyTable<TGroup>();
+        }
 
         /// <summary>
         /// Adds required metric class mappings to the 'mappingMetricLogger' member.
@@ -829,7 +849,7 @@ namespace ApplicationAccess.Metrics
         /// <param name="intervalMetric">The interval metric to start.</param>
         protected void BeginIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
         {
-            if (metricLoggingEnabled == true)
+            if (metricLoggingEnabled == true )
                 metricLogger.Begin(intervalMetric);
         }
 
@@ -850,6 +870,36 @@ namespace ApplicationAccess.Metrics
         protected void CancelIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
         {
             if (metricLoggingEnabled == true)
+                metricLogger.CancelBegin(intervalMetric);
+        }
+
+        /// <summary>
+        /// Logs the starting of the specified interval metric if logging is enabled.
+        /// </summary>
+        /// <param name="intervalMetric">The interval metric to start.</param>
+        protected void BeginIntervalMetricIfQueryProcessorLoggingEnabled(IntervalMetric intervalMetric)
+        {
+            if (metricLoggingEnabled == true && logQueryProcessorIntervalMetrics == true)
+                metricLogger.Begin(intervalMetric);
+        }
+
+        /// <summary>
+        /// Logs the completion of the specified interval metric if logging is enabled.
+        /// </summary>
+        /// <param name="intervalMetric">The interval metric to complete.</param>
+        protected void EndIntervalMetricIfQueryProcessorLoggingEnabled(IntervalMetric intervalMetric)
+        {
+            if (metricLoggingEnabled == true && logQueryProcessorIntervalMetrics == true)
+                metricLogger.End(intervalMetric);
+        }
+
+        /// <summary>
+        /// Logs the cancellation of the starting of the specified interval metric if logging is enabled.
+        /// </summary>
+        /// <param name="intervalMetric">The interval metric to cancel.</param>
+        protected void CancelIntervalMetricIfQueryProcessorLoggingEnabled(IntervalMetric intervalMetric)
+        {
+            if (metricLoggingEnabled == true && logQueryProcessorIntervalMetrics == true)
                 metricLogger.CancelBegin(intervalMetric);
         }
 

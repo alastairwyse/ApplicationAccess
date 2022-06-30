@@ -39,6 +39,29 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void Clear()
+        {
+            testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp2");
+            testMetricLoggingConcurrentDirectedGraph.AddLeafToNonLeafEdge("Per1", "Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafToNonLeafEdge("Grp1", "Grp2"); 
+            mockMetricLogger.Received(1).Set(Arg.Any<LeafToNonLeafEdgesStored>(), 1);
+            mockMetricLogger.Received(1).Set(Arg.Any<NonLeafToNonLeafEdgesStored>(), 1);
+            mockMetricLogger.ClearReceivedCalls();
+
+            testMetricLoggingConcurrentDirectedGraph.Clear();
+
+            testMetricLoggingConcurrentDirectedGraph.AddLeafVertex("Per1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafVertex("Grp2");
+            testMetricLoggingConcurrentDirectedGraph.AddLeafToNonLeafEdge("Per1", "Grp1");
+            testMetricLoggingConcurrentDirectedGraph.AddNonLeafToNonLeafEdge("Grp1", "Grp2");
+            mockMetricLogger.Received(1).Set(Arg.Any<LeafToNonLeafEdgesStored>(), 1);
+            mockMetricLogger.Received(1).Set(Arg.Any<NonLeafToNonLeafEdgesStored>(), 1);
+        }
+
+        [Test]
         public void AddLeafVertex()
         {
             Assert.AreEqual(0, testMetricLoggingConcurrentDirectedGraph.LeafVertices.Count());

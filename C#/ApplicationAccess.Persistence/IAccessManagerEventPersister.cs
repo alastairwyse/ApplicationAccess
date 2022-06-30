@@ -21,7 +21,7 @@ namespace ApplicationAccess.Persistence
     /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IAccessManagerEventPersister`4"]/*'/>
     public interface IAccessManagerEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load"]/*'/>
-        AccessManager<TUser, TGroup, TComponent, TAccess> Load();
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
+        void Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
     }
 }
