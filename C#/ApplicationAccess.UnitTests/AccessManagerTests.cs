@@ -1483,13 +1483,11 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetAccessibleEntities_UserDoesntExist()
+        public void GetApplicationComponentsAccessibleByUser_UserDoesntExist()
         {
-            testAccessManager.AddEntityType("ClientAccount");
-
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManager.GetUserToEntityMappings("user1", "ClientAccount").Count();
+                testAccessManager.GetApplicationComponentsAccessibleByUser("user1");
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
@@ -1497,14 +1495,133 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetAccessibleEntities_EntityTypeDoesntExist()
+        public void GetApplicationComponentsAccessibleByUser_MappingsDontExist()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+
+            HashSet<Tuple<ApplicationScreen, AccessLevel>> result = testAccessManager.GetApplicationComponentsAccessibleByUser("user1");
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByUser()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddUser("user3");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddUserToGroupMapping("user3", "group2");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Modify);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user3", ApplicationScreen.Order, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Summary, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Settings, AccessLevel.Modify);
+
+            HashSet<Tuple<ApplicationScreen, AccessLevel>> result = testAccessManager.GetApplicationComponentsAccessibleByUser("user2");
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Settings, AccessLevel.Modify)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Modify)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Summary, AccessLevel.View)));
+        }
+
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroup_GroupDoesntExist()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testAccessManager.GetApplicationComponentsAccessibleByGroup("group1");
+            });
+
+            Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
+            Assert.AreEqual("group", e.ParamName);
+        }
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroup_MappingsDontExist()
+        {
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroupToGroupMapping("group1", "group2");
+
+            HashSet<Tuple<ApplicationScreen, AccessLevel>> result = testAccessManager.GetApplicationComponentsAccessibleByGroup("group1");
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroup()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddUser("user3");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddGroup("group5");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddUserToGroupMapping("user3", "group2");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddGroupToGroupMapping("group2", "group4");
+            testAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testAccessManager.AddGroupToGroupMapping("group4", "group5");
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Modify);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user3", ApplicationScreen.Order, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Summary, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group4", ApplicationScreen.Settings, AccessLevel.Delete);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group5", ApplicationScreen.Settings, AccessLevel.Create);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group5", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+
+            HashSet<Tuple<ApplicationScreen, AccessLevel>> result = testAccessManager.GetApplicationComponentsAccessibleByGroup("group2");
+
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Modify)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Summary, AccessLevel.View)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Settings, AccessLevel.Modify)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Settings, AccessLevel.Delete)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Settings, AccessLevel.Create)));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByUser_UserDoesntExist()
+        {
+            testAccessManager.AddEntityType("ClientAccount");
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testAccessManager.GetEntitiesAccessibleByUser("user1", "ClientAccount").Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
+            Assert.AreEqual("user", e.ParamName);
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByUser_EntityTypeDoesntExist()
         {
             testAccessManager.AddUser("user1");
             testAccessManager.AddEntityType("ClientAccount");
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManager.GetUserToEntityMappings("user1", "BusinessUnit").Count();
+                testAccessManager.GetEntitiesAccessibleByUser("user1", "BusinessUnit").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'BusinessUnit' does not exist."));
@@ -1512,7 +1629,7 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetAccessibleEntities()
+        public void GetEntitiesAccessibleByUser()
         {
             testAccessManager.AddUser("user1");
             testAccessManager.AddUser("user2");
@@ -1538,12 +1655,96 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
             testAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
 
-            HashSet<String> result = testAccessManager.GetAccessibleEntities("user2", "ClientAccount");
+            HashSet<String> result = testAccessManager.GetEntitiesAccessibleByUser("user2", "ClientAccount");
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("CompanyA"));
             Assert.IsTrue(result.Contains("CompanyB"));
             Assert.IsTrue(result.Contains("CompanyC"));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroup_GroupDoesntExist()
+        {
+            testAccessManager.AddEntityType("ClientAccount");
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testAccessManager.GetEntitiesAccessibleByGroup("group1", "ClientAccount").Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
+            Assert.AreEqual("group", e.ParamName);
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroup_EntityTypeDoesntExist()
+        {
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddEntityType("ClientAccount");
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testAccessManager.GetEntitiesAccessibleByGroup("group1", "BusinessUnit").Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity type 'BusinessUnit' does not exist."));
+            Assert.AreEqual("entityType", e.ParamName);
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroup()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddUser("user3");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddGroup("group5");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddUserToGroupMapping("user3", "group2");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddGroupToGroupMapping("group2", "group4");
+            testAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testAccessManager.AddGroupToGroupMapping("group4", "group5");
+            testAccessManager.AddEntityType("ClientAccount");
+            testAccessManager.AddEntityType("BusinessUnit");
+            testAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testAccessManager.AddEntity("ClientAccount", "CompanyE");
+            testAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testAccessManager.AddEntity("BusinessUnit", "Sales");
+            testAccessManager.AddEntity("BusinessUnit", "Manufacturing");
+            testAccessManager.AddEntity("BusinessUnit", "CustomerService");
+            testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testAccessManager.AddUserToEntityMapping("user2", "BusinessUnit", "Marketing");
+            testAccessManager.AddUserToEntityMapping("user3", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyD");
+            testAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Manufacturing");
+            testAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "CustomerService");
+            testAccessManager.AddGroupToEntityMapping("group5", "ClientAccount", "CompanyE");
+            testAccessManager.AddGroupToEntityMapping("group5", "ClientAccount", "CompanyD");
+
+            HashSet<String> result = testAccessManager.GetEntitiesAccessibleByGroup("group2", "ClientAccount");
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("CompanyD"));
+            Assert.IsTrue(result.Contains("CompanyE"));
+
+
+            result = testAccessManager.GetEntitiesAccessibleByGroup("group2", "BusinessUnit");
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Sales"));
+            Assert.IsTrue(result.Contains("Manufacturing"));
+            Assert.IsTrue(result.Contains("CustomerService"));
         }
 
         #region Nested Classes

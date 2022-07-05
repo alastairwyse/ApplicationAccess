@@ -68,8 +68,58 @@ CREATE TABLE ApplicationAccess.dbo.UserToGroupMappings
     TransactionTo    datetime2  NOT NULL
 )
 
-CREATE INDEX UserIndex ON UserToGroupMappings (UserId, TransactionTo);
-CREATE INDEX GroupIndex ON UserToGroupMappings (GroupId, TransactionTo);
+CREATE INDEX UserToGroupMappingsUserIndex ON UserToGroupMappings (UserId, TransactionTo);
+CREATE INDEX UserToGroupMappingsGroupIndex ON UserToGroupMappings (GroupId, TransactionTo);
+
+CREATE TABLE ApplicationAccess.dbo.GroupToGroupMappings
+(
+    Id               bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
+    FromGroupId           bigint     NOT NULL, 
+    ToGroupId          bigint     NOT NULL, 
+    TransactionFrom  datetime2  NOT NULL, 
+    TransactionTo    datetime2  NOT NULL
+)
+
+CREATE INDEX GroupToGroupMappingsFromGroupIndex ON UserToGroupMappings (FromGroupId, TransactionTo);
+CREATE INDEX GroupToGroupMappingsToGroupIndex ON UserToGroupMappings (ToGroupId, TransactionTo);
+
+CREATE TABLE ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings
+(
+    Id                      bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
+    UserId                  bigint     NOT NULL, 
+    ApplicationComponentId  bigint     NOT NULL, 
+	AccessLevelId           bigint     NOT NULL, 
+    TransactionFrom         datetime2  NOT NULL, 
+    TransactionTo           datetime2  NOT NULL
+)
+
+-- TODO: Need to review below index in context of removal and query
+CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsUserIndex ON ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings (UserId, ApplicationComponentId, AccessLevelId, TransactionTo);
+
+CREATE TABLE ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings
+(
+    Id                      bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
+    GroupId                 bigint     NOT NULL, 
+    ApplicationComponentId  bigint     NOT NULL, 
+	AccessLevelId           bigint     NOT NULL, 
+    TransactionFrom         datetime2  NOT NULL, 
+    TransactionTo           datetime2  NOT NULL
+)
+
+-- TODO: Need to review below index in context of removal and query
+CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsGroupIndex ON ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings (GroupId, ApplicationComponentId, AccessLevelId, TransactionTo);
+
+CREATE TABLE ApplicationAccess.dbo.EntityTypes
+(
+    Id               bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
+	EntityType       nvarchar(450)  NOT NULL, 
+    TransactionFrom  datetime2      NOT NULL, 
+    TransactionTo    datetime2      NOT NULL
+)
+
+CREATE INDEX EntityTypesEntityTypeIndex ON ApplicationAccess.dbo.EntityTypes (EntityType, TransactionTo);
+CREATE INDEX EntityTypesTransactionIndex ON ApplicationAccess.dbo.EntityTypes (TransactionFrom, TransactionTo);
+
 
 
 ----------------------------------------

@@ -684,8 +684,71 @@ namespace ApplicationAccess
             return hasAccess;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetAccessibleEntities(`0,System.String)"]/*'/>
-        public virtual HashSet<String> GetAccessibleEntities(TUser user, String entityType)
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)"]/*'/>
+        public virtual HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
+        {
+            if (userToGroupMap.ContainsLeafVertex(user) == false)
+                ThrowUserDoesntExistException(user, nameof(user));
+
+            var returnComponentsAndAccessLevels = new HashSet<Tuple<TComponent, TAccess>>();
+            if (userToComponentMap.ContainsKey(user) == true)
+            {
+                foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in userToComponentMap[user])
+                {
+                    returnComponentsAndAccessLevels.Add(new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel));
+                }
+            }
+            Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
+            {
+                if (groupToComponentMap.ContainsKey(currentGroup) == true)
+                {
+                    foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in groupToComponentMap[currentGroup])
+                    {
+                        var currentComponentAndAccessLevelAsTuple = new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel);
+                        if (returnComponentsAndAccessLevels.Contains(currentComponentAndAccessLevelAsTuple) == false)
+                        {
+                            returnComponentsAndAccessLevels.Add(currentComponentAndAccessLevelAsTuple);
+                        }
+                    }
+                }
+
+                return true;
+            };
+            userToGroupMap.TraverseFromLeaf(user, vertexAction);
+
+            return returnComponentsAndAccessLevels;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)"]/*'/>
+        public virtual HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
+        {
+            if (userToGroupMap.ContainsNonLeafVertex(group) == false)
+                ThrowGroupDoesntExistException(group, nameof(group));
+
+            var returnComponentsAndAccessLevels = new HashSet<Tuple<TComponent, TAccess>>();
+            Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
+            {
+                if (groupToComponentMap.ContainsKey(currentGroup) == true)
+                {
+                    foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in groupToComponentMap[currentGroup])
+                    {
+                        var currentComponentAndAccessLevelAsTuple = new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel);
+                        if (returnComponentsAndAccessLevels.Contains(currentComponentAndAccessLevelAsTuple) == false)
+                        {
+                            returnComponentsAndAccessLevels.Add(currentComponentAndAccessLevelAsTuple);
+                        }
+                    }
+                }
+
+                return true;
+            };
+            userToGroupMap.TraverseFromNonLeaf(group, vertexAction);
+
+            return returnComponentsAndAccessLevels;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)"]/*'/>
+        public virtual HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
@@ -707,6 +770,29 @@ namespace ApplicationAccess
                 return true;
             };
             userToGroupMap.TraverseFromLeaf(user, vertexAction);
+
+            return returnEntities;
+        }
+
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)"]/*'/>
+        public virtual HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
+        {
+            if (userToGroupMap.ContainsNonLeafVertex(group) == false)
+                ThrowGroupDoesntExistException(group, nameof(group));
+            if (entities.ContainsKey(entityType) == false)
+                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
+
+            var returnEntities = new HashSet<String>();
+            Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
+            {
+                if (groupToEntityMap.ContainsKey(currentGroup) == true && groupToEntityMap[currentGroup].ContainsKey(entityType) == true)
+                {
+                    returnEntities.UnionWith(groupToEntityMap[currentGroup][entityType]);
+                }
+
+                return true;
+            };
+            userToGroupMap.TraverseFromNonLeaf(group, vertexAction);
 
             return returnEntities;
         }

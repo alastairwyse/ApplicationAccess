@@ -23,10 +23,10 @@ namespace ApplicationAccess.Serialization
     /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Serialization.IDirectedGraphSerializer`1"]/*'/>
     public interface IDirectedGraphSerializer<TSerializedObject>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.DirectedGraphJsonSerializer.Serialize``2(ApplicationAccess.DirectedGraphBase{``0,``1},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1})"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IDirectedGraphSerializer`1.Serialize``2(ApplicationAccess.DirectedGraph{``0,``1},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1})"]/*'/>
         TSerializedObject Serialize<TLeaf, TNonLeaf>(DirectedGraphBase<TLeaf, TNonLeaf> graph, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IDirectedGraphSerializer`1.Deserialize``3(`0,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2})"]/*'/>
-        TDirectedGraph Deserialize<TDirectedGraph, TLeaf, TNonLeaf>(TSerializedObject serializedGraph, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier) where TDirectedGraph : DirectedGraphBase<TLeaf, TNonLeaf>, new();
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IDirectedGraphSerializer`1.Deserialize``2(`0,ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.DirectedGraphBase{``0,``1})"]/*'/>
+        void Deserialize<TLeaf, TNonLeaf>(TSerializedObject serializedGraph, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier, DirectedGraphBase<TLeaf, TNonLeaf> directionGraphToDeserializeTo);
     }
 }

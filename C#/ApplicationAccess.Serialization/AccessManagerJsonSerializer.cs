@@ -16,10 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using ApplicationAccess;
 using Newtonsoft.Json.Linq;
 
 namespace ApplicationAccess.Serialization
@@ -224,7 +220,6 @@ namespace ApplicationAccess.Serialization
         /// <summary>
         /// Deserializes an access manager from the specified JSON document.
         /// </summary>
-        /// <typeparam name="TAccessManager">The derivation of AccessManagerBase&lt;TUser, TGroup, TComponent,TAccess&gt; to create/deserialize to.</typeparam>
         /// <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
         /// <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
         /// <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
@@ -234,16 +229,20 @@ namespace ApplicationAccess.Serialization
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
-        /// <returns>The deserialized access manager.</returns>
-        public TAccessManager Deserialize<TAccessManager, TUser, TGroup, TComponent, TAccess>
+        /// <param name="accessManagerToDeserializeTo">The AccessManager instance to deserialize to.</param>
+        /// <remarks>
+        /// <para>Any existing items and mappings stored in parameter 'accessManagerToDeserializeTo' will be cleared.</para>
+        /// <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow deserializing into types derived from AccessManager aswell as AccessManager itself.</para>
+        /// </remarks>
+        public void Deserialize<TUser, TGroup, TComponent, TAccess>
         (
-            JObject jsonDocument, 
-            IUniqueStringifier<TUser> userStringifier, 
-            IUniqueStringifier<TGroup> groupStringifier, 
-            IUniqueStringifier<TComponent> applicationComponentStringifier, 
-            IUniqueStringifier<TAccess> accessLevelStringifier
+            JObject jsonDocument,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToDeserializeTo
         )
-            where TAccessManager : AccessManagerBase<TUser, TGroup, TComponent, TAccess>, new()
         {
             // Check that all top level properties exist and are of the correct type
             if (jsonDocument.ContainsKey(userToGroupMapPropertyName) == false)
@@ -259,32 +258,33 @@ namespace ApplicationAccess.Serialization
             }
 
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
-            var returnAccessManager = new TAccessManager();
+            accessManagerToDeserializeTo.Clear();
 
             // Deserialize the user to group map
             try
             {
-                DirectedGraph<TUser, TGroup> userToGroupMap = directedGraphSerializer.Deserialize<DirectedGraph<TUser, TGroup>, TUser, TGroup>(((JObject)jsonDocument[userToGroupMapPropertyName]), userStringifier, groupStringifier);
+                var userToGroupMap = new DirectedGraph<TUser, TGroup>();
+                directedGraphSerializer.Deserialize<TUser, TGroup>(((JObject)jsonDocument[userToGroupMapPropertyName]), userStringifier, groupStringifier, userToGroupMap);
                 foreach (TUser currentUser in userToGroupMap.LeafVertices)
                 {
-                    returnAccessManager.AddUser(currentUser);
+                    accessManagerToDeserializeTo.AddUser(currentUser);
                 }
                 foreach (TGroup currentGroup in userToGroupMap.NonLeafVertices)
                 {
-                    returnAccessManager.AddGroup(currentGroup);
+                    accessManagerToDeserializeTo.AddGroup(currentGroup);
                 }
                 foreach (TUser currentUser in userToGroupMap.LeafVertices)
                 {
                     foreach (TGroup currentGroup in userToGroupMap.GetLeafEdges(currentUser))
                     {
-                        returnAccessManager.AddUserToGroupMapping(currentUser, currentGroup);
+                        accessManagerToDeserializeTo.AddUserToGroupMapping(currentUser, currentGroup);
                     }
                 }
                 foreach (TGroup currentFromGroup in userToGroupMap.NonLeafVertices)
                 {
                     foreach (TGroup currentToGroup in userToGroupMap.GetNonLeafEdges(currentFromGroup))
                     {
-                        returnAccessManager.AddGroupToGroupMapping(currentFromGroup, currentToGroup);
+                        accessManagerToDeserializeTo.AddGroupToGroupMapping(currentFromGroup, currentToGroup);
                     }
                 }
             }
@@ -329,7 +329,7 @@ namespace ApplicationAccess.Serialization
                             TUser user = userStringifier.FromString(currentUserMappingsJson[userPropertyName].ToString());
                             TComponent applicationComponent = applicationComponentStringifier.FromString(currentComponentAndAccessLevelJObject[applicationComponentPropertyName].ToString());
                             TAccess accessLevel = accessLevelStringifier.FromString(currentComponentAndAccessLevelJObject[accessLevelPropertyName].ToString());
-                            returnAccessManager.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+                            accessManagerToDeserializeTo.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
                         }
                         catch (Exception e)
                         {
@@ -374,7 +374,7 @@ namespace ApplicationAccess.Serialization
                             TGroup group = groupStringifier.FromString(currentGroupMappingsJson[groupPropertyName].ToString());
                             TComponent applicationComponent = applicationComponentStringifier.FromString(currentComponentAndAccessLevelJObject[applicationComponentPropertyName].ToString());
                             TAccess accessLevel = accessLevelStringifier.FromString(currentComponentAndAccessLevelJObject[accessLevelPropertyName].ToString());
-                            returnAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+                            accessManagerToDeserializeTo.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
                         }
                         catch (Exception e)
                         {
@@ -390,7 +390,7 @@ namespace ApplicationAccess.Serialization
             {
                 try
                 {
-                    returnAccessManager.AddEntityType(currentKvp.Key);
+                    accessManagerToDeserializeTo.AddEntityType(currentKvp.Key);
                 }
                 catch (Exception e)
                 {
@@ -400,7 +400,7 @@ namespace ApplicationAccess.Serialization
                 {
                     try
                     {
-                        returnAccessManager.AddEntity(currentKvp.Key, currentEntity);
+                        accessManagerToDeserializeTo.AddEntity(currentKvp.Key, currentEntity);
                     }
                     catch (Exception e)
                     {
@@ -438,7 +438,7 @@ namespace ApplicationAccess.Serialization
                     {
                         try
                         {
-                            returnAccessManager.AddUserToEntityMapping(currentUser, currentKvp.Key, currentEntity);
+                            accessManagerToDeserializeTo.AddUserToEntityMapping(currentUser, currentKvp.Key, currentEntity);
                         }
                         catch (Exception e)
                         {
@@ -477,7 +477,7 @@ namespace ApplicationAccess.Serialization
                     {
                         try
                         {
-                            returnAccessManager.AddGroupToEntityMapping(currentGroup, currentKvp.Key, currentEntity);
+                            accessManagerToDeserializeTo.AddGroupToEntityMapping(currentGroup, currentKvp.Key, currentEntity);
                         }
                         catch (Exception e)
                         {
@@ -486,8 +486,6 @@ namespace ApplicationAccess.Serialization
                     }
                 }
             }
-
-            return returnAccessManager;
         }
 
         #region Private/Protected Methods

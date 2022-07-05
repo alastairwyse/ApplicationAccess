@@ -29,11 +29,13 @@ namespace ApplicationAccess.Serialization.UnitTests
     public class AccessManagerJsonSerializerUnitTests
     {
         private AccessManagerJsonSerializer testAccessManagerJsonSerializer;
+        private AccessManager<String, String, ApplicationScreen, AccessLevel> accessManagerToDeserializeTo;
 
         [SetUp]
         protected void SetUp()
         {
             testAccessManagerJsonSerializer = new AccessManagerJsonSerializer();
+            accessManagerToDeserializeTo = new AccessManager<String, String, ApplicationScreen, AccessLevel>();
         }
 
         [Test]
@@ -220,13 +222,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(), 
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -247,13 +250,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -274,13 +278,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -301,13 +306,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -328,13 +334,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -355,13 +362,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -382,13 +390,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -410,13 +419,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -438,13 +448,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -466,13 +477,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(), 
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -494,13 +506,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -522,13 +535,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -549,13 +563,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -582,13 +597,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -615,13 +631,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -649,13 +666,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -683,13 +701,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -719,13 +738,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -758,13 +778,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -797,13 +818,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -837,13 +859,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -877,13 +900,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -919,13 +943,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -955,13 +980,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -991,13 +1017,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1024,13 +1051,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1057,13 +1085,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1091,13 +1120,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1125,13 +1155,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1161,13 +1192,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1200,13 +1232,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1239,13 +1272,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1279,13 +1313,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1319,13 +1354,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1361,13 +1397,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1397,13 +1434,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1433,13 +1471,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1466,13 +1505,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1499,13 +1539,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1533,13 +1574,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1567,13 +1609,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1601,13 +1644,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1637,13 +1681,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1671,13 +1716,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1704,13 +1750,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1737,13 +1784,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1771,13 +1819,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1805,13 +1854,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1847,13 +1897,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new ExceptionThrowingStringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1889,13 +1940,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -1915,13 +1967,14 @@ namespace ApplicationAccess.Serialization.UnitTests
             testJsonDocument.Add("userToEntityMap", new JArray());
             testJsonDocument.Add("groupToEntityMap", new JArray());
 
-            testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+            testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
             (
                 testJsonDocument,
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new EnumUniqueStringifier<ApplicationScreen>(),
-                new EnumUniqueStringifier<AccessLevel>()
+                new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
             );
         }
 
@@ -2087,16 +2140,17 @@ namespace ApplicationAccess.Serialization.UnitTests
             }";
             JObject testJsonDocument = JObject.Parse(stringifiedAccessManager);
 
-            AccessManager<String, String, ApplicationScreen, AccessLevel> result = testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+            testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
             (
                 testJsonDocument,
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new EnumUniqueStringifier<ApplicationScreen>(),
-                new EnumUniqueStringifier<AccessLevel>()
+                new EnumUniqueStringifier<AccessLevel>(),
+                accessManagerToDeserializeTo
             );
 
-            AssertTestData(result);
+            AssertTestData(accessManagerToDeserializeTo);
         }
 
         [Test]
@@ -2118,13 +2172,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -2151,13 +2206,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -2185,13 +2241,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -2219,13 +2276,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -2261,13 +2319,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new ExceptionThrowingStringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -2303,13 +2362,14 @@ namespace ApplicationAccess.Serialization.UnitTests
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
-                testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+                testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
                 (
                     testJsonDocument,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<ApplicationScreen>(),
-                    new EnumUniqueStringifier<AccessLevel>()
+                    new EnumUniqueStringifier<AccessLevel>(),
+                    accessManagerToDeserializeTo
                 );
             });
 
@@ -2331,16 +2391,17 @@ namespace ApplicationAccess.Serialization.UnitTests
                 new EnumUniqueStringifier<ApplicationScreen>(),
                 new EnumUniqueStringifier<AccessLevel>()
             );
-            AccessManager<String, String, ApplicationScreen, AccessLevel> result = testAccessManagerJsonSerializer.Deserialize<AccessManager<String, String, ApplicationScreen, AccessLevel>, String, String, ApplicationScreen, AccessLevel>
+            testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
             (
                 serializedAccessManager,
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new EnumUniqueStringifier<ApplicationScreen>(),
-                new EnumUniqueStringifier<AccessLevel>()
+                new EnumUniqueStringifier<AccessLevel>(),
+                accessManagerToDeserializeTo
             );
 
-            AssertTestData(result);
+            AssertTestData(accessManagerToDeserializeTo);
         }
 
         #region Private/Protected Methods

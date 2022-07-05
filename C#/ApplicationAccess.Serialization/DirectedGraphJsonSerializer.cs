@@ -104,14 +104,17 @@ namespace ApplicationAccess.Serialization
         /// <summary>
         /// Deserializes a graph from the specified JSON document.
         /// </summary>
-        /// <typeparam name="TDirectedGraph">The derivation of DirectedGraphBase&lt;TLeaf, TNonLeaf&gt; to create/deserialize to.</typeparam>
         /// <typeparam name="TLeaf">The type of leaf vertices in the graph.</typeparam>
         /// <typeparam name="TNonLeaf">The type of non-leaf vertices in the graph.</typeparam>
         /// <param name="jsonDocument">The JSON document to deserialize the graph from.</param>
         /// <param name="leafStringifier">A string converter for leaf vertices in the graph.</param>
         /// <param name="nonLeafStringifier">A string converter for non-leaf vertices in the graph.</param>
-        /// <returns>The deserialized graph.</returns>
-        public TDirectedGraph Deserialize<TDirectedGraph, TLeaf, TNonLeaf>(JObject jsonDocument, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier) where TDirectedGraph : DirectedGraphBase<TLeaf, TNonLeaf>, new()
+        /// <param name="directionGraphToDeserializeTo">The DirectedGraph instance to deserialize to.</param>
+        /// <remarks>
+        /// <para>Any existing items and mappings stored in parameter 'directionGraphToDeserializeTo' will be cleared.</para>
+        /// <para>The DirectedGraph instance is passed as a parameter rather than returned from the method, to allow deserializing into types derived from DirectedGraph aswell as DirectedGraph itself.</para>
+        /// </remarks>
+        public void Deserialize<TLeaf, TNonLeaf>(JObject jsonDocument, IUniqueStringifier<TLeaf> leafStringifier, IUniqueStringifier<TNonLeaf> nonLeafStringifier, DirectedGraphBase<TLeaf, TNonLeaf> directionGraphToDeserializeTo)
         {
             foreach (String currentPropertyName in new String[] { leafVerticesPropertyName, nonLeafVerticesPropertyName, leafToNonLeafEdgesPropertyName, nonLeafToNonLeafEdgesPropertyName })
             {
@@ -121,14 +124,14 @@ namespace ApplicationAccess.Serialization
                     throw new ArgumentException($"Property '{currentPropertyName}' in JSON document in parameter '{nameof(jsonDocument)}' is not of type '{typeof(JArray)}'.", nameof(jsonDocument));
             }
 
-            var returnGraph = new TDirectedGraph();
+            directionGraphToDeserializeTo.Clear();
 
             // Deserialize leaf vertices
             foreach (String currentLeafVertex in (JArray)jsonDocument[leafVerticesPropertyName])
             {
                 try
                 {
-                    returnGraph.AddLeafVertex(leafStringifier.FromString(currentLeafVertex));
+                    directionGraphToDeserializeTo.AddLeafVertex(leafStringifier.FromString(currentLeafVertex));
                 }
                 catch (Exception e)
                 {
@@ -141,7 +144,7 @@ namespace ApplicationAccess.Serialization
             {
                 try
                 {
-                    returnGraph.AddNonLeafVertex(nonLeafStringifier.FromString(currentNonLeafVertex));
+                    directionGraphToDeserializeTo.AddNonLeafVertex(nonLeafStringifier.FromString(currentNonLeafVertex));
                 }
                 catch (Exception e)
                 {
@@ -167,7 +170,7 @@ namespace ApplicationAccess.Serialization
                     // TODO: Could have more granular exception handling here... separate exception handlers for stringifying each of from vertext and to vertext, and separate one for adding to graph
                     try
                     {
-                        returnGraph.AddLeafToNonLeafEdge(leafStringifier.FromString(currentLeafEdgeSet[leafVertexPropertyName].ToString()), nonLeafStringifier.FromString(currentNonLeafVertex));
+                        directionGraphToDeserializeTo.AddLeafToNonLeafEdge(leafStringifier.FromString(currentLeafEdgeSet[leafVertexPropertyName].ToString()), nonLeafStringifier.FromString(currentNonLeafVertex));
                     }
                     catch (Exception e)
                     {
@@ -194,7 +197,7 @@ namespace ApplicationAccess.Serialization
                     // TODO: Could have more granular exception handling here... separate exception handlers for de-stringifying each of from vertext and to vertext, and separate one for adding to graph
                     try
                     {
-                        returnGraph.AddNonLeafToNonLeafEdge(nonLeafStringifier.FromString(currentNonLeafEdgeSet[nonLeafVertexPropertyName].ToString()), nonLeafStringifier.FromString(currentToNonLeafVertex));
+                        directionGraphToDeserializeTo.AddNonLeafToNonLeafEdge(nonLeafStringifier.FromString(currentNonLeafEdgeSet[nonLeafVertexPropertyName].ToString()), nonLeafStringifier.FromString(currentToNonLeafVertex));
                     }
                     catch (Exception e)
                     {
@@ -202,8 +205,6 @@ namespace ApplicationAccess.Serialization
                     }
                 }
             }
-
-            return returnGraph;
         }
     }
 }

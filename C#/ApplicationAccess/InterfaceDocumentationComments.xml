@@ -34,7 +34,7 @@
     </member>
     <member name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.EntityTypes">
       <summary>
-        Returns a collection of all entities in the access manager.
+        Returns a collection of all entity types in the access manager.
       </summary>
     </member>
     <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsUser(`0)">
@@ -149,13 +149,35 @@
       <param name="entity">The entity.</param>
       <returns>True if the user has access the entity.  False otherwise.</returns>
     </member>
-    <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetAccessibleEntities(`0,System.String)">
+    <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)">
+      <summary>
+        Gets all application components and levels of access that the specified user (or a group that the user is a member of) has access to.
+      </summary>
+      <param name="user">The user to retrieve the application components and levels of access for.</param>
+      <returns>The application components and levels of access to those application components that the user has.</returns>
+    </member>
+    <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)">
+      <summary>
+        Gets all application components and levels of access that the specified group (or group that the specified group is mapped to) has access to.
+      </summary>
+      <param name="group">The group to retrieve the application components and levels of access for.</param>
+      <returns>The application components and levels of access to those application components that the group has.</returns>
+    </member>
+    <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)">
       <summary>
         Gets all entities of a given type that the specified user (or a group that the user is a member of) has access to.
       </summary>
       <param name="user">The user to retrieve the entities for.</param>
       <param name="entityType">The type of entities to retrieve.</param>
       <returns>The entities the user has access to.</returns>
+    </member>
+    <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)">
+      <summary>
+        Gets all entities of a given type that the specified group (or group that the specified group is mapped to) has access to.
+      </summary>
+      <param name="group">The group to retrieve the entities for.</param>
+      <param name="entityType">The type of entities to retrieve.</param>
+      <returns>The entities the group has access to.</returns>
     </member>
     <member name="T:ApplicationAccess.IAccessManagerEventProcessor`4">
       <summary>

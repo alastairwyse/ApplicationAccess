@@ -23,7 +23,7 @@ namespace ApplicationAccess.Serialization
     /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Serialization.IAccessManagerSerializer`1"]/*'/>
     public interface IAccessManagerSerializer<TSerializedObject>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})"]/*'/>
         TSerializedObject Serialize<TUser, TGroup, TComponent, TAccess>
         (
             AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager, 
@@ -33,15 +33,15 @@ namespace ApplicationAccess.Serialization
             IUniqueStringifier<TAccess> accessLevelStringifier
         );
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.Deserialize``5(Newtonsoft.Json.Linq.JObject,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.IUniqueStringifier{``4})"]/*'/>
-        TAccessManager Deserialize<TAccessManager, TUser, TGroup, TComponent, TAccess> 
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Deserialize``4(`0,ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.AccessManagerBase{``0,``1,``2,``3})"]/*'/>
+        void Deserialize<TUser, TGroup, TComponent, TAccess>
         (
-            TSerializedObject serializedAccessManager, 
-            IUniqueStringifier<TUser> userStringifier, 
-            IUniqueStringifier<TGroup> groupStringifier, 
-            IUniqueStringifier<TComponent> applicationComponentStringifier, 
-            IUniqueStringifier<TAccess> accessLevelStringifier
-        ) 
-            where TAccessManager : AccessManagerBase<TUser, TGroup, TComponent, TAccess>, new();
+            TSerializedObject serializedAccessManager,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToDeserializeTo
+        );
     }
 }

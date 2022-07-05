@@ -220,23 +220,23 @@
       <param name="eventId">The unique id of the event.</param>
       <param name="occurredTime">The historic date and time that the mapping was removed.</param>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3},System.Guid)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})">
       <summary>
         Loads the access manager with state corresponding to the specified event id from persistent storage.
       </summary>
-      <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
       <param name="eventId">The id of the most recent event persisted into the access manager, at the desired state to load.</param>
+      <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
       <remarks>
         <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
         <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
       </remarks>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3},System.DateTime)">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})">
       <summary>
         Loads the access manager with state corresponding to the specified timestamp from persistent storage.
       </summary>
-      <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
       <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+      <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
       <remarks>
         <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
         <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
