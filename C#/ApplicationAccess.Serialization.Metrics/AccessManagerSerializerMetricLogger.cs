@@ -31,7 +31,7 @@ namespace ApplicationAccess.Serialization.Metrics
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
 
-        /// <include file='..\ApplicationAccess.Serialization\ApplicationAccess.Serialization.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})"]/*'/>
+        /// <include file='..\ApplicationAccess.Serialization\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})"]/*'/>
         public TSerializedObject Serialize<TUser, TGroup, TComponent, TAccess>(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager, IUniqueStringifier<TUser> userStringifier, IUniqueStringifier<TGroup> groupStringifier, IUniqueStringifier<TComponent> applicationComponentStringifier, IUniqueStringifier<TAccess> accessLevelStringifier)
         {
             TSerializedObject result;
@@ -51,14 +51,21 @@ namespace ApplicationAccess.Serialization.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess.Serialization\ApplicationAccess.Serialization.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.Deserialize``5(Newtonsoft.Json.Linq.JObject,ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.IUniqueStringifier{``4})"]/*'/>
-        public TAccessManager Deserialize<TAccessManager, TUser, TGroup, TComponent, TAccess>(TSerializedObject serializedAccessManager, IUniqueStringifier<TUser> userStringifier, IUniqueStringifier<TGroup> groupStringifier, IUniqueStringifier<TComponent> applicationComponentStringifier, IUniqueStringifier<TAccess> accessLevelStringifier) where TAccessManager : AccessManagerBase<TUser, TGroup, TComponent, TAccess>, new()
+        /// <include file='..\ApplicationAccess.Serialization\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Deserialize``4(`0,ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.AccessManagerBase{``0,``1,``2,``3})"]/*'/>
+        public void Deserialize<TUser, TGroup, TComponent, TAccess>
+        (
+            TSerializedObject serializedAccessManager,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToDeserializeTo
+        )
         {
-            TAccessManager result;
             metricLogger.Begin(new AccessManagerDeserializeTime());
             try
             {
-                result = serializer.Deserialize<TAccessManager, TUser, TGroup, TComponent, TAccess>(serializedAccessManager, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier);
+                serializer.Deserialize<TUser, TGroup, TComponent, TAccess>(serializedAccessManager, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, accessManagerToDeserializeTo);
             }
             catch
             {
@@ -67,8 +74,6 @@ namespace ApplicationAccess.Serialization.Metrics
             }
             metricLogger.End(new AccessManagerDeserializeTime());
             metricLogger.Increment(new AccessManagerDeserializations());
-
-            return result;
         }
     }
 }

@@ -154,22 +154,41 @@ namespace ApplicationAccess.Metrics
             return queryProcessorMetricLogger.GetGroupToEntityMappings(group, entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccess(`0,`2,`3)"]/*'/>
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)"]/*'/>
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             return queryProcessorMetricLogger.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccess(`0,System.String,System.String)"]/*'/>
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)"]/*'/>
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             return queryProcessorMetricLogger.HasAccessToEntity(user, entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetAccessibleEntities(`0,System.String)"]/*'/>
-        public HashSet<String> GetAccessibleEntities(TUser user, String entityType)
+
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)"]/*'/>
+        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
-            return queryProcessorMetricLogger.GetAccessibleEntities(user, entityType);
+            return queryProcessorMetricLogger.GetApplicationComponentsAccessibleByUser(user);
+        }
+
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)"]/*'/>
+        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
+        {
+            return queryProcessorMetricLogger.GetApplicationComponentsAccessibleByGroup(group);
+        }
+
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)"]/*'/>
+        public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
+        {
+            return queryProcessorMetricLogger.GetEntitiesAccessibleByUser(user, entityType);
+        }
+
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)"]/*'/>
+        public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
+        {
+            return queryProcessorMetricLogger.GetEntitiesAccessibleByGroup(group, entityType);
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>

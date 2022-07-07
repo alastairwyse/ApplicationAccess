@@ -375,7 +375,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccess(`0,`2,`3)"]/*'/>
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)"]/*'/>
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Boolean result;
@@ -395,7 +395,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccess(`0,System.String,System.String)"]/*'/>
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)"]/*'/>
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             Boolean result;
@@ -415,22 +415,82 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetAccessibleEntities(`0,System.String)"]/*'/>
-        public HashSet<String> GetAccessibleEntities(TUser user, String entityType)
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)"]/*'/>
+        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
-            HashSet<String> result;
-            metricLogger.Begin(new GetAccessibleEntitiesQueryTime());
+            HashSet<Tuple<TComponent, TAccess>> result;
+            metricLogger.Begin(new GetApplicationComponentsAccessibleByUserQueryTime());
             try
             {
-                result = queryProcessor.GetAccessibleEntities(user, entityType);
+                result = queryProcessor.GetApplicationComponentsAccessibleByUser(user);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetAccessibleEntitiesQueryTime());
+                metricLogger.CancelBegin(new GetApplicationComponentsAccessibleByUserQueryTime());
                 throw;
             }
-            metricLogger.End(new GetAccessibleEntitiesQueryTime());
-            metricLogger.Increment(new GetAccessibleEntitiesQueries());
+            metricLogger.End(new GetApplicationComponentsAccessibleByUserQueryTime());
+            metricLogger.Increment(new GetApplicationComponentsAccessibleByUserQueries());
+
+            return result;
+        }
+
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)"]/*'/>
+        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
+        {
+            HashSet<Tuple<TComponent, TAccess>> result;
+            metricLogger.Begin(new GetApplicationComponentsAccessibleByGroupQueryTime());
+            try
+            {
+                result = queryProcessor.GetApplicationComponentsAccessibleByGroup(group);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GetApplicationComponentsAccessibleByGroupQueryTime());
+                throw;
+            }
+            metricLogger.End(new GetApplicationComponentsAccessibleByGroupQueryTime());
+            metricLogger.Increment(new GetApplicationComponentsAccessibleByGroupQueries());
+
+            return result;
+        }
+
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)"]/*'/>
+        public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
+        {
+            HashSet<String> result;
+            metricLogger.Begin(new GetEntitiesAccessibleByUserQueryTime());
+            try
+            {
+                result = queryProcessor.GetEntitiesAccessibleByUser(user, entityType);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GetEntitiesAccessibleByUserQueryTime());
+                throw;
+            }
+            metricLogger.End(new GetEntitiesAccessibleByUserQueryTime());
+            metricLogger.Increment(new GetEntitiesAccessibleByUserQueries());
+
+            return result;
+        }
+
+        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)"]/*'/>
+        public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
+        {
+            HashSet<String> result;
+            metricLogger.Begin(new GetEntitiesAccessibleByGroupQueryTime());
+            try
+            {
+                result = queryProcessor.GetEntitiesAccessibleByGroup(group, entityType);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(new GetEntitiesAccessibleByGroupQueryTime());
+                throw;
+            }
+            metricLogger.End(new GetEntitiesAccessibleByGroupQueryTime());
+            metricLogger.Increment(new GetEntitiesAccessibleByGroupQueries());
 
             return result;
         }

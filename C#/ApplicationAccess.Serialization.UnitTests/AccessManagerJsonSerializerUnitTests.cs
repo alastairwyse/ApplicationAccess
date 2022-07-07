@@ -1974,171 +1974,45 @@ namespace ApplicationAccess.Serialization.UnitTests
                 new StringUniqueStringifier(),
                 new EnumUniqueStringifier<ApplicationScreen>(),
                 new EnumUniqueStringifier<AccessLevel>(),
-                    accessManagerToDeserializeTo
+                accessManagerToDeserializeTo
             );
         }
+
+
+        [Test]
+        public void Deserialize_AccessManagerToDeserializeToParameterCleared()
+        {
+            JObject testJsonDocument = CreateTestDataJson();
+            accessManagerToDeserializeTo.AddUser("UserA");
+            accessManagerToDeserializeTo.AddGroup("GroupA");
+            accessManagerToDeserializeTo.AddGroup("GroupB");
+            accessManagerToDeserializeTo.AddUserToGroupMapping("UserA", "GroupA");
+            accessManagerToDeserializeTo.AddGroupToGroupMapping("GroupA", "GroupB");
+            accessManagerToDeserializeTo.AddUserToApplicationComponentAndAccessLevelMapping("UserA", ApplicationScreen.Order, AccessLevel.View);
+            accessManagerToDeserializeTo.AddGroupToApplicationComponentAndAccessLevelMapping("GroupB", ApplicationScreen.ManageProducts, AccessLevel.View);
+            accessManagerToDeserializeTo.AddEntityType("BankAccount");
+            accessManagerToDeserializeTo.AddEntity("BankAccount", "Savings");
+            accessManagerToDeserializeTo.AddUserToEntityMapping("UserA", "BankAccount", "Savings");
+            accessManagerToDeserializeTo.AddGroupToEntityMapping("GroupB", "BankAccount", "Savings");
+
+            testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
+            (
+                testJsonDocument,
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new EnumUniqueStringifier<ApplicationScreen>(),
+                new EnumUniqueStringifier<AccessLevel>(),
+                accessManagerToDeserializeTo
+            );
+
+            AssertTestData(accessManagerToDeserializeTo);
+        }
+
 
         [Test]
         public void Deserialize()
         {
-            String stringifiedAccessManager = @"
-            {
-                ""userToGroupMap"": {
-                ""leafVertices"": [
-                    ""User1"",
-                    ""User2"",
-                    ""User3"",
-                    ""User4""
-                ],
-                ""leafToNonLeafEdges"": [],
-                ""nonLeafVertices"": [
-                    ""Group1"",
-                    ""Group2"",
-                    ""Group3""
-                ],
-                ""nonLeafToNonLeafEdges"": []
-                },
-                ""userToComponentMap"": [
-                {
-                    ""user"": ""User1"",
-                    ""components"": [
-                    {
-                        ""applicationComponent"": ""Order"",
-                        ""accessLevel"": ""View""
-                    }
-                    ]
-                },
-                {
-                    ""user"": ""User2"",
-                    ""components"": [
-                    {
-                        ""applicationComponent"": ""Order"",
-                        ""accessLevel"": ""View""
-                    },
-                    {
-                        ""applicationComponent"": ""Order"",
-                        ""accessLevel"": ""Modify""
-                    },
-                    {
-                        ""applicationComponent"": ""Settings"",
-                        ""accessLevel"": ""View""
-                    }
-                    ]
-                }
-                ],
-                ""groupToComponentMap"": [
-                {
-                    ""group"": ""Group1"",
-                    ""components"": [
-                    {
-                        ""applicationComponent"": ""Summary"",
-                        ""accessLevel"": ""View""
-                    }
-                    ]
-                },
-                {
-                    ""group"": ""Group2"",
-                    ""components"": [
-                    {
-                        ""applicationComponent"": ""Order"",
-                        ""accessLevel"": ""View""
-                    },
-                    {
-                        ""applicationComponent"": ""Order"",
-                        ""accessLevel"": ""Modify""
-                    },
-                    {
-                        ""applicationComponent"": ""ManageProducts"",
-                        ""accessLevel"": ""Modify""
-                    }
-                    ]
-                }
-                ],
-                ""entityTypes"": [
-                {
-                    ""entityType"": ""ClientAccount"",
-                    ""entities"": [
-                    ""CompanyA"",
-                    ""CompanyB"",
-                    ""CompanyC""
-                    ]
-                },
-                {
-                    ""entityType"": ""BusinessUnit"",
-                    ""entities"": [
-                    ""Marketing"",
-                    ""Sales""
-                    ]
-                },
-                {
-                    ""entityType"": ""ProductLine"",
-                    ""entities"": []
-                }
-                ],
-                ""userToEntityMap"": [
-                {
-                    ""user"": ""User2"",
-                    ""entityTypes"": [
-                    {
-                        ""entityType"": ""ClientAccount"",
-                        ""entities"": [
-                        ""CompanyA"",
-                        ""CompanyB""
-                        ]
-                    },
-                    {
-                        ""entityType"": ""BusinessUnit"",
-                        ""entities"": [
-                        ""Sales""
-                        ]
-                    }
-                    ]
-                },
-                {
-                    ""user"": ""User3"",
-                    ""entityTypes"": [
-                    {
-                        ""entityType"": ""BusinessUnit"",
-                        ""entities"": [
-                        ""Marketing""
-                        ]
-                    }
-                    ]
-                }
-                ],
-                ""groupToEntityMap"": [
-                {
-                    ""group"": ""Group2"",
-                    ""entityTypes"": [
-                    {
-                        ""entityType"": ""ClientAccount"",
-                        ""entities"": [
-                        ""CompanyB"",
-                        ""CompanyC""
-                        ]
-                    },
-                    {
-                        ""entityType"": ""BusinessUnit"",
-                        ""entities"": [
-                        ""Marketing""
-                        ]
-                    }
-                    ]
-                },
-                {
-                    ""group"": ""Group3"",
-                    ""entityTypes"": [
-                    {
-                        ""entityType"": ""BusinessUnit"",
-                        ""entities"": [
-                        ""Sales""
-                        ]
-                    }
-                    ]
-                }
-                ]
-            }";
-            JObject testJsonDocument = JObject.Parse(stringifiedAccessManager);
+            JObject testJsonDocument = CreateTestDataJson();
 
             testAccessManagerJsonSerializer.Deserialize<String, String, ApplicationScreen, AccessLevel>
             (
@@ -2446,11 +2320,182 @@ namespace ApplicationAccess.Serialization.UnitTests
         }
 
         /// <summary>
+        /// Creates a JSON object containing a serialized version of the test data.
+        /// </summary>
+        /// <returns>A JSON object containing a serialized version of the test data.</returns>
+        protected JObject CreateTestDataJson()
+        {
+
+            String stringifiedAccessManager = @"
+            {
+                ""userToGroupMap"": {
+                ""leafVertices"": [
+                    ""User1"",
+                    ""User2"",
+                    ""User3"",
+                    ""User4""
+                ],
+                ""leafToNonLeafEdges"": [],
+                ""nonLeafVertices"": [
+                    ""Group1"",
+                    ""Group2"",
+                    ""Group3""
+                ],
+                ""nonLeafToNonLeafEdges"": []
+                },
+                ""userToComponentMap"": [
+                {
+                    ""user"": ""User1"",
+                    ""components"": [
+                    {
+                        ""applicationComponent"": ""Order"",
+                        ""accessLevel"": ""View""
+                    }
+                    ]
+                },
+                {
+                    ""user"": ""User2"",
+                    ""components"": [
+                    {
+                        ""applicationComponent"": ""Order"",
+                        ""accessLevel"": ""View""
+                    },
+                    {
+                        ""applicationComponent"": ""Order"",
+                        ""accessLevel"": ""Modify""
+                    },
+                    {
+                        ""applicationComponent"": ""Settings"",
+                        ""accessLevel"": ""View""
+                    }
+                    ]
+                }
+                ],
+                ""groupToComponentMap"": [
+                {
+                    ""group"": ""Group1"",
+                    ""components"": [
+                    {
+                        ""applicationComponent"": ""Summary"",
+                        ""accessLevel"": ""View""
+                    }
+                    ]
+                },
+                {
+                    ""group"": ""Group2"",
+                    ""components"": [
+                    {
+                        ""applicationComponent"": ""Order"",
+                        ""accessLevel"": ""View""
+                    },
+                    {
+                        ""applicationComponent"": ""Order"",
+                        ""accessLevel"": ""Modify""
+                    },
+                    {
+                        ""applicationComponent"": ""ManageProducts"",
+                        ""accessLevel"": ""Modify""
+                    }
+                    ]
+                }
+                ],
+                ""entityTypes"": [
+                {
+                    ""entityType"": ""ClientAccount"",
+                    ""entities"": [
+                    ""CompanyA"",
+                    ""CompanyB"",
+                    ""CompanyC""
+                    ]
+                },
+                {
+                    ""entityType"": ""BusinessUnit"",
+                    ""entities"": [
+                    ""Marketing"",
+                    ""Sales""
+                    ]
+                },
+                {
+                    ""entityType"": ""ProductLine"",
+                    ""entities"": []
+                }
+                ],
+                ""userToEntityMap"": [
+                {
+                    ""user"": ""User2"",
+                    ""entityTypes"": [
+                    {
+                        ""entityType"": ""ClientAccount"",
+                        ""entities"": [
+                        ""CompanyA"",
+                        ""CompanyB""
+                        ]
+                    },
+                    {
+                        ""entityType"": ""BusinessUnit"",
+                        ""entities"": [
+                        ""Sales""
+                        ]
+                    }
+                    ]
+                },
+                {
+                    ""user"": ""User3"",
+                    ""entityTypes"": [
+                    {
+                        ""entityType"": ""BusinessUnit"",
+                        ""entities"": [
+                        ""Marketing""
+                        ]
+                    }
+                    ]
+                }
+                ],
+                ""groupToEntityMap"": [
+                {
+                    ""group"": ""Group2"",
+                    ""entityTypes"": [
+                    {
+                        ""entityType"": ""ClientAccount"",
+                        ""entities"": [
+                        ""CompanyB"",
+                        ""CompanyC""
+                        ]
+                    },
+                    {
+                        ""entityType"": ""BusinessUnit"",
+                        ""entities"": [
+                        ""Marketing""
+                        ]
+                    }
+                    ]
+                },
+                {
+                    ""group"": ""Group3"",
+                    ""entityTypes"": [
+                    {
+                        ""entityType"": ""BusinessUnit"",
+                        ""entities"": [
+                        ""Sales""
+                        ]
+                    }
+                    ]
+                }
+                ]
+            }";
+            
+            return JObject.Parse(stringifiedAccessManager);
+        }
+
+        /// <summary>
         /// Asserts that the structure of the specified access manager matches the structure setup in method CreateTestData().
         /// </summary>
         /// <param name="inputAccessManager">The access manager to check.</param>
         protected void AssertTestData(AccessManager<String, String, ApplicationScreen, AccessLevel> inputAccessManager)
         {
+            Assert.AreEqual(4, inputAccessManager.Users.Count());
+            Assert.AreEqual(3, inputAccessManager.Groups.Count());
+            Assert.AreEqual(3, inputAccessManager.EntityTypes.Count());
             Assert.AreEqual(1, inputAccessManager.GetUserToApplicationComponentAndAccessLevelMappings("User1").Count());
             Assert.IsTrue(inputAccessManager.GetUserToApplicationComponentAndAccessLevelMappings("User1").Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.AreEqual(3, inputAccessManager.GetUserToApplicationComponentAndAccessLevelMappings("User2").Count());

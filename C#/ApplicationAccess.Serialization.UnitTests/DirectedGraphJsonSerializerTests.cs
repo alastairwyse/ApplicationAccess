@@ -617,6 +617,31 @@ namespace ApplicationAccess.Serialization.UnitTests
         }
 
         [Test]
+        public void Deserialize_DirectionGraphToDeserializeToParameterCleared()
+        {
+            var testJsonDocument = new JObject();
+            testJsonDocument.Add("leafVertices", new JArray());
+            testJsonDocument.Add("leafToNonLeafEdges", new JArray());
+            testJsonDocument.Add("nonLeafVertices", new JArray());
+            testJsonDocument.Add("nonLeafToNonLeafEdges", new JArray());
+            ((JArray)testJsonDocument["leafVertices"]).Add("Per1");
+            ((JArray)testJsonDocument["leafVertices"]).Add("Per2");
+            ((JArray)testJsonDocument["nonLeafVertices"]).Add("Grp1");
+            ((JArray)testJsonDocument["nonLeafVertices"]).Add("Grp2");
+            directionGraphToDeserializeTo.AddLeafVertex("PerA");
+            directionGraphToDeserializeTo.AddNonLeafVertex("GrpA");
+
+            testDirectedGraphJsonSerializer.Deserialize<String, String>(testJsonDocument, new StringUniqueStringifier(), new StringUniqueStringifier(), directionGraphToDeserializeTo);
+
+            Assert.AreEqual(2, directionGraphToDeserializeTo.LeafVertices.Count());
+            Assert.IsTrue(directionGraphToDeserializeTo.LeafVertices.Contains("Per1"));
+            Assert.IsTrue(directionGraphToDeserializeTo.LeafVertices.Contains("Per2"));
+            Assert.AreEqual(2, directionGraphToDeserializeTo.NonLeafVertices.Count());
+            Assert.IsTrue(directionGraphToDeserializeTo.NonLeafVertices.Contains("Grp1"));
+            Assert.IsTrue(directionGraphToDeserializeTo.NonLeafVertices.Contains("Grp2"));
+        }
+
+        [Test]
         public void Deserialize()
         {
             var testJsonDocument = new JObject();

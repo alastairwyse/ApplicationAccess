@@ -366,14 +366,14 @@ namespace ApplicationAccess.Persistence.SqlServer
             throw new NotImplementedException();
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3},System.Guid)"]/*'/>
-        public void Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo, Guid eventId)
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
+        public void Load(Guid eventId, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             throw new NotImplementedException();
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3},System.DateTime)"]/*'/>
-        public void Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo, DateTime stateTime)
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
+        public void Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             throw new NotImplementedException();
         }

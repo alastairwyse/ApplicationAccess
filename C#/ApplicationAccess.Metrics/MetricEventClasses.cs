@@ -1165,14 +1165,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetAccessibleEntities() method.
+    /// Count metric which records the total number of calls to the GetApplicationComponentsAccessibleByUser() method.
     /// </summary>
-    public class GetAccessibleEntitiesQueries : CountMetric
+    public class GetApplicationComponentsAccessibleByUserQueries : CountMetric
     {
-        protected static String staticName = "GetAccessibleEntitiesQueries";
-        protected static String staticDescription = "The total number of calls to the GetAccessibleEntities() method";
+        protected static String staticName = "GetApplicationComponentsAccessibleByUserQueries";
+        protected static String staticDescription = "The total number of calls to the GetApplicationComponentsAccessibleByUser() method";
 
-        public GetAccessibleEntitiesQueries()
+        public GetApplicationComponentsAccessibleByUserQueries()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1180,20 +1180,109 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the GetAccessibleEntities() method.
+    /// Interval metric which records the time taken to execute the GetApplicationComponentsAccessibleByUser() method.
     /// </summary>
-    public class GetAccessibleEntitiesQueryTime : IntervalMetric
+    public class GetApplicationComponentsAccessibleByUserQueryTime : IntervalMetric
     {
-        protected static String staticName = "GetAccessibleEntitiesQueryTime";
-        protected static String staticDescription = "The time taken to execute the GetAccessibleEntities() method";
+        protected static String staticName = "GetApplicationComponentsAccessibleByUserQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetApplicationComponentsAccessibleByUser() method";
 
-        public GetAccessibleEntitiesQueryTime()
+        public GetApplicationComponentsAccessibleByUserQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;
         }
     }
 
+    /// <summary>
+    /// Count metric which records the total number of calls to the GetApplicationComponentsAccessibleByGroup() method.
+    /// </summary>
+    public class GetApplicationComponentsAccessibleByGroupQueries : CountMetric
+    {
+        protected static String staticName = "GetApplicationComponentsAccessibleByGroupQueries";
+        protected static String staticDescription = "The total number of calls to the GetApplicationComponentsAccessibleByGroup() method";
+
+        public GetApplicationComponentsAccessibleByGroupQueries()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetApplicationComponentsAccessibleByGroup() method.
+    /// </summary>
+    public class GetApplicationComponentsAccessibleByGroupQueryTime : IntervalMetric
+    {
+        protected static String staticName = "GetApplicationComponentsAccessibleByGroupQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetApplicationComponentsAccessibleByGroup() method";
+
+        public GetApplicationComponentsAccessibleByGroupQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records the total number of calls to the GetEntitiesAccessibleByUser() method.
+    /// </summary>
+    public class GetEntitiesAccessibleByUserQueries : CountMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByUserQueries";
+        protected static String staticDescription = "The total number of calls to the GetEntitiesAccessibleByUser() method";
+
+        public GetEntitiesAccessibleByUserQueries()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetEntitiesAccessibleByUser() method.
+    /// </summary>
+    public class GetEntitiesAccessibleByUserQueryTime : IntervalMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByUserQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetEntitiesAccessibleByUser() method";
+
+        public GetEntitiesAccessibleByUserQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records the total number of calls to the GetEntitiesAccessibleByGroup() method.
+    /// </summary>
+    public class GetEntitiesAccessibleByGroupQueries : CountMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByGroupQueries";
+        protected static String staticDescription = "The total number of calls to the GetEntitiesAccessibleByGroup() method";
+
+        public GetEntitiesAccessibleByGroupQueries()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetEntitiesAccessibleByGroup() method.
+    /// </summary>
+    public class GetEntitiesAccessibleByGroupQueryTime : IntervalMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByGroupQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetEntitiesAccessibleByGroup() method";
+
+        public GetEntitiesAccessibleByGroupQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
     #endregion
 
     #region AccessManager Metrics
