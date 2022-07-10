@@ -32,6 +32,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         // TODO: Add unit tests
         //   Add reconnect logic
         //   Add logging to log connection failures and retries
+        //   Add constructor where SqlConnection is passed in
 
 
 
