@@ -540,7 +540,7 @@ GO
 
 CREATE PROCEDURE dbo.AddUserToGroupMapping
 (
-	@User             nvarchar(450),
+    @User             nvarchar(450),
     @Group            nvarchar(450),
     @EventId          uniqueidentifier, 
     @TransactionTime  datetime2
@@ -548,52 +548,52 @@ CREATE PROCEDURE dbo.AddUserToGroupMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @ErrorMessage  nvarchar(max);
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		INSERT  
-		INTO    dbo.UserToGroupMappings 
-				(
-					UserId, 
-					GroupId, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					( 
-						SELECT  Id 
-						FROM    dbo.Users 
-						WHERE   [User] = @User 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.Groups 
-						WHERE   [Group] = @Group 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					@TransactionTime, 
-					dbo.GetTemporalMaxDate()
-				);
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when inserting User to Group mapping between ''' + @User + ''' and ''' + @Group + ''' : ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        INSERT  
+        INTO    dbo.UserToGroupMappings 
+                (
+                    UserId, 
+                    GroupId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Users 
+                        WHERE   [User] = @User 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Groups 
+                        WHERE   [Group] = @Group 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    @TransactionTime, 
+                    dbo.GetTemporalMaxDate()
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when inserting User to Group mapping between ''' + @User + ''' and ''' + @Group + ''' : ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -601,7 +601,7 @@ GO
 
 CREATE PROCEDURE dbo.RemoveUserToGroupMapping
 (
-	@User             nvarchar(450),
+    @User             nvarchar(450),
     @Group            nvarchar(450),
     @EventId          uniqueidentifier, 
     @TransactionTime  datetime2
@@ -609,63 +609,63 @@ CREATE PROCEDURE dbo.RemoveUserToGroupMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
-	DECLARE @CurrentRowId  bigint;
+    DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @CurrentRowId  bigint;
 
-	SELECT  @CurrentRowId = Id 
-	FROM    dbo.UserToGroupMappings 
-	WHERE   UserId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Users 
-				WHERE   [User] = @User 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	GroupId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Groups 
-				WHERE   [Group] = @Group 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    SELECT  @CurrentRowId = Id 
+    FROM    dbo.UserToGroupMappings 
+    WHERE   UserId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Users 
+                WHERE   [User] = @User 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    GroupId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Groups 
+                WHERE   [Group] = @Group 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-	IF (@CurrentRowId IS NULL)
-	BEGIN
-		SET @ErrorMessage = N'No UserToGroupMappings row exists for User ''' + @User + ''', Group ''' + @Group +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
-		THROW 50001, @ErrorMessage, 1;
-	END
+    IF (@CurrentRowId IS NULL)
+    BEGIN
+        SET @ErrorMessage = N'No UserToGroupMappings row exists for User ''' + @User + ''', Group ''' + @Group +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        THROW 50001, @ErrorMessage, 1;
+    END
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		UPDATE  dbo.UserToGroupMappings 
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   Id = @CurrentRowId;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing User to Group mapping for ''' + @User + ''' and ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        UPDATE  dbo.UserToGroupMappings 
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   Id = @CurrentRowId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing User to Group mapping for ''' + @User + ''' and ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
 
 CREATE PROCEDURE dbo.AddGroupToGroupMapping
 (
-	@FromGroup        nvarchar(450),
+    @FromGroup        nvarchar(450),
     @ToGroup          nvarchar(450),
     @EventId          uniqueidentifier, 
     @TransactionTime  datetime2
@@ -673,52 +673,52 @@ CREATE PROCEDURE dbo.AddGroupToGroupMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @ErrorMessage  nvarchar(max);
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		INSERT  
-		INTO    dbo.GroupToGroupMappings 
-				(
-					FromGroupId, 
-					ToGroupId, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					( 
-						SELECT  Id 
-						FROM    dbo.Groups 
-						WHERE   [Group] = @FromGroup 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.Groups 
-						WHERE   [Group] = @ToGroup 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					@TransactionTime, 
-					dbo.GetTemporalMaxDate()
-				);
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when inserting Group to Group mapping between ''' + @FromGroup + ''' and ''' + @ToGroup + ''' : ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        INSERT  
+        INTO    dbo.GroupToGroupMappings 
+                (
+                    FromGroupId, 
+                    ToGroupId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Groups 
+                        WHERE   [Group] = @FromGroup 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Groups 
+                        WHERE   [Group] = @ToGroup 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    @TransactionTime, 
+                    dbo.GetTemporalMaxDate()
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when inserting Group to Group mapping between ''' + @FromGroup + ''' and ''' + @ToGroup + ''' : ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -726,7 +726,7 @@ GO
 
 CREATE PROCEDURE dbo.RemoveGroupToGroupMapping
 (
-	@FromGroup        nvarchar(450),
+    @FromGroup        nvarchar(450),
     @ToGroup          nvarchar(450),
     @EventId          uniqueidentifier, 
     @TransactionTime  datetime2
@@ -734,56 +734,56 @@ CREATE PROCEDURE dbo.RemoveGroupToGroupMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
-	DECLARE @CurrentRowId  bigint;
+    DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @CurrentRowId  bigint;
 
-	SELECT  @CurrentRowId = Id 
-	FROM    dbo.GroupToGroupMappings 
-	WHERE   FromGroupId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Groups 
-				WHERE   [Group] = @FromGroup 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	ToGroupId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Groups 
-				WHERE   [Group] = @ToGroup 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    SELECT  @CurrentRowId = Id 
+    FROM    dbo.GroupToGroupMappings 
+    WHERE   FromGroupId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Groups 
+                WHERE   [Group] = @FromGroup 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    ToGroupId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Groups 
+                WHERE   [Group] = @ToGroup 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-	IF (@CurrentRowId IS NULL)
-	BEGIN
-		SET @ErrorMessage = N'No GroupToGroupMappings row exists for FromGroup ''' + @FromGroup + ''', ToGroup ''' + @ToGroup +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
-		THROW 50001, @ErrorMessage, 1;
-	END
+    IF (@CurrentRowId IS NULL)
+    BEGIN
+        SET @ErrorMessage = N'No GroupToGroupMappings row exists for FromGroup ''' + @FromGroup + ''', ToGroup ''' + @ToGroup +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        THROW 50001, @ErrorMessage, 1;
+    END
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		UPDATE  dbo.GroupToGroupMappings 
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   Id = @CurrentRowId;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing Group to Group mapping for ''' + @FromGroup + ''' and ''' + @ToGroup + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        UPDATE  dbo.GroupToGroupMappings 
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   Id = @CurrentRowId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing Group to Group mapping for ''' + @FromGroup + ''' and ''' + @ToGroup + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -791,7 +791,7 @@ GO
 
 CREATE PROCEDURE dbo.AddUserToApplicationComponentAndAccessLevelMapping
 (
-	@User                  nvarchar(450),
+    @User                  nvarchar(450),
     @ApplicationComponent  nvarchar(450),
     @AccessLevel           nvarchar(450),
     @EventId               uniqueidentifier, 
@@ -800,59 +800,59 @@ CREATE PROCEDURE dbo.AddUserToApplicationComponentAndAccessLevelMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @ErrorMessage  nvarchar(max);
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		INSERT  
-		INTO    dbo.UserToApplicationComponentAndAccessLevelMappings 
-				(
-					UserId, 
-					ApplicationComponentId, 
-					AccessLevelId, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					( 
-						SELECT  Id 
-						FROM    dbo.Users 
-						WHERE   [User] = @User 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.ApplicationComponents
-						WHERE   ApplicationComponent = @ApplicationComponent 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.AccessLevels
-						WHERE   AccessLevel = @AccessLevel 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					),
-					@TransactionTime, 
-					dbo.GetTemporalMaxDate()
-				);
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        INSERT  
+        INTO    dbo.UserToApplicationComponentAndAccessLevelMappings 
+                (
+                    UserId, 
+                    ApplicationComponentId, 
+                    AccessLevelId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Users 
+                        WHERE   [User] = @User 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.ApplicationComponents
+                        WHERE   ApplicationComponent = @ApplicationComponent 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.AccessLevels
+                        WHERE   AccessLevel = @AccessLevel 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ),
+                    @TransactionTime, 
+                    dbo.GetTemporalMaxDate()
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -860,7 +860,7 @@ GO
 
 CREATE PROCEDURE dbo.RemoveUserToApplicationComponentAndAccessLevelMapping
 (
-	@User                  nvarchar(450),
+    @User                  nvarchar(450),
     @ApplicationComponent  nvarchar(450),
     @AccessLevel           nvarchar(450),
     @EventId               uniqueidentifier, 
@@ -869,63 +869,63 @@ CREATE PROCEDURE dbo.RemoveUserToApplicationComponentAndAccessLevelMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
-	DECLARE @CurrentRowId  bigint;
+    DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @CurrentRowId  bigint;
 
-	SELECT  @CurrentRowId = Id 
-	FROM    dbo.UserToApplicationComponentAndAccessLevelMappings 
-	WHERE   UserId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Users 
-				WHERE   [User] = @User 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	ApplicationComponentId = 
-			(
-				SELECT  Id 
-				FROM    dbo.ApplicationComponents 
-				WHERE   ApplicationComponent = @ApplicationComponent 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	AccessLevelId = 
-			(
-				SELECT  Id 
-				FROM    dbo.AccessLevels 
-				WHERE   AccessLevel = @AccessLevel 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    SELECT  @CurrentRowId = Id 
+    FROM    dbo.UserToApplicationComponentAndAccessLevelMappings 
+    WHERE   UserId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Users 
+                WHERE   [User] = @User 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    ApplicationComponentId = 
+            (
+                SELECT  Id 
+                FROM    dbo.ApplicationComponents 
+                WHERE   ApplicationComponent = @ApplicationComponent 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    AccessLevelId = 
+            (
+                SELECT  Id 
+                FROM    dbo.AccessLevels 
+                WHERE   AccessLevel = @AccessLevel 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-	IF (@CurrentRowId IS NULL)
-	BEGIN
-		SET @ErrorMessage = N'No UserToApplicationComponentAndAccessLevelMappings row exists for User ''' + @User + ''', ApplicationComponent ''' + @ApplicationComponent + ''', AccessLevel ''' + @AccessLevel +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
-		THROW 50001, @ErrorMessage, 1;
-	END
+    IF (@CurrentRowId IS NULL)
+    BEGIN
+        SET @ErrorMessage = N'No UserToApplicationComponentAndAccessLevelMappings row exists for User ''' + @User + ''', ApplicationComponent ''' + @ApplicationComponent + ''', AccessLevel ''' + @AccessLevel +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        THROW 50001, @ErrorMessage, 1;
+    END
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		UPDATE  dbo.UserToApplicationComponentAndAccessLevelMappings 
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   Id = @CurrentRowId;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing User to ApplicationComponent and AccessLevel mapping for ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        UPDATE  dbo.UserToApplicationComponentAndAccessLevelMappings 
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   Id = @CurrentRowId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing User to ApplicationComponent and AccessLevel mapping for ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -933,7 +933,7 @@ GO
 
 CREATE PROCEDURE dbo.AddGroupToApplicationComponentAndAccessLevelMapping
 (
-	@Group                 nvarchar(450),
+    @Group                 nvarchar(450),
     @ApplicationComponent  nvarchar(450),
     @AccessLevel           nvarchar(450),
     @EventId               uniqueidentifier, 
@@ -942,59 +942,59 @@ CREATE PROCEDURE dbo.AddGroupToApplicationComponentAndAccessLevelMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @ErrorMessage  nvarchar(max);
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		INSERT  
-		INTO    dbo.GroupToApplicationComponentAndAccessLevelMappings 
-				(
-					GroupId, 
-					ApplicationComponentId, 
-					AccessLevelId, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					( 
-						SELECT  Id 
-						FROM    dbo.Groups 
-						WHERE   [Group] = @Group 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.ApplicationComponents
-						WHERE   ApplicationComponent = @ApplicationComponent 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.AccessLevels
-						WHERE   AccessLevel = @AccessLevel 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					),
-					@TransactionTime, 
-					dbo.GetTemporalMaxDate()
-				);
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        INSERT  
+        INTO    dbo.GroupToApplicationComponentAndAccessLevelMappings 
+                (
+                    GroupId, 
+                    ApplicationComponentId, 
+                    AccessLevelId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Groups 
+                        WHERE   [Group] = @Group 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.ApplicationComponents
+                        WHERE   ApplicationComponent = @ApplicationComponent 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.AccessLevels
+                        WHERE   AccessLevel = @AccessLevel 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ),
+                    @TransactionTime, 
+                    dbo.GetTemporalMaxDate()
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1002,7 +1002,7 @@ GO
 
 CREATE PROCEDURE dbo.RemoveGroupToApplicationComponentAndAccessLevelMapping
 (
-	@Group                 nvarchar(450),
+    @Group                 nvarchar(450),
     @ApplicationComponent  nvarchar(450),
     @AccessLevel           nvarchar(450),
     @EventId               uniqueidentifier, 
@@ -1011,63 +1011,63 @@ CREATE PROCEDURE dbo.RemoveGroupToApplicationComponentAndAccessLevelMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
-	DECLARE @CurrentRowId  bigint;
+    DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @CurrentRowId  bigint;
 
-	SELECT  @CurrentRowId = Id 
-	FROM    dbo.GroupToApplicationComponentAndAccessLevelMappings 
-	WHERE   GroupId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Groups 
-				WHERE   [Group] = @Group 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	ApplicationComponentId = 
-			(
-				SELECT  Id 
-				FROM    dbo.ApplicationComponents 
-				WHERE   ApplicationComponent = @ApplicationComponent 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	AccessLevelId = 
-			(
-				SELECT  Id 
-				FROM    dbo.AccessLevels 
-				WHERE   AccessLevel = @AccessLevel 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    SELECT  @CurrentRowId = Id 
+    FROM    dbo.GroupToApplicationComponentAndAccessLevelMappings 
+    WHERE   GroupId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Groups 
+                WHERE   [Group] = @Group 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    ApplicationComponentId = 
+            (
+                SELECT  Id 
+                FROM    dbo.ApplicationComponents 
+                WHERE   ApplicationComponent = @ApplicationComponent 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    AccessLevelId = 
+            (
+                SELECT  Id 
+                FROM    dbo.AccessLevels 
+                WHERE   AccessLevel = @AccessLevel 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-	IF (@CurrentRowId IS NULL)
-	BEGIN
-		SET @ErrorMessage = N'No GroupToApplicationComponentAndAccessLevelMappings row exists for Group ''' + @Group + ''', ApplicationComponent ''' + @ApplicationComponent + ''', AccessLevel ''' + @AccessLevel +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
-		THROW 50001, @ErrorMessage, 1;
-	END
+    IF (@CurrentRowId IS NULL)
+    BEGIN
+        SET @ErrorMessage = N'No GroupToApplicationComponentAndAccessLevelMappings row exists for Group ''' + @Group + ''', ApplicationComponent ''' + @ApplicationComponent + ''', AccessLevel ''' + @AccessLevel +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        THROW 50001, @ErrorMessage, 1;
+    END
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		UPDATE  dbo.GroupToApplicationComponentAndAccessLevelMappings 
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   Id = @CurrentRowId;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing Group to ApplicationComponent and AccessLevel mapping for ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        UPDATE  dbo.GroupToApplicationComponentAndAccessLevelMappings 
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   Id = @CurrentRowId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing Group to ApplicationComponent and AccessLevel mapping for ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1082,41 +1082,41 @@ CREATE PROCEDURE dbo.AddEntityType
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @ErrorMessage  nvarchar(max);
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	-- Insert the new row
-	BEGIN TRY
-		INSERT  
-		INTO    dbo.EntityTypes 
-				(
-					EntityType, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					@EntityType, 
-					@TransactionTime, 
-					dbo.GetTemporalMaxDate()
-				);
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when inserting EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    -- Insert the new row
+    BEGIN TRY
+        INSERT  
+        INTO    dbo.EntityTypes 
+                (
+                    EntityType, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    @EntityType, 
+                    @TransactionTime, 
+                    dbo.GetTemporalMaxDate()
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when inserting EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1131,83 +1131,83 @@ CREATE PROCEDURE dbo.RemoveEntityType
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
-	DECLARE @CurrentRowId  bigint;
+    DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @CurrentRowId  bigint;
 
-	SELECT  @CurrentRowId = Id 
-	FROM    dbo.EntityTypes 
-	WHERE   EntityType = @EntityType
-	  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    SELECT  @CurrentRowId = Id 
+    FROM    dbo.EntityTypes 
+    WHERE   EntityType = @EntityType
+      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-	IF (@CurrentRowId IS NULL)
-	BEGIN
-		SET @ErrorMessage = N'No EntityTypes row exists for EntityType ''' + @EntityType + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
-		THROW 50001, @ErrorMessage, 1;
-	END
+    IF (@CurrentRowId IS NULL)
+    BEGIN
+        SET @ErrorMessage = N'No EntityTypes row exists for EntityType ''' + @EntityType + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        THROW 50001, @ErrorMessage, 1;
+    END
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	-- Invalidate any UserToEntityMappings rows
-	BEGIN TRY
-		UPDATE  dbo.UserToEntityMappings
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   EntityTypeId = @CurrentRowId
+    -- Invalidate any UserToEntityMappings rows
+    BEGIN TRY
+        UPDATE  dbo.UserToEntityMappings
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   EntityTypeId = @CurrentRowId
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	-- Invalidate any GroupToEntityMappings rows
-	BEGIN TRY
-		UPDATE  dbo.GroupToEntityMappings
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   EntityTypeId = @CurrentRowId
+    -- Invalidate any GroupToEntityMappings rows
+    BEGIN TRY
+        UPDATE  dbo.GroupToEntityMappings
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   EntityTypeId = @CurrentRowId
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
 
-	-- Invalidate any Entities rows
-	BEGIN TRY
-		UPDATE  dbo.Entities
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   EntityTypeId = @CurrentRowId
+    -- Invalidate any Entities rows
+    BEGIN TRY
+        UPDATE  dbo.Entities
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   EntityTypeId = @CurrentRowId
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing Entities for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing Entities for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		UPDATE  dbo.EntityTypes 
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   Id = @CurrentRowId;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        UPDATE  dbo.EntityTypes 
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   Id = @CurrentRowId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1224,48 +1224,48 @@ CREATE PROCEDURE dbo.AddEntity
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @ErrorMessage  nvarchar(max);
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	-- Insert the new row
-	BEGIN TRY
-		INSERT  
-		INTO    dbo.Entities 
-				(
-					EntityTypeId, 
-					Entity, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					( 
-						SELECT  Id 
-						FROM    dbo.EntityTypes 
-						WHERE   EntityType = @EntityType 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					@Entity, 
-					@TransactionTime, 
-					dbo.GetTemporalMaxDate()
-				);
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when inserting Entity ''' + @Entity + ''' of type ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    -- Insert the new row
+    BEGIN TRY
+        INSERT  
+        INTO    dbo.Entities 
+                (
+                    EntityTypeId, 
+                    Entity, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.EntityTypes 
+                        WHERE   EntityType = @EntityType 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    @Entity, 
+                    @TransactionTime, 
+                    dbo.GetTemporalMaxDate()
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when inserting Entity ''' + @Entity + ''' of type ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1281,90 +1281,90 @@ CREATE PROCEDURE dbo.RemoveEntity
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
-	DECLARE @CurrentRowId  bigint;
+    DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @CurrentRowId  bigint;
 
-	SELECT  @CurrentRowId = Id 
-	FROM    dbo.Entities 
-	WHERE   EntityTypeId = 
-			(
-				SELECT  Id 
-				FROM    dbo.EntityTypes 
-				WHERE   EntityType = @EntityType 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	Entity = @Entity
-	  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    SELECT  @CurrentRowId = Id 
+    FROM    dbo.Entities 
+    WHERE   EntityTypeId = 
+            (
+                SELECT  Id 
+                FROM    dbo.EntityTypes 
+                WHERE   EntityType = @EntityType 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    Entity = @Entity
+      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-	IF (@CurrentRowId IS NULL)
-	BEGIN
-		SET @ErrorMessage = N'No Entities row exists for EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
-		THROW 50001, @ErrorMessage, 1;
-	END
+    IF (@CurrentRowId IS NULL)
+    BEGIN
+        SET @ErrorMessage = N'No Entities row exists for EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        THROW 50001, @ErrorMessage, 1;
+    END
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	-- Invalidate any UserToEntityMappings rows
-	BEGIN TRY
-		UPDATE  dbo.UserToEntityMappings
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   EntityTypeId = 
-				(
-					SELECT  Id 
-					FROM    dbo.EntityTypes 
-					WHERE   EntityType = @EntityType 
-					  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-				)
-		  AND   EntityId = @CurrentRowId
+    -- Invalidate any UserToEntityMappings rows
+    BEGIN TRY
+        UPDATE  dbo.UserToEntityMappings
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   EntityTypeId = 
+                (
+                    SELECT  Id 
+                    FROM    dbo.EntityTypes 
+                    WHERE   EntityType = @EntityType 
+                      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                )
+          AND   EntityId = @CurrentRowId
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + @EntityType + ''' and Entity''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + @EntityType + ''' and Entity''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	-- Invalidate any GroupToEntityMappings rows
-	BEGIN TRY
-		UPDATE  dbo.GroupToEntityMappings
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   EntityTypeId = 
-				(
-					SELECT  Id 
-					FROM    dbo.EntityTypes 
-					WHERE   EntityType = @EntityType 
-					  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-				)
-		  AND   EntityId = @CurrentRowId
+    -- Invalidate any GroupToEntityMappings rows
+    BEGIN TRY
+        UPDATE  dbo.GroupToEntityMappings
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   EntityTypeId = 
+                (
+                    SELECT  Id 
+                    FROM    dbo.EntityTypes 
+                    WHERE   EntityType = @EntityType 
+                      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                )
+          AND   EntityId = @CurrentRowId
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + @EntityType + ''' and Entity''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + @EntityType + ''' and Entity''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		UPDATE  dbo.Entities 
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   Id = @CurrentRowId;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing Entity ''' + @Entity + ''' of EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        UPDATE  dbo.Entities 
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   Id = @CurrentRowId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing Entity ''' + @Entity + ''' of EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1372,7 +1372,7 @@ GO
 
 CREATE PROCEDURE dbo.AddUserToEntityMapping
 (
-	@User             nvarchar(450),
+    @User             nvarchar(450),
     @EntityType       nvarchar(450),
     @Entity           nvarchar(450),
     @EventId          uniqueidentifier, 
@@ -1381,46 +1381,46 @@ CREATE PROCEDURE dbo.AddUserToEntityMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @ErrorMessage  nvarchar(max);
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		INSERT  
-		INTO    dbo.UserToEntityMappings 
-				(
-					UserId, 
-					EntityTypeId, 
-					EntityId, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					( 
-						SELECT  Id 
-						FROM    dbo.Users 
-						WHERE   [User] = @User 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.EntityTypes
-						WHERE   EntityType = @EntityType 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.Entities
-						WHERE   EntityTypeId = 
+    BEGIN TRY
+        INSERT  
+        INTO    dbo.UserToEntityMappings 
+                (
+                    UserId, 
+                    EntityTypeId, 
+                    EntityId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Users 
+                        WHERE   [User] = @User 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.EntityTypes
+                        WHERE   EntityType = @EntityType 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Entities
+                        WHERE   EntityTypeId = 
                                 ( 
                                     SELECT  Id 
                                     FROM    dbo.EntityTypes
@@ -1428,19 +1428,19 @@ BEGIN
                                       AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
                                 )
                           AND   Entity = @Entity 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					),
-					@TransactionTime, 
-					dbo.GetTemporalMaxDate()
-				);
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when inserting User to Entity mapping between ''' + @User + ''', ''' + @EntityType + ''' and ''' + @Entity + ''' : ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ),
+                    @TransactionTime, 
+                    dbo.GetTemporalMaxDate()
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when inserting User to Entity mapping between ''' + @User + ''', ''' + @EntityType + ''' and ''' + @Entity + ''' : ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1450,7 +1450,7 @@ GO
 
 CREATE PROCEDURE dbo.RemoveUserToEntityMapping
 (
-	@User             nvarchar(450),
+    @User             nvarchar(450),
     @EntityType       nvarchar(450),
     @Entity           nvarchar(450),
     @EventId          uniqueidentifier, 
@@ -1459,70 +1459,70 @@ CREATE PROCEDURE dbo.RemoveUserToEntityMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
-	DECLARE @CurrentRowId  bigint;
+    DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @CurrentRowId  bigint;
 
-	SELECT  @CurrentRowId = Id 
-	FROM    dbo.UserToEntityMappings 
-	WHERE   UserId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Users 
-				WHERE   [User] = @User 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	EntityTypeId = 
-			(
-				SELECT  Id 
-				FROM    dbo.EntityTypes
-				WHERE   EntityType = @EntityType 
-					AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-			)
-	  AND	EntityId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Entities
-				WHERE   EntityTypeId = 
-						( 
-							SELECT  Id 
-							FROM    dbo.EntityTypes
-							WHERE   EntityType = @EntityType 
-								AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-						)
-					AND   Entity = @Entity 
-					AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-			)
-	  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    SELECT  @CurrentRowId = Id 
+    FROM    dbo.UserToEntityMappings 
+    WHERE   UserId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Users 
+                WHERE   [User] = @User 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    EntityTypeId = 
+            (
+                SELECT  Id 
+                FROM    dbo.EntityTypes
+                WHERE   EntityType = @EntityType 
+                    AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND    EntityId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Entities
+                WHERE   EntityTypeId = 
+                        ( 
+                            SELECT  Id 
+                            FROM    dbo.EntityTypes
+                            WHERE   EntityType = @EntityType 
+                                AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                        )
+                    AND   Entity = @Entity 
+                    AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-	IF (@CurrentRowId IS NULL)
-	BEGIN
-		SET @ErrorMessage = N'No UserToEntityMappings row exists for User ''' + @User + ''', EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
-		THROW 50001, @ErrorMessage, 1;
-	END
+    IF (@CurrentRowId IS NULL)
+    BEGIN
+        SET @ErrorMessage = N'No UserToEntityMappings row exists for User ''' + @User + ''', EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        THROW 50001, @ErrorMessage, 1;
+    END
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		UPDATE  dbo.UserToEntityMappings 
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   Id = @CurrentRowId;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing User to EntityType mapping for ''' + @User + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        UPDATE  dbo.UserToEntityMappings 
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   Id = @CurrentRowId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing User to EntityType mapping for ''' + @User + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1530,7 +1530,7 @@ GO
 
 CREATE PROCEDURE dbo.AddGroupToEntityMapping
 (
-	@Group            nvarchar(450),
+    @Group            nvarchar(450),
     @EntityType       nvarchar(450),
     @Entity           nvarchar(450),
     @EventId          uniqueidentifier, 
@@ -1539,46 +1539,46 @@ CREATE PROCEDURE dbo.AddGroupToEntityMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @ErrorMessage  nvarchar(max);
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		INSERT  
-		INTO    dbo.GroupToEntityMappings 
-				(
-					GroupId, 
-					EntityTypeId, 
-					EntityId, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					( 
-						SELECT  Id 
-						FROM    dbo.Groups 
-						WHERE   [Group] = @Group 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.EntityTypes
-						WHERE   EntityType = @EntityType 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					), 
-					( 
-						SELECT  Id 
-						FROM    dbo.Entities
-						WHERE   EntityTypeId = 
+    BEGIN TRY
+        INSERT  
+        INTO    dbo.GroupToEntityMappings 
+                (
+                    GroupId, 
+                    EntityTypeId, 
+                    EntityId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Groups 
+                        WHERE   [Group] = @Group 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.EntityTypes
+                        WHERE   EntityType = @EntityType 
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    dbo.Entities
+                        WHERE   EntityTypeId = 
                                 ( 
                                     SELECT  Id 
                                     FROM    dbo.EntityTypes
@@ -1586,19 +1586,19 @@ BEGIN
                                       AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
                                 )
                           AND   Entity = @Entity 
-						  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-					),
-					@TransactionTime, 
-					dbo.GetTemporalMaxDate()
-				);
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when inserting Group to Entity mapping between ''' + @Group + ''', ''' + @EntityType + ''' and ''' + @Entity + ''' : ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+                          AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ),
+                    @TransactionTime, 
+                    dbo.GetTemporalMaxDate()
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when inserting Group to Entity mapping between ''' + @Group + ''', ''' + @EntityType + ''' and ''' + @Entity + ''' : ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
@@ -1608,7 +1608,7 @@ GO
 
 CREATE PROCEDURE dbo.RemoveGroupToEntityMapping
 (
-	@Group            nvarchar(450),
+    @Group            nvarchar(450),
     @EntityType       nvarchar(450),
     @Entity           nvarchar(450),
     @EventId          uniqueidentifier, 
@@ -1617,70 +1617,70 @@ CREATE PROCEDURE dbo.RemoveGroupToEntityMapping
 AS
 BEGIN
 
-	DECLARE @ErrorMessage  nvarchar(max);
-	DECLARE @CurrentRowId  bigint;
+    DECLARE @ErrorMessage  nvarchar(max);
+    DECLARE @CurrentRowId  bigint;
 
-	SELECT  @CurrentRowId = Id 
-	FROM    dbo.GroupToEntityMappings 
-	WHERE   GroupId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Groups 
-				WHERE   [Group] = @Group 
-				  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
-			)
-	  AND	EntityTypeId = 
-			(
-				SELECT  Id 
-				FROM    dbo.EntityTypes
-				WHERE   EntityType = @EntityType 
-					AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-			)
-	  AND	EntityId = 
-			(
-				SELECT  Id 
-				FROM    dbo.Entities
-				WHERE   EntityTypeId = 
-						( 
-							SELECT  Id 
-							FROM    dbo.EntityTypes
-							WHERE   EntityType = @EntityType 
-								AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-						)
-					AND   Entity = @Entity 
-					AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
-			)
-	  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    SELECT  @CurrentRowId = Id 
+    FROM    dbo.GroupToEntityMappings 
+    WHERE   GroupId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Groups 
+                WHERE   [Group] = @Group 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    EntityTypeId = 
+            (
+                SELECT  Id 
+                FROM    dbo.EntityTypes
+                WHERE   EntityType = @EntityType 
+                    AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND    EntityId = 
+            (
+                SELECT  Id 
+                FROM    dbo.Entities
+                WHERE   EntityTypeId = 
+                        ( 
+                            SELECT  Id 
+                            FROM    dbo.EntityTypes
+                            WHERE   EntityType = @EntityType 
+                                AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                        )
+                    AND   Entity = @Entity 
+                    AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-	IF (@CurrentRowId IS NULL)
-	BEGIN
-		SET @ErrorMessage = N'No GroupToEntityMappings row exists for Group ''' + @Group + ''', EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
-		THROW 50001, @ErrorMessage, 1;
-	END
+    IF (@CurrentRowId IS NULL)
+    BEGIN
+        SET @ErrorMessage = N'No GroupToEntityMappings row exists for Group ''' + @Group + ''', EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        THROW 50001, @ErrorMessage, 1;
+    END
 
-	BEGIN TRANSACTION
+    BEGIN TRANSACTION
 
-	BEGIN TRY
-		EXEC CreateEvent @EventId, @TransactionTime;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        EXEC CreateEvent @EventId, @TransactionTime;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	BEGIN TRY
-		UPDATE  dbo.GroupToEntityMappings 
-		SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-		WHERE   Id = @CurrentRowId;
-	END TRY
-	BEGIN CATCH
-		ROLLBACK TRANSACTION
-		SET @ErrorMessage = N'Error occurred when removing Group to EntityType mapping for ''' + @Group + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
-		THROW 50001, @ErrorMessage, 1;
-	END CATCH
+    BEGIN TRY
+        UPDATE  dbo.GroupToEntityMappings 
+        SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
+        WHERE   Id = @CurrentRowId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error occurred when removing Group to EntityType mapping for ''' + @Group + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
 
-	COMMIT TRANSACTION
+    COMMIT TRANSACTION
 
 END
 GO
