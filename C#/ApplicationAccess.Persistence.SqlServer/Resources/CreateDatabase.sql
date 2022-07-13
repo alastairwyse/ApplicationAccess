@@ -312,7 +312,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No Users row exists with User ''' + @User +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No Users row exists for User ''' + @User +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -450,7 +450,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No Groups row exists with Group ''' + @Group +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No Groups row exists for Group ''' + @Group +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -789,6 +789,7 @@ END
 GO
 
 
+
 CREATE PROCEDURE dbo.AddUserToApplicationComponentAndAccessLevelMapping
 (
     @User                  nvarchar(450),
@@ -847,9 +848,114 @@ BEGIN
                 );
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 515)
+        BEGIN
+            -- Insert failed due to 'Cannot insert the value NULL into column' error
+            --   Need to ensure @ApplicationComponent and @AccessLevel exist
+            DECLARE @ApplicationComponentsId  bigint;
+
+            SELECT  @ApplicationComponentsId = Id 
+            FROM    ApplicationComponents 
+            WHERE   ApplicationComponent = @ApplicationComponent
+              AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+            
+            IF (@ApplicationComponentsId IS NULL)
+            BEGIN TRY
+                -- Insert @ApplicationComponent
+                INSERT  
+                INTO    dbo.ApplicationComponents 
+                        (
+                            ApplicationComponent, 
+                            TransactionFrom, 
+                            TransactionTo 
+                        )
+                VALUES  (
+                            @ApplicationComponent, 
+                            @TransactionTime, 
+                            dbo.GetTemporalMaxDate()
+                        );
+            END TRY
+            BEGIN CATCH
+                ROLLBACK TRANSACTION
+                SET @ErrorMessage = N'Error occurred when inserting ApplicationComponent ''' + @ApplicationComponent + ''': ' + ERROR_MESSAGE() + '.';
+                THROW 50001, @ErrorMessage, 1;
+            END CATCH
+
+            DECLARE @AccessLevelsId  bigint;
+            
+            SELECT  @AccessLevelsId = Id 
+            FROM    AccessLevels 
+            WHERE   AccessLevel = @AccessLevel
+              AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+
+            IF (@AccessLevelsId IS NULL)
+            BEGIN TRY
+                -- Insert @AccessLevel
+                INSERT  
+                INTO    dbo.AccessLevels 
+                        (
+                            AccessLevel, 
+                            TransactionFrom, 
+                            TransactionTo 
+                        )
+                VALUES  (
+                            @AccessLevel, 
+                            @TransactionTime, 
+                            dbo.GetTemporalMaxDate()
+                        );
+            END TRY
+            BEGIN CATCH
+                ROLLBACK TRANSACTION
+                SET @ErrorMessage = N'Error occurred when inserting AccessLevel ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
+                THROW 50001, @ErrorMessage, 1;
+            END CATCH
+
+            -- Repeat the original insert
+            BEGIN TRY
+                INSERT  
+                INTO    dbo.UserToApplicationComponentAndAccessLevelMappings 
+                        (
+                            UserId, 
+                            ApplicationComponentId, 
+                            AccessLevelId, 
+                            TransactionFrom, 
+                            TransactionTo 
+                        )
+                VALUES  (
+                            ( 
+                                SELECT  Id 
+                                FROM    dbo.Users 
+                                WHERE   [User] = @User 
+                                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                            ), 
+                            ( 
+                                SELECT  Id 
+                                FROM    dbo.ApplicationComponents
+                                WHERE   ApplicationComponent = @ApplicationComponent 
+                                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                            ), 
+                            ( 
+                                SELECT  Id 
+                                FROM    dbo.AccessLevels
+                                WHERE   AccessLevel = @AccessLevel 
+                                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                            ),
+                            @TransactionTime, 
+                            dbo.GetTemporalMaxDate()
+                        );
+            END TRY
+            BEGIN CATCH
+                ROLLBACK TRANSACTION
+                SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+                THROW 50001, @ErrorMessage, 1;
+            END CATCH
+        END
+        ELSE  -- i.e. ERROR_NUMBER() != 515
+        BEGIN
+            ROLLBACK TRANSACTION
+            SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+            THROW 50001, @ErrorMessage, 1;
+        END
     END CATCH
 
     COMMIT TRANSACTION
@@ -989,9 +1095,114 @@ BEGIN
                 );
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
-        THROW 50001, @ErrorMessage, 1;
+        IF (ERROR_NUMBER() = 515)
+        BEGIN
+            -- Insert failed due to 'Cannot insert the value NULL into column' error
+            --   Need to ensure @ApplicationComponent and @AccessLevel exist
+            DECLARE @ApplicationComponentsId  bigint;
+
+            SELECT  @ApplicationComponentsId = Id 
+            FROM    ApplicationComponents 
+            WHERE   ApplicationComponent = @ApplicationComponent
+              AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+            
+            IF (@ApplicationComponentsId IS NULL)
+            BEGIN TRY
+                -- Insert @ApplicationComponent
+                INSERT  
+                INTO    dbo.ApplicationComponents 
+                        (
+                            ApplicationComponent, 
+                            TransactionFrom, 
+                            TransactionTo 
+                        )
+                VALUES  (
+                            @ApplicationComponent, 
+                            @TransactionTime, 
+                            dbo.GetTemporalMaxDate()
+                        );
+            END TRY
+            BEGIN CATCH
+                ROLLBACK TRANSACTION
+                SET @ErrorMessage = N'Error occurred when inserting ApplicationComponent ''' + @ApplicationComponent + ''': ' + ERROR_MESSAGE() + '.';
+                THROW 50001, @ErrorMessage, 1;
+            END CATCH
+
+            DECLARE @AccessLevelsId  bigint;
+            
+            SELECT  @AccessLevelsId = Id 
+            FROM    AccessLevels 
+            WHERE   AccessLevel = @AccessLevel
+              AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+
+            IF (@AccessLevelsId IS NULL)
+            BEGIN TRY
+                -- Insert @AccessLevel
+                INSERT  
+                INTO    dbo.AccessLevels 
+                        (
+                            AccessLevel, 
+                            TransactionFrom, 
+                            TransactionTo 
+                        )
+                VALUES  (
+                            @AccessLevel, 
+                            @TransactionTime, 
+                            dbo.GetTemporalMaxDate()
+                        );
+            END TRY
+            BEGIN CATCH
+                ROLLBACK TRANSACTION
+                SET @ErrorMessage = N'Error occurred when inserting AccessLevel ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
+                THROW 50001, @ErrorMessage, 1;
+            END CATCH
+
+            -- Repeat the original insert
+            BEGIN TRY
+                INSERT  
+                INTO    dbo.GroupToApplicationComponentAndAccessLevelMappings 
+                        (
+                            GroupId, 
+                            ApplicationComponentId, 
+                            AccessLevelId, 
+                            TransactionFrom, 
+                            TransactionTo 
+                        )
+                VALUES  (
+                            ( 
+                                SELECT  Id 
+                                FROM    dbo.Groups 
+                                WHERE   [Group] = @Group 
+                                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                            ), 
+                            ( 
+                                SELECT  Id 
+                                FROM    dbo.ApplicationComponents
+                                WHERE   ApplicationComponent = @ApplicationComponent 
+                                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                            ), 
+                            ( 
+                                SELECT  Id 
+                                FROM    dbo.AccessLevels
+                                WHERE   AccessLevel = @AccessLevel 
+                                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                            ),
+                            @TransactionTime, 
+                            dbo.GetTemporalMaxDate()
+                );
+            END TRY
+            BEGIN CATCH
+                ROLLBACK TRANSACTION
+                SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+                THROW 50001, @ErrorMessage, 1;
+            END CATCH
+        END
+        ELSE  -- i.e. ERROR_NUMBER() != 515
+        BEGIN
+            ROLLBACK TRANSACTION
+            SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+            THROW 50001, @ErrorMessage, 1;
+        END
     END CATCH
 
     COMMIT TRANSACTION

@@ -8,6 +8,10 @@
     <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.0" />
   </ItemGroup>
