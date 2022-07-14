@@ -1,20 +1,21 @@
-﻿
-----------------------------------------
--- Drop Everything
+﻿-- TODO:
+--   See if database name can be parameterized
 
 
-
-
-
-
-----------------------------------------
--- Create the DB
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Create Database
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 CREATE DATABASE ApplicationAccess;
 
 
-----------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Create Tables
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 CREATE TABLE ApplicationAccess.dbo.EventIdToTransactionTimeMap
 (
@@ -173,11 +174,17 @@ CREATE INDEX GroupToEntityMappingsEntityIndex ON ApplicationAccess.dbo.GroupToEn
 CREATE INDEX GroupToEntityMappingsTransactionIndex ON ApplicationAccess.dbo.GroupToEntityMappings (TransactionFrom, TransactionTo);
 
 
-----------------------------------------
--- Create Stored Procedures
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Create Functions / Stored Procedures
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 USE ApplicationAccess
 GO 
+
+--------------------------------------------------------------------------------
+-- dbo.GetTemporalMaxDate
 
 CREATE FUNCTION dbo.GetTemporalMaxDate
 (
@@ -189,6 +196,9 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.SubtractTemporalMinimumTimeUnit
+
 CREATE FUNCTION dbo.SubtractTemporalMinimumTimeUnit
 (
     @InputTime  datetime2
@@ -199,6 +209,9 @@ BEGIN
     RETURN DATEADD(NANOSECOND, -100, @InputTime);
 END
 GO
+
+--------------------------------------------------------------------------------
+-- dbo.CreateEvent
 
 CREATE PROCEDURE dbo.CreateEvent
 (
@@ -244,6 +257,9 @@ BEGIN
 
 END
 GO
+
+--------------------------------------------------------------------------------
+-- dbo.AddUser
 
 CREATE PROCEDURE dbo.AddUser
 (
@@ -293,6 +309,9 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.RemoveUser
+
 CREATE PROCEDURE dbo.RemoveUser
 (
     @User             nvarchar(450),
@@ -331,7 +350,7 @@ BEGIN
     BEGIN TRY
         UPDATE  dbo.UserToGroupMappings 
         SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-        WHERE   UserId = @User 
+        WHERE   UserId = @CurrentRowId 
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
     END TRY
     BEGIN CATCH
@@ -344,7 +363,7 @@ BEGIN
     BEGIN TRY
         UPDATE  dbo.UserToApplicationComponentAndAccessLevelMappings 
         SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-        WHERE   UserId = @User 
+        WHERE   UserId = @CurrentRowId 
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
     END TRY
     BEGIN CATCH
@@ -357,7 +376,7 @@ BEGIN
     BEGIN TRY
         UPDATE  dbo.UserToEntityMappings 
         SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-        WHERE   UserId = @User 
+        WHERE   UserId = @CurrentRowId 
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
     END TRY
     BEGIN CATCH
@@ -382,6 +401,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.AddGroup
 
 CREATE PROCEDURE dbo.AddGroup
 (
@@ -430,6 +451,9 @@ BEGIN
 
 END
 GO
+
+--------------------------------------------------------------------------------
+-- dbo.RemoveGroup
 
 CREATE PROCEDURE dbo.RemoveGroup
 (
@@ -537,6 +561,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.AddUserToGroupMapping
 
 CREATE PROCEDURE dbo.AddUserToGroupMapping
 (
@@ -598,6 +624,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.RemoveUserToGroupMapping
 
 CREATE PROCEDURE dbo.RemoveUserToGroupMapping
 (
@@ -663,6 +691,9 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.AddGroupToGroupMapping
+
 CREATE PROCEDURE dbo.AddGroupToGroupMapping
 (
     @FromGroup        nvarchar(450),
@@ -723,6 +754,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.RemoveGroupToGroupMapping
 
 CREATE PROCEDURE dbo.RemoveGroupToGroupMapping
 (
@@ -788,7 +821,8 @@ BEGIN
 END
 GO
 
-
+--------------------------------------------------------------------------------
+-- dbo.AddUserToApplicationComponentAndAccessLevelMapping
 
 CREATE PROCEDURE dbo.AddUserToApplicationComponentAndAccessLevelMapping
 (
@@ -963,6 +997,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.RemoveUserToApplicationComponentAndAccessLevelMapping
 
 CREATE PROCEDURE dbo.RemoveUserToApplicationComponentAndAccessLevelMapping
 (
@@ -1036,6 +1072,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.AddGroupToApplicationComponentAndAccessLevelMapping
 
 CREATE PROCEDURE dbo.AddGroupToApplicationComponentAndAccessLevelMapping
 (
@@ -1210,6 +1248,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.RemoveGroupToApplicationComponentAndAccessLevelMapping
 
 CREATE PROCEDURE dbo.RemoveGroupToApplicationComponentAndAccessLevelMapping
 (
@@ -1283,6 +1323,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.AddEntityType
 
 CREATE PROCEDURE dbo.AddEntityType
 (
@@ -1332,6 +1374,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.RemoveEntityType
 
 CREATE PROCEDURE dbo.RemoveEntityType
 (
@@ -1393,7 +1437,6 @@ BEGIN
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
-
     -- Invalidate any Entities rows
     BEGIN TRY
         UPDATE  dbo.Entities
@@ -1423,7 +1466,8 @@ BEGIN
 END
 GO
 
-
+--------------------------------------------------------------------------------
+-- dbo.AddEntity
 
 CREATE PROCEDURE dbo.AddEntity
 (
@@ -1481,6 +1525,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.RemoveEntity
 
 CREATE PROCEDURE dbo.RemoveEntity
 (
@@ -1504,7 +1550,7 @@ BEGIN
                 WHERE   EntityType = @EntityType 
                   AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
             )
-      AND    Entity = @Entity
+      AND   Entity = @Entity
       AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
     IF (@CurrentRowId IS NULL)
@@ -1580,6 +1626,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.AddUserToEntityMapping
 
 CREATE PROCEDURE dbo.AddUserToEntityMapping
 (
@@ -1656,8 +1704,8 @@ BEGIN
 END
 GO
 
-
-
+--------------------------------------------------------------------------------
+-- dbo.RemoveUserToEntityMapping
 
 CREATE PROCEDURE dbo.RemoveUserToEntityMapping
 (
@@ -1682,14 +1730,14 @@ BEGIN
                 WHERE   [User] = @User 
                   AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
             )
-      AND    EntityTypeId = 
+      AND   EntityTypeId = 
             (
                 SELECT  Id 
                 FROM    dbo.EntityTypes
                 WHERE   EntityType = @EntityType 
-                    AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
             )
-      AND    EntityId = 
+      AND   EntityId = 
             (
                 SELECT  Id 
                 FROM    dbo.Entities
@@ -1700,8 +1748,8 @@ BEGIN
                             WHERE   EntityType = @EntityType 
                                 AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
                         )
-                    AND   Entity = @Entity 
-                    AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                  AND   Entity = @Entity 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
             )
       AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
@@ -1729,7 +1777,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to EntityType mapping for ''' + @User + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to Entity mapping for ''' + @User + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1738,6 +1786,8 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.AddGroupToEntityMapping
 
 CREATE PROCEDURE dbo.AddGroupToEntityMapping
 (
@@ -1814,8 +1864,8 @@ BEGIN
 END
 GO
 
-
-
+--------------------------------------------------------------------------------
+-- dbo.RemoveGroupToEntityMapping
 
 CREATE PROCEDURE dbo.RemoveGroupToEntityMapping
 (
@@ -1840,14 +1890,14 @@ BEGIN
                 WHERE   [Group] = @Group 
                   AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo
             )
-      AND    EntityTypeId = 
+      AND   EntityTypeId = 
             (
                 SELECT  Id 
                 FROM    dbo.EntityTypes
                 WHERE   EntityType = @EntityType 
-                    AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
             )
-      AND    EntityId = 
+      AND   EntityId = 
             (
                 SELECT  Id 
                 FROM    dbo.Entities
@@ -1858,8 +1908,8 @@ BEGIN
                             WHERE   EntityType = @EntityType 
                                 AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
                         )
-                    AND   Entity = @Entity 
-                    AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                  AND   Entity = @Entity 
+                  AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo 
             )
       AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
@@ -1887,7 +1937,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to EntityType mapping for ''' + @Group + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to Entity mapping for ''' + @Group + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1895,70 +1945,3 @@ BEGIN
 
 END
 GO
-
-
-
-----------------------------------------
--- Test Commmands
-
-BEGIN TRY
-  DECLARE @EventId uniqueidentifier;
-  DECLARE @CurrentTime datetime2;
-  SET @EventId = NEWID();
-  --SELECT @CurrentTime = CONVERT(datetime2, '2021-05-25T23:04:00.1234567', 126);
-  SET @CurrentTime = GETDATE();
-  EXEC dbo.AddUserToGroupMapping 'Dave', 'Sales', @EventId, @CurrentTime;
-END TRY
-BEGIN CATCH
-  PRINT  ERROR_MESSAGE();
-  THROW
-END CATCH
-
-BEGIN TRY
-  DECLARE @EventId uniqueidentifier;
-  DECLARE @CurrentTime datetime2;
-  SET @EventId = NEWID();
-  --SELECT @CurrentTime = CONVERT(datetime2, '2021-05-25T23:04:00.1234567', 126);
-  SET @CurrentTime = GETDATE();
-  EXEC dbo.RemoveUserToGroupMapping 'Dave', 'Sales', @EventId, @CurrentTime;
-END TRY
-BEGIN CATCH
-  PRINT  ERROR_MESSAGE();
-  THROW
-END CATCH
-
-SELECT ERROR_MESSAGE();
-
-SELECT  *
-FROM    EventIdToTransactionTimeMap
-
-SELECT  *
-FROM    Users
-WHERE   CONVERT(datetime2, '2022-05-28T08:48:10.0400000', 126) BETWEEN TransactionFrom AND TransactionTo;
-
-SELECT  *
-FROM    Groups
-WHERE   CONVERT(datetime2, '2022-05-28T08:48:10.0400000', 126) BETWEEN TransactionFrom AND TransactionTo;
-
-SELECT  *
-FROM    UserToGroupMappings
-WHERE   GETDATE() BETWEEN TransactionFrom AND TransactionTo;
-
-TRUNCATE TABLE UserToGroupMappings
-
-SELECT dbo.GetTemporalMaxDate();
-
-SELECT CONVERT(datetime2, '9999-12-31T23:59:59.9999999', 126);
-
-SELECT  'IS_IT?'
-WHERE   6 BETWEEN 1 AND 5;
-
-SELECT  'IS_IT?'
-WHERE   1 = 2;
-
-----------------------------------------
--- TODO
-
---   Pass datatbase name in as a param??  Might need to change when we have multiple instances of DB (sharding case)
---   If I use datetime2 have to expect it's in UTC
---   If I want to include timezone, need to use datetimeoffset

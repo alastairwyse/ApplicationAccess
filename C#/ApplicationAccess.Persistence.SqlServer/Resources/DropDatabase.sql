@@ -1,4 +1,10 @@
-﻿DROP PROCEDURE dbo.RemoveGroupToEntityMapping;
+﻿--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Drop Functions / Stored Procedures
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+DROP PROCEDURE dbo.RemoveGroupToEntityMapping;
 DROP PROCEDURE dbo.AddGroupToEntityMapping;
 DROP PROCEDURE dbo.RemoveUserToEntityMapping;
 DROP PROCEDURE dbo.AddUserToEntityMapping;
@@ -22,6 +28,12 @@ DROP PROCEDURE dbo.CreateEvent;
 DROP FUNCTION dbo.SubtractTemporalMinimumTimeUnit;
 DROP FUNCTION dbo.GetTemporalMaxDate;
 
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Drop Tables
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 DROP TABLE ApplicationAccess.dbo.GroupToEntityMappings;
 DROP TABLE ApplicationAccess.dbo.UserToEntityMappings;
