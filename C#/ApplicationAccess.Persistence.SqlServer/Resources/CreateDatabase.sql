@@ -523,7 +523,7 @@ BEGIN
     BEGIN TRY
         UPDATE  dbo.GroupToApplicationComponentAndAccessLevelMappings 
         SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-        WHERE   GroupId = @Group 
+        WHERE   GroupId = @CurrentRowId 
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
     END TRY
     BEGIN CATCH
@@ -536,7 +536,7 @@ BEGIN
     BEGIN TRY
         UPDATE  dbo.GroupToEntityMappings 
         SET     TransactionTo = dbo.SubtractTemporalMinimumTimeUnit(@TransactionTime)
-        WHERE   GroupId = @Group 
+        WHERE   GroupId = @CurrentRowId 
           AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
     END TRY
     BEGIN CATCH
