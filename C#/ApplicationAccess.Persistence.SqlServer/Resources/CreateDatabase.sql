@@ -251,7 +251,7 @@ BEGIN
                 );
     END TRY
     BEGIN CATCH
-        SET @ErrorMessage = N'Error occurred when inserting into table ''EventIdToTransactionTimeMap'': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting into table ''EventIdToTransactionTimeMap''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -279,7 +279,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -300,7 +300,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting User ''' + @User + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting User ''' + ISNULL(@User, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -331,7 +331,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No Users row exists for User ''' + @User +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No Users row exists for User ''' + ISNULL(@User, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -342,7 +342,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -355,7 +355,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to Group mappings for User ''' + @User + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to Group mappings for User ''' + ISNULL(@User, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -368,7 +368,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to ApplicationComponent and AccessLevel mappings for User ''' + @User + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to ApplicationComponent and AccessLevel mappings for User ''' + ISNULL(@User, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -381,7 +381,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for User ''' + @User + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for User ''' + ISNULL(@User, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -392,7 +392,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User ''' + @User + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User ''' + ISNULL(@User, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -422,7 +422,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -443,7 +443,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting Group ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting Group ''' + ISNULL(@Group, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -474,7 +474,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No Groups row exists for Group ''' + @Group +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No Groups row exists for Group ''' + ISNULL(@Group, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -485,7 +485,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -498,7 +498,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to Group mappings for Group ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to Group mappings for Group ''' + ISNULL(@Group, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -515,7 +515,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to Group mappings for Group ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to Group mappings for Group ''' + ISNULL(@Group, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -528,7 +528,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to ApplicationComponent and AccessLevel mappings for Group ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to ApplicationComponent and AccessLevel mappings for Group ''' + ISNULL(@Group, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -541,7 +541,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for Group ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for Group ''' + ISNULL(@Group, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -552,7 +552,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group ''' + ISNULL(@Group, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -583,7 +583,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -615,7 +615,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting User to Group mapping between ''' + @User + ''' and ''' + @Group + ''' : ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting User to Group mapping between ''' + ISNULL(@User, '(null)') + ''' and ''' + ISNULL(@Group, '(null)') + ''' ; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -660,7 +660,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No UserToGroupMappings row exists for User ''' + @User + ''', Group ''' + @Group +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No UserToGroupMappings row exists for User ''' + ISNULL(@User, '(null)') + ''', Group ''' + ISNULL(@Group, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -671,7 +671,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -682,7 +682,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to Group mapping for ''' + @User + ''' and ''' + @Group + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to Group mapping for ''' + ISNULL(@User, '(null)') + ''' and ''' + ISNULL(@Group, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -713,7 +713,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -745,7 +745,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting Group to Group mapping between ''' + @FromGroup + ''' and ''' + @ToGroup + ''' : ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting Group to Group mapping between ''' + ISNULL(@FromGroup, '(null)') + ''' and ''' + ISNULL(@ToGroup, '(null)') + ''' ; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -790,7 +790,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No GroupToGroupMappings row exists for FromGroup ''' + @FromGroup + ''', ToGroup ''' + @ToGroup +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No GroupToGroupMappings row exists for FromGroup ''' + ISNULL(@FromGroup, '(null)') + ''', ToGroup ''' + ISNULL(@ToGroup, '(null)') +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -801,7 +801,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -812,7 +812,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to Group mapping for ''' + @FromGroup + ''' and ''' + @ToGroup + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to Group mapping for ''' + ISNULL(@FromGroup, '(null)') + ''' and ''' + ISNULL(@ToGroup, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -844,7 +844,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -911,7 +911,7 @@ BEGIN
             END TRY
             BEGIN CATCH
                 ROLLBACK TRANSACTION
-                SET @ErrorMessage = N'Error occurred when inserting ApplicationComponent ''' + @ApplicationComponent + ''': ' + ERROR_MESSAGE() + '.';
+                SET @ErrorMessage = N'Error occurred when inserting ApplicationComponent ''' + ISNULL(@ApplicationComponent, '(null)') + '''; ' + ERROR_MESSAGE();
                 THROW 50001, @ErrorMessage, 1;
             END CATCH
 
@@ -940,7 +940,7 @@ BEGIN
             END TRY
             BEGIN CATCH
                 ROLLBACK TRANSACTION
-                SET @ErrorMessage = N'Error occurred when inserting AccessLevel ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
+                SET @ErrorMessage = N'Error occurred when inserting AccessLevel ''' + ISNULL(@AccessLevel, '(null)') + '''; ' + ERROR_MESSAGE();
                 THROW 50001, @ErrorMessage, 1;
             END CATCH
 
@@ -980,14 +980,14 @@ BEGIN
             END TRY
             BEGIN CATCH
                 ROLLBACK TRANSACTION
-                SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+                SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + ISNULL(@User, '(null)') + ''', ''' + ISNULL(@ApplicationComponent, '(null)') + ''' and ''' + ISNULL(@AccessLevel, '(null)') + ''' ; ' + ERROR_MESSAGE();
                 THROW 50001, @ErrorMessage, 1;
             END CATCH
         END
         ELSE  -- i.e. ERROR_NUMBER() != 515
         BEGIN
             ROLLBACK TRANSACTION
-            SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+            SET @ErrorMessage = N'Error occurred when inserting User to ApplicationComponent and AccessLevel mapping between ''' + ISNULL(@User, '(null)') + ''', ''' + ISNULL(@ApplicationComponent, '(null)') + ''' and ''' + ISNULL(@AccessLevel, '(null)') + ''' ; ' + ERROR_MESSAGE();
             THROW 50001, @ErrorMessage, 1;
         END
     END CATCH
@@ -1041,7 +1041,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No UserToApplicationComponentAndAccessLevelMappings row exists for User ''' + @User + ''', ApplicationComponent ''' + @ApplicationComponent + ''', AccessLevel ''' + @AccessLevel +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No UserToApplicationComponentAndAccessLevelMappings row exists for User ''' + ISNULL(@User, '(null)') + ''', ApplicationComponent ''' + ISNULL(@ApplicationComponent, '(null)') + ''', AccessLevel ''' + ISNULL(@AccessLevel, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -1052,7 +1052,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1063,7 +1063,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to ApplicationComponent and AccessLevel mapping for ''' + @User + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to ApplicationComponent and AccessLevel mapping for ''' + ISNULL(@User, '(null)') + ''', ''' + ISNULL(@ApplicationComponent, '(null)') + ''' and ''' + ISNULL(@AccessLevel, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1095,7 +1095,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1162,7 +1162,7 @@ BEGIN
             END TRY
             BEGIN CATCH
                 ROLLBACK TRANSACTION
-                SET @ErrorMessage = N'Error occurred when inserting ApplicationComponent ''' + @ApplicationComponent + ''': ' + ERROR_MESSAGE() + '.';
+                SET @ErrorMessage = N'Error occurred when inserting ApplicationComponent ''' + ISNULL(@ApplicationComponent, '(null)') + '''; ' + ERROR_MESSAGE();
                 THROW 50001, @ErrorMessage, 1;
             END CATCH
 
@@ -1191,7 +1191,7 @@ BEGIN
             END TRY
             BEGIN CATCH
                 ROLLBACK TRANSACTION
-                SET @ErrorMessage = N'Error occurred when inserting AccessLevel ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
+                SET @ErrorMessage = N'Error occurred when inserting AccessLevel ''' + ISNULL(@AccessLevel, '(null)') + '''; ' + ERROR_MESSAGE();
                 THROW 50001, @ErrorMessage, 1;
             END CATCH
 
@@ -1231,14 +1231,14 @@ BEGIN
             END TRY
             BEGIN CATCH
                 ROLLBACK TRANSACTION
-                SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+                SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + ISNULL(@Group, '(null)') + ''', ''' + ISNULL(@ApplicationComponent, '(null)') + ''' and ''' + ISNULL(@AccessLevel, '(null)') + ''' ; ' + ERROR_MESSAGE();
                 THROW 50001, @ErrorMessage, 1;
             END CATCH
         END
         ELSE  -- i.e. ERROR_NUMBER() != 515
         BEGIN
             ROLLBACK TRANSACTION
-            SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''' : ' + ERROR_MESSAGE() + '.';
+            SET @ErrorMessage = N'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''' + ISNULL(@Group, '(null)') + ''', ''' + ISNULL(@ApplicationComponent, '(null)') + ''' and ''' + ISNULL(@AccessLevel, '(null)') + ''' ; ' + ERROR_MESSAGE();
             THROW 50001, @ErrorMessage, 1;
         END
     END CATCH
@@ -1292,7 +1292,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No GroupToApplicationComponentAndAccessLevelMappings row exists for Group ''' + @Group + ''', ApplicationComponent ''' + @ApplicationComponent + ''', AccessLevel ''' + @AccessLevel +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No GroupToApplicationComponentAndAccessLevelMappings row exists for Group ''' + ISNULL(@Group, '(null)') + ''', ApplicationComponent ''' + ISNULL(@ApplicationComponent, '(null)') + ''', AccessLevel ''' + ISNULL(@AccessLevel, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -1303,7 +1303,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1314,7 +1314,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to ApplicationComponent and AccessLevel mapping for ''' + @Group + ''', ''' + @ApplicationComponent + ''' and ''' + @AccessLevel + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to ApplicationComponent and AccessLevel mapping for ''' + ISNULL(@Group, '(null)') + ''', ''' + ISNULL(@ApplicationComponent, '(null)') + ''' and ''' + ISNULL(@AccessLevel, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1344,7 +1344,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1365,7 +1365,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting EntityType ''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1396,7 +1396,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No EntityTypes row exists for EntityType ''' + @EntityType + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No EntityTypes row exists for EntityType ''' + ISNULL(@EntityType, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -1407,7 +1407,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1420,7 +1420,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1433,7 +1433,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1446,7 +1446,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Entities for EntityType''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Entities for EntityType''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1457,7 +1457,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing EntityType ''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1488,7 +1488,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1516,7 +1516,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting Entity ''' + @Entity + ''' of type ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting Entity ''' + ISNULL(@Entity, '(null)') + ''' of type ''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1555,7 +1555,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No Entities row exists for EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No Entities row exists for EntityType ''' + ISNULL(@EntityType, '(null)') + ''', Entity ''' + ISNULL(@Entity, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -1566,7 +1566,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1586,7 +1586,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + @EntityType + ''' and Entity''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + ISNULL(@EntityType, '(null)') + ''' and Entity''' + ISNULL(@Entity, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1606,7 +1606,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + @EntityType + ''' and Entity''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + ISNULL(@EntityType, '(null)') + ''' and Entity''' + ISNULL(@Entity, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1617,7 +1617,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Entity ''' + @Entity + ''' of EntityType ''' + @EntityType + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Entity ''' + ISNULL(@Entity, '(null)') + ''' of EntityType ''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1649,7 +1649,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1695,7 +1695,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting User to Entity mapping between ''' + @User + ''', ''' + @EntityType + ''' and ''' + @Entity + ''' : ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting User to Entity mapping between ''' + ISNULL(@User, '(null)') + ''', ''' + ISNULL(@EntityType, '(null)') + ''' and ''' + ISNULL(@Entity, '(null)') + ''' ; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1755,7 +1755,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No UserToEntityMappings row exists for User ''' + @User + ''', EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No UserToEntityMappings row exists for User ''' + ISNULL(@User, '(null)') + ''', EntityType ''' + ISNULL(@EntityType, '(null)') + ''', Entity ''' + ISNULL(@Entity, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -1766,7 +1766,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1777,7 +1777,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to Entity mapping for ''' + @User + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing User to Entity mapping for ''' + ISNULL(@User, '(null)') + ''', ''' + ISNULL(@EntityType, '(null)') + ''' and ''' + ISNULL(@Entity, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1809,7 +1809,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1855,7 +1855,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when inserting Group to Entity mapping between ''' + @Group + ''', ''' + @EntityType + ''' and ''' + @Entity + ''' : ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when inserting Group to Entity mapping between ''' + ISNULL(@Group, '(null)') + ''', ''' + ISNULL(@EntityType, '(null)') + ''' and ''' + ISNULL(@Entity, '(null)') + ''' ; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1915,7 +1915,7 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
-        SET @ErrorMessage = N'No GroupToEntityMappings row exists for Group ''' + @Group + ''', EntityType ''' + @EntityType + ''', Entity ''' + @Entity +  ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
+        SET @ErrorMessage = N'No GroupToEntityMappings row exists for Group ''' + ISNULL(@Group, '(null)') + ''', EntityType ''' + ISNULL(@EntityType, '(null)') + ''', Entity ''' + ISNULL(@Entity, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -1926,7 +1926,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred calling stored procedure ''' + ERROR_PROCEDURE() + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1937,7 +1937,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to Entity mapping for ''' + @Group + ''', ''' + @EntityType + ''' and ''' + @Entity + ''': ' + ERROR_MESSAGE() + '.';
+        SET @ErrorMessage = N'Error occurred when removing Group to Entity mapping for ''' + ISNULL(@Group, '(null)') + ''', ''' + ISNULL(@EntityType, '(null)') + ''' and ''' + ISNULL(@Entity, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
