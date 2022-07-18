@@ -41,6 +41,8 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected const String removeUserStoredProcedureName = "RemoveUser";
         protected const String addGroupStoredProcedureName = "AddGroup";
         protected const String removeGroupStoredProcedureName = "RemoveGroup";
+        protected const String addUserToGroupMappingStoredProcedureName = "AddUserToGroupMapping";
+        protected const String removeUserToGroupMappingStoredProcedureName = "RemoveUserToGroupMapping";
 
         protected const String userParameterName = "@User";
         protected const String groupParameterName = "@Group";
@@ -268,13 +270,13 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime)"]/*'/>
         public void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteUserToGroupMappingProcedure(addUserToGroupMappingStoredProcedureName, user, group, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime)"]/*'/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteUserToGroupMappingProcedure(removeUserToGroupMappingStoredProcedureName, user, group, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)"]/*'/>
@@ -410,6 +412,25 @@ namespace ApplicationAccess.Persistence.SqlServer
 
             var command = new SqlCommand(storedProcedureName, connection);
             command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(groupParameterName, SqlDbType.NVarChar).Value = groupAsString;
+            command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
+            command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
+            ExecuteStoredProcedure(command);
+        }
+
+        /// <summary>
+        /// Sets up parameters on and executes a stored procedure to add or remove a user to group mapping.
+        /// </summary>
+        protected void SetupAndExecuteUserToGroupMappingProcedure(string storedProcedureName, TUser user, TGroup group, Guid eventId, DateTime occurredTime)
+        {
+            String userAsString = userStringifier.ToString(user);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(user), userAsString);
+            String groupAsString = groupStringifier.ToString(group);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(group), groupAsString);
+
+            var command = new SqlCommand(storedProcedureName, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(userParameterName, SqlDbType.NVarChar).Value = userAsString;
             command.Parameters.Add(groupParameterName, SqlDbType.NVarChar).Value = groupAsString;
             command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
             command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;

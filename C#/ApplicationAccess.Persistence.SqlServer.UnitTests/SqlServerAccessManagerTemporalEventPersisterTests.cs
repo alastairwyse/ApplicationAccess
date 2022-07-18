@@ -1,0 +1,145 @@
+﻿/*
+ * Copyright 2022 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+using System;
+using System.Text;
+using System.Globalization;
+using NUnit.Framework;
+using NUnit.Framework.Internal;
+
+namespace ApplicationAccess.Persistence.SqlServer.UnitTests
+{
+    /// <summary>
+    /// Unit tests for the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+    /// </summary>
+    public class SqlServerAccessManagerTemporalEventPersisterTests
+    {
+        private const Int32 varCharColumnSizeLimit = 450;
+        private Guid testEventId;
+        private DateTime testOccurredTime; 
+        private SqlServerAccessManagerTemporalEventPersister<String, String, String, String> testSqlServerAccessManagerTemporalEventPersister;
+
+        [SetUp]
+        protected void SetUp()
+        {
+            testEventId = Guid.Parse("e191a845-0f09-406c-b8e3-6c39663ef58b");
+            testOccurredTime = DateTime.ParseExact("2022-07-18 12:15:33", "yyyy-MM-dd HH:m:ss", DateTimeFormatInfo.InvariantInfo);
+            testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+            (
+                "Server=testServer; Database=testDB; User Id=userId; Password=password;",
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier()
+            );
+        }
+
+        [TearDown]
+        protected void TearDown()
+        {
+            testSqlServerAccessManagerTemporalEventPersister.Dispose();
+        }
+
+        [Test]
+        public void SetupAndExecuteUserStoredProcedure_UserLongerThanVarCharLimit()
+        {
+            String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUser(testUser, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'user' with stringified value '{testUser}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("user", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteGroupStoredProcedure_GroupLongerThanVarCharLimit()
+        {
+            String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddGroup(testGroup, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("group", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteUserToGroupMappingProcedure_UserLongerThanVarCharLimit()
+        {
+            String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testGroup = "group1";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUserToGroupMapping(testUser, testGroup, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'user' with stringified value '{testUser}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("user", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteUserToGroupMappingProcedure_GroupLongerThanVarCharLimit()
+        {
+            String testUser = "user1";
+            String testGroup = GenerateLongString(varCharColumnSizeLimit + 1); 
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUserToGroupMapping(testUser, testGroup, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("group", e.ParamName);
+        }
+
+        /// <summary>
+        /// Generates a string of the specified length.
+        /// </summary>
+        /// <param name="stringLength">The length of the string to generate.</param>
+        /// <returns>The generated string.</returns>
+        private String GenerateLongString(Int32 stringLength)
+        {
+            if (stringLength < 1)
+                throw new ArgumentOutOfRangeException(nameof(stringLength), $"Parameter '{nameof(stringLength)}' with value {stringLength} must be greater than 0.");
+
+            Int32 currentAsciiIndex = 65;
+            var stringBuilder = new StringBuilder();
+            Int32 localStringLength = stringLength;
+            while (localStringLength > 0)
+            {
+                stringBuilder.Append((Char)currentAsciiIndex);
+                if (currentAsciiIndex == 90)
+                {
+                    currentAsciiIndex = 65;
+                }
+                else
+                {
+                    currentAsciiIndex++;
+                }
+
+                localStringLength--;
+            }
+
+            return stringBuilder.ToString();
+        }
+    }
+}

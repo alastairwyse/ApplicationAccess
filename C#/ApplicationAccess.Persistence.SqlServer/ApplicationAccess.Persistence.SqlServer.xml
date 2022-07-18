@@ -251,6 +251,11 @@
             Sets up parameters on and executes a stored procedure to add or remove a group.
             </summary>
         </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteUserToGroupMappingProcedure(System.String,`0,`1,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove a user to group mapping.
+            </summary>
+        </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteStoredProcedure(Microsoft.Data.SqlClient.SqlCommand)">
             <summary>
             Attempts to execute the stored procedure contained in the specified SqlCommand object.
