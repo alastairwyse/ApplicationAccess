@@ -40,6 +40,8 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
             testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
             (
                 "Server=testServer; Database=testDB; User Id=userId; Password=password;",
+                5, 
+                10, 
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
@@ -51,6 +53,69 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         protected void TearDown()
         {
             testSqlServerAccessManagerTemporalEventPersister.Dispose();
+        }
+
+        [Test]
+        public void Constructor_ConnectionStringParameterWhitespace()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                (
+                    "  ",
+                    5,
+                    10,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier()
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'connectionString' must contain a value."));
+            Assert.AreEqual("connectionString", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_RetryCountParameterLessThan0()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                (
+                    "Server=testServer; Database=testDB; User Id=userId; Password=password;",
+                    -1,
+                    10,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier()
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'retryCount' with value -1 cannot be less than 0."));
+            Assert.AreEqual("retryCount", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_RetryIntervalParameterLessThan0()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                (
+                    "Server=testServer; Database=testDB; User Id=userId; Password=password;",
+                    5,
+                    -1,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier()
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'retryInterval' with value -1 cannot be less than 0."));
+            Assert.AreEqual("retryInterval", e.ParamName);
         }
 
         [Test]
@@ -109,6 +174,242 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
             Assert.AreEqual("group", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure_UserLongerThanVarCharLimit()
+        {
+            String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testApplicationComponent = "OrderScreen";
+            String testAccessLevel = "View";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'user' with stringified value '{testUser}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("user", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure_ApplicationComponentLongerThanVarCharLimit()
+        {
+            String testUser = "user1";
+            String testApplicationComponent = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testAccessLevel = "View";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'applicationComponent' with stringified value '{testApplicationComponent}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("applicationComponent", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure_AccessLevelLongerThanVarCharLimit()
+        {
+            String testUser = "user1";
+            String testApplicationComponent = "OrderScreen";
+            String testAccessLevel = GenerateLongString(varCharColumnSizeLimit + 1);
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'accessLevel' with stringified value '{testAccessLevel}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("accessLevel", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure_GroupLongerThanVarCharLimit()
+        {
+            String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testApplicationComponent = "OrderScreen";
+            String testAccessLevel = "View";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("group", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure_ApplicationComponentLongerThanVarCharLimit()
+        {
+            String testGroup = "user1";
+            String testApplicationComponent = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testAccessLevel = "View";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'applicationComponent' with stringified value '{testApplicationComponent}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("applicationComponent", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure_AccessLevelLongerThanVarCharLimit()
+        {
+            String testGroup = "user1";
+            String testApplicationComponent = "OrderScreen";
+            String testAccessLevel = GenerateLongString(varCharColumnSizeLimit + 1);
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'accessLevel' with stringified value '{testAccessLevel}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("accessLevel", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteEntityTypeStoredProcedure_EntityTypeLongerThanVarCharLimit()
+        {
+            String testTypeEntity = GenerateLongString(varCharColumnSizeLimit + 1);
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddEntityType(testTypeEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'entityType' with stringified value '{testTypeEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("entityType", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteEntityStoredProcedure_EntityTypeLongerThanVarCharLimit()
+        {
+            String testTypeEntity = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testEntity = "ClientA";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddEntity(testTypeEntity, testEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'entityType' with stringified value '{testTypeEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("entityType", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteEntityStoredProcedure_EntityLongerThanVarCharLimit()
+        {
+            String testTypeEntity = "ClientAccount";
+            String testEntity = GenerateLongString(varCharColumnSizeLimit + 1);
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddEntity(testTypeEntity, testEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'entity' with stringified value '{testEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("entity", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteUserToEntityMappingStoredProcedure_UserLongerThanVarCharLimit()
+        {
+            String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testTypeEntity = "ClientAccount";
+            String testEntity = "ClientA";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'user' with stringified value '{testUser}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("user", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteUserToEntityMappingStoredProcedure_EntityTypeLongerThanVarCharLimit()
+        {
+            String testUser = "user1";
+            String testTypeEntity = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testEntity = "ClientA";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'entityType' with stringified value '{testTypeEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("entityType", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteUserToEntityMappingStoredProcedure_EntityLongerThanVarCharLimit()
+        {
+            String testUser = "user1";
+            String testTypeEntity = "ClientAccount";
+            String testEntity = GenerateLongString(varCharColumnSizeLimit + 1);
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'entity' with stringified value '{testEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("entity", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteGroupToEntityMappingStoredProcedure_GroupLongerThanVarCharLimit()
+        {
+            String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testTypeEntity = "ClientAccount";
+            String testEntity = "ClientA";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("group", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteGroupToEntityMappingStoredProcedure_EntityTypeLongerThanVarCharLimit()
+        {
+            String testGroup = "group1";
+            String testTypeEntity = GenerateLongString(varCharColumnSizeLimit + 1);
+            String testEntity = "ClientA";
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'entityType' with stringified value '{testTypeEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("entityType", e.ParamName);
+        }
+
+        [Test]
+        public void SetupAndExecuteGroupToEntityMappingStoredProcedure_EntityLongerThanVarCharLimit()
+        {
+            String testGroup = "group1";
+            String testTypeEntity = "ClientAccount";
+            String testEntity = GenerateLongString(varCharColumnSizeLimit + 1);
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'entity' with stringified value '{testEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
+            Assert.AreEqual("entity", e.ParamName);
         }
 
         /// <summary>

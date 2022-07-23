@@ -19,6 +19,12 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionString">
             <summary>The string to use to connect to the SQL Server database.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.retryCount">
+            <summary>The number of times an operation against the SQL Server database should be retried in the case of execution failure.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.retryInterval">
+            <summary>The time in seconds between operation retries.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.userStringifier">
             <summary>A string converter for users.</summary>
         </member>
@@ -34,18 +40,37 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connection">
             <summary>The connection to the SQL Server database.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionPassedInConstructor">
+            <summary>Whether or not the 'connection' member was passed into the constructor.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3})">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+            <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+            <param name="retryInterval">The time in seconds between operation retries.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},Microsoft.Data.SqlClient.SqlConnection)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+            </summary>
+            <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+            <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+            <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="connection">The connection to the SQL Server database.</param>
+            <remarks>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</remarks>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Connect">
             <summary>
@@ -251,9 +276,44 @@
             Sets up parameters on and executes a stored procedure to add or remove a group.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteUserToGroupMappingProcedure(System.String,`0,`1,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteUserToGroupMappingStoredProcedure(System.String,`0,`1,System.Guid,System.DateTime)">
             <summary>
             Sets up parameters on and executes a stored procedure to add or remove a user to group mapping.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteGroupToGroupMappingStoredProcedure(System.String,`1,`1,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove a group to group mapping.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure(System.String,`0,`2,`3,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove a user to application component and access level mapping.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure(System.String,`1,`2,`3,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove a group to application component and access level mapping.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteEntityTypeStoredProcedure(System.String,System.String,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove an entity type.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteEntityStoredProcedure(System.String,System.String,System.String,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove an entity.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteUserToEntityMappingStoredProcedure(System.String,`0,System.String,System.String,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove a user to entity mapping.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteGroupToEntityMappingStoredProcedure(System.String,`1,System.String,System.String,System.Guid,System.DateTime)">
+            <summary>
+            Sets up parameters on and executes a stored procedure to add or remove a group to entity mapping.
             </summary>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteStoredProcedure(Microsoft.Data.SqlClient.SqlCommand)">
@@ -261,6 +321,12 @@
             Attempts to execute the stored procedure contained in the specified SqlCommand object.
             </summary>
             <param name="command">The command containing details of the stored procedure.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteSqlCommandWithRetries(System.Action)">
+            <summary>
+            Invokes the specified action containing execution of a SQL command, retrying execution if transient fault/exception occurs.
+            </summary>
+            <param name="commandExecuteAction">An action containing execution of the SQL command.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Dispose">
             <summary>

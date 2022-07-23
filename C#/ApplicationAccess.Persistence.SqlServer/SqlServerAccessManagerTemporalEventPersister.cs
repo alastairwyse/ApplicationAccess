@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
 
@@ -33,27 +34,56 @@ namespace ApplicationAccess.Persistence.SqlServer
         //   Add reconnect logic
         //   Add logging to log connection failures and retries
         //   Add constructor where SqlConnection is passed in
+        //   DB implementation of methods with no event or time... decide how to implement... where should locks be?
+        //   Load() methods
 
 
 
         #pragma warning disable 1591
+
         protected const String addUserStoredProcedureName = "AddUser";
         protected const String removeUserStoredProcedureName = "RemoveUser";
         protected const String addGroupStoredProcedureName = "AddGroup";
         protected const String removeGroupStoredProcedureName = "RemoveGroup";
         protected const String addUserToGroupMappingStoredProcedureName = "AddUserToGroupMapping";
         protected const String removeUserToGroupMappingStoredProcedureName = "RemoveUserToGroupMapping";
+        protected const String addGroupToGroupMappingProcedureName = "AddGroupToGroupMapping";
+        protected const String removeGroupToGroupMappingProcedureName = "RemoveGroupToGroupMapping";
+        protected const String addUserToApplicationComponentAndAccessLevelMappingProcedureName = "AddUserToApplicationComponentAndAccessLevelMapping";
+        protected const String removeUserToApplicationComponentAndAccessLevelMappingProcedureName = "RemoveUserToApplicationComponentAndAccessLevelMapping";
+        protected const String addGroupToApplicationComponentAndAccessLevelMappingProcedureName = "AddGroupToApplicationComponentAndAccessLevelMapping";
+        protected const String removeGroupToApplicationComponentAndAccessLevelMappingProcedureName = "RemoveGroupToApplicationComponentAndAccessLevelMapping";
+        protected const String addEntityTypeProcedureName = "AddEntityType";
+        protected const String removeEntityTypeProcedureName = "RemoveEntityType";
+        protected const String addEntityProcedureName = "AddEntity";
+        protected const String removeEntityProcedureName = "RemoveEntity";
+        protected const String addUserToEntityMappingProcedureName = "AddUserToEntityMapping";
+        protected const String removeUserToEntityMappingProcedureName = "RemoveUserToEntityMapping";
+        protected const String addGroupToEntityMappingProcedureName = "AddGroupToEntityMapping";
+        protected const String removeGroupToEntityMappingProcedureName = "RemoveGroupToEntityMapping";
 
         protected const String userParameterName = "@User";
         protected const String groupParameterName = "@Group";
+        protected const String fromGroupParameterName = "@FromGroup";
+        protected const String toGroupParameterName = "@ToGroup";
+        protected const String applicationComponentParameterName = "@ApplicationComponent";
+        protected const String accessLevelParameterName = "@AccessLevel";
+        protected const String entityTypeParameterName = "@EntityType";
+        protected const String entityParameterName = "@Entity";
         protected const String eventIdParameterName = "@EventId";
         protected const String transactionTimeParameterName = "@TransactionTime";
+
         #pragma warning restore 1591
+
         /// <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
         protected const Int32 columnSizeLimit = 450;
 
         /// <summary>The string to use to connect to the SQL Server database.</summary>
         protected string connectionString;
+        /// <summary>The number of times an operation against the SQL Server database should be retried in the case of execution failure.</summary>
+        protected Int32 retryCount;
+        /// <summary>The time in seconds between operation retries.</summary>
+        protected Int32 retryInterval;
         /// <summary>A string converter for users.</summary>
         protected IUniqueStringifier<TUser> userStringifier;
         /// <summary>A string converter for groups.</summary>
@@ -64,6 +94,13 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
         /// <summary>The connection to the SQL Server database.</summary>
         protected SqlConnection connection;
+        /// <summary>Whether or not the 'connection' member was passed into the constructor.</summary>
+        protected Boolean connectionPassedInConstructor;
+        /// <summary>A set of SQL Server database engine error numbers which denote a transient fault.</summary>
+        /// <see href="https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-ver16"/>
+        /// <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql"/>
+        /// <see href="https://docs.microsoft.com/en-us/sql/connect/ado-net/step-4-connect-resiliently-sql-ado-net?view=sql-server-ver16"
+        protected HashSet<Int32> sqlServerTransientErrorNumbers;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected bool disposed;
 
@@ -71,26 +108,69 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
         /// </summary>
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+        /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+        /// <param name="retryInterval">The time in seconds between operation retries.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
-        public SqlServerAccessManagerTemporalEventPersister(
+        public SqlServerAccessManagerTemporalEventPersister
+        (
             string connectionString, 
+            Int32 retryCount, 
+            Int32 retryInterval, 
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier)
+            IUniqueStringifier<TAccess> accessLevelStringifier
+        )
         {
             if (String.IsNullOrWhiteSpace(connectionString) == true)
-                throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.");
+                throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.", nameof(connectionString));
+            if (retryCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be less than 0.");
+            if (retryInterval < 0)
+                throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be less than 0.");
 
             this.connectionString = connectionString;
+            this.retryCount = retryCount;
+            this.retryInterval = retryInterval;
             this.userStringifier = userStringifier;
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
             connection = new SqlConnection(connectionString);
+            connectionPassedInConstructor = false;
+            sqlServerTransientErrorNumbers = new HashSet<Int32>() { 926, 4060, 40197, 40501, 40613, 49918, 49919, 49920, 11001, 4221, 615 };
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+        /// </summary>
+        /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+        /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+        /// <param name="retryInterval">The time in seconds between operation retries.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="connection">The connection to the SQL Server database.</param>
+        /// <remarks>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</remarks>
+        public SqlServerAccessManagerTemporalEventPersister
+        (
+            string connectionString,
+            Int32 retryCount,
+            Int32 retryInterval,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier, 
+            SqlConnection connection
+        ) : this(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
+        {
+            this.connection.Dispose();
+            this.connection = connection;
+            connectionPassedInConstructor = true;
         }
 
         /// <summary>
@@ -270,97 +350,97 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime)"]/*'/>
         public void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
-            SetupAndExecuteUserToGroupMappingProcedure(addUserToGroupMappingStoredProcedureName, user, group, eventId, occurredTime);
+            SetupAndExecuteUserToGroupMappingStoredProcedure(addUserToGroupMappingStoredProcedureName, user, group, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime)"]/*'/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
-            SetupAndExecuteUserToGroupMappingProcedure(removeUserToGroupMappingStoredProcedureName, user, group, eventId, occurredTime);
+            SetupAndExecuteUserToGroupMappingStoredProcedure(removeUserToGroupMappingStoredProcedureName, user, group, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)"]/*'/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteGroupToGroupMappingStoredProcedure(addGroupToGroupMappingProcedureName, fromGroup, toGroup, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)"]/*'/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteGroupToGroupMappingStoredProcedure(removeGroupToGroupMappingProcedureName, fromGroup, toGroup, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)"]/*'/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure(addUserToApplicationComponentAndAccessLevelMappingProcedureName, user, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)"]/*'/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure(removeUserToApplicationComponentAndAccessLevelMappingProcedureName, user, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)"]/*'/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure(addGroupToApplicationComponentAndAccessLevelMappingProcedureName, group, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)"]/*'/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure(removeGroupToApplicationComponentAndAccessLevelMappingProcedureName, group, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntityType(System.String,System.Guid,System.DateTime)"]/*'/>
         public void AddEntityType(String entityType, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteEntityTypeStoredProcedure(addEntityTypeProcedureName, entityType, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntityType(System.String,System.Guid,System.DateTime)"]/*'/>
         public void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteEntityTypeStoredProcedure(removeEntityTypeProcedureName, entityType, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntity(System.String,System.String,System.Guid,System.DateTime)"]/*'/>
         public void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteEntityStoredProcedure(addEntityProcedureName, entityType, entity, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntity(System.String,System.String,System.Guid,System.DateTime)"]/*'/>
         public void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteEntityStoredProcedure(removeEntityProcedureName, entityType, entity, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteUserToEntityMappingStoredProcedure(addUserToEntityMappingProcedureName, user, entityType, entity, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteUserToEntityMappingStoredProcedure(removeUserToEntityMappingProcedureName, user, entityType, entity, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteGroupToEntityMappingStoredProcedure(addGroupToEntityMappingProcedureName, group, entityType, entity, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
-            throw new NotImplementedException();
+            SetupAndExecuteGroupToEntityMappingStoredProcedure(removeGroupToEntityMappingProcedureName, group, entityType, entity, eventId, occurredTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
@@ -421,7 +501,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <summary>
         /// Sets up parameters on and executes a stored procedure to add or remove a user to group mapping.
         /// </summary>
-        protected void SetupAndExecuteUserToGroupMappingProcedure(string storedProcedureName, TUser user, TGroup group, Guid eventId, DateTime occurredTime)
+        protected void SetupAndExecuteUserToGroupMappingStoredProcedure(string storedProcedureName, TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
             String userAsString = userStringifier.ToString(user);
             ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(user), userAsString);
@@ -432,6 +512,141 @@ namespace ApplicationAccess.Persistence.SqlServer
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.Add(userParameterName, SqlDbType.NVarChar).Value = userAsString;
             command.Parameters.Add(groupParameterName, SqlDbType.NVarChar).Value = groupAsString;
+            command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
+            command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
+            ExecuteStoredProcedure(command);
+        }
+
+        /// <summary>
+        /// Sets up parameters on and executes a stored procedure to add or remove a group to group mapping.
+        /// </summary>
+        protected void SetupAndExecuteGroupToGroupMappingStoredProcedure(string storedProcedureName, TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
+        {
+            String fromGroupAsString = groupStringifier.ToString(fromGroup);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(fromGroup), fromGroupAsString);
+            String toGroupAsString = groupStringifier.ToString(toGroup);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(toGroup), toGroupAsString);
+
+            var command = new SqlCommand(storedProcedureName, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(fromGroupParameterName, SqlDbType.NVarChar).Value = fromGroupAsString;
+            command.Parameters.Add(toGroupParameterName, SqlDbType.NVarChar).Value = toGroupAsString;
+            command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
+            command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
+            ExecuteStoredProcedure(command);
+        }
+
+        /// <summary>
+        /// Sets up parameters on and executes a stored procedure to add or remove a user to application component and access level mapping.
+        /// </summary>
+        protected void SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure(string storedProcedureName, TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        {
+            String userAsString = userStringifier.ToString(user);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(user), userAsString);
+            String applicationComponentAsString = applicationComponentStringifier.ToString(applicationComponent);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(applicationComponent), applicationComponentAsString);
+            String accessLevelAsString = accessLevelStringifier.ToString(accessLevel);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(accessLevel), accessLevelAsString);
+
+            var command = new SqlCommand(storedProcedureName, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(userParameterName, SqlDbType.NVarChar).Value = userAsString;
+            command.Parameters.Add(applicationComponentParameterName, SqlDbType.NVarChar).Value = applicationComponentAsString;
+            command.Parameters.Add(accessLevelParameterName, SqlDbType.NVarChar).Value = accessLevelAsString;
+            command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
+            command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
+            ExecuteStoredProcedure(command);
+        }
+
+        /// <summary>
+        /// Sets up parameters on and executes a stored procedure to add or remove a group to application component and access level mapping.
+        /// </summary>
+        protected void SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure(string storedProcedureName, TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        {
+            String groupAsString = groupStringifier.ToString(group);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(group), groupAsString);
+            String applicationComponentAsString = applicationComponentStringifier.ToString(applicationComponent);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(applicationComponent), applicationComponentAsString);
+            String accessLevelAsString = accessLevelStringifier.ToString(accessLevel);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(accessLevel), accessLevelAsString);
+
+            var command = new SqlCommand(storedProcedureName, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(groupParameterName, SqlDbType.NVarChar).Value = groupAsString;
+            command.Parameters.Add(applicationComponentParameterName, SqlDbType.NVarChar).Value = applicationComponentAsString;
+            command.Parameters.Add(accessLevelParameterName, SqlDbType.NVarChar).Value = accessLevelAsString;
+            command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
+            command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
+            ExecuteStoredProcedure(command);
+        }
+
+        /// <summary>
+        /// Sets up parameters on and executes a stored procedure to add or remove an entity type.
+        /// </summary>
+        protected void SetupAndExecuteEntityTypeStoredProcedure(string storedProcedureName, String entityType, Guid eventId, DateTime occurredTime)
+        {
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(entityType), entityType);
+
+            var command = new SqlCommand(storedProcedureName, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(entityTypeParameterName, SqlDbType.NVarChar).Value = entityType;
+            command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
+            command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
+            ExecuteStoredProcedure(command);
+        }
+
+        /// <summary>
+        /// Sets up parameters on and executes a stored procedure to add or remove an entity.
+        /// </summary>
+        protected void SetupAndExecuteEntityStoredProcedure(string storedProcedureName, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        {
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(entityType), entityType);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(entity), entity);
+
+            var command = new SqlCommand(storedProcedureName, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(entityTypeParameterName, SqlDbType.NVarChar).Value = entityType;
+            command.Parameters.Add(entityParameterName, SqlDbType.NVarChar).Value = entity;
+            command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
+            command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
+            ExecuteStoredProcedure(command);
+        }
+
+        /// <summary>
+        /// Sets up parameters on and executes a stored procedure to add or remove a user to entity mapping.
+        /// </summary>
+        protected void SetupAndExecuteUserToEntityMappingStoredProcedure(string storedProcedureName, TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        {
+            String userAsString = userStringifier.ToString(user);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(user), userAsString);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(entityType), entityType);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(entity), entity);
+
+            var command = new SqlCommand(storedProcedureName, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(userParameterName, SqlDbType.NVarChar).Value = userAsString;
+            command.Parameters.Add(entityTypeParameterName, SqlDbType.NVarChar).Value = entityType;
+            command.Parameters.Add(entityParameterName, SqlDbType.NVarChar).Value = entity;
+            command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
+            command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
+            ExecuteStoredProcedure(command);
+        }
+
+        /// <summary>
+        /// Sets up parameters on and executes a stored procedure to add or remove a group to entity mapping.
+        /// </summary>
+        protected void SetupAndExecuteGroupToEntityMappingStoredProcedure(string storedProcedureName, TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        {
+            String groupAsString = groupStringifier.ToString(group);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(group), groupAsString);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(entityType), entityType);
+            ThrowExceptionIfStringifiedParameterLargerThanVarCharLimit(nameof(entity), entity);
+
+            var command = new SqlCommand(storedProcedureName, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(groupParameterName, SqlDbType.NVarChar).Value = groupAsString;
+            command.Parameters.Add(entityTypeParameterName, SqlDbType.NVarChar).Value = entityType;
+            command.Parameters.Add(entityParameterName, SqlDbType.NVarChar).Value = entity;
             command.Parameters.Add(eventIdParameterName, SqlDbType.UniqueIdentifier).Value = eventId;
             command.Parameters.Add(transactionTimeParameterName, SqlDbType.DateTime2).Value = occurredTime;
             ExecuteStoredProcedure(command);
@@ -450,6 +665,40 @@ namespace ApplicationAccess.Persistence.SqlServer
             catch (Exception e)
             {
                 throw new Exception($"Failed to execute stored procedure '{command.CommandText}' in SQL Server.", e);
+            }
+        }
+
+        /// <summary>
+        /// Invokes the specified action containing execution of a SQL command, retrying execution if transient fault/exception occurs.
+        /// </summary>
+        /// <param name="commandExecuteAction">An action containing execution of the SQL command.</param>
+        protected void ExecuteSqlCommandWithRetries(Action commandExecuteAction)
+        {
+            Int32 remainingRetries = retryCount;
+            while (remainingRetries > 0)
+            {
+                try
+                {
+                    if (connection.State != ConnectionState.Open)
+                    {
+                        connection.Open();
+                    }
+                    commandExecuteAction.Invoke();
+                    break;
+                }
+                catch (SqlException se)
+                {
+                    // TODO:
+                    // Check whether number is within transient errors
+                    // Log error (need AppLogging)
+                    // Log metric
+                }
+                catch (Exception e)
+                {
+
+                }
+
+                remainingRetries--;
             }
         }
 
@@ -496,7 +745,10 @@ namespace ApplicationAccess.Persistence.SqlServer
                 if (disposing)
                 {
                     // Free other state (managed objects).
-                    connection.Dispose();
+                    if (connectionPassedInConstructor == false)
+                    {
+                        connection.Dispose();
+                    }
                 }
                 // Free your own state (unmanaged objects).
 
