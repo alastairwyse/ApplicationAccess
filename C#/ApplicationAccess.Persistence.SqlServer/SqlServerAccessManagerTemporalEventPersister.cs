@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2020 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2022 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using Microsoft.Data.SqlClient;
+using ApplicationLogging;
+using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Persistence.SqlServer
 {
@@ -30,12 +34,17 @@ namespace ApplicationAccess.Persistence.SqlServer
     /// <typeparam name="TAccess">The sequence number used for the last event buffered.</typeparam>
     public class SqlServerAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
-        // TODO: Add unit tests
-        //   Add reconnect logic
-        //   Add logging to log connection failures and retries
-        //   Add constructor where SqlConnection is passed in
+        // TODO:
+        //   Fix unit tests (constructor params)
+        //   Do a real-world test of reconnect
+        //   Should I have remarks on the eventId and timestamp overloaded methods to say that there's no locks and should be used from InMemoryEventBuffer?
         //   DB implementation of methods with no event or time... decide how to implement... where should locks be?
+        //     Just clarify what the use-case/setup of these methods is... if it's in single instance with no bufferring, then single instance of this class should be used.
+        //     Can I just use LockManager in this class?
+        //     Just copy or reuse pattern from ConcurrentAccessManager
         //   Load() methods
+        //     Private IEnumberable returning methods to GetUsers().. etc...
+        //   Interval metrics on each of the public methods
 
 
 
@@ -92,6 +101,10 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
         /// <summary>A string converter for access levels</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
+        /// <summary>The logger for general logging.</summary>
+        protected IApplicationLogger logger;
+        /// <summary>The logger for metrics.</summary>
+        protected IMetricLogger metricLogger;
         /// <summary>The connection to the SQL Server database.</summary>
         protected SqlConnection connection;
         /// <summary>Whether or not the 'connection' member was passed into the constructor.</summary>
@@ -99,7 +112,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <summary>A set of SQL Server database engine error numbers which denote a transient fault.</summary>
         /// <see href="https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-ver16"/>
         /// <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql"/>
-        /// <see href="https://docs.microsoft.com/en-us/sql/connect/ado-net/step-4-connect-resiliently-sql-ado-net?view=sql-server-ver16"
+        /// <see href="https://docs.microsoft.com/en-us/sql/connect/ado-net/step-4-connect-resiliently-sql-ado-net?view=sql-server-ver16"></see>
         protected HashSet<Int32> sqlServerTransientErrorNumbers;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected bool disposed;
@@ -114,15 +127,17 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="logger">The logger for general logging.</param>
         public SqlServerAccessManagerTemporalEventPersister
         (
-            string connectionString, 
-            Int32 retryCount, 
-            Int32 retryInterval, 
+            string connectionString,
+            Int32 retryCount,
+            Int32 retryInterval,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            IApplicationLogger logger
         )
         {
             if (String.IsNullOrWhiteSpace(connectionString) == true)
@@ -139,6 +154,8 @@ namespace ApplicationAccess.Persistence.SqlServer
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
+            this.logger = logger;
+            this.metricLogger = new NullMetricLogger();
             connection = new SqlConnection(connectionString);
             connectionPassedInConstructor = false;
             sqlServerTransientErrorNumbers = new HashSet<Int32>() { 926, 4060, 40197, 40501, 40613, 49918, 49919, 49920, 11001, 4221, 615 };
@@ -154,6 +171,35 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public SqlServerAccessManagerTemporalEventPersister
+        (
+            string connectionString,
+            Int32 retryCount,
+            Int32 retryInterval,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            IApplicationLogger logger,
+            IMetricLogger metricLogger
+        ) : this(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
+        {
+            this.metricLogger = metricLogger;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+        /// </summary>
+        /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+        /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+        /// <param name="retryInterval">The time in seconds between operation retries.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="logger">The logger for general logging.</param>
         /// <param name="connection">The connection to the SQL Server database.</param>
         /// <remarks>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</remarks>
         public SqlServerAccessManagerTemporalEventPersister
@@ -164,9 +210,43 @@ namespace ApplicationAccess.Persistence.SqlServer
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier, 
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            IApplicationLogger logger,
             SqlConnection connection
-        ) : this(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier)
+        ) : this(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
+        {
+            this.connection.Dispose();
+            this.connection = connection;
+            connectionPassedInConstructor = true;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+        /// </summary>
+        /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+        /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+        /// <param name="retryInterval">The time in seconds between operation retries.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        /// <param name="connection">The connection to the SQL Server database.</param>
+        /// <remarks>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</remarks>
+        public SqlServerAccessManagerTemporalEventPersister
+        (
+            string connectionString,
+            Int32 retryCount,
+            Int32 retryInterval,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            IApplicationLogger logger,
+            IMetricLogger metricLogger, 
+            SqlConnection connection
+        ) : this(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger, metricLogger)
         {
             this.connection.Dispose();
             this.connection = connection;
@@ -652,6 +732,8 @@ namespace ApplicationAccess.Persistence.SqlServer
             ExecuteStoredProcedure(command);
         }
 
+        #pragma warning restore 1573
+
         /// <summary>
         /// Attempts to execute the stored procedure contained in the specified SqlCommand object.
         /// </summary>
@@ -660,7 +742,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         {
             try
             {
-                command.ExecuteNonQuery();
+                ExecuteSqlCommandWithRetries(() => { command.ExecuteNonQuery(); });
             }
             catch (Exception e)
             {
@@ -675,7 +757,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected void ExecuteSqlCommandWithRetries(Action commandExecuteAction)
         {
             Int32 remainingRetries = retryCount;
-            while (remainingRetries > 0)
+            while (true)
             {
                 try
                 {
@@ -688,21 +770,31 @@ namespace ApplicationAccess.Persistence.SqlServer
                 }
                 catch (SqlException se)
                 {
-                    // TODO:
-                    // Check whether number is within transient errors
-                    // Log error (need AppLogging)
-                    // Log metric
-                }
-                catch (Exception e)
-                {
-
+                    if (sqlServerTransientErrorNumbers.Contains(se.Number) == true)
+                    {
+                        if (remainingRetries > 0)
+                        {
+                            logger.Log(this, LogLevel.Warning, $"SQL Server error with number {se.Number} occurred when executing command.  Retrying in {retryInterval} seconds ({remainingRetries} of {retryCount} total retries remaining).", se);
+                            metricLogger.Increment(new SqlCommandExecutionsRetried());
+                            if (retryInterval > 0)
+                            {
+                                Thread.Sleep(retryInterval * 1000);
+                            }
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
 
                 remainingRetries--;
             }
         }
-
-        #pragma warning restore 1573
 
         #pragma warning disable 1591
 
