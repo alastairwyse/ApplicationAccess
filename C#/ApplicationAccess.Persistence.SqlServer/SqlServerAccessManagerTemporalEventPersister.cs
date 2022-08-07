@@ -35,8 +35,9 @@ namespace ApplicationAccess.Persistence.SqlServer
     public class SqlServerAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
         // TODO:
-        //   Fix unit tests (constructor params)
         //   Do a real-world test of reconnect
+        //   Swap custom retry code for RetryLogicProvider https://devblogs.microsoft.com/azure-sql/configurable-retry-logic-for-microsoft-data-sqlclient/
+        //   Constructor param to add user-specified transient errors
         //   Should I have remarks on the eventId and timestamp overloaded methods to say that there's no locks and should be used from InMemoryEventBuffer?
         //   DB implementation of methods with no event or time... decide how to implement... where should locks be?
         //     Just clarify what the use-case/setup of these methods is... if it's in single instance with no bufferring, then single instance of this class should be used.
@@ -86,6 +87,7 @@ namespace ApplicationAccess.Persistence.SqlServer
 
         /// <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
         protected const Int32 columnSizeLimit = 450;
+        protected const String transactionSql126DateStyle = "yyyy-MM-dd HH:mm:ss.fffffff";
 
         /// <summary>The string to use to connect to the SQL Server database.</summary>
         protected string connectionString;
@@ -112,8 +114,11 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <summary>A set of SQL Server database engine error numbers which denote a transient fault.</summary>
         /// <see href="https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-ver16"/>
         /// <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql"/>
-        /// <see href="https://docs.microsoft.com/en-us/sql/connect/ado-net/step-4-connect-resiliently-sql-ado-net?view=sql-server-ver16"></see>
-        protected HashSet<Int32> sqlServerTransientErrorNumbers;
+        protected List<Int32> sqlServerTransientErrorNumbers;
+        /// <summary>The action to invoke if an action is retried due to a transient error.</summary>
+        protected EventHandler<SqlRetryingEventArgs> connectionRetryAction;
+        /// <summary>Whether or not the member '<see cref="connectionRetryAction" />' was set on the SQL server connection object.</summary>
+        protected Boolean retryActionSetOnConnection;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected bool disposed;
 
@@ -144,8 +149,12 @@ namespace ApplicationAccess.Persistence.SqlServer
                 throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.", nameof(connectionString));
             if (retryCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be less than 0.");
+            if (retryCount > 59)
+                throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be greater than 59.");
             if (retryInterval < 0)
                 throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be less than 0.");
+            if (retryInterval > 120)
+                throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be greater than 120.");
 
             this.connectionString = connectionString;
             this.retryCount = retryCount;
@@ -158,7 +167,31 @@ namespace ApplicationAccess.Persistence.SqlServer
             this.metricLogger = new NullMetricLogger();
             connection = new SqlConnection(connectionString);
             connectionPassedInConstructor = false;
-            sqlServerTransientErrorNumbers = new HashSet<Int32>() { 926, 4060, 40197, 40501, 40613, 49918, 49919, 49920, 11001, 4221, 615 };
+            // Setup retry logic
+            sqlServerTransientErrorNumbers = GenerateSqlServerTransientErrorNumbers();
+            var sqlRetryLogicOption = new SqlRetryLogicOption();
+            sqlRetryLogicOption.NumberOfTries = retryCount + 1;  // According to documentation... "1 means to execute one time and if an error is encountered, don't retry"
+            sqlRetryLogicOption.MinTimeInterval = TimeSpan.FromSeconds(0);
+            sqlRetryLogicOption.MaxTimeInterval = TimeSpan.FromSeconds(120);
+            sqlRetryLogicOption.DeltaTime = TimeSpan.FromSeconds(retryInterval);
+            sqlRetryLogicOption.TransientErrors = sqlServerTransientErrorNumbers;
+            connection.RetryLogicProvider = SqlConfigurableRetryFactory.CreateFixedRetryProvider(sqlRetryLogicOption);
+            connectionRetryAction = (Object sender, SqlRetryingEventArgs eventArgs) =>
+            {
+                Exception lastException = eventArgs.Exceptions[eventArgs.Exceptions.Count - 1];
+                if (typeof(SqlException).IsAssignableFrom(lastException.GetType()) == true)
+                {
+                    var se = (SqlException)lastException;
+                    logger.Log(this, LogLevel.Warning, $"SQL Server error with number {se.Number} occurred when executing command.  Retrying in {retryInterval} seconds (retry {eventArgs.RetryCount} of {retryCount}).", se);
+                }
+                else
+                {
+                    logger.Log(this, LogLevel.Warning, $"Exception occurred when executing command.  Retrying in {retryInterval} seconds (retry {eventArgs.RetryCount} of {retryCount}).", lastException);
+                }
+                metricLogger.Increment(new SqlCommandExecutionsRetried());
+            };
+            connection.RetryLogicProvider.Retrying += connectionRetryAction;
+            retryActionSetOnConnection = true;
         }
 
         /// <summary>
@@ -201,7 +234,10 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="connection">The connection to the SQL Server database.</param>
-        /// <remarks>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</remarks>
+        /// <remarks>
+        /// <para>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</para>
+        /// <para>It's recommended that the <see href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlcommand.retrylogicprovider?view=sqlclient-dotnet-standard-4.1">RetryLogicProvider</see> property be set on the provided 'connection' parameter, to handle transient errors.</para>
+        /// </remarks>
         public SqlServerAccessManagerTemporalEventPersister
         (
             string connectionString,
@@ -217,7 +253,18 @@ namespace ApplicationAccess.Persistence.SqlServer
         {
             this.connection.Dispose();
             this.connection = connection;
+            this.connection.ConnectionString = connectionString;
             connectionPassedInConstructor = true;
+            if (connection.RetryLogicProvider == null)
+            {
+                // TODO: Seems that property 'RetryLogicProvider' is set non-null by default on SqlConnection objects, but will leave this logic in just in case.
+                retryActionSetOnConnection = false;
+            }
+            else
+            {
+                connection.RetryLogicProvider.Retrying += connectionRetryAction;
+                retryActionSetOnConnection = true;
+            }
         }
 
         /// <summary>
@@ -233,7 +280,8 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="connection">The connection to the SQL Server database.</param>
-        /// <remarks>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</remarks>
+        /// <para>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</para>
+        /// <para>It's recommended that the <see href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlcommand.retrylogicprovider?view=sqlclient-dotnet-standard-4.1">RetryLogicProvider</see> property be set on the provided 'connection' parameter, to handle transient errors.</para>
         public SqlServerAccessManagerTemporalEventPersister
         (
             string connectionString,
@@ -250,7 +298,17 @@ namespace ApplicationAccess.Persistence.SqlServer
         {
             this.connection.Dispose();
             this.connection = connection;
+            this.connection.ConnectionString = connectionString;
             connectionPassedInConstructor = true;
+            if (connection.RetryLogicProvider == null)
+            {
+                retryActionSetOnConnection = false;
+            }
+            else
+            {
+                connection.RetryLogicProvider.Retrying += connectionRetryAction;
+                retryActionSetOnConnection = true;
+            }
         }
 
         /// <summary>
@@ -538,11 +596,27 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
         public void Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
+            // TODO: Statetime needs to be UTC... Need to check
+
             throw new NotImplementedException();
         }
 
         #region Private/Protected Methods
 
+        /// <summary>
+        /// Returns a list of SQL Server error numbers which indicate errors which are transient (i.e. could be recovered from after retry).
+        /// </summary>
+        /// <returns>The list of SQL Server error numbers.</returns>
+        /// <remarks>See <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql">Troubleshooting connectivity issues and other errors with Azure SQL Database and Azure SQL Managed Instance</see></remarks> 
+        protected List<Int32> GenerateSqlServerTransientErrorNumbers()
+        {
+            // Below obtained from https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql
+            var returnList = new List<Int32>() { 26, 40, 615, 926, 4060, 4221, 10053, 10928, 10929, 11001, 40197, 40501, 40613, 40615, 40544, 40549, 49918, 49919, 49920 };
+            // These are additional error numbers encountered during testing
+            returnList.AddRange(new List<Int32>() { -2, 53, 121 });
+
+            return returnList;
+        }
 
         #pragma warning disable 1573
 
@@ -732,6 +806,31 @@ namespace ApplicationAccess.Persistence.SqlServer
             ExecuteStoredProcedure(command);
         }
 
+        /// <summary>
+        /// Returns all users in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all users in the database valid at the specified time.</returns>
+        public IEnumerable<TUser> GetUsers(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  [User] 
+            FROM    Users 
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
+
+            var command = new SqlCommand(query, connection);
+            SqlDataReader dataReader = ExecuteQuery(command);
+            using (dataReader)
+            {
+                while(dataReader.Read())
+                {
+                    String currentUserAsString = (String)dataReader["User"];
+                    yield return userStringifier.FromString(currentUserAsString);
+                }
+            }
+        }
+
         #pragma warning restore 1573
 
         /// <summary>
@@ -742,7 +841,8 @@ namespace ApplicationAccess.Persistence.SqlServer
         {
             try
             {
-                ExecuteSqlCommandWithRetries(() => { command.ExecuteNonQuery(); });
+                command.CommandTimeout = retryInterval * retryCount;
+                command.ExecuteNonQuery();
             }
             catch (Exception e)
             {
@@ -751,48 +851,20 @@ namespace ApplicationAccess.Persistence.SqlServer
         }
 
         /// <summary>
-        /// Invokes the specified action containing execution of a SQL command, retrying execution if transient fault/exception occurs.
+        /// Attempts to execute the query contained in the specified SqlCommand object.
         /// </summary>
-        /// <param name="commandExecuteAction">An action containing execution of the SQL command.</param>
-        protected void ExecuteSqlCommandWithRetries(Action commandExecuteAction)
+        /// <param name="command">The command containing the query.</param>
+        /// <returns>A <see cref="SqlDataReader">SqlDataReader</see> object containing the results of the query.</returns>
+        protected SqlDataReader ExecuteQuery(SqlCommand command)
         {
-            Int32 remainingRetries = retryCount;
-            while (true)
+            try
             {
-                try
-                {
-                    if (connection.State != ConnectionState.Open)
-                    {
-                        connection.Open();
-                    }
-                    commandExecuteAction.Invoke();
-                    break;
-                }
-                catch (SqlException se)
-                {
-                    if (sqlServerTransientErrorNumbers.Contains(se.Number) == true)
-                    {
-                        if (remainingRetries > 0)
-                        {
-                            logger.Log(this, LogLevel.Warning, $"SQL Server error with number {se.Number} occurred when executing command.  Retrying in {retryInterval} seconds ({remainingRetries} of {retryCount} total retries remaining).", se);
-                            metricLogger.Increment(new SqlCommandExecutionsRetried());
-                            if (retryInterval > 0)
-                            {
-                                Thread.Sleep(retryInterval * 1000);
-                            }
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-
-                remainingRetries--;
+                command.CommandTimeout = retryInterval * retryCount;
+                return command.ExecuteReader();
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to execute stored procedure '{command.CommandText}' in SQL Server.", e);
             }
         }
 
@@ -802,6 +874,12 @@ namespace ApplicationAccess.Persistence.SqlServer
         {
             if (parameterValue.Length > columnSizeLimit)
                 throw new ArgumentOutOfRangeException(parameterName, $"Parameter '{parameterName}' with stringified value '{parameterValue}' is longer than the maximum allowable column size of {columnSizeLimit}.");
+        }
+
+        protected void ThrowExceptionIfDateTimeParameterInTheFuture(string parameterName, DateTime parameterValue)
+        {
+            if (parameterValue > DateTime.Now)
+                throw new ArgumentOutOfRangeException(parameterName, $"Parameter '{parameterName}' with value '{parameterValue.ToString("yyyy-MM-dd HH:m:ss.fffffff")}' cannot be greater than the current date.");
         }
 
         #pragma warning restore 1591
@@ -837,6 +915,10 @@ namespace ApplicationAccess.Persistence.SqlServer
                 if (disposing)
                 {
                     // Free other state (managed objects).
+                    if (retryActionSetOnConnection == true)
+                    {
+                        connection.RetryLogicProvider.Retrying -= connectionRetryAction;
+                    }
                     if (connectionPassedInConstructor == false)
                     {
                         connection.Dispose();

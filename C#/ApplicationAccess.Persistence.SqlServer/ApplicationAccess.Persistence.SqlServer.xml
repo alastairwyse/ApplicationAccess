@@ -4,6 +4,11 @@
         <name>ApplicationAccess.Persistence.SqlServer</name>
     </assembly>
     <members>
+        <member name="T:ApplicationAccess.Persistence.SqlServer.SqlCommandExecutionsRetried">
+            <summary>
+            Count metric which records the number of times execution of a SQL command resulted in a transient error and was retried.
+            </summary>
+        </member>
         <member name="T:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4">
             <summary>
             An implementation of ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister which persists access manager events to a Microsoft SQL Server database.
@@ -37,16 +42,33 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.accessLevelStringifier">
             <summary>A string converter for access levels</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.logger">
+            <summary>The logger for general logging.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connection">
             <summary>The connection to the SQL Server database.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionPassedInConstructor">
             <summary>Whether or not the 'connection' member was passed into the constructor.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.sqlServerTransientErrorNumbers">
+            <summary>A set of SQL Server database engine error numbers which denote a transient fault.</summary>
+            <see href="https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-ver16"/>
+            <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql"/>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionRetryAction">
+            <summary>The action to invoke if an action is retried due to a transient error.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.retryActionSetOnConnection">
+            <summary>Whether or not the member '<see cref="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionRetryAction" />' was set on the SQL server connection object.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3})">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
             </summary>
@@ -57,8 +79,9 @@
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="logger">The logger for general logging.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},Microsoft.Data.SqlClient.SqlConnection)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
             </summary>
@@ -69,8 +92,43 @@
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="logger">The logger for general logging.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,Microsoft.Data.SqlClient.SqlConnection)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+            </summary>
+            <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+            <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+            <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="logger">The logger for general logging.</param>
             <param name="connection">The connection to the SQL Server database.</param>
-            <remarks>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</remarks>
+            <remarks>
+            <para>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</para>
+            <para>It's recommended that the <see href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlcommand.retrylogicprovider?view=sqlclient-dotnet-standard-4.1">RetryLogicProvider</see> property be set on the provided 'connection' parameter, to handle transient errors.</para>
+            </remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger,Microsoft.Data.SqlClient.SqlConnection)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+            </summary>
+            <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+            <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+            <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="logger">The logger for general logging.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="connection">The connection to the SQL Server database.</param>
+            <para>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</para>
+            <para>It's recommended that the <see href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlcommand.retrylogicprovider?view=sqlclient-dotnet-standard-4.1">RetryLogicProvider</see> property be set on the provided 'connection' parameter, to handle transient errors.</para>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Connect">
             <summary>
@@ -266,6 +324,13 @@
         <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
       </remarks>
         </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GenerateSqlServerTransientErrorNumbers">
+            <summary>
+            Returns a list of SQL Server error numbers which indicate errors which are transient (i.e. could be recovered from after retry).
+            </summary>
+            <returns>The list of SQL Server error numbers.</returns>
+            <remarks>See <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql">Troubleshooting connectivity issues and other errors with Azure SQL Database and Azure SQL Managed Instance</see></remarks> 
+        </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.SetupAndExecuteUserStoredProcedure(System.String,`0,System.Guid,System.DateTime)">
             <summary>
             Sets up parameters on and executes a stored procedure to add or remove a user.
@@ -316,17 +381,25 @@
             Sets up parameters on and executes a stored procedure to add or remove a group to entity mapping.
             </summary>
         </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetUsers(System.DateTime)">
+            <summary>
+            Returns all users in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all users in the database valid at the specified time.</returns>
+        </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteStoredProcedure(Microsoft.Data.SqlClient.SqlCommand)">
             <summary>
             Attempts to execute the stored procedure contained in the specified SqlCommand object.
             </summary>
             <param name="command">The command containing details of the stored procedure.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteSqlCommandWithRetries(System.Action)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteQuery(Microsoft.Data.SqlClient.SqlCommand)">
             <summary>
-            Invokes the specified action containing execution of a SQL command, retrying execution if transient fault/exception occurs.
+            Attempts to execute the query contained in the specified SqlCommand object.
             </summary>
-            <param name="commandExecuteAction">An action containing execution of the SQL command.</param>
+            <param name="command">The command containing the query.</param>
+            <returns>A <see cref="T:Microsoft.Data.SqlClient.SqlDataReader">SqlDataReader</see> object containing the results of the query.</returns>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Dispose">
             <summary>

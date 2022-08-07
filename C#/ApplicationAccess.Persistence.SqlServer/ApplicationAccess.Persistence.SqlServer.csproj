@@ -13,6 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ApplicationLogging" Version="2.0.0" />
+    <PackageReference Include="ApplicationMetrics" Version="4.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.0" />
   </ItemGroup>
 

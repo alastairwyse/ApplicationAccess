@@ -19,6 +19,7 @@ using System.Text;
 using System.Globalization;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using ApplicationLogging;
 
 namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 {
@@ -45,7 +46,8 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
-                new StringUniqueStringifier()
+                new StringUniqueStringifier(), 
+                new NullLogger()
             );
         }
 
@@ -68,7 +70,8 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    new StringUniqueStringifier()
+                    new StringUniqueStringifier(), 
+                    new NullLogger()
                 );
             });
 
@@ -89,11 +92,34 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    new StringUniqueStringifier()
+                    new StringUniqueStringifier(),
+                    new NullLogger()
                 );
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'retryCount' with value -1 cannot be less than 0."));
+            Assert.AreEqual("retryCount", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_RetryCountParameterGreaterThan59()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                (
+                    "Server=testServer; Database=testDB; User Id=userId; Password=password;",
+                    60,
+                    10,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new NullLogger()
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'retryCount' with value 60 cannot be greater than 59."));
             Assert.AreEqual("retryCount", e.ParamName);
         }
 
@@ -110,11 +136,34 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    new StringUniqueStringifier()
+                    new StringUniqueStringifier(),
+                    new NullLogger()
                 );
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'retryInterval' with value -1 cannot be less than 0."));
+            Assert.AreEqual("retryInterval", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_RetryIntervalParameterGreaterThan120()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                (
+                    "Server=testServer; Database=testDB; User Id=userId; Password=password;",
+                    5,
+                    121,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new NullLogger()
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'retryInterval' with value 121 cannot be greater than 120."));
             Assert.AreEqual("retryInterval", e.ParamName);
         }
 
@@ -412,6 +461,12 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
             Assert.AreEqual("entity", e.ParamName);
         }
 
+        [Test]
+        public void Load_ParameterStateDateInTheFuture()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Generates a string of the specified length.
         /// </summary>
@@ -442,5 +497,47 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             return stringBuilder.ToString();
         }
+
+        #region Inner Classes
+
+        /// <summary>
+        /// Implementation of IApplicationLogger which does not log.
+        /// </summary>
+        private class NullLogger : IApplicationLogger
+        {
+            public void Log(LogLevel level, string text)
+            {
+            }
+
+            public void Log(object source, LogLevel level, string text)
+            {
+            }
+
+            public void Log(int eventIdentifier, LogLevel level, string text)
+            {
+            }
+
+            public void Log(object source, int eventIdentifier, LogLevel level, string text)
+            {
+            }
+
+            public void Log(LogLevel level, string text, Exception sourceException)
+            {
+            }
+
+            public void Log(object source, LogLevel level, string text, Exception sourceException)
+            {
+            }
+
+            public void Log(int eventIdentifier, LogLevel level, string text, Exception sourceException)
+            {
+            }
+
+            public void Log(object source, int eventIdentifier, LogLevel level, string text, Exception sourceException)
+            {
+            }
+        }
+
+        #endregion
     }
 }
