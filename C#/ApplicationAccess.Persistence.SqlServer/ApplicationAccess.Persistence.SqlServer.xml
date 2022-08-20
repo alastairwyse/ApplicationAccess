@@ -48,11 +48,8 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.metricLogger">
             <summary>The logger for metrics.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connection">
-            <summary>The connection to the SQL Server database.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionPassedInConstructor">
-            <summary>Whether or not the 'connection' member was passed into the constructor.</summary>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.sqlRetryLogicOption">
+            <summary>The retry logic to use when connecting to and executing against the SQL Server database.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.sqlServerTransientErrorNumbers">
             <summary>A set of SQL Server database engine error numbers which denote a transient fault.</summary>
@@ -61,9 +58,6 @@
         </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionRetryAction">
             <summary>The action to invoke if an action is retried due to a transient error.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.retryActionSetOnConnection">
-            <summary>Whether or not the member '<see cref="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionRetryAction" />' was set on the SQL server connection object.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
@@ -94,51 +88,6 @@
             <param name="accessLevelStringifier">A string converter for access levels.</param>
             <param name="logger">The logger for general logging.</param>
             <param name="metricLogger">The logger for metrics.</param>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,Microsoft.Data.SqlClient.SqlConnection)">
-            <summary>
-            Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
-            </summary>
-            <param name="connectionString">The string to use to connect to the SQL Server database.</param>
-            <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
-            <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="userStringifier">A string converter for users.</param>
-            <param name="groupStringifier">A string converter for groups.</param>
-            <param name="applicationComponentStringifier">A string converter for application components.</param>
-            <param name="accessLevelStringifier">A string converter for access levels.</param>
-            <param name="logger">The logger for general logging.</param>
-            <param name="connection">The connection to the SQL Server database.</param>
-            <remarks>
-            <para>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</para>
-            <para>It's recommended that the <see href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlcommand.retrylogicprovider?view=sqlclient-dotnet-standard-4.1">RetryLogicProvider</see> property be set on the provided 'connection' parameter, to handle transient errors.</para>
-            </remarks>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger,Microsoft.Data.SqlClient.SqlConnection)">
-            <summary>
-            Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
-            </summary>
-            <param name="connectionString">The string to use to connect to the SQL Server database.</param>
-            <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
-            <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="userStringifier">A string converter for users.</param>
-            <param name="groupStringifier">A string converter for groups.</param>
-            <param name="applicationComponentStringifier">A string converter for application components.</param>
-            <param name="accessLevelStringifier">A string converter for access levels.</param>
-            <param name="logger">The logger for general logging.</param>
-            <param name="metricLogger">The logger for metrics.</param>
-            <param name="connection">The connection to the SQL Server database.</param>
-            <para>If an instance of the class is created via this constructor, Dispose() will not be called on the 'connection' parameter when the instance is disposed.  It's expected that the client code which created the connection will call Dispose() on it.</para>
-            <para>It's recommended that the <see href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlcommand.retrylogicprovider?view=sqlclient-dotnet-standard-4.1">RetryLogicProvider</see> property be set on the provided 'connection' parameter, to handle transient errors.</para>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Connect">
-            <summary>
-            Opens the connection to the SQL Server database.
-            </summary>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Disconnect">
-            <summary>
-            Closes the connection to the SQL Server database.
-            </summary>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.AddUser(`0)">
             <summary>
@@ -388,18 +337,67 @@
             <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
             <returns>A collection of all users in the database valid at the specified time.</returns>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteStoredProcedure(Microsoft.Data.SqlClient.SqlCommand)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteStoredProcedure(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
             <summary>
-            Attempts to execute the stored procedure contained in the specified SqlCommand object.
+            Attempts to execute a stored procedure which does not return a result set.
             </summary>
-            <param name="command">The command containing details of the stored procedure.</param>
+            <param name="procedureName">The name of the stored procedure.</param>
+            <param name="parameters">The parameters to pass to the stored procedure.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteQuery(Microsoft.Data.SqlClient.SqlCommand)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteMultiResultQueryAndHandleException``1(System.String,System.String,System.Func{System.String,``0})">
             <summary>
-            Attempts to execute the query contained in the specified SqlCommand object.
+            Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
             </summary>
-            <param name="command">The command containing the query.</param>
-            <returns>A <see cref="T:Microsoft.Data.SqlClient.SqlDataReader">SqlDataReader</see> object containing the results of the query.</returns>
+            <typeparam name="T">The type of data returned from the query.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
+            <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteMultiResultQueryAndHandleException``2(System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1})">
+            <summary>
+            Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
+            </summary>
+            <typeparam name="TReturn1">The type of the first data item returned from the query.</typeparam>
+            <typeparam name="TReturn2">The type of the second data item returned from the query.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+            <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+            <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+            <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <returns>A collection of tuples of the items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteQueryAndConvertColumn``1(System.String,System.String,System.Func{System.String,``0})">
+            <summary>
+            Attempts to execute the specified query, converting a specified column from each row of the results to the specified type.
+            </summary>
+            <typeparam name="T">The type to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
+            <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteQueryAndConvertColumn``2(System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1})">
+            <summary>
+            Attempts to execute the specified query, converting a specified columns from each row of the results to the specified types.
+            </summary>
+            <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+            <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+            <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+            <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+            <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.CreateSqlParameterWithValue(System.String,System.Data.SqlDbType,System.Object)">
+            <summary>
+            Creates a <see cref="T:Microsoft.Data.SqlClient.SqlParameter" />.
+            </summary>
+            <param name="parameterName">The name of the parameter.</param>
+            <param name="parameterType">The type of the parameter.</param>
+            <param name="parameterValue">The value of the parameter.</param>
+            <returns>The created parameter.</returns>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.Dispose">
             <summary>

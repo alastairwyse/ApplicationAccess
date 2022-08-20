@@ -173,6 +173,12 @@ CREATE INDEX GroupToEntityMappingsUserIndex ON ApplicationAccess.dbo.GroupToEnti
 CREATE INDEX GroupToEntityMappingsEntityIndex ON ApplicationAccess.dbo.GroupToEntityMappings (EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX GroupToEntityMappingsTransactionIndex ON ApplicationAccess.dbo.GroupToEntityMappings (TransactionFrom, TransactionTo);
 
+CREATE TABLE ApplicationAccess.dbo.SchemaVersions
+(
+    Id         bigint        NOT NULL IDENTITY(1,1) PRIMARY KEY,  
+    [Version]  nvarchar(20)  NOT NULL, 
+    Created    datetime2     NOT NULL, 
+)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -889,7 +895,7 @@ BEGIN
             DECLARE @ApplicationComponentsId  bigint;
 
             SELECT  @ApplicationComponentsId = Id 
-            FROM    ApplicationComponents 
+            FROM    dbo.ApplicationComponents 
             WHERE   ApplicationComponent = @ApplicationComponent
               AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
             
@@ -918,7 +924,7 @@ BEGIN
             DECLARE @AccessLevelsId  bigint;
             
             SELECT  @AccessLevelsId = Id 
-            FROM    AccessLevels 
+            FROM    dbo.AccessLevels 
             WHERE   AccessLevel = @AccessLevel
               AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
@@ -1140,7 +1146,7 @@ BEGIN
             DECLARE @ApplicationComponentsId  bigint;
 
             SELECT  @ApplicationComponentsId = Id 
-            FROM    ApplicationComponents 
+            FROM    dbo.ApplicationComponents 
             WHERE   ApplicationComponent = @ApplicationComponent
               AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
             
@@ -1169,7 +1175,7 @@ BEGIN
             DECLARE @AccessLevelsId  bigint;
             
             SELECT  @AccessLevelsId = Id 
-            FROM    AccessLevels 
+            FROM    dbo.AccessLevels 
             WHERE   AccessLevel = @AccessLevel
               AND   @TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
@@ -1944,4 +1950,23 @@ BEGIN
     COMMIT TRANSACTION
 
 END
+GO
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Update 'SchemaVersions' table
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+INSERT 
+INTO    dbo.SchemaVersions
+        (
+            [Version], 
+            Created
+        )
+VALUES  (
+            '2.0.0', 
+            GETDATE()
+        );
 GO

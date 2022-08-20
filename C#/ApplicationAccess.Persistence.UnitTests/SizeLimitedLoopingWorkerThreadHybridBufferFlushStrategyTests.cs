@@ -241,13 +241,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         #region Private/Protected Methods
 
         /// <summary>
-        /// Creates a DateTime from the specified yyyy-MM-dd HH:m:ss.fff format string.
+        /// Creates a DateTime from the specified yyyy-MM-dd HH:mm:ss.fff format string.
         /// </summary>
         /// <param name="stringifiedDateTime">The stringified date/time to convert.</param>
         /// <returns>A DateTime.</returns>
         protected DateTime CreateDataTimeFromString(String stringifiedDateTime)
         {
-            DateTime returnDateTime = DateTime.ParseExact(stringifiedDateTime, "yyyy-MM-dd HH:m:ss.fff", DateTimeFormatInfo.InvariantInfo);
+            DateTime returnDateTime = DateTime.ParseExact(stringifiedDateTime, "yyyy-MM-dd HH:mm:ss.fff", DateTimeFormatInfo.InvariantInfo);
 
             return DateTime.SpecifyKind(returnDateTime, DateTimeKind.Utc);
         }

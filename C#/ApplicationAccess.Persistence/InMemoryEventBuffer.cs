@@ -1138,7 +1138,8 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #pragma warning disable 1591

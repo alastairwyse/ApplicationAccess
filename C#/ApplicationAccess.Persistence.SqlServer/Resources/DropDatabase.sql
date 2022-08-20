@@ -4,6 +4,9 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+USE ApplicationAccess
+GO 
+
 DROP PROCEDURE dbo.RemoveGroupToEntityMapping;
 DROP PROCEDURE dbo.AddGroupToEntityMapping;
 DROP PROCEDURE dbo.RemoveUserToEntityMapping;
@@ -35,6 +38,7 @@ DROP FUNCTION dbo.GetTemporalMaxDate;
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+DROP TABLE ApplicationAccess.dbo.SchemaVersions;
 DROP TABLE ApplicationAccess.dbo.GroupToEntityMappings;
 DROP TABLE ApplicationAccess.dbo.UserToEntityMappings;
 DROP TABLE ApplicationAccess.dbo.Entities;

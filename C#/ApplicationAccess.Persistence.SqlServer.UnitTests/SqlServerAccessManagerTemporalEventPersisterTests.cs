@@ -37,7 +37,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         protected void SetUp()
         {
             testEventId = Guid.Parse("e191a845-0f09-406c-b8e3-6c39663ef58b");
-            testOccurredTime = DateTime.ParseExact("2022-07-18 12:15:33", "yyyy-MM-dd HH:m:ss", DateTimeFormatInfo.InvariantInfo);
+            testOccurredTime = DateTime.ParseExact("2022-07-18 12:15:33", "yyyy-MM-dd HH:mm:ss", DateTimeFormatInfo.InvariantInfo);
             testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
             (
                 "Server=testServer; Database=testDB; User Id=userId; Password=password;",
