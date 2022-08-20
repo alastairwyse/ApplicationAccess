@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Threading;
+using System.Globalization;
 using Microsoft.Data.SqlClient;
 using ApplicationLogging;
 using ApplicationMetrics;
@@ -32,22 +32,21 @@ namespace ApplicationAccess.Persistence.SqlServer
     /// <typeparam name="TGroup">The strategy to use for flushing the buffers.</typeparam>
     /// <typeparam name="TComponent">The persister to use to write flushed events to permanent storage.</typeparam>
     /// <typeparam name="TAccess">The sequence number used for the last event buffered.</typeparam>
-    public class SqlServerAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public class SqlServerAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
     {
         // TODO:
         //   Should I have remarks on the eventId and timestamp overloaded methods to say that there's no locks and should be used from InMemoryEventBuffer?
-        //   DB implementation of methods with no event or time... decide how to implement... where should locks be?
-        //     Just clarify what the use-case/setup of these methods is... if it's in single instance with no bufferring, then single instance of this class should be used.
-        //     Can I just use LockManager in this class?
-        //     Just copy or reuse pattern from ConcurrentAccessManager
-        //   Load() methods
-        //     Private IEnumberable returning methods to GetUsers().. etc...
+        //     I think remarks should be on the class... all of the public methods could cause DB to become inconsistent is methods were called from multiple threads in parallel
+        //     For the scaled case this is controlled by putting this class behind an InMemoryEventBuffer which serializes the calls to public methods
+        //     For the single node case the Asp.Net of similar hosting app could use a ConcurrentAccessManagerEventValidator to both store a local access manager AND pass events immediately to this class via the 'postValidationAction' method params which run things in lock context.
+        //   Does Load() method need to return the eventId corresponding to a given timestamp??
+        //     Think about this, could be important.  Do 'reader' nodes need to know which EventId version they're currently at??
         //   Interval metrics on each of the public methods
-        //   Possibly can remove IDisposable implementation
+        //   Any other unit tests I can add??
 
 
 
-        #pragma warning disable 1591
+#pragma warning disable 1591
 
         protected const String addUserStoredProcedureName = "AddUser";
         protected const String removeUserStoredProcedureName = "RemoveUser";
@@ -86,7 +85,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
         protected const Int32 columnSizeLimit = 450;
         /// <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
-        protected const String transactionSql126DateStyle = "yyyy-MM-dd HH:mm:ss.fffffff";
+        protected const String transactionSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
 
         /// <summary>The string to use to connect to the SQL Server database.</summary>
         protected string connectionString;
@@ -114,8 +113,6 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected List<Int32> sqlServerTransientErrorNumbers;
         /// <summary>The action to invoke if an action is retried due to a transient error.</summary>
         protected EventHandler<SqlRetryingEventArgs> connectionRetryAction;
-        /// <summary>Indicates whether the object has been disposed.</summary>
-        protected bool disposed;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
@@ -455,21 +452,115 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
         public void Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            throw new NotImplementedException();
+            Load(DateTime.UtcNow, accessManagerToLoadTo);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
         public void Load(Guid eventId, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            throw new NotImplementedException();
+            // Get the transaction time corresponding to specified event id
+            String query =
+            @$" 
+            SELECT  CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            FROM    EventIdToTransactionTimeMap
+            WHERE   EventId = '{eventId.ToString()}';";
+
+            IEnumerable<String> queryResults = ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "TransactionTime",
+                (String cellValue) => { return cellValue; }
+            );
+            DateTime stateTime = DateTime.MinValue;
+            foreach (String currentResult in queryResults)
+            {
+                if (stateTime == DateTime.MinValue)
+                {
+                    stateTime = DateTime.ParseExact(currentResult, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo).ToUniversalTime();
+                }
+                else
+                {
+                    throw new Exception($"Multiple EventIdToTransactionTimeMap rows were returned with EventId '{eventId.ToString()}'.");
+                }
+            }
+            if (stateTime == DateTime.MinValue)
+            {
+                throw new ArgumentException($"No EventIdToTransactionTimeMap rows were returned for EventId '{eventId.ToString()}'.", nameof(eventId));
+            }
+
+            Load(stateTime, accessManagerToLoadTo);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
         public void Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            // TODO: Statetime needs to be UTC... Need to check
+            if (stateTime.Kind != DateTimeKind.Utc)
+                throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
+            DateTime now = DateTime.UtcNow;
+            if (stateTime > now)
+                throw new ArgumentException($"Parameter '{nameof(stateTime)}' will value '{stateTime.ToString(transactionSql126DateStyle)}' is greater than the current time '{now.ToString(transactionSql126DateStyle)}'.", nameof(stateTime));
 
-            throw new NotImplementedException();
+            accessManagerToLoadTo.Clear();
+            foreach (TUser currentUser in GetUsers(stateTime))
+            {
+                accessManagerToLoadTo.AddUser(currentUser);
+            }
+            foreach (TGroup currentGroup in GetGroups(stateTime))
+            {
+                accessManagerToLoadTo.AddGroup(currentGroup);
+            }
+            foreach (Tuple<TUser, TGroup> currentUserToGroupMapping in GetUserToGroupMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToGroupMapping(currentUserToGroupMapping.Item1, currentUserToGroupMapping.Item2);
+            }
+            foreach (Tuple<TGroup, TGroup> currentGroupToGroupMapping in GetGroupToGroupMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToGroupMapping(currentGroupToGroupMapping.Item1, currentGroupToGroupMapping.Item2);
+            }
+            foreach (Tuple<TUser, TComponent, TAccess> currentUserToApplicationComponentAndAccessLevelMapping in GetUserToApplicationComponentAndAccessLevelMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToApplicationComponentAndAccessLevelMapping
+                (
+                    currentUserToApplicationComponentAndAccessLevelMapping.Item1, 
+                    currentUserToApplicationComponentAndAccessLevelMapping.Item2,
+                    currentUserToApplicationComponentAndAccessLevelMapping.Item3
+                );
+            }
+            foreach (Tuple<TGroup, TComponent, TAccess> currentGroupToApplicationComponentAndAccessLevelMapping in GetGroupToApplicationComponentAndAccessLevelMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToApplicationComponentAndAccessLevelMapping
+                (
+                    currentGroupToApplicationComponentAndAccessLevelMapping.Item1,
+                    currentGroupToApplicationComponentAndAccessLevelMapping.Item2,
+                    currentGroupToApplicationComponentAndAccessLevelMapping.Item3
+                );
+            }
+            foreach (String currentEntityType in GetEntityTypes(stateTime))
+            {
+                accessManagerToLoadTo.AddEntityType(currentEntityType);
+            }
+            foreach (Tuple<String, String> currentEntityTypeAndEntity in GetEntities(stateTime))
+            {
+                accessManagerToLoadTo.AddEntity(currentEntityTypeAndEntity.Item1, currentEntityTypeAndEntity.Item2);
+            }
+            foreach (Tuple<TUser, String, String> currentUserToEntityMapping in GetUserToEntityMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToEntityMapping
+                (
+                    currentUserToEntityMapping.Item1,
+                    currentUserToEntityMapping.Item2,
+                    currentUserToEntityMapping.Item3
+                );
+            }
+            foreach (Tuple<TGroup, String, String> currentGroupToEntityMapping in GetGroupToEntityMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToEntityMapping
+                (
+                    currentGroupToEntityMapping.Item1,
+                    currentGroupToEntityMapping.Item2,
+                    currentGroupToEntityMapping.Item3
+                );
+            }
         }
 
         #region Private/Protected Methods
@@ -687,14 +778,12 @@ namespace ApplicationAccess.Persistence.SqlServer
             ExecuteStoredProcedure(storedProcedureName, parameters);
         }
 
-        // TODO: Below methods need to be made protected, or moved to a common library to be used in IAccessManagerQueryProcessor implementation
-
         /// <summary>
         /// Returns all users in the database valid at the specified state time.
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
         /// <returns>A collection of all users in the database valid at the specified time.</returns>
-        public IEnumerable<TUser> GetUsers(DateTime stateTime)
+        protected IEnumerable<TUser> GetUsers(DateTime stateTime)
         {
             String query =
             @$" 
@@ -710,11 +799,95 @@ namespace ApplicationAccess.Persistence.SqlServer
             );
         }
 
-        public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user, DateTime stateTime)
+        /// <summary>
+        /// Returns all groups in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all groups in the database valid at the specified time.</returns>
+        protected IEnumerable<TGroup> GetGroups(DateTime stateTime)
         {
             String query =
             @$" 
-            SELECT  ac.ApplicationComponent, 
+            SELECT  [Group] 
+            FROM    Groups 
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
+
+            return ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "Group",
+                (String cellValue) => { return groupStringifier.FromString(cellValue); }
+            );
+        }
+
+        /// <summary>
+        /// Returns all user to group mappings in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all user to group mappings in the database valid at the specified state time.</returns>
+        protected IEnumerable<Tuple<TUser, TGroup>> GetUserToGroupMappings(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  u.[User], 
+                    g.[Group]
+            FROM    UserToGroupMappings ug
+                    INNER JOIN Users u
+		              ON ug.UserId = u.Id
+                    INNER JOIN Groups g
+		              ON ug.GroupId = g.Id
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ug.TransactionFrom AND ug.TransactionTo;";
+
+            return ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "User",
+                "Group",
+                (String cell1Value) => { return userStringifier.FromString(cell1Value); },
+                (String cell2Value) => { return groupStringifier.FromString(cell2Value); }
+            );
+        }
+
+        /// <summary>
+        /// Returns all group to group mappings in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all group to group mappings in the database valid at the specified state time.</returns>
+        protected IEnumerable<Tuple<TGroup, TGroup>> GetGroupToGroupMappings(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  gg.Id, 
+                    fg.[Group] AS 'FromGroup', 
+		            tg.[Group] AS 'ToGroup'
+            FROM    GroupToGroupMappings gg
+                    INNER JOIN Groups fg
+		              ON gg.FromGroupId = fg.Id
+                    INNER JOIN Groups tg
+		              ON gg.ToGroupId = tg.Id
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN gg.TransactionFrom AND gg.TransactionTo;";
+
+            return ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "FromGroup",
+                "ToGroup",
+                (String cell1Value) => { return groupStringifier.FromString(cell1Value); },
+                (String cell2Value) => { return groupStringifier.FromString(cell2Value); }
+            );
+        }
+
+        /// <summary>
+        /// Returns all user to application component and access level mappings in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all user to application component and access level mappings in the database valid at the specified state time.</returns>
+        protected IEnumerable<Tuple<TUser, TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  u.[User], 
+                    ac.ApplicationComponent, 
 		            al.AccessLevel 
             FROM    UserToApplicationComponentAndAccessLevelMappings uaa
                     INNER JOIN Users u
@@ -723,19 +896,165 @@ namespace ApplicationAccess.Persistence.SqlServer
 		              ON uaa.ApplicationComponentId = ac.Id
 		            INNER JOIN AccessLevels al
 		              ON uaa.AccessLevelId = al.Id
-            WHERE   u.[User] = '{userStringifier.ToString(user)}'
-              AND   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN uaa.TransactionFrom AND uaa.TransactionTo;";
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN uaa.TransactionFrom AND uaa.TransactionTo;";
 
             return ExecuteMultiResultQueryAndHandleException
             (
                 query,
+                "User", 
                 "ApplicationComponent",
-                "AccessLevel", 
-                (String cell1Value) => { return applicationComponentStringifier.FromString(cell1Value); }, 
-                (String cell2Value) => { return accessLevelStringifier.FromString(cell2Value); }
+                "AccessLevel",
+                (String cell1Value) => { return userStringifier.FromString(cell1Value); },
+                (String cell2Value) => { return applicationComponentStringifier.FromString(cell2Value); }, 
+                (String cell3Value) => { return accessLevelStringifier.FromString(cell3Value); }
             );
         }
 
+        /// <summary>
+        /// Returns all group to application component and access level mappings in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all group to application component and access level mappings in the database valid at the specified state time.</returns>
+        protected IEnumerable<Tuple<TGroup, TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  g.[Group], 
+                    ac.ApplicationComponent, 
+		            al.AccessLevel 
+            FROM    GroupToApplicationComponentAndAccessLevelMappings gaa
+                    INNER JOIN Groups g
+		              ON gaa.GroupId = g.Id
+		            INNER JOIN ApplicationComponents ac
+		              ON gaa.ApplicationComponentId = ac.Id
+		            INNER JOIN AccessLevels al
+		              ON gaa.AccessLevelId = al.Id
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN gaa.TransactionFrom AND gaa.TransactionTo;";
+
+            return ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "Group",
+                "ApplicationComponent",
+                "AccessLevel",
+                (String cell1Value) => { return groupStringifier.FromString(cell1Value); },
+                (String cell2Value) => { return applicationComponentStringifier.FromString(cell2Value); },
+                (String cell3Value) => { return accessLevelStringifier.FromString(cell3Value); }
+            );
+        }
+
+        /// <summary>
+        /// Returns all entity types in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all entity types in the database valid at the specified time.</returns>
+        protected IEnumerable<String> GetEntityTypes(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  EntityType
+            FROM    EntityTypes 
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
+
+            return ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "EntityType",
+                (String cellValue) => { return cellValue; }
+            );
+        }
+
+        /// <summary>
+        /// Returns all entities in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all entities in the database valid at the specified state time. Each tuple contains: the type of the entity, and the entity itself.</returns>
+        protected IEnumerable<Tuple<String, String>> GetEntities(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  et.EntityType, 
+		            e.Entity 
+            FROM    Entities e
+                    INNER JOIN EntityTypes et
+		              ON e.EntityTypeId = et.Id
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN e.TransactionFrom AND e.TransactionTo;";
+
+            return ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "EntityType",
+                "Entity",
+                (String cell1Value) => { return cell1Value; },
+                (String cell2Value) => { return cell2Value; }
+            );
+        }
+
+        /// <summary>
+        /// Returns all user to entity mappings in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all user to entity mappings in the database valid at the specified state time.  Each tuple contains: the user, the type of the entity, and the entity.</returns>
+        protected IEnumerable<Tuple<TUser, String, String>> GetUserToEntityMappings(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  u.[User], 
+		            et.EntityType, 
+		            e.Entity
+            FROM    UserToEntityMappings ue
+                    INNER JOIN Users u
+		              ON ue.UserId = u.Id
+		            INNER JOIN EntityTypes et
+		              ON ue.EntityTypeId = et.Id
+		            INNER JOIN Entities e
+		              ON ue.EntityId = e.Id
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ue.TransactionFrom AND ue.TransactionTo;";
+
+            return ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "User",
+                "EntityType",
+                "Entity",
+                (String cell1Value) => { return userStringifier.FromString(cell1Value); },
+                (String cell2Value) => { return cell2Value; },
+                (String cell3Value) => { return cell3Value; }
+            );
+        }
+
+        /// <summary>
+        /// Returns all group to entity mappings in the database valid at the specified state time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>A collection of all group to entity mappings in the database valid at the specified state time.  Each tuple contains: the group, the type of the entity, and the entity.</returns>
+        protected IEnumerable<Tuple<TGroup, String, String>> GetGroupToEntityMappings(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  g.[Group], 
+		            et.EntityType, 
+		            e.Entity
+            FROM    GroupToEntityMappings ge
+                    INNER JOIN Groups g
+		                ON ge.GroupId = g.Id
+		            INNER JOIN EntityTypes et
+		                ON ge.EntityTypeId = et.Id
+		            INNER JOIN Entities e
+		                ON ge.EntityId = e.Id
+            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ge.TransactionFrom AND ge.TransactionTo;";
+
+            return ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "Group",
+                "EntityType",
+                "Entity",
+                (String cell1Value) => { return groupStringifier.FromString(cell1Value); },
+                (String cell2Value) => { return cell2Value; },
+                (String cell3Value) => { return cell3Value; }
+            );
+        }
 
         #pragma warning restore 1573
 
@@ -774,7 +1093,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <summary>
         /// Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
         /// </summary>
-        /// <typeparam name="T">The type of data returned from the query.</typeparam>
+        /// <typeparam name="TReturn">The type of data returned from the query.</typeparam>
         /// <param name="query">The query to execute.</param>
         /// <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
         /// <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
@@ -814,6 +1133,50 @@ namespace ApplicationAccess.Persistence.SqlServer
             try
             {
                 return ExecuteQueryAndConvertColumn(query, columnToConvert1, columnToConvert2, returnType1ConversionFromStringFunction, returnType2ConversionFromStringFunction);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to execute query '{query}' in SQL Server.", e);
+            }
+        }
+
+        /// <summary>
+        /// Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
+        /// </summary>
+        /// <typeparam name="TReturn1">The type of the first data item returned from the query.</typeparam>
+        /// <typeparam name="TReturn2">The type of the second data item returned from the query.</typeparam>
+        /// <typeparam name="TReturn3">The type of the third data item returned from the query.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
+        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+        /// <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
+        /// <returns>A collection of tuples of the items returned by the query.</returns>
+        protected IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteMultiResultQueryAndHandleException<TReturn1, TReturn2, TReturn3>
+        (
+            String query,
+            String columnToConvert1,
+            String columnToConvert2,
+            String columnToConvert3,
+            Func<String, TReturn1> returnType1ConversionFromStringFunction,
+            Func<String, TReturn2> returnType2ConversionFromStringFunction,
+            Func<String, TReturn3> returnType3ConversionFromStringFunction
+        )
+        {
+            try
+            {
+                return ExecuteQueryAndConvertColumn
+                (
+                    query, 
+                    columnToConvert1, 
+                    columnToConvert2,
+                    columnToConvert3,
+                    returnType1ConversionFromStringFunction, 
+                    returnType2ConversionFromStringFunction,
+                    returnType3ConversionFromStringFunction
+                );
             }
             catch (Exception e)
             {
@@ -895,6 +1258,56 @@ namespace ApplicationAccess.Persistence.SqlServer
         }
 
         /// <summary>
+        /// Attempts to execute the specified query, converting a specified columns from each row of the results to the specified types.
+        /// </summary>
+        /// <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+        /// <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+        /// <typeparam name="TReturn3">The type of the third data item to convert to and return.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
+        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+        /// <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
+        /// <returns>A collection of items returned by the query.</returns>
+        protected IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteQueryAndConvertColumn<TReturn1, TReturn2, TReturn3>
+        (
+            String query,
+            String columnToConvert1,
+            String columnToConvert2,
+            String columnToConvert3,
+            Func<String, TReturn1> returnType1ConversionFromStringFunction,
+            Func<String, TReturn2> returnType2ConversionFromStringFunction,
+            Func<String, TReturn3> returnType3ConversionFromStringFunction
+        )
+        {
+            using (var connection = new SqlConnection(connectionString))
+            using (var command = new SqlCommand(query))
+            {
+                connection.RetryLogicProvider = SqlConfigurableRetryFactory.CreateFixedRetryProvider(sqlRetryLogicOption);
+                connection.RetryLogicProvider.Retrying += connectionRetryAction;
+                connection.Open();
+                command.Connection = connection;
+                command.CommandTimeout = retryInterval * retryCount;
+                using (SqlDataReader dataReader = command.ExecuteReader())
+                {
+                    while (dataReader.Read())
+                    {
+                        String firstDataItemAsString = (String)dataReader[columnToConvert1];
+                        String secondDataItemAsString = (String)dataReader[columnToConvert2];
+                        String thirdDataItemAsString = (String)dataReader[columnToConvert3];
+                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction.Invoke(firstDataItemAsString);
+                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction.Invoke(secondDataItemAsString);
+                        TReturn3 thirdDataItemConverted = returnType3ConversionFromStringFunction.Invoke(thirdDataItemAsString);
+                        yield return new Tuple<TReturn1, TReturn2, TReturn3>(firstDataItemConverted, secondDataItemConverted, thirdDataItemConverted);
+                    }
+                }
+                connection.RetryLogicProvider.Retrying -= connectionRetryAction;
+            }
+        }
+
+        /// <summary>
         /// Creates a <see cref="SqlParameter" />.
         /// </summary>
         /// <param name="parameterName">The name of the parameter.</param>
@@ -924,47 +1337,6 @@ namespace ApplicationAccess.Persistence.SqlServer
         }
 
         #pragma warning restore 1591
-
-        #endregion
-
-        #region Finalize / Dispose Methods
-
-        /// <summary>
-        /// Releases the unmanaged resources used by the SqlServerAccessManagerTemporalEventPersister.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #pragma warning disable 1591
-        ~SqlServerAccessManagerTemporalEventPersister()
-        {
-            Dispose(false);
-        }
-        #pragma warning restore 1591
-
-        /// <summary>
-        /// Provides a method to free unmanaged resources used by this class.
-        /// </summary>
-        /// <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    // Free other state (managed objects).
-
-                }
-                // Free your own state (unmanaged objects).
-
-                // Set large fields to null.
-
-                disposed = true;
-            }
-        }
 
         #endregion
     }

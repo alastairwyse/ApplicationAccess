@@ -21,6 +21,9 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.columnSizeLimit">
             <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.transactionSql126DateStyle">
+            <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.connectionString">
             <summary>The string to use to connect to the SQL Server database.</summary>
         </member>
@@ -337,6 +340,69 @@
             <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
             <returns>A collection of all users in the database valid at the specified time.</returns>
         </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetGroups(System.DateTime)">
+            <summary>
+            Returns all groups in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all groups in the database valid at the specified time.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetUserToGroupMappings(System.DateTime)">
+            <summary>
+            Returns all user to group mappings in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all user to group mappings in the database valid at the specified state time.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetGroupToGroupMappings(System.DateTime)">
+            <summary>
+            Returns all group to group mappings in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all group to group mappings in the database valid at the specified state time.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetUserToApplicationComponentAndAccessLevelMappings(System.DateTime)">
+            <summary>
+            Returns all user to application component and access level mappings in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all user to application component and access level mappings in the database valid at the specified state time.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetGroupToApplicationComponentAndAccessLevelMappings(System.DateTime)">
+            <summary>
+            Returns all group to application component and access level mappings in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all group to application component and access level mappings in the database valid at the specified state time.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetEntityTypes(System.DateTime)">
+            <summary>
+            Returns all entity types in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all entity types in the database valid at the specified time.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetEntities(System.DateTime)">
+            <summary>
+            Returns all entities in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all entities in the database valid at the specified state time. Each tuple contains: the type of the entity, and the entity itself.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetUserToEntityMappings(System.DateTime)">
+            <summary>
+            Returns all user to entity mappings in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all user to entity mappings in the database valid at the specified state time.  Each tuple contains: the user, the type of the entity, and the entity.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.GetGroupToEntityMappings(System.DateTime)">
+            <summary>
+            Returns all group to entity mappings in the database valid at the specified state time.
+            </summary>
+            <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+            <returns>A collection of all group to entity mappings in the database valid at the specified state time.  Each tuple contains: the group, the type of the entity, and the entity.</returns>
+        </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteStoredProcedure(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
             <summary>
             Attempts to execute a stored procedure which does not return a result set.
@@ -348,7 +414,7 @@
             <summary>
             Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
             </summary>
-            <typeparam name="T">The type of data returned from the query.</typeparam>
+            <typeparam name="TReturn">The type of data returned from the query.</typeparam>
             <param name="query">The query to execute.</param>
             <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
             <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
@@ -365,6 +431,22 @@
             <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
             <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
             <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <returns>A collection of tuples of the items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteMultiResultQueryAndHandleException``3(System.String,System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1},System.Func{System.String,``2})">
+            <summary>
+            Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
+            </summary>
+            <typeparam name="TReturn1">The type of the first data item returned from the query.</typeparam>
+            <typeparam name="TReturn2">The type of the second data item returned from the query.</typeparam>
+            <typeparam name="TReturn3">The type of the third data item returned from the query.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+            <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+            <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
+            <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+            <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
             <returns>A collection of tuples of the items returned by the query.</returns>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteQueryAndConvertColumn``1(System.String,System.String,System.Func{System.String,``0})">
@@ -388,6 +470,22 @@
             <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
             <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
             <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.ExecuteQueryAndConvertColumn``3(System.String,System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1},System.Func{System.String,``2})">
+            <summary>
+            Attempts to execute the specified query, converting a specified columns from each row of the results to the specified types.
+            </summary>
+            <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+            <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+            <typeparam name="TReturn3">The type of the third data item to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+            <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+            <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
+            <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+            <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
             <returns>A collection of items returned by the query.</returns>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4.CreateSqlParameterWithValue(System.String,System.Data.SqlDbType,System.Object)">

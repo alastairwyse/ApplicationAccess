@@ -462,9 +462,29 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         }
 
         [Test]
-        public void Load_ParameterStateDateInTheFuture()
+        public void LoadStateTimeOverload_ParameterStateDateNotUtc()
         {
-            throw new NotImplementedException();
+            DateTime testStateTime = DateTime.ParseExact("2022-08-20 19:48:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.Load(DateTime.Now, new AccessManager<String, String, String, String>());
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' must be expressed as UTC."));
+            Assert.AreEqual("stateTime", e.ParamName);
+        }
+
+        [Test]
+        public void LoadStateTimeOverload_ParameterStateDateInTheFuture()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testSqlServerAccessManagerTemporalEventPersister.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>());
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' will value '{DateTime.MaxValue.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.fffffff")}' is greater than the current time '"));
+            Assert.AreEqual("stateTime", e.ParamName);
         }
 
         /// <summary>
