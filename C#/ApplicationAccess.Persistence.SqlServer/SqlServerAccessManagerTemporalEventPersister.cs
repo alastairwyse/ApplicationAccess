@@ -32,16 +32,18 @@ namespace ApplicationAccess.Persistence.SqlServer
     /// <typeparam name="TGroup">The strategy to use for flushing the buffers.</typeparam>
     /// <typeparam name="TComponent">The persister to use to write flushed events to permanent storage.</typeparam>
     /// <typeparam name="TAccess">The sequence number used for the last event buffered.</typeparam>
+    /// <remarks>Note that <see cref="IAccessManagerEventProcessor&lt;TUser, TGroup, TComponent, TAccess&gt;">IAccessManagerEventProcessor</see> methods implemented in this class should not be called from concurrent threads.  The class is designed to operate behind a class which manages mutual exclusion such as the <see cref="InMemoryEventBuffer&lt;TUser, TGroup, TComponent, TAccess&gt;">InMemoryEventBuffer</see> or <see cref="ApplicationAccess.Validation.ConcurrentAccessManagerEventValidator&lt;TUser, TGroup, TComponent, TAccess&gt;">ConcurrentAccessManagerEventValidator</see> classes.</remarks>
     public class SqlServerAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
     {
         // TODO:
-        //   Should I have remarks on the eventId and timestamp overloaded methods to say that there's no locks and should be used from InMemoryEventBuffer?
-        //     I think remarks should be on the class... all of the public methods could cause DB to become inconsistent is methods were called from multiple threads in parallel
-        //     For the scaled case this is controlled by putting this class behind an InMemoryEventBuffer which serializes the calls to public methods
-        //     For the single node case the Asp.Net of similar hosting app could use a ConcurrentAccessManagerEventValidator to both store a local access manager AND pass events immediately to this class via the 'postValidationAction' method params which run things in lock context.
-        //   Does Load() method need to return the eventId corresponding to a given timestamp??
-        //     Think about this, could be important.  Do 'reader' nodes need to know which EventId version they're currently at??
+        //   Change Load() methods to return a Tuple<Guid, DateTime>
+        //     Load method will need to do a query to get the eventId equal to or immediately before the specified statetime
+        //     Query will likely need to use an order by and top... run this against SQL server query profiler to make sure it doesn't table/index scan
         //   Interval metrics on each of the public methods
+        //     We alread have AccessManagerEventProcessorMetricLogger... can that be reused/derived from??
+        //     Timings/interval metrics would probably be nice, but do we need counts??  InMemoryEventBuffer already does counts to all event calls it receives... should be able to assume they will all be persisted at some point afterwards.
+        //     Start with just timings, and it should only be on the event overloads which include statetime... the ones without will be covered in any case
+        //       And also timings and counts on the load methods (again can probably just put in the 'lowest level' Load() overload)
         //   Any other unit tests I can add??
 
 
@@ -212,121 +214,121 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
         public void AddUser(TUser user)
         {
-            throw new NotImplementedException();
+            AddUser(user, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
         public void RemoveUser(TUser user)
         {
-            throw new NotImplementedException();
+            RemoveUser(user, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
         public void AddGroup(TGroup group)
         {
-            throw new NotImplementedException();
+            AddGroup(group, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
         public void RemoveGroup(TGroup group)
         {
-            throw new NotImplementedException();
+            RemoveGroup(group, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
-            throw new NotImplementedException();
+            AddUserToGroupMapping(user, group, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
-            throw new NotImplementedException();
+            RemoveUserToGroupMapping(user, group, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-            throw new NotImplementedException();
+            AddGroupToGroupMapping(fromGroup, toGroup, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-            throw new NotImplementedException();
+            RemoveGroupToGroupMapping(fromGroup, toGroup, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            throw new NotImplementedException();
+            AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            throw new NotImplementedException();
+            RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            throw new NotImplementedException();
+            AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            throw new NotImplementedException();
+            RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
         public void AddEntityType(String entityType)
         {
-            throw new NotImplementedException();
+            AddEntityType(entityType, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
         public void RemoveEntityType(String entityType)
         {
-            throw new NotImplementedException();
+            RemoveEntityType(entityType, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
         public void AddEntity(String entityType, String entity)
         {
-            throw new NotImplementedException();
+            AddEntity(entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
         public void RemoveEntity(String entityType, String entity)
         {
-            throw new NotImplementedException();
+            RemoveEntity(entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
-            throw new NotImplementedException();
+            AddUserToEntityMapping(user, entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
-            throw new NotImplementedException();
+            RemoveUserToEntityMapping(user, entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
-            throw new NotImplementedException();
+            AddGroupToEntityMapping(group, entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
-            throw new NotImplementedException();
+            RemoveGroupToEntityMapping(group, entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Guid,System.DateTime)"]/*'/>

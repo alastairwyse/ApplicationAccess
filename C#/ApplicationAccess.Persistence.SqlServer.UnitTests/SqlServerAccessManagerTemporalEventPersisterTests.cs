@@ -54,7 +54,6 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         [TearDown]
         protected void TearDown()
         {
-            testSqlServerAccessManagerTemporalEventPersister.Dispose();
         }
 
         [Test]
