@@ -37,8 +37,8 @@ namespace ApplicationAccess.Persistence.SqlServer
     {
         // TODO:
         //   Change Load() methods to return a Tuple<Guid, DateTime>
-        //     Load method will need to do a query to get the eventId equal to or immediately before the specified statetime
         //     Query will likely need to use an order by and top... run this against SQL server query profiler to make sure it doesn't table/index scan
+
         //   Interval metrics on each of the public methods
         //     We alread have AccessManagerEventProcessorMetricLogger... can that be reused/derived from??
         //     Timings/interval metrics would probably be nice, but do we need counts??  InMemoryEventBuffer already does counts to all event calls it receives... should be able to assume they will all be persisted at some point afterwards.
@@ -48,7 +48,7 @@ namespace ApplicationAccess.Persistence.SqlServer
 
 
 
-#pragma warning disable 1591
+        #pragma warning disable 1591
 
         protected const String addUserStoredProcedureName = "AddUser";
         protected const String removeUserStoredProcedureName = "RemoveUser";
@@ -452,13 +452,13 @@ namespace ApplicationAccess.Persistence.SqlServer
         }
 
         /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public void Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public Tuple<Guid, DateTime> Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            Load(DateTime.UtcNow, accessManagerToLoadTo);
+            return Load(DateTime.UtcNow, accessManagerToLoadTo);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public void Load(Guid eventId, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public Tuple<Guid, DateTime> Load(Guid eventId, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             // Get the transaction time corresponding to specified event id
             String query =
@@ -478,7 +478,8 @@ namespace ApplicationAccess.Persistence.SqlServer
             {
                 if (stateTime == DateTime.MinValue)
                 {
-                    stateTime = DateTime.ParseExact(currentResult, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo).ToUniversalTime();
+                    stateTime = DateTime.ParseExact(currentResult, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
+                    stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
                 }
                 else
                 {
@@ -490,11 +491,13 @@ namespace ApplicationAccess.Persistence.SqlServer
                 throw new ArgumentException($"No EventIdToTransactionTimeMap rows were returned for EventId '{eventId.ToString()}'.", nameof(eventId));
             }
 
-            Load(stateTime, accessManagerToLoadTo);
+            LoadToAccessManager(stateTime, accessManagerToLoadTo);
+
+            return new Tuple<Guid, DateTime>(eventId, stateTime);
         }
 
         /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public void Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             if (stateTime.Kind != DateTimeKind.Utc)
                 throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
@@ -502,67 +505,44 @@ namespace ApplicationAccess.Persistence.SqlServer
             if (stateTime > now)
                 throw new ArgumentException($"Parameter '{nameof(stateTime)}' will value '{stateTime.ToString(transactionSql126DateStyle)}' is greater than the current time '{now.ToString(transactionSql126DateStyle)}'.", nameof(stateTime));
 
-            accessManagerToLoadTo.Clear();
-            foreach (TUser currentUser in GetUsers(stateTime))
+            // Get the event id and transaction time equal to or immediately before the specified state time
+            String query =
+            @$" 
+            SELECT  TOP(1)
+                    CONVERT(nvarchar(40), EventId) AS 'EventId',
+		            CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            FROM    EventIdToTransactionTimeMap
+            WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126)
+            ORDER   BY TransactionTime DESC;";
+
+            IEnumerable<Tuple<Guid, DateTime>> queryResults = ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "EventId",
+                "TransactionTime", 
+                (String cellValue) => { return Guid.Parse(cellValue); },
+                (String cellValue) => 
+                { 
+                    var stateTime = DateTime.ParseExact(cellValue, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
+                    stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
+
+                    return stateTime;
+                }
+            );
+            Guid eventId = default(Guid);
+            DateTime transactionTime = DateTime.MinValue;
+            foreach (Tuple<Guid, DateTime> currentResult in queryResults)
             {
-                accessManagerToLoadTo.AddUser(currentUser);
+                eventId = currentResult.Item1;
+                transactionTime = currentResult.Item2;
+                break;
             }
-            foreach (TGroup currentGroup in GetGroups(stateTime))
-            {
-                accessManagerToLoadTo.AddGroup(currentGroup);
-            }
-            foreach (Tuple<TUser, TGroup> currentUserToGroupMapping in GetUserToGroupMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddUserToGroupMapping(currentUserToGroupMapping.Item1, currentUserToGroupMapping.Item2);
-            }
-            foreach (Tuple<TGroup, TGroup> currentGroupToGroupMapping in GetGroupToGroupMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToGroupMapping(currentGroupToGroupMapping.Item1, currentGroupToGroupMapping.Item2);
-            }
-            foreach (Tuple<TUser, TComponent, TAccess> currentUserToApplicationComponentAndAccessLevelMapping in GetUserToApplicationComponentAndAccessLevelMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddUserToApplicationComponentAndAccessLevelMapping
-                (
-                    currentUserToApplicationComponentAndAccessLevelMapping.Item1, 
-                    currentUserToApplicationComponentAndAccessLevelMapping.Item2,
-                    currentUserToApplicationComponentAndAccessLevelMapping.Item3
-                );
-            }
-            foreach (Tuple<TGroup, TComponent, TAccess> currentGroupToApplicationComponentAndAccessLevelMapping in GetGroupToApplicationComponentAndAccessLevelMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToApplicationComponentAndAccessLevelMapping
-                (
-                    currentGroupToApplicationComponentAndAccessLevelMapping.Item1,
-                    currentGroupToApplicationComponentAndAccessLevelMapping.Item2,
-                    currentGroupToApplicationComponentAndAccessLevelMapping.Item3
-                );
-            }
-            foreach (String currentEntityType in GetEntityTypes(stateTime))
-            {
-                accessManagerToLoadTo.AddEntityType(currentEntityType);
-            }
-            foreach (Tuple<String, String> currentEntityTypeAndEntity in GetEntities(stateTime))
-            {
-                accessManagerToLoadTo.AddEntity(currentEntityTypeAndEntity.Item1, currentEntityTypeAndEntity.Item2);
-            }
-            foreach (Tuple<TUser, String, String> currentUserToEntityMapping in GetUserToEntityMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddUserToEntityMapping
-                (
-                    currentUserToEntityMapping.Item1,
-                    currentUserToEntityMapping.Item2,
-                    currentUserToEntityMapping.Item3
-                );
-            }
-            foreach (Tuple<TGroup, String, String> currentGroupToEntityMapping in GetGroupToEntityMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToEntityMapping
-                (
-                    currentGroupToEntityMapping.Item1,
-                    currentGroupToEntityMapping.Item2,
-                    currentGroupToEntityMapping.Item3
-                );
-            }
+            if (transactionTime == DateTime.MinValue)
+                throw new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(transactionSql126DateStyle)}'.", nameof(stateTime));
+
+            LoadToAccessManager(stateTime, accessManagerToLoadTo);
+
+            return new Tuple<Guid, DateTime>(eventId, transactionTime);
         }
 
         #region Private/Protected Methods
@@ -1322,6 +1302,76 @@ namespace ApplicationAccess.Persistence.SqlServer
             returnParameter.Value = parameterValue;
 
             return returnParameter;
+        }
+
+        /// <summary>
+        /// Loads the access manager with state corresponding to the specified timestamp from persistent storage into the specified AccessManager instance.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
+        protected void LoadToAccessManager(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        {
+            accessManagerToLoadTo.Clear();
+            foreach (TUser currentUser in GetUsers(stateTime))
+            {
+                accessManagerToLoadTo.AddUser(currentUser);
+            }
+            foreach (TGroup currentGroup in GetGroups(stateTime))
+            {
+                accessManagerToLoadTo.AddGroup(currentGroup);
+            }
+            foreach (Tuple<TUser, TGroup> currentUserToGroupMapping in GetUserToGroupMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToGroupMapping(currentUserToGroupMapping.Item1, currentUserToGroupMapping.Item2);
+            }
+            foreach (Tuple<TGroup, TGroup> currentGroupToGroupMapping in GetGroupToGroupMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToGroupMapping(currentGroupToGroupMapping.Item1, currentGroupToGroupMapping.Item2);
+            }
+            foreach (Tuple<TUser, TComponent, TAccess> currentUserToApplicationComponentAndAccessLevelMapping in GetUserToApplicationComponentAndAccessLevelMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToApplicationComponentAndAccessLevelMapping
+                (
+                    currentUserToApplicationComponentAndAccessLevelMapping.Item1,
+                    currentUserToApplicationComponentAndAccessLevelMapping.Item2,
+                    currentUserToApplicationComponentAndAccessLevelMapping.Item3
+                );
+            }
+            foreach (Tuple<TGroup, TComponent, TAccess> currentGroupToApplicationComponentAndAccessLevelMapping in GetGroupToApplicationComponentAndAccessLevelMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToApplicationComponentAndAccessLevelMapping
+                (
+                    currentGroupToApplicationComponentAndAccessLevelMapping.Item1,
+                    currentGroupToApplicationComponentAndAccessLevelMapping.Item2,
+                    currentGroupToApplicationComponentAndAccessLevelMapping.Item3
+                );
+            }
+            foreach (String currentEntityType in GetEntityTypes(stateTime))
+            {
+                accessManagerToLoadTo.AddEntityType(currentEntityType);
+            }
+            foreach (Tuple<String, String> currentEntityTypeAndEntity in GetEntities(stateTime))
+            {
+                accessManagerToLoadTo.AddEntity(currentEntityTypeAndEntity.Item1, currentEntityTypeAndEntity.Item2);
+            }
+            foreach (Tuple<TUser, String, String> currentUserToEntityMapping in GetUserToEntityMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddUserToEntityMapping
+                (
+                    currentUserToEntityMapping.Item1,
+                    currentUserToEntityMapping.Item2,
+                    currentUserToEntityMapping.Item3
+                );
+            }
+            foreach (Tuple<TGroup, String, String> currentGroupToEntityMapping in GetGroupToEntityMappings(stateTime))
+            {
+                accessManagerToLoadTo.AddGroupToEntityMapping
+                (
+                    currentGroupToEntityMapping.Item1,
+                    currentGroupToEntityMapping.Item2,
+                    currentGroupToEntityMapping.Item3
+                );
+            }
         }
 
         #pragma warning disable 1591
