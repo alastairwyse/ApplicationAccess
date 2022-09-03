@@ -117,13 +117,13 @@ namespace ApplicationAccess.Metrics
             {
                 base.AddUser(user, baseAction);
             };
-            CallBaseClassEventProcessingMethodWithMetricLogging<TUser, UserAddTime, UsersAdded>(user, addUserAction);
+            CallBaseClassEventProcessingMethodWithMetricLogging<TUser, UserAddTime, UserAdded>(user, addUserAction);
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsUser(`0)"]/*'/>
         public override Boolean ContainsUser(TUser user)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsUserQueries>(() => { return base.ContainsUser(user); });
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsUserQuery>(() => { return base.ContainsUser(user); });
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
@@ -147,7 +147,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new UserRemoveTime());
-                IncrementCountMetricIfLoggingEnabled(new UsersRemoved());
+                IncrementCountMetricIfLoggingEnabled(new UserRemoved());
                 userToApplicationComponentAndAccessLevelMappingCount = newUserToApplicationComponentAndAccessLevelMappingCount;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
                 userToEntityMappingCount -= userToEntityMappingCountPerUser.GetFrequency(user);
@@ -164,13 +164,13 @@ namespace ApplicationAccess.Metrics
             {
                 base.AddGroup(group, baseAction);
             };
-            CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, GroupAddTime, GroupsAdded>(group, addGroupAction);
+            CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, GroupAddTime, GroupAdded>(group, addGroupAction);
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsGroup(`1)"]/*'/>
         public override Boolean ContainsGroup(TGroup group)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsGroupQueries>(() => { return base.ContainsGroup(group); });
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsGroupQuery>(() => { return base.ContainsGroup(group); });
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
@@ -194,7 +194,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
-                IncrementCountMetricIfLoggingEnabled(new GroupsRemoved());
+                IncrementCountMetricIfLoggingEnabled(new GroupRemoved());
                 groupToApplicationComponentAndAccessLevelMappingCount = newGroupToApplicationComponentAndAccessLevelMappingCount;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
                 groupToEntityMappingCount -= groupToEntityMappingCountPerGroup.GetFrequency(group);
@@ -211,13 +211,13 @@ namespace ApplicationAccess.Metrics
             {
                 base.AddUserToGroupMapping(user, group, baseAction);
             };
-            CallBaseClassEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingAddTime, UserToGroupMappingsAdded>(user, group, addUserToGroupMappingAction);
+            CallBaseClassEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingAddTime, UserToGroupMappingAdded>(user, group, addUserToGroupMappingAction);
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToGroupMappings(`0)"]/*'/>
         public override IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetUserToGroupMappingsQueries>(() => { return base.GetUserToGroupMappings(user); });
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetUserToGroupMappingsQuery>(() => { return base.GetUserToGroupMappings(user); });
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
@@ -227,7 +227,7 @@ namespace ApplicationAccess.Metrics
             {
                 base.RemoveUserToGroupMapping(user, group, baseAction);
             };
-            CallBaseClassEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingRemoveTime, UserToGroupMappingsRemoved>(user, group, removeUserToGroupMappingAction);
+            CallBaseClassEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingRemoveTime, UserToGroupMappingRemoved>(user, group, removeUserToGroupMappingAction);
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
@@ -237,13 +237,13 @@ namespace ApplicationAccess.Metrics
             {
                 base.AddGroupToGroupMapping(fromGroup, toGroup, baseAction);
             };
-            CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingAddTime, GroupToGroupMappingsAdded>(fromGroup, toGroup, addGroupToGroupMappingAction);
+            CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingAddTime, GroupToGroupMappingAdded>(fromGroup, toGroup, addGroupToGroupMappingAction);
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToGroupMappings(`1)"]/*'/>
         public override IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetGroupToGroupMappingsQueries>(() => { return base.GetGroupToGroupMappings(group); });
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetGroupToGroupMappingsQuery>(() => { return base.GetGroupToGroupMappings(group); });
         }
 
         public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
@@ -252,7 +252,7 @@ namespace ApplicationAccess.Metrics
             {
                 base.RemoveGroupToGroupMapping(fromGroup, toGroup, baseAction);
             };
-            CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingRemoveTime, GroupToGroupMappingsRemoved>(fromGroup, toGroup, removeGroupToGroupMappingAction);
+            CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingRemoveTime, GroupToGroupMappingRemoved>(fromGroup, toGroup, removeGroupToGroupMappingAction);
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
@@ -271,7 +271,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
-                IncrementCountMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsAdded());
+                IncrementCountMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAdded());
                 userToApplicationComponentAndAccessLevelMappingCount++;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
             };
@@ -281,7 +281,7 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)"]/*'/>
         public override IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<TComponent, TAccess>>, GetUserToApplicationComponentAndAccessLevelMappingsQueries>(() =>
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<TComponent, TAccess>>, GetUserToApplicationComponentAndAccessLevelMappingsQuery>(() =>
             {
                 return base.GetUserToApplicationComponentAndAccessLevelMappings(user);
             });
@@ -303,7 +303,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
-                IncrementCountMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsRemoved());
+                IncrementCountMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoved());
                 userToApplicationComponentAndAccessLevelMappingCount--;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
             };
@@ -326,7 +326,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
-                IncrementCountMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsAdded());
+                IncrementCountMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAdded());
                 groupToApplicationComponentAndAccessLevelMappingCount++;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
             };
@@ -336,7 +336,7 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)"]/*'/>
         public override IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<TComponent, TAccess>>, GetGroupToApplicationComponentAndAccessLevelMappingsQueries>(() =>
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<TComponent, TAccess>>, GetGroupToApplicationComponentAndAccessLevelMappingsQuery>(() =>
             {
                 return base.GetGroupToApplicationComponentAndAccessLevelMappings(group);
             });
@@ -358,7 +358,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
-                IncrementCountMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsRemoved());
+                IncrementCountMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoved());
                 groupToApplicationComponentAndAccessLevelMappingCount--;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
             };
@@ -381,7 +381,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
-                IncrementCountMetricIfLoggingEnabled(new EntityTypesAdded());
+                IncrementCountMetricIfLoggingEnabled(new EntityTypeAdded());
                 SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
             };
             this.AddEntityType(entityType, wrappingAction);
@@ -390,7 +390,7 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntityType(System.String)"]/*'/>
         public override Boolean ContainsEntityType(String entityType)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityTypeQueries>(() => { return base.ContainsEntityType(entityType); });
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityTypeQuery>(() => { return base.ContainsEntityType(entityType); });
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
@@ -425,7 +425,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
-                IncrementCountMetricIfLoggingEnabled(new EntityTypesRemoved());
+                IncrementCountMetricIfLoggingEnabled(new EntityTypeRemoved());
                 SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
                 entityCount = newEntityCount;
                 SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
@@ -451,7 +451,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new EntityAddTime());
-                IncrementCountMetricIfLoggingEnabled(new EntitiesAdded());
+                IncrementCountMetricIfLoggingEnabled(new EntityAdded());
                 entityCount++;
                 SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
             };
@@ -461,13 +461,13 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntities(System.String)"]/*'/>
         public override IEnumerable<String> GetEntities(String entityType)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetEntitiesQueries>(() => { return base.GetEntities(entityType); });
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetEntitiesQuery>(() => { return base.GetEntities(entityType); });
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntity(System.String,System.String)"]/*'/>
         public override Boolean ContainsEntity(String entityType, String entity)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityQueries>(() => { return base.ContainsEntity(entityType, entity); });
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityQuery>(() => { return base.ContainsEntity(entityType, entity); });
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
@@ -497,7 +497,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
-                IncrementCountMetricIfLoggingEnabled(new EntitiesRemoved());
+                IncrementCountMetricIfLoggingEnabled(new EntityRemoved());
                 entityCount--;
                 SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
@@ -522,7 +522,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
-                IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingsAdded());
+                IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingAdded());
                 userToEntityMappingCount++;
                 userToEntityMappingCountPerUser.Increment(user);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
@@ -532,7 +532,7 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0)"]/*'/>
         public override IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<String, String>>, GetUserToEntityMappingsForUserQueries>(() =>
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<String, String>>, GetUserToEntityMappingsForUserQuery>(() =>
             {
                 return base.GetUserToEntityMappings(user);
             });
@@ -541,7 +541,7 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0,System.String)"]/*'/>
         public override IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetUserToEntityMappingsForUserAndEntityTypeQueries>(() =>
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetUserToEntityMappingsForUserAndEntityTypeQuery>(() =>
             {
                 return base.GetUserToEntityMappings(user, entityType);
             });
@@ -563,7 +563,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
-                IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingsRemoved());
+                IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingRemoved());
                 userToEntityMappingCount--;
                 userToEntityMappingCountPerUser.Decrement(user);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
@@ -587,7 +587,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
-                IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingsAdded());
+                IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingAdded());
                 groupToEntityMappingCount++;
                 groupToEntityMappingCountPerGroup.Increment(group);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
@@ -598,7 +598,7 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1)"]/*'/>
         public override IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<String, String>>, GetGroupToEntityMappingsForGroupQueries>(() =>
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<String, String>>, GetGroupToEntityMappingsForGroupQuery>(() =>
             {
                 return base.GetGroupToEntityMappings(group);
             });
@@ -607,7 +607,7 @@ namespace ApplicationAccess.Metrics
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1,System.String)"]/*'/>
         public override IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetGroupToEntityMappingsForGroupAndEntityTypeQueries>(() =>
+            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetGroupToEntityMappingsForGroupAndEntityTypeQuery>(() =>
             {
                 return base.GetGroupToEntityMappings(group, entityType);
             });
@@ -629,7 +629,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
-                IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingsRemoved());
+                IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingRemoved());
                 groupToEntityMappingCount--;
                 groupToEntityMappingCountPerGroup.Decrement(group);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), userToEntityMappingCount);
@@ -652,7 +652,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             EndIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
-            IncrementCountMetricIfLoggingEnabled(new HasAccessToApplicationComponentQueries());
+            IncrementCountMetricIfLoggingEnabled(new HasAccessToApplicationComponentQuery());
 
             return result;
         }
@@ -672,7 +672,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             EndIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToEntityQueryTime());
-            IncrementCountMetricIfLoggingEnabled(new HasAccessToEntityQueries());
+            IncrementCountMetricIfLoggingEnabled(new HasAccessToEntityQuery());
 
             return result;
         }
@@ -692,7 +692,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetApplicationComponentsAccessibleByUserQueryTime());
-            IncrementCountMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByUserQueries());
+            IncrementCountMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByUserQuery());
 
             return result;
         }
@@ -712,7 +712,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQueryTime());
-            IncrementCountMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQueries());
+            IncrementCountMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQuery());
 
             return result;
         }
@@ -732,7 +732,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetEntitiesAccessibleByUserQueryTime());
-            IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQueries());
+            IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQuery());
 
             return result;
         }
@@ -752,7 +752,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetEntitiesAccessibleByGroupQueryTime());
-            IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQueries());
+            IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQuery());
 
             return result;
         }

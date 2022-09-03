@@ -183,7 +183,7 @@ namespace ApplicationAccess.Persistence
                     if (stopMethodCalled == false)
                     {
                         OnBufferFlushed(EventArgs.Empty);
-                        metricLogger.Increment(new BufferFlushOperationsTriggeredBySizeLimit());
+                        metricLogger.Increment(new BufferFlushOperationTriggeredBySizeLimit());
                     }
                     bufferProcessSignal.Reset();
                 }

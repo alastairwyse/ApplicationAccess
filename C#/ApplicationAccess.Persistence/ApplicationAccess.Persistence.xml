@@ -765,14 +765,14 @@
             <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddUserEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddUserEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddUser' events buffered.
+            Count metric which records an 'AddUser' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveUserEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveUserEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveUser' events buffered.
+            Count metric which records a 'RemoveUser' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.UserEventsBuffered">
@@ -780,14 +780,14 @@
             Status metric which records the number of 'User' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddGroupEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddGroupEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddGroup' events buffered.
+            Count metric which records an 'AddGroup' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveGroupEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveGroupEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveGroup' events buffered.
+            Count metric which a records a 'RemoveGroup' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.GroupEventsBuffered">
@@ -795,14 +795,14 @@
             Status metric which records the number of 'Group' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddUserToGroupMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddUserToGroupMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddUserToGroupMapping' events buffered.
+            Count metric which records an 'AddUserToGroupMapping' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveUserToGroupMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveUserToGroupMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveUserToGroupMapping' events buffered.
+            Count metric which records a 'RemoveUserToGroupMapping' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.UserToGroupMappingEventsBuffered">
@@ -810,14 +810,14 @@
             Status metric which records the number of 'UserToGroupMapping' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddGroupToGroupMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddGroupToGroupMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddGroupToGroupMapping' events buffered.
+            Count metric which records an 'AddGroupToGroupMapping' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveGroupToGroupMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveGroupToGroupMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveGroupToGroupMapping' events buffered.
+            Count metric which records a 'RemoveGroupToGroupMapping' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.GroupToGroupMappingEventsBuffered">
@@ -825,14 +825,14 @@
             Status metric which records the number of 'GroupToGroupMapping' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddUserToApplicationComponentAndAccessLevelMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddUserToApplicationComponentAndAccessLevelMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddUserToApplicationComponentAndAccessLevelMapping' events buffered.
+            Count metric which records an 'AddUserToApplicationComponentAndAccessLevelMapping' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveUserToApplicationComponentAndAccessLevelMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveUserToApplicationComponentAndAccessLevelMapping' events buffered.
+            Count metric which records a 'RemoveUserToApplicationComponentAndAccessLevelMapping' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.UserToApplicationComponentAndAccessLevelMappingEventsBuffered">
@@ -840,14 +840,14 @@
             Status metric which records the number of 'UserToApplicationComponentAndAccessLevelMapping' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddGroupToApplicationComponentAndAccessLevelMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddGroupToApplicationComponentAndAccessLevelMapping' events buffered.
+            Count metric which records an 'AddGroupToApplicationComponentAndAccessLevelMapping' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveGroupToApplicationComponentAndAccessLevelMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveGroupToApplicationComponentAndAccessLevelMapping' events buffered.
+            Count metric which records a 'RemoveGroupToApplicationComponentAndAccessLevelMapping' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.GroupToApplicationComponentAndAccessLevelMappingEventsBuffered">
@@ -855,14 +855,14 @@
             Status metric which records the number of 'GroupToApplicationComponentAndAccessLevelMapping' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddEntityTypeEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddEntityTypeEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddEntityType' events buffered.
+            Count metric which records an 'AddEntityType' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveEntityTypeEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveEntityTypeEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveEntityType' events buffered.
+            Count metric which records a 'RemoveEntityType' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.EntityTypeEventsBuffered">
@@ -870,14 +870,14 @@
             Status metric which records the number of 'EntityType' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddEntityEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddEntityEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddEntity' events buffered.
+            Count metric which records an 'AddEntity' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveEntityEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveEntityEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveEntity' events buffered.
+            Count metric which records a 'RemoveEntity' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.EntityEventsBuffered">
@@ -885,14 +885,14 @@
             Status metric which records the number of 'Entity' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddUserToEntityMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddUserToEntityMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddUserToEntityMapping' events buffered.
+            Count metric which records an 'AddUserToEntityMapping' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveUserToEntityMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveUserToEntityMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveUserToEntityMapping' events buffered.
+            Count metric which records a 'RemoveUserToEntityMapping' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.UserToEntityMappingEventsBuffered">
@@ -900,14 +900,14 @@
             Status metric which records the number of 'UserToEntityMapping' events currently buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.AddGroupToEntityMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.AddGroupToEntityMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'AddGroupToEntityMapping' events buffered.
+            Count metric which records an 'AddGroupToEntityMapping' event buffered.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.RemoveGroupToEntityMappingEventsBuffered">
+        <member name="T:ApplicationAccess.Persistence.RemoveGroupToEntityMappingEventBuffered">
             <summary>
-            Count metric which records the total number of 'RemoveGroupToEntityMapping' events buffered.
+            Count metric which records a'RemoveGroupToEntityMapping' event buffered.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.GroupToEntityMappingEventsBuffered">
@@ -920,19 +920,19 @@
             Amount metric which records the number of buffered events flushed.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsTriggeredBySizeLimit">
+        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationTriggeredBySizeLimit">
             <summary>
-            Count metric which records the number of buffer flush operations triggered by the buffer size limit being reached.
+            Count metric which records the a buffer flush operation triggered by the buffer size limit being reached.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsTriggeredByLoopIntervalExpiration">
+        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationTriggeredByLoopIntervalExpiration">
             <summary>
-            Count metric which records the number of buffer flush operations triggered by the worker thread loop interval expiring.
+            Count metric which records a buffer flush operation triggered by the worker thread loop interval expiring.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationsCompleted">
+        <member name="T:ApplicationAccess.Persistence.BufferFlushOperationCompleted">
             <summary>
-            Count metric which records the number of buffer flush operations completed.
+            Count metric which records a buffer flush operation completed.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.FlushTime">
@@ -950,9 +950,9 @@
             Amount metric which records the number of events still buffered when the Stop() method was called on the buffer flush strategy object.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress">
+        <member name="T:ApplicationAccess.Persistence.BufferFlushLoopIntervalExpirationWhileFlushOperationInProgress">
             <summary>
-            Count metric which records the number of times the worker thread loop interval expired while a flush operation was already in progress.
+            Count metric which records the worker thread loop interval expiring while a flush operation was already in progress.
             </summary>
             <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
         </member>
@@ -961,9 +961,9 @@
             Amount metric which records the time in milliseconds the buffer flushing worker thread slept for.
             </summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.SizeLimitBufferFlushesTriggeredDuringLoopInterval">
+        <member name="T:ApplicationAccess.Persistence.SizeLimitBufferFlushTriggeredDuringLoopInterval">
             <summary>
-            Count metric which records the number of times a buffer flush is triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping.
+            Count metric which records a buffer flush being triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping.
             </summary>
             <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
         </member>

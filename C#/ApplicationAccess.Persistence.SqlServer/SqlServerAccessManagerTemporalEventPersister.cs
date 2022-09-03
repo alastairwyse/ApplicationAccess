@@ -35,19 +35,6 @@ namespace ApplicationAccess.Persistence.SqlServer
     /// <remarks>Note that <see cref="IAccessManagerEventProcessor&lt;TUser, TGroup, TComponent, TAccess&gt;">IAccessManagerEventProcessor</see> methods implemented in this class should not be called from concurrent threads.  The class is designed to operate behind a class which manages mutual exclusion such as the <see cref="InMemoryEventBuffer&lt;TUser, TGroup, TComponent, TAccess&gt;">InMemoryEventBuffer</see> or <see cref="ApplicationAccess.Validation.ConcurrentAccessManagerEventValidator&lt;TUser, TGroup, TComponent, TAccess&gt;">ConcurrentAccessManagerEventValidator</see> classes.</remarks>
     public class SqlServerAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
     {
-        // TODO:
-        //   Change Load() methods to return a Tuple<Guid, DateTime>
-        //     Query will likely need to use an order by and top... run this against SQL server query profiler to make sure it doesn't table/index scan
-
-        //   Interval metrics on each of the public methods
-        //     We alread have AccessManagerEventProcessorMetricLogger... can that be reused/derived from??
-        //     Timings/interval metrics would probably be nice, but do we need counts??  InMemoryEventBuffer already does counts to all event calls it receives... should be able to assume they will all be persisted at some point afterwards.
-        //     Start with just timings, and it should only be on the event overloads which include statetime... the ones without will be covered in any case
-        //       And also timings and counts on the load methods (again can probably just put in the 'lowest level' Load() overload)
-        //   Any other unit tests I can add??
-
-
-
         #pragma warning disable 1591
 
         protected const String addUserStoredProcedureName = "AddUser";
@@ -90,7 +77,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected const String transactionSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
 
         /// <summary>The string to use to connect to the SQL Server database.</summary>
-        protected string connectionString;
+        protected String connectionString;
         /// <summary>The number of times an operation against the SQL Server database should be retried in the case of execution failure.</summary>
         protected Int32 retryCount;
         /// <summary>The time in seconds between operation retries.</summary>
@@ -179,7 +166,7 @@ namespace ApplicationAccess.Persistence.SqlServer
                 {
                     logger.Log(this, LogLevel.Warning, $"Exception occurred when executing command.  Retrying in {retryInterval} seconds (retry {eventArgs.RetryCount} of {retryCount}).", lastException);
                 }
-                metricLogger.Increment(new SqlCommandExecutionsRetried());
+                metricLogger.Increment(new SqlCommandExecutionRetried());
             };
         }
 
@@ -1045,7 +1032,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// </summary>
         /// <param name="procedureName">The name of the stored procedure.</param>
         /// <param name="parameters">The parameters to pass to the stored procedure.</param>
-        protected void ExecuteStoredProcedure(string procedureName, IEnumerable<SqlParameter> parameters)
+        protected void ExecuteStoredProcedure(String procedureName, IEnumerable<SqlParameter> parameters)
         {
             try
             {

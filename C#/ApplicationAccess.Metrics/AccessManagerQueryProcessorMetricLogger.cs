@@ -63,7 +63,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 metricLogger.End(new UsersPropertyQueryTime());
-                metricLogger.Increment(new UsersPropertyQueries());
+                metricLogger.Increment(new UsersPropertyQuery());
 
                 return result;
             }
@@ -86,7 +86,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 metricLogger.End(new GroupsPropertyQueryTime());
-                metricLogger.Increment(new GroupsPropertyQueries());
+                metricLogger.Increment(new GroupsPropertyQuery());
 
                 return result;
             }
@@ -109,7 +109,7 @@ namespace ApplicationAccess.Metrics
                     throw;
                 }
                 metricLogger.End(new EntityTypesPropertyQueryTime());
-                metricLogger.Increment(new EntityTypesPropertyQueries());
+                metricLogger.Increment(new EntityTypesPropertyQuery());
 
                 return result;
             }
@@ -130,7 +130,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new ContainsUserQueryTime());
-            metricLogger.Increment(new ContainsUserQueries());
+            metricLogger.Increment(new ContainsUserQuery());
 
             return result;
         }
@@ -150,7 +150,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new ContainsGroupQueryTime());
-            metricLogger.Increment(new ContainsGroupQueries());
+            metricLogger.Increment(new ContainsGroupQuery());
 
             return result;
         }
@@ -170,7 +170,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetUserToGroupMappingsQueryTime());
-            metricLogger.Increment(new GetUserToGroupMappingsQueries());
+            metricLogger.Increment(new GetUserToGroupMappingsQuery());
 
             return result;
         }
@@ -190,7 +190,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetGroupToGroupMappingsQueryTime());
-            metricLogger.Increment(new GetGroupToGroupMappingsQueries());
+            metricLogger.Increment(new GetGroupToGroupMappingsQuery());
 
             return result;
         }
@@ -210,7 +210,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetUserToApplicationComponentAndAccessLevelMappingsQueryTime());
-            metricLogger.Increment(new GetUserToApplicationComponentAndAccessLevelMappingsQueries());
+            metricLogger.Increment(new GetUserToApplicationComponentAndAccessLevelMappingsQuery());
 
             return result;
         }
@@ -230,7 +230,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime());
-            metricLogger.Increment(new GetGroupToApplicationComponentAndAccessLevelMappingsQueries());
+            metricLogger.Increment(new GetGroupToApplicationComponentAndAccessLevelMappingsQuery());
 
             return result;
         }
@@ -250,7 +250,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new ContainsEntityTypeQueryTime());
-            metricLogger.Increment(new ContainsEntityTypeQueries());
+            metricLogger.Increment(new ContainsEntityTypeQuery());
 
             return result;
         }
@@ -270,7 +270,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetEntitiesQueryTime());
-            metricLogger.Increment(new GetEntitiesQueries());
+            metricLogger.Increment(new GetEntitiesQuery());
 
             return result;
         }
@@ -290,7 +290,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new ContainsEntityQueryTime());
-            metricLogger.Increment(new ContainsEntityQueries());
+            metricLogger.Increment(new ContainsEntityQuery());
 
             return result;
         }
@@ -310,7 +310,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetUserToEntityMappingsForUserQueryTime());
-            metricLogger.Increment(new GetUserToEntityMappingsForUserQueries());
+            metricLogger.Increment(new GetUserToEntityMappingsForUserQuery());
 
             return result;
         }
@@ -330,7 +330,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetUserToEntityMappingsForUserAndEntityTypeQueryTime());
-            metricLogger.Increment(new GetUserToEntityMappingsForUserAndEntityTypeQueries());
+            metricLogger.Increment(new GetUserToEntityMappingsForUserAndEntityTypeQuery());
 
             return result;
         }
@@ -350,7 +350,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetGroupToEntityMappingsForGroupQueryTime());
-            metricLogger.Increment(new GetGroupToEntityMappingsForGroupQueries());
+            metricLogger.Increment(new GetGroupToEntityMappingsForGroupQuery());
 
             return result;
         }
@@ -370,7 +370,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime());
-            metricLogger.Increment(new GetGroupToEntityMappingsForGroupAndEntityTypeQueries());
+            metricLogger.Increment(new GetGroupToEntityMappingsForGroupAndEntityTypeQuery());
 
             return result;
         }
@@ -390,7 +390,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new HasAccessToApplicationComponentQueryTime());
-            metricLogger.Increment(new HasAccessToApplicationComponentQueries());
+            metricLogger.Increment(new HasAccessToApplicationComponentQuery());
 
             return result;
         }
@@ -410,7 +410,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new HasAccessToEntityQueryTime());
-            metricLogger.Increment(new HasAccessToEntityQueries());
+            metricLogger.Increment(new HasAccessToEntityQuery());
 
             return result;
         }
@@ -430,7 +430,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetApplicationComponentsAccessibleByUserQueryTime());
-            metricLogger.Increment(new GetApplicationComponentsAccessibleByUserQueries());
+            metricLogger.Increment(new GetApplicationComponentsAccessibleByUserQuery());
 
             return result;
         }
@@ -450,7 +450,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetApplicationComponentsAccessibleByGroupQueryTime());
-            metricLogger.Increment(new GetApplicationComponentsAccessibleByGroupQueries());
+            metricLogger.Increment(new GetApplicationComponentsAccessibleByGroupQuery());
 
             return result;
         }
@@ -470,7 +470,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetEntitiesAccessibleByUserQueryTime());
-            metricLogger.Increment(new GetEntitiesAccessibleByUserQueries());
+            metricLogger.Increment(new GetEntitiesAccessibleByUserQuery());
 
             return result;
         }
@@ -490,7 +490,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GetEntitiesAccessibleByGroupQueryTime());
-            metricLogger.Increment(new GetEntitiesAccessibleByGroupQueries());
+            metricLogger.Increment(new GetEntitiesAccessibleByGroupQuery());
 
             return result;
         }

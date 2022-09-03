@@ -59,7 +59,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new UserAddTime());
-            metricLogger.Increment(new UsersAdded());
+            metricLogger.Increment(new UserAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
@@ -76,7 +76,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new UserRemoveTime());
-            metricLogger.Increment(new UsersRemoved());
+            metricLogger.Increment(new UserRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
@@ -93,7 +93,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GroupAddTime());
-            metricLogger.Increment(new GroupsAdded());
+            metricLogger.Increment(new GroupAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
@@ -110,7 +110,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GroupRemoveTime());
-            metricLogger.Increment(new GroupsRemoved());
+            metricLogger.Increment(new GroupRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
@@ -127,7 +127,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new UserToGroupMappingAddTime());
-            metricLogger.Increment(new UserToGroupMappingsAdded());
+            metricLogger.Increment(new UserToGroupMappingAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
@@ -144,7 +144,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new UserToGroupMappingRemoveTime());
-            metricLogger.Increment(new UserToGroupMappingsRemoved());
+            metricLogger.Increment(new UserToGroupMappingRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
@@ -161,7 +161,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GroupToGroupMappingAddTime());
-            metricLogger.Increment(new GroupToGroupMappingsAdded());
+            metricLogger.Increment(new GroupToGroupMappingAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
@@ -178,7 +178,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GroupToGroupMappingRemoveTime());
-            metricLogger.Increment(new GroupToGroupMappingsRemoved());
+            metricLogger.Increment(new GroupToGroupMappingRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
@@ -195,7 +195,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new UserToApplicationComponentAndAccessLevelMappingAddTime());
-            metricLogger.Increment(new UserToApplicationComponentAndAccessLevelMappingsAdded());
+            metricLogger.Increment(new UserToApplicationComponentAndAccessLevelMappingAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
@@ -212,7 +212,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
-            metricLogger.Increment(new UserToApplicationComponentAndAccessLevelMappingsRemoved());
+            metricLogger.Increment(new UserToApplicationComponentAndAccessLevelMappingRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
@@ -229,7 +229,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
-            metricLogger.Increment(new GroupToApplicationComponentAndAccessLevelMappingsAdded());
+            metricLogger.Increment(new GroupToApplicationComponentAndAccessLevelMappingAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
@@ -246,7 +246,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
-            metricLogger.Increment(new GroupToApplicationComponentAndAccessLevelMappingsRemoved());
+            metricLogger.Increment(new GroupToApplicationComponentAndAccessLevelMappingRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
@@ -263,7 +263,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new EntityTypeAddTime());
-            metricLogger.Increment(new EntityTypesAdded());
+            metricLogger.Increment(new EntityTypeAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
@@ -280,7 +280,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new EntityTypeRemoveTime());
-            metricLogger.Increment(new EntityTypesRemoved());
+            metricLogger.Increment(new EntityTypeRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
@@ -297,7 +297,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new EntityAddTime());
-            metricLogger.Increment(new EntitiesAdded());
+            metricLogger.Increment(new EntityAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
@@ -314,7 +314,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new EntityRemoveTime());
-            metricLogger.Increment(new EntitiesRemoved());
+            metricLogger.Increment(new EntityRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
@@ -331,7 +331,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new UserToEntityMappingAddTime());
-            metricLogger.Increment(new UserToEntityMappingsAdded());
+            metricLogger.Increment(new UserToEntityMappingAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
@@ -348,7 +348,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new UserToEntityMappingRemoveTime());
-            metricLogger.Increment(new UserToEntityMappingsRemoved());
+            metricLogger.Increment(new UserToEntityMappingRemoved());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
@@ -365,7 +365,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GroupToEntityMappingAddTime());
-            metricLogger.Increment(new GroupToEntityMappingsAdded());
+            metricLogger.Increment(new GroupToEntityMappingAdded());
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
@@ -382,7 +382,7 @@ namespace ApplicationAccess.Metrics
                 throw;
             }
             metricLogger.End(new GroupToEntityMappingRemoveTime());
-            metricLogger.Increment(new GroupToEntityMappingsRemoved());
+            metricLogger.Increment(new GroupToEntityMappingRemoved());
         }
     }
 }

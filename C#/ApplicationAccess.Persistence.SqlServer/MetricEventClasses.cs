@@ -24,14 +24,14 @@ namespace ApplicationAccess.Persistence.SqlServer
     #pragma warning disable 1591
 
     /// <summary>
-    /// Count metric which records the number of times execution of a SQL command resulted in a transient error and was retried.
+    /// Count metric which records execution of a SQL command resulting in a transient error and being retried.
     /// </summary>
-    public class SqlCommandExecutionsRetried : CountMetric
+    public class SqlCommandExecutionRetried : CountMetric
     {
-        protected static String staticName = "SqlCommandExecutionsRetried";
-        protected static String staticDescription = "The number of times execution of a SQL command resulted in a transient error and was retried.";
+        protected static String staticName = "SqlCommandExecutionRetried";
+        protected static String staticDescription = "Execution of a SQL command resulting in a transient error and being retried.";
 
-        public SqlCommandExecutionsRetried()
+        public SqlCommandExecutionRetried()
         {
             base.name = staticName;
             base.description = staticDescription;

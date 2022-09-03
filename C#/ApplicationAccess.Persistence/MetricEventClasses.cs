@@ -24,14 +24,14 @@ namespace ApplicationAccess.Persistence
     #pragma warning disable 1591
 
     /// <summary>
-    /// Count metric which records the total number of 'AddUser' events buffered.
+    /// Count metric which records an 'AddUser' event buffered.
     /// </summary>
-    public class AddUserEventsBuffered : CountMetric
+    public class AddUserEventBuffered : CountMetric
     {
-        protected static String staticName = "AddUserEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddUser' events buffered";
+        protected static String staticName = "AddUserEventBuffered";
+        protected static String staticDescription = "An 'AddUser' event buffered";
 
-        public AddUserEventsBuffered()
+        public AddUserEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -39,14 +39,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveUser' events buffered.
+    /// Count metric which records a 'RemoveUser' event buffered.
     /// </summary>
-    public class RemoveUserEventsBuffered : CountMetric
+    public class RemoveUserEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveUserEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveUser' events buffered";
+        protected static String staticName = "RemoveUserEventBuffered";
+        protected static String staticDescription = "A 'RemoveUser' event buffered";
 
-        public RemoveUserEventsBuffered()
+        public RemoveUserEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -69,14 +69,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddGroup' events buffered.
+    /// Count metric which records an 'AddGroup' event buffered.
     /// </summary>
-    public class AddGroupEventsBuffered : CountMetric
+    public class AddGroupEventBuffered : CountMetric
     {
-        protected static String staticName = "AddGroupEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddGroup' events buffered";
+        protected static String staticName = "AddGroupEventBuffered";
+        protected static String staticDescription = "An 'AddGroup' event buffered";
 
-        public AddGroupEventsBuffered()
+        public AddGroupEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -84,14 +84,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveGroup' events buffered.
+    /// Count metric which a records a 'RemoveGroup' event buffered.
     /// </summary>
-    public class RemoveGroupEventsBuffered : CountMetric
+    public class RemoveGroupEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveGroupEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveGroup' events buffered";
+        protected static String staticName = "RemoveGroupEventBuffered";
+        protected static String staticDescription ="A 'RemoveGroup' event buffered";
 
-        public RemoveGroupEventsBuffered()
+        public RemoveGroupEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -114,14 +114,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddUserToGroupMapping' events buffered.
+    /// Count metric which records an 'AddUserToGroupMapping' event buffered.
     /// </summary>
-    public class AddUserToGroupMappingEventsBuffered : CountMetric
+    public class AddUserToGroupMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "AddUserToGroupMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddUserToGroupMapping' events buffered";
+        protected static String staticName = "AddUserToGroupMappingEventBuffered";
+        protected static String staticDescription = "An 'AddUserToGroupMapping' event buffered";
 
-        public AddUserToGroupMappingEventsBuffered()
+        public AddUserToGroupMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -129,14 +129,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveUserToGroupMapping' events buffered.
+    /// Count metric which records a 'RemoveUserToGroupMapping' event buffered.
     /// </summary>
-    public class RemoveUserToGroupMappingEventsBuffered : CountMetric
+    public class RemoveUserToGroupMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveUserToGroupMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveUserToGroupMapping' events buffered";
+        protected static String staticName = "RemoveUserToGroupMappingEventBuffered";
+        protected static String staticDescription = "A 'RemoveUserToGroupMapping' event buffered";
 
-        public RemoveUserToGroupMappingEventsBuffered()
+        public RemoveUserToGroupMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -159,14 +159,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddGroupToGroupMapping' events buffered.
+    /// Count metric which records an 'AddGroupToGroupMapping' event buffered.
     /// </summary>
-    public class AddGroupToGroupMappingEventsBuffered : CountMetric
+    public class AddGroupToGroupMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "AddGroupToGroupMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddGroupToGroupMapping' events buffered";
+        protected static String staticName = "AddGroupToGroupMappingEventBuffered";
+        protected static String staticDescription = "An 'AddGroupToGroupMapping' event buffered";
 
-        public AddGroupToGroupMappingEventsBuffered()
+        public AddGroupToGroupMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -174,14 +174,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveGroupToGroupMapping' events buffered.
+    /// Count metric which records a 'RemoveGroupToGroupMapping' event buffered.
     /// </summary>
-    public class RemoveGroupToGroupMappingEventsBuffered : CountMetric
+    public class RemoveGroupToGroupMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveGroupToGroupMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveGroupToGroupMapping' events buffered";
+        protected static String staticName = "RemoveGroupToGroupMappingEventBuffered";
+        protected static String staticDescription = "A 'RemoveGroupToGroupMapping' event buffered";
 
-        public RemoveGroupToGroupMappingEventsBuffered()
+        public RemoveGroupToGroupMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -204,14 +204,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddUserToApplicationComponentAndAccessLevelMapping' events buffered.
+    /// Count metric which records an 'AddUserToApplicationComponentAndAccessLevelMapping' event buffered.
     /// </summary>
-    public class AddUserToApplicationComponentAndAccessLevelMappingEventsBuffered : CountMetric
+    public class AddUserToApplicationComponentAndAccessLevelMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "AddUserToApplicationComponentAndAccessLevelMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddUserToApplicationComponentAndAccessLevelMapping' events buffered";
+        protected static String staticName = "AddUserToApplicationComponentAndAccessLevelMappingEventBuffered";
+        protected static String staticDescription = "An 'AddUserToApplicationComponentAndAccessLevelMapping' event buffered";
 
-        public AddUserToApplicationComponentAndAccessLevelMappingEventsBuffered()
+        public AddUserToApplicationComponentAndAccessLevelMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -219,14 +219,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveUserToApplicationComponentAndAccessLevelMapping' events buffered.
+    /// Count metric which records a 'RemoveUserToApplicationComponentAndAccessLevelMapping' event buffered.
     /// </summary>
-    public class RemoveUserToApplicationComponentAndAccessLevelMappingEventsBuffered : CountMetric
+    public class RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveUserToApplicationComponentAndAccessLevelMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveUserToApplicationComponentAndAccessLevelMapping' events buffered";
+        protected static String staticName = "RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered";
+        protected static String staticDescription = "A 'RemoveUserToApplicationComponentAndAccessLevelMapping' event buffered";
 
-        public RemoveUserToApplicationComponentAndAccessLevelMappingEventsBuffered()
+        public RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -249,14 +249,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddGroupToApplicationComponentAndAccessLevelMapping' events buffered.
+    /// Count metric which records an 'AddGroupToApplicationComponentAndAccessLevelMapping' event buffered.
     /// </summary>
-    public class AddGroupToApplicationComponentAndAccessLevelMappingEventsBuffered : CountMetric
+    public class AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "AddGroupToApplicationComponentAndAccessLevelMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddGroupToApplicationComponentAndAccessLevelMapping' events buffered";
+        protected static String staticName = "AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered";
+        protected static String staticDescription = "An 'AddGroupToApplicationComponentAndAccessLevelMapping' event buffered";
 
-        public AddGroupToApplicationComponentAndAccessLevelMappingEventsBuffered()
+        public AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -264,14 +264,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveGroupToApplicationComponentAndAccessLevelMapping' events buffered.
+    /// Count metric which records a 'RemoveGroupToApplicationComponentAndAccessLevelMapping' event buffered.
     /// </summary>
-    public class RemoveGroupToApplicationComponentAndAccessLevelMappingEventsBuffered : CountMetric
+    public class RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveGroupToApplicationComponentAndAccessLevelMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveGroupToApplicationComponentAndAccessLevelMapping' events buffered";
+        protected static String staticName = "RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered";
+        protected static String staticDescription = "A 'RemoveGroupToApplicationComponentAndAccessLevelMapping' event buffered";
 
-        public RemoveGroupToApplicationComponentAndAccessLevelMappingEventsBuffered()
+        public RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -294,14 +294,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddEntityType' events buffered.
+    /// Count metric which records an 'AddEntityType' event buffered.
     /// </summary>
-    public class AddEntityTypeEventsBuffered : CountMetric
+    public class AddEntityTypeEventBuffered : CountMetric
     {
-        protected static String staticName = "AddEntityTypeEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddEntityType' events buffered";
+        protected static String staticName = "AddEntityTypeEventBuffered";
+        protected static String staticDescription = "An 'AddEntityType' event buffered";
 
-        public AddEntityTypeEventsBuffered()
+        public AddEntityTypeEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -309,14 +309,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveEntityType' events buffered.
+    /// Count metric which records a 'RemoveEntityType' event buffered.
     /// </summary>
-    public class RemoveEntityTypeEventsBuffered : CountMetric
+    public class RemoveEntityTypeEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveEntityTypeEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveEntityType' events buffered";
+        protected static String staticName = "RemoveEntityTypeEventBuffered";
+        protected static String staticDescription = "A 'RemoveEntityType' event buffered";
 
-        public RemoveEntityTypeEventsBuffered()
+        public RemoveEntityTypeEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -339,14 +339,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddEntity' events buffered.
+    /// Count metric which records an 'AddEntity' event buffered.
     /// </summary>
-    public class AddEntityEventsBuffered : CountMetric
+    public class AddEntityEventBuffered : CountMetric
     {
-        protected static String staticName = "AddEntityEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddEntity' events buffered";
+        protected static String staticName = "AddEntityEventBuffered";
+        protected static String staticDescription = "An 'AddEntity' event buffered";
 
-        public AddEntityEventsBuffered()
+        public AddEntityEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -354,14 +354,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveEntity' events buffered.
+    /// Count metric which records a 'RemoveEntity' event buffered.
     /// </summary>
-    public class RemoveEntityEventsBuffered : CountMetric
+    public class RemoveEntityEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveEntityEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveEntity' events buffered";
+        protected static String staticName = "RemoveEntityEventBuffered";
+        protected static String staticDescription = "A 'RemoveEntity' event buffered";
 
-        public RemoveEntityEventsBuffered()
+        public RemoveEntityEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -384,14 +384,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddUserToEntityMapping' events buffered.
+    /// Count metric which records an 'AddUserToEntityMapping' event buffered.
     /// </summary>
-    public class AddUserToEntityMappingEventsBuffered : CountMetric
+    public class AddUserToEntityMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "AddUserToEntityMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddUserToEntityMapping' events buffered";
+        protected static String staticName = "AddUserToEntityMappingEventBuffered";
+        protected static String staticDescription = "An 'AddUserToEntityMapping' event buffered";
 
-        public AddUserToEntityMappingEventsBuffered()
+        public AddUserToEntityMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -399,14 +399,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveUserToEntityMapping' events buffered.
+    /// Count metric which records a 'RemoveUserToEntityMapping' event buffered.
     /// </summary>
-    public class RemoveUserToEntityMappingEventsBuffered : CountMetric
+    public class RemoveUserToEntityMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveUserToEntityMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveUserToEntityMapping' events buffered";
+        protected static String staticName = "RemoveUserToEntityMappingEventBuffered";
+        protected static String staticDescription = "A 'RemoveUserToEntityMapping' event buffered";
 
-        public RemoveUserToEntityMappingEventsBuffered()
+        public RemoveUserToEntityMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -429,14 +429,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'AddGroupToEntityMapping' events buffered.
+    /// Count metric which records an 'AddGroupToEntityMapping' event buffered.
     /// </summary>
-    public class AddGroupToEntityMappingEventsBuffered : CountMetric
+    public class AddGroupToEntityMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "AddGroupToEntityMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'AddGroupToEntityMapping' events buffered";
+        protected static String staticName = "AddGroupToEntityMappingEventBuffered";
+        protected static String staticDescription = "An 'AddGroupToEntityMapping' event buffered";
 
-        public AddGroupToEntityMappingEventsBuffered()
+        public AddGroupToEntityMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -444,14 +444,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the total number of 'RemoveGroupToEntityMapping' events buffered.
+    /// Count metric which records a'RemoveGroupToEntityMapping' event buffered.
     /// </summary>
-    public class RemoveGroupToEntityMappingEventsBuffered : CountMetric
+    public class RemoveGroupToEntityMappingEventBuffered : CountMetric
     {
-        protected static String staticName = "RemoveGroupToEntityMappingEventsBuffered";
-        protected static String staticDescription = "The total number of 'RemoveGroupToEntityMapping' events buffered";
+        protected static String staticName = "RemoveGroupToEntityMappingEventBuffered";
+        protected static String staticDescription = "A 'RemoveGroupToEntityMapping' event buffered";
 
-        public RemoveGroupToEntityMappingEventsBuffered()
+        public RemoveGroupToEntityMappingEventBuffered()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -489,14 +489,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the number of buffer flush operations triggered by the buffer size limit being reached.
+    /// Count metric which records the a buffer flush operation triggered by the buffer size limit being reached.
     /// </summary>
-    public class BufferFlushOperationsTriggeredBySizeLimit : CountMetric
+    public class BufferFlushOperationTriggeredBySizeLimit : CountMetric
     {
-        protected static String staticName = "BufferFlushOperationsTriggeredBySizeLimit";
-        protected static String staticDescription = "The number of buffer flush operations triggered by the buffer size limit being reached";
+        protected static String staticName = "BufferFlushOperationTriggeredBySizeLimit";
+        protected static String staticDescription = "A buffer flush operation triggered by the buffer size limit being reached";
 
-        public BufferFlushOperationsTriggeredBySizeLimit()
+        public BufferFlushOperationTriggeredBySizeLimit()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -504,14 +504,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the number of buffer flush operations triggered by the worker thread loop interval expiring.
+    /// Count metric which records a buffer flush operation triggered by the worker thread loop interval expiring.
     /// </summary>
-    public class BufferFlushOperationsTriggeredByLoopIntervalExpiration : CountMetric
+    public class BufferFlushOperationTriggeredByLoopIntervalExpiration : CountMetric
     {
-        protected static String staticName = "BufferFlushOperationsTriggeredByLoopIntervalExpiration";
-        protected static String staticDescription = "The number of buffer flush operations triggered by the worker thread loop interval expiring";
+        protected static String staticName = "BufferFlushOperationTriggeredByLoopIntervalExpiration";
+        protected static String staticDescription = "A buffer flush operation triggered by the worker thread loop interval expiring";
 
-        public BufferFlushOperationsTriggeredByLoopIntervalExpiration()
+        public BufferFlushOperationTriggeredByLoopIntervalExpiration()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -519,14 +519,14 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the number of buffer flush operations completed.
+    /// Count metric which records a buffer flush operation completed.
     /// </summary>
-    public class BufferFlushOperationsCompleted : CountMetric
+    public class BufferFlushOperationCompleted : CountMetric
     {
-        protected static String staticName = "BufferFlushOperationsCompleted";
-        protected static String staticDescription = "The number of buffer flush operations completed";
+        protected static String staticName = "BufferFlushOperationCompleted";
+        protected static String staticDescription = "A buffer flush operation completed";
 
-        public BufferFlushOperationsCompleted()
+        public BufferFlushOperationCompleted()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -579,15 +579,15 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the number of times the worker thread loop interval expired while a flush operation was already in progress.
+    /// Count metric which records the worker thread loop interval expiring while a flush operation was already in progress.
     /// </summary>
     /// <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
-    public class BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress : CountMetric
+    public class BufferFlushLoopIntervalExpirationWhileFlushOperationInProgress : CountMetric
     {
-        protected static String staticName = "BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress";
-        protected static String staticDescription = "The number of times the worker thread loop interval expired while a flush operation was already in progress";
+        protected static String staticName = "BufferFlushLoopIntervalExpirationWhileFlushOperationInProgress";
+        protected static String staticDescription = "The worker thread loop interval expiring while a flush operation was already in progress";
 
-        public BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress()
+        public BufferFlushLoopIntervalExpirationWhileFlushOperationInProgress()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -610,15 +610,15 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Count metric which records the number of times a buffer flush is triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping.
+    /// Count metric which records a buffer flush being triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping.
     /// </summary>
     /// <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
-    public class SizeLimitBufferFlushesTriggeredDuringLoopInterval : CountMetric
+    public class SizeLimitBufferFlushTriggeredDuringLoopInterval : CountMetric
     {
-        protected static String staticName = "SizeLimitBufferFlushesTriggeredDuringLoopInterval";
-        protected static String staticDescription = "The number of times a buffer flush is triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping";
+        protected static String staticName = "SizeLimitBufferFlushTriggeredDuringLoopInterval";
+        protected static String staticDescription = "A buffer flush being triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping";
 
-        public SizeLimitBufferFlushesTriggeredDuringLoopInterval()
+        public SizeLimitBufferFlushTriggeredDuringLoopInterval()
         {
             base.name = staticName;
             base.description = staticDescription;

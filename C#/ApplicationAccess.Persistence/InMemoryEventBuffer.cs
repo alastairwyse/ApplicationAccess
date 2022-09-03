@@ -232,7 +232,7 @@ namespace ApplicationAccess.Persistence
                 var userEvent = new UserEventBufferItem<TUser>(EventAction.Add, user, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 userEventBuffer.AddLast(userEvent);
                 bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
-                metricLogger.Increment(new AddUserEventsBuffered());
+                metricLogger.Increment(new AddUserEventBuffered());
                 metricLogger.Set(new UserEventsBuffered(), userEventBuffer.Count);
             };
             lock (userEventBufferLock)
@@ -250,7 +250,7 @@ namespace ApplicationAccess.Persistence
                 var userEvent = new UserEventBufferItem<TUser>(EventAction.Remove, user, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 userEventBuffer.AddLast(userEvent);
                 bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
-                metricLogger.Increment(new RemoveUserEventsBuffered());
+                metricLogger.Increment(new RemoveUserEventBuffered());
                 metricLogger.Set(new UserEventsBuffered(), userEventBuffer.Count);
             };
             lock (userEventBufferLock)
@@ -268,7 +268,7 @@ namespace ApplicationAccess.Persistence
                 var groupEvent = new GroupEventBufferItem<TGroup>(EventAction.Add, group, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 groupEventBuffer.AddLast(groupEvent);
                 bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
-                metricLogger.Increment(new AddGroupEventsBuffered());
+                metricLogger.Increment(new AddGroupEventBuffered());
                 metricLogger.Set(new GroupEventsBuffered(), groupEventBuffer.Count);
             };
             lock (groupEventBufferLock)
@@ -286,7 +286,7 @@ namespace ApplicationAccess.Persistence
                 var groupEvent = new GroupEventBufferItem<TGroup>(EventAction.Remove, group, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 groupEventBuffer.AddLast(groupEvent);
                 bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
-                metricLogger.Increment(new RemoveGroupEventsBuffered());
+                metricLogger.Increment(new RemoveGroupEventBuffered());
                 metricLogger.Set(new GroupEventsBuffered(), groupEventBuffer.Count);
             };
             lock (groupEventBufferLock)
@@ -304,7 +304,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(EventAction.Add, user, group, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 userToGroupMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
-                metricLogger.Increment(new AddUserToGroupMappingEventsBuffered());
+                metricLogger.Increment(new AddUserToGroupMappingEventBuffered());
                 metricLogger.Set(new UserToGroupMappingEventsBuffered(), userToGroupMappingEventBuffer.Count);
             };
             lock (userToGroupMappingEventBufferLock)
@@ -322,7 +322,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(EventAction.Remove, user, group, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 userToGroupMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveUserToGroupMappingEventsBuffered());
+                metricLogger.Increment(new RemoveUserToGroupMappingEventBuffered());
                 metricLogger.Set(new UserToGroupMappingEventsBuffered(), userToGroupMappingEventBuffer.Count);
             };
             lock (userToGroupMappingEventBufferLock)
@@ -340,7 +340,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(EventAction.Add, fromGroup, toGroup, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 groupToGroupMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
-                metricLogger.Increment(new AddGroupToGroupMappingEventsBuffered());
+                metricLogger.Increment(new AddGroupToGroupMappingEventBuffered());
                 metricLogger.Set(new GroupToGroupMappingEventsBuffered(), groupToGroupMappingEventBuffer.Count);
             };
             lock (groupToGroupMappingEventBufferLock)
@@ -358,7 +358,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(EventAction.Remove, fromGroup, toGroup, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 groupToGroupMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveGroupToGroupMappingEventsBuffered());
+                metricLogger.Increment(new RemoveGroupToGroupMappingEventBuffered());
                 metricLogger.Set(new GroupToGroupMappingEventsBuffered(), groupToGroupMappingEventBuffer.Count);
             };
             lock (groupToGroupMappingEventBufferLock)
@@ -376,7 +376,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(EventAction.Add, user, applicationComponent, accessLevel, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
-                metricLogger.Increment(new AddUserToApplicationComponentAndAccessLevelMappingEventsBuffered());
+                metricLogger.Increment(new AddUserToApplicationComponentAndAccessLevelMappingEventBuffered());
                 metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingEventsBuffered(), userToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
             };
             lock (userToApplicationComponentAndAccessLevelMappingEventBufferLock)
@@ -394,7 +394,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(EventAction.Remove, user, applicationComponent, accessLevel, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveUserToApplicationComponentAndAccessLevelMappingEventsBuffered());
+                metricLogger.Increment(new RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered());
                 metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingEventsBuffered(), userToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
             };
             lock (userToApplicationComponentAndAccessLevelMappingEventBufferLock)
@@ -412,7 +412,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(EventAction.Add, group, applicationComponent, accessLevel, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
-                metricLogger.Increment(new AddGroupToApplicationComponentAndAccessLevelMappingEventsBuffered());
+                metricLogger.Increment(new AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
                 metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingEventsBuffered(), groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
             };
             lock (groupToApplicationComponentAndAccessLevelMappingEventBufferLock)
@@ -430,7 +430,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(EventAction.Remove, group, applicationComponent, accessLevel, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveGroupToApplicationComponentAndAccessLevelMappingEventsBuffered());
+                metricLogger.Increment(new RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
                 metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingEventsBuffered(), groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
             };
             lock (groupToApplicationComponentAndAccessLevelMappingEventBufferLock)
@@ -448,7 +448,7 @@ namespace ApplicationAccess.Persistence
                 var entityTypeEvent = new EntityTypeEventBufferItem(EventAction.Add, entityType, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 entityTypeEventBuffer.AddLast(entityTypeEvent);
                 bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
-                metricLogger.Increment(new AddEntityTypeEventsBuffered());
+                metricLogger.Increment(new AddEntityTypeEventBuffered());
                 metricLogger.Set(new EntityTypeEventsBuffered(), entityTypeEventBuffer.Count);
             };
             lock (entityTypeEventBufferLock)
@@ -466,7 +466,7 @@ namespace ApplicationAccess.Persistence
                 var entityTypeEvent = new EntityTypeEventBufferItem(EventAction.Remove, entityType, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 entityTypeEventBuffer.AddLast(entityTypeEvent);
                 bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
-                metricLogger.Increment(new RemoveEntityTypeEventsBuffered());
+                metricLogger.Increment(new RemoveEntityTypeEventBuffered());
                 metricLogger.Set(new EntityTypeEventsBuffered(), entityTypeEventBuffer.Count);
             };
             lock (entityTypeEventBufferLock)
@@ -484,7 +484,7 @@ namespace ApplicationAccess.Persistence
                 var entityEvent = new EntityEventBufferItem(EventAction.Add, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 entityEventBuffer.AddLast(entityEvent);
                 bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
-                metricLogger.Increment(new AddEntityEventsBuffered());
+                metricLogger.Increment(new AddEntityEventBuffered());
                 metricLogger.Set(new EntityEventsBuffered(), entityEventBuffer.Count);
             };
             lock (entityEventBufferLock)
@@ -502,7 +502,7 @@ namespace ApplicationAccess.Persistence
                 var entityEvent = new EntityEventBufferItem(EventAction.Remove, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 entityEventBuffer.AddLast(entityEvent);
                 bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
-                metricLogger.Increment(new RemoveEntityEventsBuffered());
+                metricLogger.Increment(new RemoveEntityEventBuffered());
                 metricLogger.Set(new EntityEventsBuffered(), entityEventBuffer.Count);
             };
             lock (entityEventBufferLock)
@@ -520,7 +520,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(EventAction.Add, user, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 userToEntityMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
-                metricLogger.Increment(new AddUserToEntityMappingEventsBuffered());
+                metricLogger.Increment(new AddUserToEntityMappingEventBuffered());
                 metricLogger.Set(new UserToEntityMappingEventsBuffered(), userToEntityMappingEventBuffer.Count);
             };
             lock (userToEntityMappingEventBufferLock)
@@ -538,7 +538,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(EventAction.Remove, user, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 userToEntityMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveUserToEntityMappingEventsBuffered());
+                metricLogger.Increment(new RemoveUserToEntityMappingEventBuffered());
                 metricLogger.Set(new UserToEntityMappingEventsBuffered(), userToEntityMappingEventBuffer.Count);
             };
             lock (userToEntityMappingEventBufferLock)
@@ -556,7 +556,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(EventAction.Add, group, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 groupToEntityMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
-                metricLogger.Increment(new AddGroupToEntityMappingEventsBuffered());
+                metricLogger.Increment(new AddGroupToEntityMappingEventBuffered());
                 metricLogger.Set(new GroupToEntityMappingEventsBuffered(), groupToEntityMappingEventBuffer.Count);
             };
             lock (groupToEntityMappingEventBufferLock)
@@ -574,7 +574,7 @@ namespace ApplicationAccess.Persistence
                 var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(EventAction.Remove, group, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
                 groupToEntityMappingEventBuffer.AddLast(mappingEvent);
                 bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveGroupToEntityMappingEventsBuffered());
+                metricLogger.Increment(new RemoveGroupToEntityMappingEventBuffered());
                 metricLogger.Set(new GroupToEntityMappingEventsBuffered(), groupToEntityMappingEventBuffer.Count);
             };
             lock (groupToEntityMappingEventBufferLock)
@@ -865,7 +865,7 @@ namespace ApplicationAccess.Persistence
 
             metricLogger.End(new FlushTime());
             metricLogger.Add(new BufferedEventsFlushed(), flushedEventCount);
-            metricLogger.Increment(new BufferFlushOperationsCompleted());
+            metricLogger.Increment(new BufferFlushOperationCompleted());
         }
 
         #region Private/Protected Methods

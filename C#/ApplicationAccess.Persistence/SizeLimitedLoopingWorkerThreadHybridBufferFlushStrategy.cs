@@ -104,7 +104,7 @@ namespace ApplicationAccess.Persistence
                         {
                             // A flush has occurred since the last loop iteration
                             //   Sleep for the flush loop interval less the time since the last flush completed
-                            metricLogger.Increment(new SizeLimitBufferFlushesTriggeredDuringLoopInterval());
+                            metricLogger.Increment(new SizeLimitBufferFlushTriggeredDuringLoopInterval());
                             Int32 sleepTime = Convert.ToInt32((lastFlushCompleteTimeCopy.AddMilliseconds(flushLoopInterval) - dateTimeProvider.UtcNow()).TotalMilliseconds);
                             lastWaitInterval = sleepTime;
                             previousLoopIterationLastFlushCompleteTime = lastFlushCompleteTimeCopy;
@@ -119,7 +119,7 @@ namespace ApplicationAccess.Persistence
                             // No flush has occurred since the last loop iteration so trigger a buffer flush/process
                             previousLoopIterationLastFlushCompleteTime = lastFlushCompleteTimeCopy;
                             bufferProcessSignal.Set();
-                            metricLogger.Increment(new BufferFlushOperationsTriggeredByLoopIntervalExpiration());
+                            metricLogger.Increment(new BufferFlushOperationTriggeredByLoopIntervalExpiration());
                             lastWaitInterval = flushLoopInterval;
                             Thread.Sleep(flushLoopInterval);
                             metricLogger.Add(new BufferFlushLoopIntervalSleepTime(), lastWaitInterval);
@@ -128,7 +128,7 @@ namespace ApplicationAccess.Persistence
                     else
                     {
                         // Buffers are currently being flushed/processed so sleep for the full loop interval
-                        metricLogger.Increment(new BufferFlushLoopIntervalExpirationsWhileFlushOperationInProgress());
+                        metricLogger.Increment(new BufferFlushLoopIntervalExpirationWhileFlushOperationInProgress());
                         previousLoopIterationLastFlushCompleteTime = lastFlushCompleteTimeCopy;
                         lastWaitInterval = flushLoopInterval;
                         Thread.Sleep(flushLoopInterval);
@@ -231,7 +231,7 @@ namespace ApplicationAccess.Persistence
             if (TotalEventsBuffered >= bufferSizeLimit)
             {
                 bufferProcessSignal.Set();
-                metricLogger.Increment(new BufferFlushOperationsTriggeredBySizeLimit());
+                metricLogger.Increment(new BufferFlushOperationTriggeredBySizeLimit());
             }
         }
 

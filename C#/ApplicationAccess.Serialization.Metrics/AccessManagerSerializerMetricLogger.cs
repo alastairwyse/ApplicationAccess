@@ -46,7 +46,7 @@ namespace ApplicationAccess.Serialization.Metrics
                 throw;
             }
             metricLogger.End(new AccessManagerSerializeTime());
-            metricLogger.Increment(new AccessManagerSerializations());
+            metricLogger.Increment(new AccessManagerSerialization());
 
             return result;
         }
@@ -73,7 +73,7 @@ namespace ApplicationAccess.Serialization.Metrics
                 throw;
             }
             metricLogger.End(new AccessManagerDeserializeTime());
-            metricLogger.Increment(new AccessManagerDeserializations());
+            metricLogger.Increment(new AccessManagerDeserialization());
         }
     }
 }

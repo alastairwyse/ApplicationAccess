@@ -4,9 +4,9 @@
         <name>ApplicationAccess.Persistence.SqlServer</name>
     </assembly>
     <members>
-        <member name="T:ApplicationAccess.Persistence.SqlServer.SqlCommandExecutionsRetried">
+        <member name="T:ApplicationAccess.Persistence.SqlServer.SqlCommandExecutionRetried">
             <summary>
-            Count metric which records the number of times execution of a SQL command resulted in a transient error and was retried.
+            Count metric which records execution of a SQL command resulting in a transient error and being retried.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister`4">

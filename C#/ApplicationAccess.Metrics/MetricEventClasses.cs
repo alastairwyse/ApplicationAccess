@@ -24,14 +24,14 @@ namespace ApplicationAccess.Metrics
     #region IAccessManager Metrics
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddUser() method.
+    /// Count metric which records a call to the AddUser() method.
     /// </summary>
-    public class UsersAdded : CountMetric
+    public class UserAdded : CountMetric
     {
-        protected static String staticName = "UsersAdded";
-        protected static String staticDescription = "The total number of calls to the AddUser() method";
+        protected static String staticName = "UserAdded";
+        protected static String staticDescription = "A call to the AddUser() method";
 
-        public UsersAdded()
+        public UserAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -54,14 +54,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveUser() method.
+    /// Count metric which records a call to the RemoveUser() method.
     /// </summary>
-    public class UsersRemoved : CountMetric
+    public class UserRemoved : CountMetric
     {
-        protected static String staticName = "UsersRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveUser() method";
+        protected static String staticName = "UserRemoved";
+        protected static String staticDescription = "A call to the RemoveUser() method";
 
-        public UsersRemoved()
+        public UserRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -84,14 +84,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddGroup() method.
+    /// Count metric which records a call to the AddGroup() method.
     /// </summary>
-    public class GroupsAdded : CountMetric
+    public class GroupAdded : CountMetric
     {
-        protected static String staticName = "GroupsAdded";
-        protected static String staticDescription = "The total number of calls to the AddGroup() method";
+        protected static String staticName = "GroupAdded";
+        protected static String staticDescription = "A call to the AddGroup() method";
 
-        public GroupsAdded()
+        public GroupAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -114,14 +114,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveGroup() method.
+    /// Count metric which records a call to the RemoveGroup() method.
     /// </summary>
-    public class GroupsRemoved : CountMetric
+    public class GroupRemoved : CountMetric
     {
-        protected static String staticName = "GroupsRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveGroup() method";
+        protected static String staticName = "GroupRemoved";
+        protected static String staticDescription = "A call to the RemoveGroup() method";
 
-        public GroupsRemoved()
+        public GroupRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -144,14 +144,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddUserToGroupMapping() method.
+    /// Count metric which records a call to the AddUserToGroupMapping() method.
     /// </summary>
-    public class UserToGroupMappingsAdded : CountMetric
+    public class UserToGroupMappingAdded : CountMetric
     {
-        protected static String staticName = "UserToGroupMappingsAdded";
-        protected static String staticDescription = "The total number of calls to the AddUserToGroupMapping() method";
+        protected static String staticName = "UserToGroupMappingAdded";
+        protected static String staticDescription = "A call to the AddUserToGroupMapping() method";
 
-        public UserToGroupMappingsAdded()
+        public UserToGroupMappingAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -174,14 +174,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveUserToGroupMapping() method.
+    /// Count metric which records a call to the RemoveUserToGroupMapping() method.
     /// </summary>
-    public class UserToGroupMappingsRemoved : CountMetric
+    public class UserToGroupMappingRemoved : CountMetric
     {
-        protected static String staticName = "UserToGroupMappingsRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveUserToGroupMapping() method";
+        protected static String staticName = "UserToGroupMappingRemoved";
+        protected static String staticDescription = "A call to the RemoveUserToGroupMapping() method";
 
-        public UserToGroupMappingsRemoved()
+        public UserToGroupMappingRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -204,14 +204,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddGroupToGroupMapping() method.
+    /// Count metric which records a call to the AddGroupToGroupMapping() method.
     /// </summary>
-    public class GroupToGroupMappingsAdded : CountMetric
+    public class GroupToGroupMappingAdded : CountMetric
     {
-        protected static String staticName = "GroupToGroupMappingsAdded";
-        protected static String staticDescription = "The total number of calls to the AddGroupToGroupMapping() method";
+        protected static String staticName = "GroupToGroupMappingAdded";
+        protected static String staticDescription = "A call to the AddGroupToGroupMapping() method";
 
-        public GroupToGroupMappingsAdded()
+        public GroupToGroupMappingAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -234,14 +234,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveGroupToGroupMapping() method.
+    /// Count metric which records a call to the RemoveGroupToGroupMapping() method.
     /// </summary>
-    public class GroupToGroupMappingsRemoved : CountMetric
+    public class GroupToGroupMappingRemoved : CountMetric
     {
-        protected static String staticName = "GroupToGroupMappingsRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveGroupToGroupMapping() method";
+        protected static String staticName = "GroupToGroupMappingRemoved";
+        protected static String staticDescription = "A call to the RemoveGroupToGroupMapping() method";
 
-        public GroupToGroupMappingsRemoved()
+        public GroupToGroupMappingRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -264,14 +264,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddUserToApplicationComponentAndAccessLevelMapping() method.
+    /// Count metric which records a call to the AddUserToApplicationComponentAndAccessLevelMapping() method.
     /// </summary>
-    public class UserToApplicationComponentAndAccessLevelMappingsAdded : CountMetric
+    public class UserToApplicationComponentAndAccessLevelMappingAdded : CountMetric
     {
-        protected static String staticName = "UserToApplicationComponentAndAccessLevelMappingsAdded";
-        protected static String staticDescription = "The total number of calls to the AddUserToApplicationComponentAndAccessLevelMapping() method";
+        protected static String staticName = "UserToApplicationComponentAndAccessLevelMappingAdded";
+        protected static String staticDescription = "A call to the AddUserToApplicationComponentAndAccessLevelMapping() method";
 
-        public UserToApplicationComponentAndAccessLevelMappingsAdded()
+        public UserToApplicationComponentAndAccessLevelMappingAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -294,14 +294,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveUserToApplicationComponentAndAccessLevelMapping() method.
+    /// Count metric which records a call to the RemoveUserToApplicationComponentAndAccessLevelMapping() method.
     /// </summary>
-    public class UserToApplicationComponentAndAccessLevelMappingsRemoved : CountMetric
+    public class UserToApplicationComponentAndAccessLevelMappingRemoved : CountMetric
     {
-        protected static String staticName = "UserToApplicationComponentAndAccessLevelMappingsRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveUserToApplicationComponentAndAccessLevelMapping() method";
+        protected static String staticName = "UserToApplicationComponentAndAccessLevelMappingRemoved";
+        protected static String staticDescription = "A call to the RemoveUserToApplicationComponentAndAccessLevelMapping() method";
 
-        public UserToApplicationComponentAndAccessLevelMappingsRemoved()
+        public UserToApplicationComponentAndAccessLevelMappingRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -324,14 +324,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddGroupToApplicationComponentAndAccessLevelMapping() method.
+    /// Count metric which records a call to the AddGroupToApplicationComponentAndAccessLevelMapping() method.
     /// </summary>
-    public class GroupToApplicationComponentAndAccessLevelMappingsAdded : CountMetric
+    public class GroupToApplicationComponentAndAccessLevelMappingAdded : CountMetric
     {
-        protected static String staticName = "GroupToApplicationComponentAndAccessLevelMappingsAdded";
-        protected static String staticDescription = "The total number of calls to the AddGroupToApplicationComponentAndAccessLevelMapping() method";
+        protected static String staticName = "GroupToApplicationComponentAndAccessLevelMappingAdded";
+        protected static String staticDescription = "A call to the AddGroupToApplicationComponentAndAccessLevelMapping() method";
 
-        public GroupToApplicationComponentAndAccessLevelMappingsAdded()
+        public GroupToApplicationComponentAndAccessLevelMappingAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -354,14 +354,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveGroupToApplicationComponentAndAccessLevelMapping() method.
+    /// Count metric which records a call to the RemoveGroupToApplicationComponentAndAccessLevelMapping() method.
     /// </summary>
-    public class GroupToApplicationComponentAndAccessLevelMappingsRemoved : CountMetric
+    public class GroupToApplicationComponentAndAccessLevelMappingRemoved : CountMetric
     {
-        protected static String staticName = "GroupToApplicationComponentAndAccessLevelMappingsRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveGroupToApplicationComponentAndAccessLevelMapping() method";
+        protected static String staticName = "GroupToApplicationComponentAndAccessLevelMappingRemoved";
+        protected static String staticDescription = "A call to the RemoveGroupToApplicationComponentAndAccessLevelMapping() method";
 
-        public GroupToApplicationComponentAndAccessLevelMappingsRemoved()
+        public GroupToApplicationComponentAndAccessLevelMappingRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -385,14 +385,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddEntityType() method.
+    /// Count metric which records a call to the AddEntityType() method.
     /// </summary>
-    public class EntityTypesAdded : CountMetric
+    public class EntityTypeAdded : CountMetric
     {
-        protected static String staticName = "EntityTypesAdded";
-        protected static String staticDescription = "The total number of calls to the AddEntityType() method";
+        protected static String staticName = "EntityTypeAdded";
+        protected static String staticDescription = "A call to the AddEntityType() method";
 
-        public EntityTypesAdded()
+        public EntityTypeAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -415,14 +415,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveEntityType() method.
+    /// Count metric which records a call to the RemoveEntityType() method.
     /// </summary>
-    public class EntityTypesRemoved : CountMetric
+    public class EntityTypeRemoved : CountMetric
     {
-        protected static String staticName = "EntityTypesRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveEntityType() method";
+        protected static String staticName = "EntityTypeRemoved";
+        protected static String staticDescription = "A call to the RemoveEntityType() method";
 
-        public EntityTypesRemoved()
+        public EntityTypeRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -445,14 +445,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddEntity() method.
+    /// Count metric which records a call to the AddEntity() method.
     /// </summary>
-    public class EntitiesAdded : CountMetric
+    public class EntityAdded : CountMetric
     {
-        protected static String staticName = "EntitiesAdded";
-        protected static String staticDescription = "The total number of calls to the AddEntity() method";
+        protected static String staticName = "EntityAdded";
+        protected static String staticDescription = "A call to the AddEntity() method";
 
-        public EntitiesAdded()
+        public EntityAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -475,14 +475,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveEntity() method.
+    /// Count metric which records a call to the RemoveEntity() method.
     /// </summary>
-    public class EntitiesRemoved : CountMetric
+    public class EntityRemoved : CountMetric
     {
-        protected static String staticName = "EntitiesRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveEntity() method";
+        protected static String staticName = "EntityRemoved";
+        protected static String staticDescription = "A call to the RemoveEntity() method";
 
-        public EntitiesRemoved()
+        public EntityRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -505,14 +505,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddUserToEntityMapping() method.
+    /// Count metric which records a call to the AddUserToEntityMapping() method.
     /// </summary>
-    public class UserToEntityMappingsAdded : CountMetric
+    public class UserToEntityMappingAdded : CountMetric
     {
-        protected static String staticName = "UserToEntityMappingsAdded";
-        protected static String staticDescription = "The total number of calls to the AddUserToEntityMapping() method";
+        protected static String staticName = "UserToEntityMappingAdded";
+        protected static String staticDescription = "A call to the AddUserToEntityMapping() method";
 
-        public UserToEntityMappingsAdded()
+        public UserToEntityMappingAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -535,14 +535,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveUserToEntityMapping() method.
+    /// Count metric which records a call to the RemoveUserToEntityMapping() method.
     /// </summary>
-    public class UserToEntityMappingsRemoved : CountMetric
+    public class UserToEntityMappingRemoved : CountMetric
     {
-        protected static String staticName = "UserToEntityMappingsRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveUserToEntityMapping() method";
+        protected static String staticName = "UserToEntityMappingRemoved";
+        protected static String staticDescription = "A call to the RemoveUserToEntityMapping() method";
 
-        public UserToEntityMappingsRemoved()
+        public UserToEntityMappingRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -565,14 +565,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the AddGroupToEntityMapping() method.
+    /// Count metric which records a call to the AddGroupToEntityMapping() method.
     /// </summary>
-    public class GroupToEntityMappingsAdded : CountMetric
+    public class GroupToEntityMappingAdded : CountMetric
     {
-        protected static String staticName = "GroupToEntityMappingsAdded";
-        protected static String staticDescription = "The total number of calls to the AddGroupToEntityMapping() method";
+        protected static String staticName = "GroupToEntityMappingAdded";
+        protected static String staticDescription = "A call to the AddGroupToEntityMapping() method";
 
-        public GroupToEntityMappingsAdded()
+        public GroupToEntityMappingAdded()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -595,14 +595,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the RemoveGroupToEntityMapping() method.
+    /// Count metric which records a call to the RemoveGroupToEntityMapping() method.
     /// </summary>
-    public class GroupToEntityMappingsRemoved : CountMetric
+    public class GroupToEntityMappingRemoved : CountMetric
     {
-        protected static String staticName = "GroupToEntityMappingsRemoved";
-        protected static String staticDescription = "The total number of calls to the RemoveGroupToEntityMapping() method";
+        protected static String staticName = "GroupToEntityMappingRemoved";
+        protected static String staticDescription = "A call to the RemoveGroupToEntityMapping() method";
 
-        public GroupToEntityMappingsRemoved()
+        public GroupToEntityMappingRemoved()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -625,14 +625,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of gets on the Users property.
+    /// Count metric which records a get on the Users property.
     /// </summary>
-    public class UsersPropertyQueries : CountMetric
+    public class UsersPropertyQuery : CountMetric
     {
-        protected static String staticName = "UsersPropertyQueries";
-        protected static String staticDescription = "The total number of gets on the Users property";
+        protected static String staticName = "UsersPropertyQuery";
+        protected static String staticDescription = "A get on the Users property";
 
-        public UsersPropertyQueries()
+        public UsersPropertyQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -655,14 +655,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of gets on the Groups property.
+    /// Count metric which records a get on the Groups property.
     /// </summary>
-    public class GroupsPropertyQueries : CountMetric
+    public class GroupsPropertyQuery : CountMetric
     {
-        protected static String staticName = "GroupsPropertyQueries";
-        protected static String staticDescription = "The total number of gets on the Groups property";
+        protected static String staticName = "GroupsPropertyQuery";
+        protected static String staticDescription = "A get on the Groups property";
 
-        public GroupsPropertyQueries()
+        public GroupsPropertyQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -685,14 +685,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of gets on the EntityTypes property.
+    /// Count metric which records a get on the EntityTypes property.
     /// </summary>
-    public class EntityTypesPropertyQueries : CountMetric
+    public class EntityTypesPropertyQuery : CountMetric
     {
-        protected static String staticName = "EntityTypesPropertyQueries";
-        protected static String staticDescription = "The total number of gets on the EntityTypes property";
+        protected static String staticName = "EntityTypesPropertyQuery";
+        protected static String staticDescription = "A get on the EntityTypes property";
 
-        public EntityTypesPropertyQueries()
+        public EntityTypesPropertyQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -715,14 +715,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the ContainsUser() method.
+    /// Count metric which records a call to the ContainsUser() method.
     /// </summary>
-    public class ContainsUserQueries : CountMetric
+    public class ContainsUserQuery : CountMetric
     {
-        protected static String staticName = "ContainsUserQueries";
-        protected static String staticDescription = "The total number of calls to the ContainsUser() method";
+        protected static String staticName = "ContainsUserQuery";
+        protected static String staticDescription = "A call to the ContainsUser() method";
 
-        public ContainsUserQueries()
+        public ContainsUserQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -745,14 +745,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the ContainsGroup() method.
+    /// Count metric which records a call to the ContainsGroup() method.
     /// </summary>
-    public class ContainsGroupQueries : CountMetric
+    public class ContainsGroupQuery : CountMetric
     {
-        protected static String staticName = "ContainsGroupQueries";
-        protected static String staticDescription = "The total number of calls to the ContainsGroup() method";
+        protected static String staticName = "ContainsGroupQuery";
+        protected static String staticDescription = "A call to the ContainsGroup() method";
 
-        public ContainsGroupQueries()
+        public ContainsGroupQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -775,14 +775,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetUserToGroupMappings() method.
+    /// Count metric which records a call to the GetUserToGroupMappings() method.
     /// </summary>
-    public class GetUserToGroupMappingsQueries : CountMetric
+    public class GetUserToGroupMappingsQuery : CountMetric
     {
-        protected static String staticName = "GetUserToGroupMappingsQueries";
-        protected static String staticDescription = "The total number of calls to the GetUserToGroupMappings() method";
+        protected static String staticName = "GetUserToGroupMappingsQuery";
+        protected static String staticDescription = "A call to the GetUserToGroupMappings() method";
 
-        public GetUserToGroupMappingsQueries()
+        public GetUserToGroupMappingsQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -805,14 +805,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetGroupToGroupMappings() method.
+    /// Count metric which records a call to the GetGroupToGroupMappings() method.
     /// </summary>
-    public class GetGroupToGroupMappingsQueries : CountMetric
+    public class GetGroupToGroupMappingsQuery : CountMetric
     {
-        protected static String staticName = "GetGroupToGroupMappingsQueries";
-        protected static String staticDescription = "The total number of calls to the GetGroupToGroupMappings() method";
+        protected static String staticName = "GetGroupToGroupMappingsQuery";
+        protected static String staticDescription = "A call to the GetGroupToGroupMappings() method";
 
-        public GetGroupToGroupMappingsQueries()
+        public GetGroupToGroupMappingsQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -835,14 +835,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetUserToApplicationComponentAndAccessLevelMappings() method.
+    /// Count metric which records a call to the GetUserToApplicationComponentAndAccessLevelMappings() method.
     /// </summary>
-    public class GetUserToApplicationComponentAndAccessLevelMappingsQueries : CountMetric
+    public class GetUserToApplicationComponentAndAccessLevelMappingsQuery : CountMetric
     {
-        protected static String staticName = "GetUserToApplicationComponentAndAccessLevelMappingsQueries";
-        protected static String staticDescription = "The total number of calls to the GetUserToApplicationComponentAndAccessLevelMappings() method";
+        protected static String staticName = "GetUserToApplicationComponentAndAccessLevelMappingsQuery";
+        protected static String staticDescription = "A call to the GetUserToApplicationComponentAndAccessLevelMappings() method";
 
-        public GetUserToApplicationComponentAndAccessLevelMappingsQueries()
+        public GetUserToApplicationComponentAndAccessLevelMappingsQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -865,14 +865,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetGroupToApplicationComponentAndAccessLevelMappings() method.
+    /// Count metric which records a call to the GetGroupToApplicationComponentAndAccessLevelMappings() method.
     /// </summary>
-    public class GetGroupToApplicationComponentAndAccessLevelMappingsQueries : CountMetric
+    public class GetGroupToApplicationComponentAndAccessLevelMappingsQuery : CountMetric
     {
-        protected static String staticName = "GetGroupToApplicationComponentAndAccessLevelMappingsQueries";
-        protected static String staticDescription = "The total number of calls to the GetGroupToApplicationComponentAndAccessLevelMappings() method";
+        protected static String staticName = "GetGroupToApplicationComponentAndAccessLevelMappingsQuery";
+        protected static String staticDescription = "A call to the GetGroupToApplicationComponentAndAccessLevelMappings() method";
 
-        public GetGroupToApplicationComponentAndAccessLevelMappingsQueries()
+        public GetGroupToApplicationComponentAndAccessLevelMappingsQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -895,14 +895,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the ContainsEntityType() method.
+    /// Count metric which records a call to the ContainsEntityType() method.
     /// </summary>
-    public class ContainsEntityTypeQueries : CountMetric
+    public class ContainsEntityTypeQuery : CountMetric
     {
-        protected static String staticName = "ContainsEntityTypeQueries";
-        protected static String staticDescription = "The total number of calls to the ContainsEntityType() method";
+        protected static String staticName = "ContainsEntityTypeQuery";
+        protected static String staticDescription = "A call to the ContainsEntityType() method";
 
-        public ContainsEntityTypeQueries()
+        public ContainsEntityTypeQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -925,14 +925,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetEntities() method.
+    /// Count metric which records a call to the GetEntities() method.
     /// </summary>
-    public class GetEntitiesQueries : CountMetric
+    public class GetEntitiesQuery : CountMetric
     {
-        protected static String staticName = "GetEntitiesQueries";
-        protected static String staticDescription = "The total number of calls to the GetEntities() method";
+        protected static String staticName = "GetEntitiesQuery";
+        protected static String staticDescription = "A call to the GetEntities() method";
 
-        public GetEntitiesQueries()
+        public GetEntitiesQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -955,14 +955,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the ContainsEntity() method.
+    /// Count metric which records a call to the ContainsEntity() method.
     /// </summary>
-    public class ContainsEntityQueries : CountMetric
+    public class ContainsEntityQuery : CountMetric
     {
-        protected static String staticName = "ContainsEntityQueries";
-        protected static String staticDescription = "The total number of calls to the ContainsEntity() method";
+        protected static String staticName = "ContainsEntityQuery";
+        protected static String staticDescription = "A call to the ContainsEntity() method";
 
-        public ContainsEntityQueries()
+        public ContainsEntityQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -985,14 +985,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetUserToEntityMappingsForUser() method.
+    /// Count metric which records a call to the GetUserToEntityMappingsForUser() method.
     /// </summary>
-    public class GetUserToEntityMappingsForUserQueries : CountMetric
+    public class GetUserToEntityMappingsForUserQuery : CountMetric
     {
-        protected static String staticName = "GetUserToEntityMappingsForUserQueries";
-        protected static String staticDescription = "The total number of calls to the GetUserToEntityMappingsForUser() method";
+        protected static String staticName = "GetUserToEntityMappingsForUserQuery";
+        protected static String staticDescription = "A call to the GetUserToEntityMappingsForUser() method";
 
-        public GetUserToEntityMappingsForUserQueries()
+        public GetUserToEntityMappingsForUserQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1015,14 +1015,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetUserToEntityMappingsForUserAndEntityType() method.
+    /// Count metric which records a call to the GetUserToEntityMappingsForUserAndEntityType() method.
     /// </summary>
-    public class GetUserToEntityMappingsForUserAndEntityTypeQueries : CountMetric
+    public class GetUserToEntityMappingsForUserAndEntityTypeQuery : CountMetric
     {
-        protected static String staticName = "GetUserToEntityMappingsForUserAndEntityTypeQueries";
-        protected static String staticDescription = "The total number of calls to the GetUserToEntityMappingsForUserAndEntityType() method";
+        protected static String staticName = "GetUserToEntityMappingsForUserAndEntityTypeQuery";
+        protected static String staticDescription = "A call to the GetUserToEntityMappingsForUserAndEntityType() method";
 
-        public GetUserToEntityMappingsForUserAndEntityTypeQueries()
+        public GetUserToEntityMappingsForUserAndEntityTypeQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1045,14 +1045,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetGroupToEntityMappingsForGroup() method.
+    /// Count metric which records a call to the GetGroupToEntityMappingsForGroup() method.
     /// </summary>
-    public class GetGroupToEntityMappingsForGroupQueries : CountMetric
+    public class GetGroupToEntityMappingsForGroupQuery : CountMetric
     {
-        protected static String staticName = "GetGroupToEntityMappingsForGroupQueries";
-        protected static String staticDescription = "The total number of calls to the GetGroupToEntityMappingsForGroup() method";
+        protected static String staticName = "GetGroupToEntityMappingsForGroupQuery";
+        protected static String staticDescription = "A call to the GetGroupToEntityMappingsForGroup() method";
 
-        public GetGroupToEntityMappingsForGroupQueries()
+        public GetGroupToEntityMappingsForGroupQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1075,14 +1075,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetGroupToEntityMappingsForGroupAndEntityType() method.
+    /// Count metric which records a call to the GetGroupToEntityMappingsForGroupAndEntityType() method.
     /// </summary>
-    public class GetGroupToEntityMappingsForGroupAndEntityTypeQueries : CountMetric
+    public class GetGroupToEntityMappingsForGroupAndEntityTypeQuery : CountMetric
     {
-        protected static String staticName = "GetGroupToEntityMappingsForGroupAndEntityTypeQueries";
-        protected static String staticDescription = "The total number of calls to the GetGroupToEntityMappingsForGroupAndEntityType() method";
+        protected static String staticName = "GetGroupToEntityMappingsForGroupAndEntityTypeQuery";
+        protected static String staticDescription = "A call to the GetGroupToEntityMappingsForGroupAndEntityType() method";
 
-        public GetGroupToEntityMappingsForGroupAndEntityTypeQueries()
+        public GetGroupToEntityMappingsForGroupAndEntityTypeQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1105,14 +1105,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the HasAccessToApplicationComponent() method.
+    /// Count metric which records a call to the HasAccessToApplicationComponent() method.
     /// </summary>
-    public class HasAccessToApplicationComponentQueries : CountMetric
+    public class HasAccessToApplicationComponentQuery : CountMetric
     {
-        protected static String staticName = "HasAccessToApplicationComponentQueries";
-        protected static String staticDescription = "The total number of calls to the HasAccessToApplicationComponent() method";
+        protected static String staticName = "HasAccessToApplicationComponentQuery";
+        protected static String staticDescription = "A call to the HasAccessToApplicationComponent() method";
 
-        public HasAccessToApplicationComponentQueries()
+        public HasAccessToApplicationComponentQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1135,14 +1135,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the HasAccessToEntity() method.
+    /// Count metric which records a call to the HasAccessToEntity() method.
     /// </summary>
-    public class HasAccessToEntityQueries : CountMetric
+    public class HasAccessToEntityQuery : CountMetric
     {
-        protected static String staticName = "HasAccessToEntityQueries";
-        protected static String staticDescription = "The total number of calls to the HasAccessToEntity() method";
+        protected static String staticName = "HasAccessToEntityQuery";
+        protected static String staticDescription = "A call to the HasAccessToEntity() method";
 
-        public HasAccessToEntityQueries()
+        public HasAccessToEntityQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1165,14 +1165,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetApplicationComponentsAccessibleByUser() method.
+    /// Count metric which records a call to the GetApplicationComponentsAccessibleByUser() method.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByUserQueries : CountMetric
+    public class GetApplicationComponentsAccessibleByUserQuery : CountMetric
     {
-        protected static String staticName = "GetApplicationComponentsAccessibleByUserQueries";
-        protected static String staticDescription = "The total number of calls to the GetApplicationComponentsAccessibleByUser() method";
+        protected static String staticName = "GetApplicationComponentsAccessibleByUserQuery";
+        protected static String staticDescription = "A call to the GetApplicationComponentsAccessibleByUser() method";
 
-        public GetApplicationComponentsAccessibleByUserQueries()
+        public GetApplicationComponentsAccessibleByUserQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1195,14 +1195,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetApplicationComponentsAccessibleByGroup() method.
+    /// Count metric which records a call to the GetApplicationComponentsAccessibleByGroup() method.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByGroupQueries : CountMetric
+    public class GetApplicationComponentsAccessibleByGroupQuery : CountMetric
     {
-        protected static String staticName = "GetApplicationComponentsAccessibleByGroupQueries";
-        protected static String staticDescription = "The total number of calls to the GetApplicationComponentsAccessibleByGroup() method";
+        protected static String staticName = "GetApplicationComponentsAccessibleByGroupQuery";
+        protected static String staticDescription = "A call to the GetApplicationComponentsAccessibleByGroup() method";
 
-        public GetApplicationComponentsAccessibleByGroupQueries()
+        public GetApplicationComponentsAccessibleByGroupQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1225,14 +1225,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetEntitiesAccessibleByUser() method.
+    /// Count metric which records a call to the GetEntitiesAccessibleByUser() method.
     /// </summary>
-    public class GetEntitiesAccessibleByUserQueries : CountMetric
+    public class GetEntitiesAccessibleByUserQuery : CountMetric
     {
-        protected static String staticName = "GetEntitiesAccessibleByUserQueries";
-        protected static String staticDescription = "The total number of calls to the GetEntitiesAccessibleByUser() method";
+        protected static String staticName = "GetEntitiesAccessibleByUserQuery";
+        protected static String staticDescription = "A call to the GetEntitiesAccessibleByUser() method";
 
-        public GetEntitiesAccessibleByUserQueries()
+        public GetEntitiesAccessibleByUserQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1255,14 +1255,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the GetEntitiesAccessibleByGroup() method.
+    /// Count metric which records a call to the GetEntitiesAccessibleByGroup() method.
     /// </summary>
-    public class GetEntitiesAccessibleByGroupQueries : CountMetric
+    public class GetEntitiesAccessibleByGroupQuery : CountMetric
     {
-        protected static String staticName = "GetEntitiesAccessibleByGroupQueries";
-        protected static String staticDescription = "The total number of calls to the GetEntitiesAccessibleByGroup() method";
+        protected static String staticName = "GetEntitiesAccessibleByGroupQuery";
+        protected static String staticDescription = "A call to the GetEntitiesAccessibleByGroup() method";
 
-        public GetEntitiesAccessibleByGroupQueries()
+        public GetEntitiesAccessibleByGroupQuery()
         {
             base.name = staticName;
             base.description = staticDescription;

@@ -49,7 +49,7 @@ namespace ApplicationAccess.Persistence
                 while (stopMethodCalled == false)
                 {
                     OnBufferFlushed(EventArgs.Empty);
-                    metricLogger.Increment(new BufferFlushOperationsTriggeredByLoopIntervalExpiration());
+                    metricLogger.Increment(new BufferFlushOperationTriggeredByLoopIntervalExpiration());
                     Thread.Sleep(flushLoopInterval);
                     metricLogger.Add(new BufferFlushLoopIntervalSleepTime(), flushLoopInterval);
                     // If the code is being tested, break out of processing after the specified number of iterations

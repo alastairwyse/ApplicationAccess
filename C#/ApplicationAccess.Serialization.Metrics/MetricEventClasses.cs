@@ -22,14 +22,14 @@ namespace ApplicationAccess.Serialization.Metrics
     #pragma warning disable 1591
 
     /// <summary>
-    /// Count metric which records the total number of calls to the Serialize() method.
+    /// Count metric which records a call to the Serialize() method.
     /// </summary>
-    public class AccessManagerSerializations : CountMetric
+    public class AccessManagerSerialization : CountMetric
     {
-        protected static String staticName = "AccessManagerSerializations";
-        protected static String staticDescription = "The total number of calls to the Serialize() method";
+        protected static String staticName = "AccessManagerSerialization";
+        protected static String staticDescription = "A call to the Serialize() method";
 
-        public AccessManagerSerializations()
+        public AccessManagerSerialization()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -52,14 +52,14 @@ namespace ApplicationAccess.Serialization.Metrics
     }
 
     /// <summary>
-    /// Count metric which records the total number of calls to the Deserialize() method.
+    /// Count metric which records a call to the Deserialize() method.
     /// </summary>
-    public class AccessManagerDeserializations : CountMetric
+    public class AccessManagerDeserialization : CountMetric
     {
-        protected static String staticName = "AccessManagerDeserializations";
-        protected static String staticDescription = "The total number of calls to the Deserialize() method";
+        protected static String staticName = "AccessManagerDeserialization";
+        protected static String staticDescription = "A call to the Deserialize() method";
 
-        public AccessManagerDeserializations()
+        public AccessManagerDeserialization()
         {
             base.name = staticName;
             base.description = staticDescription;
