@@ -41,7 +41,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>The persister to use to write flushed events to permanent storage.</summary>
         protected IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister;
         /// <summary>The provider to use for random Guids.</summary>
-        protected IGuidProvider guidProvider;
+        protected Utilities.IGuidProvider guidProvider;
         /// <summary>The provider to use for the current date and time.</summary>
         protected IDateTimeProvider dateTimeProvider;
         /// <summary>The logger for metrics.</summary>
@@ -115,7 +115,7 @@ namespace ApplicationAccess.Persistence
             bufferFlushedEventHandler = (Object sender, EventArgs e) => { Flush(); };
             bufferFlushStrategy.BufferFlushed += bufferFlushedEventHandler;
             this.eventPersister = eventPersister;
-            guidProvider = new DefaultGuidProvider();
+            guidProvider = new Utilities.DefaultGuidProvider();
             dateTimeProvider = new StopwatchDateTimeProvider();
             metricLogger = new NullMetricLogger();
             lastEventSequenceNumber = -1;
@@ -215,7 +215,7 @@ namespace ApplicationAccess.Persistence
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IGuidProvider guidProvider, 
+            Utilities.IGuidProvider guidProvider, 
             IDateTimeProvider dateTimeProvider
         ) : this(eventValidator, bufferFlushStrategy, eventPersister)
         {
@@ -588,7 +588,7 @@ namespace ApplicationAccess.Persistence
         public void Flush()
         {
             Int32 flushedEventCount = 0;
-            metricLogger.Begin(new FlushTime());
+            Guid beginId = metricLogger.Begin(new FlushTime());
 
             try
             {
@@ -859,11 +859,11 @@ namespace ApplicationAccess.Persistence
             }
             catch
             {
-                metricLogger.CancelBegin(new FlushTime());
+                metricLogger.CancelBegin(beginId, new FlushTime());
                 throw;
             }
 
-            metricLogger.End(new FlushTime());
+            metricLogger.End(beginId, new FlushTime());
             metricLogger.Add(new BufferedEventsFlushed(), flushedEventCount);
             metricLogger.Increment(new BufferFlushOperationCompleted());
         }

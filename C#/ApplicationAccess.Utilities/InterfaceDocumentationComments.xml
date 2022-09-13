@@ -30,7 +30,7 @@
       <summary>
         Creates a new random Guid.
       </summary>
-      <returns>A new GUID object.</returns>
+      <returns>A new Guid.</returns>
     </member>
   </members>
 </doc>

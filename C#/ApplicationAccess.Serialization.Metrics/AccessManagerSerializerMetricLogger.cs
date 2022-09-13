@@ -35,17 +35,17 @@ namespace ApplicationAccess.Serialization.Metrics
         public TSerializedObject Serialize<TUser, TGroup, TComponent, TAccess>(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager, IUniqueStringifier<TUser> userStringifier, IUniqueStringifier<TGroup> groupStringifier, IUniqueStringifier<TComponent> applicationComponentStringifier, IUniqueStringifier<TAccess> accessLevelStringifier)
         {
             TSerializedObject result;
-            metricLogger.Begin(new AccessManagerSerializeTime());
+            Guid beginId = metricLogger.Begin(new AccessManagerSerializeTime());
             try
             {
                 result = serializer.Serialize(accessManager, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier);
             }
             catch
             {
-                metricLogger.CancelBegin(new AccessManagerSerializeTime());
+                metricLogger.CancelBegin(beginId, new AccessManagerSerializeTime());
                 throw;
             }
-            metricLogger.End(new AccessManagerSerializeTime());
+            metricLogger.End(beginId, new AccessManagerSerializeTime());
             metricLogger.Increment(new AccessManagerSerialization());
 
             return result;
@@ -62,17 +62,17 @@ namespace ApplicationAccess.Serialization.Metrics
             AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToDeserializeTo
         )
         {
-            metricLogger.Begin(new AccessManagerDeserializeTime());
+            Guid beginId = metricLogger.Begin(new AccessManagerDeserializeTime());
             try
             {
                 serializer.Deserialize<TUser, TGroup, TComponent, TAccess>(serializedAccessManager, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, accessManagerToDeserializeTo);
             }
             catch
             {
-                metricLogger.CancelBegin(new AccessManagerDeserializeTime());
+                metricLogger.CancelBegin(beginId, new AccessManagerDeserializeTime());
                 throw;
             }
-            metricLogger.End(new AccessManagerDeserializeTime());
+            metricLogger.End(beginId, new AccessManagerDeserializeTime());
             metricLogger.Increment(new AccessManagerDeserialization());
         }
     }

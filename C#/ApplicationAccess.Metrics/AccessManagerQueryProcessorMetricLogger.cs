@@ -52,17 +52,17 @@ namespace ApplicationAccess.Metrics
             get
             {
                 IEnumerable<TUser> result;
-                metricLogger.Begin(new UsersPropertyQueryTime());
+                Guid beginId = metricLogger.Begin(new UsersPropertyQueryTime());
                 try
                 {
                     result = queryProcessor.Users;
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new UsersPropertyQueryTime());
+                    metricLogger.CancelBegin(beginId, new UsersPropertyQueryTime());
                     throw;
                 }
-                metricLogger.End(new UsersPropertyQueryTime());
+                metricLogger.End(beginId, new UsersPropertyQueryTime());
                 metricLogger.Increment(new UsersPropertyQuery());
 
                 return result;
@@ -75,17 +75,17 @@ namespace ApplicationAccess.Metrics
             get
             {
                 IEnumerable<TGroup> result;
-                metricLogger.Begin(new GroupsPropertyQueryTime());
+                Guid beginId = metricLogger.Begin(new GroupsPropertyQueryTime());
                 try
                 {
                     result = queryProcessor.Groups;
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new GroupsPropertyQueryTime());
+                    metricLogger.CancelBegin(beginId, new GroupsPropertyQueryTime());
                     throw;
                 }
-                metricLogger.End(new GroupsPropertyQueryTime());
+                metricLogger.End(beginId, new GroupsPropertyQueryTime());
                 metricLogger.Increment(new GroupsPropertyQuery());
 
                 return result;
@@ -98,17 +98,17 @@ namespace ApplicationAccess.Metrics
             get
             {
                 IEnumerable<String> result;
-                metricLogger.Begin(new EntityTypesPropertyQueryTime());
+                Guid beginId = metricLogger.Begin(new EntityTypesPropertyQueryTime());
                 try
                 {
                     result = queryProcessor.EntityTypes;
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(new EntityTypesPropertyQueryTime());
+                    metricLogger.CancelBegin(beginId, new EntityTypesPropertyQueryTime());
                     throw;
                 }
-                metricLogger.End(new EntityTypesPropertyQueryTime());
+                metricLogger.End(beginId, new EntityTypesPropertyQueryTime());
                 metricLogger.Increment(new EntityTypesPropertyQuery());
 
                 return result;
@@ -119,17 +119,17 @@ namespace ApplicationAccess.Metrics
         public Boolean ContainsUser(TUser user)
         {
             Boolean result;
-            metricLogger.Begin(new ContainsUserQueryTime());
+            Guid beginId = metricLogger.Begin(new ContainsUserQueryTime());
             try
             {
                 result = queryProcessor.ContainsUser(user);
             }
             catch
             {
-                metricLogger.CancelBegin(new ContainsUserQueryTime());
+                metricLogger.CancelBegin(beginId, new ContainsUserQueryTime());
                 throw;
             }
-            metricLogger.End(new ContainsUserQueryTime());
+            metricLogger.End(beginId, new ContainsUserQueryTime());
             metricLogger.Increment(new ContainsUserQuery());
 
             return result;
@@ -139,17 +139,17 @@ namespace ApplicationAccess.Metrics
         public Boolean ContainsGroup(TGroup group)
         {
             Boolean result;
-            metricLogger.Begin(new ContainsGroupQueryTime());
+            Guid beginId = metricLogger.Begin(new ContainsGroupQueryTime());
             try
             {
                 result = queryProcessor.ContainsGroup(group);
             }
             catch
             {
-                metricLogger.CancelBegin(new ContainsGroupQueryTime());
+                metricLogger.CancelBegin(beginId, new ContainsGroupQueryTime());
                 throw;
             }
-            metricLogger.End(new ContainsGroupQueryTime());
+            metricLogger.End(beginId, new ContainsGroupQueryTime());
             metricLogger.Increment(new ContainsGroupQuery());
 
             return result;
@@ -159,17 +159,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
         {
             IEnumerable<TGroup> result;
-            metricLogger.Begin(new GetUserToGroupMappingsQueryTime());
+            Guid beginId = metricLogger.Begin(new GetUserToGroupMappingsQueryTime());
             try
             {
                 result = queryProcessor.GetUserToGroupMappings(user);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetUserToGroupMappingsQueryTime());
+                metricLogger.CancelBegin(beginId, new GetUserToGroupMappingsQueryTime());
                 throw;
             }
-            metricLogger.End(new GetUserToGroupMappingsQueryTime());
+            metricLogger.End(beginId, new GetUserToGroupMappingsQueryTime());
             metricLogger.Increment(new GetUserToGroupMappingsQuery());
 
             return result;
@@ -179,17 +179,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
         {
             IEnumerable<TGroup> result;
-            metricLogger.Begin(new GetGroupToGroupMappingsQueryTime());
+            Guid beginId = metricLogger.Begin(new GetGroupToGroupMappingsQueryTime());
             try
             {
                 result = queryProcessor.GetGroupToGroupMappings(group);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetGroupToGroupMappingsQueryTime());
+                metricLogger.CancelBegin(beginId, new GetGroupToGroupMappingsQueryTime());
                 throw;
             }
-            metricLogger.End(new GetGroupToGroupMappingsQueryTime());
+            metricLogger.End(beginId, new GetGroupToGroupMappingsQueryTime());
             metricLogger.Increment(new GetGroupToGroupMappingsQuery());
 
             return result;
@@ -199,17 +199,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             IEnumerable<Tuple<TComponent, TAccess>> result;
-            metricLogger.Begin(new GetUserToApplicationComponentAndAccessLevelMappingsQueryTime());
+            Guid beginId = metricLogger.Begin(new GetUserToApplicationComponentAndAccessLevelMappingsQueryTime());
             try
             {
                 result = queryProcessor.GetUserToApplicationComponentAndAccessLevelMappings(user);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetUserToApplicationComponentAndAccessLevelMappingsQueryTime());
+                metricLogger.CancelBegin(beginId, new GetUserToApplicationComponentAndAccessLevelMappingsQueryTime());
                 throw;
             }
-            metricLogger.End(new GetUserToApplicationComponentAndAccessLevelMappingsQueryTime());
+            metricLogger.End(beginId, new GetUserToApplicationComponentAndAccessLevelMappingsQueryTime());
             metricLogger.Increment(new GetUserToApplicationComponentAndAccessLevelMappingsQuery());
 
             return result;
@@ -219,17 +219,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             IEnumerable<Tuple<TComponent, TAccess>> result;
-            metricLogger.Begin(new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime());
+            Guid beginId = metricLogger.Begin(new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime());
             try
             {
                 result = queryProcessor.GetGroupToApplicationComponentAndAccessLevelMappings(group);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime());
+                metricLogger.CancelBegin(beginId, new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime());
                 throw;
             }
-            metricLogger.End(new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime());
+            metricLogger.End(beginId, new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime());
             metricLogger.Increment(new GetGroupToApplicationComponentAndAccessLevelMappingsQuery());
 
             return result;
@@ -239,17 +239,17 @@ namespace ApplicationAccess.Metrics
         public Boolean ContainsEntityType(String entityType)
         {
             Boolean result;
-            metricLogger.Begin(new ContainsEntityTypeQueryTime());
+            Guid beginId = metricLogger.Begin(new ContainsEntityTypeQueryTime());
             try
             {
                 result = queryProcessor.ContainsEntityType(entityType);
             }
             catch
             {
-                metricLogger.CancelBegin(new ContainsEntityTypeQueryTime());
+                metricLogger.CancelBegin(beginId, new ContainsEntityTypeQueryTime());
                 throw;
             }
-            metricLogger.End(new ContainsEntityTypeQueryTime());
+            metricLogger.End(beginId, new ContainsEntityTypeQueryTime());
             metricLogger.Increment(new ContainsEntityTypeQuery());
 
             return result;
@@ -259,17 +259,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<String> GetEntities(String entityType)
         {
             IEnumerable<String> result;
-            metricLogger.Begin(new GetEntitiesQueryTime());
+            Guid beginId = metricLogger.Begin(new GetEntitiesQueryTime());
             try
             {
                 result = queryProcessor.GetEntities(entityType);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetEntitiesQueryTime());
+                metricLogger.CancelBegin(beginId, new GetEntitiesQueryTime());
                 throw;
             }
-            metricLogger.End(new GetEntitiesQueryTime());
+            metricLogger.End(beginId, new GetEntitiesQueryTime());
             metricLogger.Increment(new GetEntitiesQuery());
 
             return result;
@@ -279,17 +279,17 @@ namespace ApplicationAccess.Metrics
         public Boolean ContainsEntity(String entityType, String entity)
         {
             Boolean result;
-            metricLogger.Begin(new ContainsEntityQueryTime());
+            Guid beginId = metricLogger.Begin(new ContainsEntityQueryTime());
             try
             {
                 result = queryProcessor.ContainsEntity(entityType, entity);
             }
             catch
             {
-                metricLogger.CancelBegin(new ContainsEntityQueryTime());
+                metricLogger.CancelBegin(beginId, new ContainsEntityQueryTime());
                 throw;
             }
-            metricLogger.End(new ContainsEntityQueryTime());
+            metricLogger.End(beginId, new ContainsEntityQueryTime());
             metricLogger.Increment(new ContainsEntityQuery());
 
             return result;
@@ -299,17 +299,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
             IEnumerable<Tuple<String, String>> result;
-            metricLogger.Begin(new GetUserToEntityMappingsForUserQueryTime());
+            Guid beginId = metricLogger.Begin(new GetUserToEntityMappingsForUserQueryTime());
             try
             {
                 result = queryProcessor.GetUserToEntityMappings(user);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetUserToEntityMappingsForUserQueryTime());
+                metricLogger.CancelBegin(beginId, new GetUserToEntityMappingsForUserQueryTime());
                 throw;
             }
-            metricLogger.End(new GetUserToEntityMappingsForUserQueryTime());
+            metricLogger.End(beginId, new GetUserToEntityMappingsForUserQueryTime());
             metricLogger.Increment(new GetUserToEntityMappingsForUserQuery());
 
             return result;
@@ -319,17 +319,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
             IEnumerable<String> result;
-            metricLogger.Begin(new GetUserToEntityMappingsForUserAndEntityTypeQueryTime());
+            Guid beginId = metricLogger.Begin(new GetUserToEntityMappingsForUserAndEntityTypeQueryTime());
             try
             {
                 result = queryProcessor.GetUserToEntityMappings(user, entityType);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetUserToEntityMappingsForUserAndEntityTypeQueryTime());
+                metricLogger.CancelBegin(beginId, new GetUserToEntityMappingsForUserAndEntityTypeQueryTime());
                 throw;
             }
-            metricLogger.End(new GetUserToEntityMappingsForUserAndEntityTypeQueryTime());
+            metricLogger.End(beginId, new GetUserToEntityMappingsForUserAndEntityTypeQueryTime());
             metricLogger.Increment(new GetUserToEntityMappingsForUserAndEntityTypeQuery());
 
             return result;
@@ -339,17 +339,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             IEnumerable<Tuple<String, String>> result;
-            metricLogger.Begin(new GetGroupToEntityMappingsForGroupQueryTime());
+            Guid beginId = metricLogger.Begin(new GetGroupToEntityMappingsForGroupQueryTime());
             try
             {
                 result = queryProcessor.GetGroupToEntityMappings(group);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetGroupToEntityMappingsForGroupQueryTime());
+                metricLogger.CancelBegin(beginId, new GetGroupToEntityMappingsForGroupQueryTime());
                 throw;
             }
-            metricLogger.End(new GetGroupToEntityMappingsForGroupQueryTime());
+            metricLogger.End(beginId, new GetGroupToEntityMappingsForGroupQueryTime());
             metricLogger.Increment(new GetGroupToEntityMappingsForGroupQuery());
 
             return result;
@@ -359,17 +359,17 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             IEnumerable<String> result;
-            metricLogger.Begin(new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime());
+            Guid beginId = metricLogger.Begin(new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime());
             try
             {
                 result = queryProcessor.GetGroupToEntityMappings(group, entityType);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime());
+                metricLogger.CancelBegin(beginId, new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime());
                 throw;
             }
-            metricLogger.End(new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime());
+            metricLogger.End(beginId, new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime());
             metricLogger.Increment(new GetGroupToEntityMappingsForGroupAndEntityTypeQuery());
 
             return result;
@@ -379,17 +379,17 @@ namespace ApplicationAccess.Metrics
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Boolean result;
-            metricLogger.Begin(new HasAccessToApplicationComponentQueryTime());
+            Guid beginId = metricLogger.Begin(new HasAccessToApplicationComponentQueryTime());
             try
             {
                 result = queryProcessor.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
             }
             catch
             {
-                metricLogger.CancelBegin(new HasAccessToApplicationComponentQueryTime());
+                metricLogger.CancelBegin(beginId, new HasAccessToApplicationComponentQueryTime());
                 throw;
             }
-            metricLogger.End(new HasAccessToApplicationComponentQueryTime());
+            metricLogger.End(beginId, new HasAccessToApplicationComponentQueryTime());
             metricLogger.Increment(new HasAccessToApplicationComponentQuery());
 
             return result;
@@ -399,17 +399,17 @@ namespace ApplicationAccess.Metrics
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             Boolean result;
-            metricLogger.Begin(new HasAccessToEntityQueryTime());
+            Guid beginId = metricLogger.Begin(new HasAccessToEntityQueryTime());
             try
             {
                 result = queryProcessor.HasAccessToEntity(user, entityType, entity);
             }
             catch
             {
-                metricLogger.CancelBegin(new HasAccessToEntityQueryTime());
+                metricLogger.CancelBegin(beginId, new HasAccessToEntityQueryTime());
                 throw;
             }
-            metricLogger.End(new HasAccessToEntityQueryTime());
+            metricLogger.End(beginId, new HasAccessToEntityQueryTime());
             metricLogger.Increment(new HasAccessToEntityQuery());
 
             return result;
@@ -419,17 +419,17 @@ namespace ApplicationAccess.Metrics
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
-            metricLogger.Begin(new GetApplicationComponentsAccessibleByUserQueryTime());
+            Guid beginId = metricLogger.Begin(new GetApplicationComponentsAccessibleByUserQueryTime());
             try
             {
                 result = queryProcessor.GetApplicationComponentsAccessibleByUser(user);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetApplicationComponentsAccessibleByUserQueryTime());
+                metricLogger.CancelBegin(beginId, new GetApplicationComponentsAccessibleByUserQueryTime());
                 throw;
             }
-            metricLogger.End(new GetApplicationComponentsAccessibleByUserQueryTime());
+            metricLogger.End(beginId, new GetApplicationComponentsAccessibleByUserQueryTime());
             metricLogger.Increment(new GetApplicationComponentsAccessibleByUserQuery());
 
             return result;
@@ -439,17 +439,17 @@ namespace ApplicationAccess.Metrics
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
-            metricLogger.Begin(new GetApplicationComponentsAccessibleByGroupQueryTime());
+            Guid beginId = metricLogger.Begin(new GetApplicationComponentsAccessibleByGroupQueryTime());
             try
             {
                 result = queryProcessor.GetApplicationComponentsAccessibleByGroup(group);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetApplicationComponentsAccessibleByGroupQueryTime());
+                metricLogger.CancelBegin(beginId, new GetApplicationComponentsAccessibleByGroupQueryTime());
                 throw;
             }
-            metricLogger.End(new GetApplicationComponentsAccessibleByGroupQueryTime());
+            metricLogger.End(beginId, new GetApplicationComponentsAccessibleByGroupQueryTime());
             metricLogger.Increment(new GetApplicationComponentsAccessibleByGroupQuery());
 
             return result;
@@ -459,17 +459,17 @@ namespace ApplicationAccess.Metrics
         public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             HashSet<String> result;
-            metricLogger.Begin(new GetEntitiesAccessibleByUserQueryTime());
+            Guid beginId = metricLogger.Begin(new GetEntitiesAccessibleByUserQueryTime());
             try
             {
                 result = queryProcessor.GetEntitiesAccessibleByUser(user, entityType);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetEntitiesAccessibleByUserQueryTime());
+                metricLogger.CancelBegin(beginId, new GetEntitiesAccessibleByUserQueryTime());
                 throw;
             }
-            metricLogger.End(new GetEntitiesAccessibleByUserQueryTime());
+            metricLogger.End(beginId, new GetEntitiesAccessibleByUserQueryTime());
             metricLogger.Increment(new GetEntitiesAccessibleByUserQuery());
 
             return result;
@@ -479,17 +479,17 @@ namespace ApplicationAccess.Metrics
         public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {
             HashSet<String> result;
-            metricLogger.Begin(new GetEntitiesAccessibleByGroupQueryTime());
+            Guid beginId = metricLogger.Begin(new GetEntitiesAccessibleByGroupQueryTime());
             try
             {
                 result = queryProcessor.GetEntitiesAccessibleByGroup(group, entityType);
             }
             catch
             {
-                metricLogger.CancelBegin(new GetEntitiesAccessibleByGroupQueryTime());
+                metricLogger.CancelBegin(beginId, new GetEntitiesAccessibleByGroupQueryTime());
                 throw;
             }
-            metricLogger.End(new GetEntitiesAccessibleByGroupQueryTime());
+            metricLogger.End(beginId, new GetEntitiesAccessibleByGroupQueryTime());
             metricLogger.Increment(new GetEntitiesAccessibleByGroupQuery());
 
             return result;

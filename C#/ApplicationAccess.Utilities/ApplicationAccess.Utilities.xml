@@ -27,7 +27,7 @@
         <member name="M:ApplicationAccess.Utilities.DefaultGuidProvider.NewGuid">
             <summary>
         Creates a new random Guid.
-      </summary><returns>A new GUID object.</returns>
+      </summary><returns>A new Guid.</returns>
         </member>
         <member name="T:ApplicationAccess.Utilities.IDateTimeProvider">
             <summary>
@@ -52,7 +52,7 @@
         <member name="M:ApplicationAccess.Utilities.IGuidProvider.NewGuid">
             <summary>
         Creates a new random Guid.
-      </summary><returns>A new GUID object.</returns>
+      </summary><returns>A new Guid.</returns>
         </member>
         <member name="T:ApplicationAccess.Utilities.LockManager">
             <summary>
@@ -260,17 +260,32 @@
             Records the starting of the specified interval metric event.
             </summary>
             <param name="intervalMetric">The interval metric that started.</param>
+            <returns>A unique id for the starting of the interval metric, which should be subsequently passed to the <see cref="M:ApplicationMetrics.IMetricLogger.End(System.Guid,ApplicationMetrics.IntervalMetric)"/> or <see cref="M:ApplicationMetrics.IMetricLogger.CancelBegin(System.Guid,ApplicationMetrics.IntervalMetric)"/> methods, when using the class in interleaved mode.</returns>
         </member>
         <member name="M:ApplicationAccess.Utilities.MappingMetricLogger.End(ApplicationMetrics.IntervalMetric)">
             <summary>
-            Records the completion of the specified interval metric event.
+            Records the completion of the specified interval metric event when using the class in non-interleaved mode.
             </summary>
+            <param name="intervalMetric">The interval metric that completed.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.MappingMetricLogger.End(System.Guid,ApplicationMetrics.IntervalMetric)">
+            <summary>
+            Records the completion of the specified interval metric event when using the class in interleaved mode.
+            </summary>
+            <param name="beginId">The id corresponding to the starting of the specified interval metric event (i.e. returned when the <see cref="M:ApplicationMetrics.IMetricLogger.Begin(ApplicationMetrics.IntervalMetric)"/> method was called).</param>
             <param name="intervalMetric">The interval metric that completed.</param>
         </member>
         <member name="M:ApplicationAccess.Utilities.MappingMetricLogger.CancelBegin(ApplicationMetrics.IntervalMetric)">
             <summary>
-            Cancels the starting of the specified interval metric event (e.g. in the case that an exception occurs between the starting and completion of the event).
+            Cancels the starting of the specified interval metric event when using the class in non-interleaved mode (e.g. in the case that an exception occurs between the starting and completion of the event).
             </summary>
+            <param name="intervalMetric">The interval metric that should be cancelled.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.MappingMetricLogger.CancelBegin(System.Guid,ApplicationMetrics.IntervalMetric)">
+            <summary>
+            Cancels the starting of the specified interval metric event when using the class in interleaved mode (e.g. in the case that an exception occurs between the starting and completion of the event).
+            </summary>
+            <param name="beginId">The id corresponding to the starting of the specified interval metric event (i.e. returned when the <see cref="M:ApplicationMetrics.IMetricLogger.Begin(ApplicationMetrics.IntervalMetric)"/> method was called).</param>
             <param name="intervalMetric">The interval metric that should be cancelled.</param>
         </member>
         <member name="T:ApplicationAccess.Utilities.StopwatchDateTimeProvider">

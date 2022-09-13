@@ -189,7 +189,7 @@ namespace ApplicationAccess.Utilities.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testMappingMetricLogger.End(new MappedToIntervalMetric());
+                testMappingMetricLogger.End(Guid.NewGuid(), new MappedToIntervalMetric());
             });
 
             Assert.That(e.Message, Does.StartWith($"No mapping exists for metric of type 'ApplicationAccess.Utilities.UnitTests.MappingMetricLoggerTests+MappedToIntervalMetric' in parameter 'intervalMetric'."));
@@ -199,11 +199,12 @@ namespace ApplicationAccess.Utilities.UnitTests
         [Test]
         public void End()
         {
+            Guid testGuid = Guid.NewGuid();
             testMappingMetricLogger.AddIntervalMetricMapping(typeof(MappedFromIntervalMetric), new MappedToIntervalMetric());
 
-            testMappingMetricLogger.End(new MappedFromIntervalMetric());
+            testMappingMetricLogger.End(testGuid, new MappedFromIntervalMetric());
 
-            mockDownstreamMetricLogger.Received(1).End(Arg.Any<MappedToIntervalMetric>());
+            mockDownstreamMetricLogger.Received(1).End(testGuid, Arg.Any<MappedToIntervalMetric>());
         }
 
         [Test]
@@ -213,7 +214,7 @@ namespace ApplicationAccess.Utilities.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testMappingMetricLogger.CancelBegin(new MappedToIntervalMetric());
+                testMappingMetricLogger.CancelBegin(Guid.NewGuid(), new MappedToIntervalMetric());
             });
 
             Assert.That(e.Message, Does.StartWith($"No mapping exists for metric of type 'ApplicationAccess.Utilities.UnitTests.MappingMetricLoggerTests+MappedToIntervalMetric' in parameter 'intervalMetric'."));
@@ -223,11 +224,12 @@ namespace ApplicationAccess.Utilities.UnitTests
         [Test]
         public void CancelBegin()
         {
+            Guid testGuid = Guid.NewGuid();
             testMappingMetricLogger.AddIntervalMetricMapping(typeof(MappedFromIntervalMetric), new MappedToIntervalMetric());
 
-            testMappingMetricLogger.CancelBegin(new MappedFromIntervalMetric());
+            testMappingMetricLogger.CancelBegin(testGuid, new MappedFromIntervalMetric());
 
-            mockDownstreamMetricLogger.Received(1).CancelBegin(Arg.Any<MappedToIntervalMetric>());
+            mockDownstreamMetricLogger.Received(1).CancelBegin(testGuid, Arg.Any<MappedToIntervalMetric>());
         }
 
         #region Test Metric Classes

@@ -50,8 +50,6 @@ namespace ApplicationAccess.Metrics
         /// <summary>The number of group to entity mappings stored for each user.</summary>
         protected FrequencyTable<TGroup> groupToEntityMappingCountPerGroup;
 
-        /// <summary>Whether interval metrics should be logged for methods belonging to the IAccessManagerQueryProcessor interface.</summary>
-        protected Boolean logQueryProcessorIntervalMetrics;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
         /// <summary>Metric mapper used by the 'userToGroupMap' DirectedGraph member, e.g. to map metrics for 'leaf vertices' to metrics for 'users'.</summary>
@@ -80,15 +78,12 @@ namespace ApplicationAccess.Metrics
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager class.
         /// </summary>
-        /// <param name="logQueryProcessorIntervalMetrics">Whether interval metrics should be logged for methods belonging to the IAccessManagerQueryProcessor interface.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>Methods and properties belonging to the IAccessManagerQueryProcessor interface (e.g. ContainsUser()) are not wrapped in mutual exclusion locks due to the class using underlying concurrent collections which can be accessed by multiple threads concurrently.  However this causes a potential issue for logging of interval metrics which require successive Begin() and End() calls to be logged... i.e. the potential for Begin() and End() calls from different threads becoming interleaved.  Errors arising from potential interleaving can be avoided if the IMetricLogger implementation supports ignoring of interleaving (e.g. as is done by the 'intervalMetricChecking' parameter on the ApplicationMetrics.MetricLoggers.MetricLoggerBuffer class), however this also has the side-effect that interval metrics could become inaccurate... e.g. in the case of 2 threads being interleaved and logging methods being called in order Begin() &gt; Begin() &gt; End() &gt; End(), the interval of the inner Begin()/End() pair would be captured (which is not accurate) and one of the intervals would be discarded.  Hence logging of interval metrics on these methods is configurable.</remarks>
-        public MetricLoggingConcurrentAccessManager(Boolean logQueryProcessorIntervalMetrics, IMetricLogger metricLogger)
+        public MetricLoggingConcurrentAccessManager(IMetricLogger metricLogger)
             : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(false, new MappingMetricLogger(metricLogger)))
         {
             InitializeItemAndMappingCountFields();
 
-            this.logQueryProcessorIntervalMetrics = logQueryProcessorIntervalMetrics;
             this.metricLogger = metricLogger;
             // Casting should never fail, since we just newed the 'userToGroupMap' and 'MetricLogger' properties to these types.
             //   TODO: Find a cleaner way to do this... ideally don't want to expose the 'MetricLoggingConcurrentDirectedGraph.MetricLogger' property at all.
@@ -136,17 +131,17 @@ namespace ApplicationAccess.Metrics
                 {
                     newUserToApplicationComponentAndAccessLevelMappingCount -= userToComponentMap[user].Count;
                 }
-                BeginIntervalMetricIfLoggingEnabled(new UserRemoveTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserRemoveTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new UserRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new UserRemoveTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new UserRemoveTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new UserRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new UserRemoved());
                 userToApplicationComponentAndAccessLevelMappingCount = newUserToApplicationComponentAndAccessLevelMappingCount;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
@@ -183,17 +178,17 @@ namespace ApplicationAccess.Metrics
                 {
                     newGroupToApplicationComponentAndAccessLevelMappingCount -= groupToComponentMap[group].Count;
                 }
-                BeginIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GroupRemoveTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new GroupRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupRemoved());
                 groupToApplicationComponentAndAccessLevelMappingCount = newGroupToApplicationComponentAndAccessLevelMappingCount;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
@@ -260,17 +255,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new UserToApplicationComponentAndAccessLevelMappingAddTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new UserToApplicationComponentAndAccessLevelMappingAddTime());
                 IncrementCountMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAdded());
                 userToApplicationComponentAndAccessLevelMappingCount++;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
@@ -292,17 +287,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoved());
                 userToApplicationComponentAndAccessLevelMappingCount--;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
@@ -315,17 +310,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GroupToApplicationComponentAndAccessLevelMappingAddTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new GroupToApplicationComponentAndAccessLevelMappingAddTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAdded());
                 groupToApplicationComponentAndAccessLevelMappingCount++;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
@@ -347,17 +342,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoved());
                 groupToApplicationComponentAndAccessLevelMappingCount--;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
@@ -370,17 +365,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new EntityTypeAddTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new EntityTypeAddTime());
                 IncrementCountMetricIfLoggingEnabled(new EntityTypeAdded());
                 SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
             };
@@ -414,17 +409,17 @@ namespace ApplicationAccess.Metrics
                 {
                     newEntityCount -= entities[entityType].Count;
                 }
-                BeginIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
                 try
                 {
                     base.RemoveEntityType(entityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new EntityTypeRemoveTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new EntityTypeRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new EntityTypeRemoved());
                 SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
                 entityCount = newEntityCount;
@@ -440,17 +435,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new EntityAddTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityAddTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new EntityAddTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new EntityAddTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new EntityAddTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new EntityAddTime());
                 IncrementCountMetricIfLoggingEnabled(new EntityAdded());
                 entityCount++;
                 SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
@@ -486,17 +481,17 @@ namespace ApplicationAccess.Metrics
                     groupToEntityMappingCountPerGroup.Decrement(postRemovalActionGroup);
                 };
 
-                BeginIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
                 try
                 {
                     base.RemoveEntity(entityType, entity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new EntityRemoveTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new EntityRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new EntityRemoved());
                 entityCount--;
                 SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
@@ -511,17 +506,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingAddTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingAddTime());
                 IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingAdded());
                 userToEntityMappingCount++;
                 userToEntityMappingCountPerUser.Increment(user);
@@ -552,17 +547,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingRemoveTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingRemoved());
                 userToEntityMappingCount--;
                 userToEntityMappingCountPerUser.Decrement(user);
@@ -576,17 +571,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingAddTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingAddTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingAdded());
                 groupToEntityMappingCount++;
                 groupToEntityMappingCountPerGroup.Increment(group);
@@ -618,17 +613,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingRemoveTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
+                EndIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingRemoved());
                 groupToEntityMappingCount--;
                 groupToEntityMappingCountPerGroup.Decrement(group);
@@ -641,17 +636,17 @@ namespace ApplicationAccess.Metrics
         public override Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Boolean result;
-            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
             try
             {
                 result = base.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
             }
             catch
             {
-                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
+                CancelIntervalMetricIfLoggingEnabled(beginId, new HasAccessToApplicationComponentQueryTime());
                 throw;
             }
-            EndIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
+            EndIntervalMetricIfLoggingEnabled(beginId, new HasAccessToApplicationComponentQueryTime());
             IncrementCountMetricIfLoggingEnabled(new HasAccessToApplicationComponentQuery());
 
             return result;
@@ -661,17 +656,17 @@ namespace ApplicationAccess.Metrics
         public override Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             Boolean result;
-            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToEntityQueryTime());
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToEntityQueryTime());
             try
             {
                 result = base.HasAccessToEntity(user, entityType, entity);
             }
             catch
             {
-                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToEntityQueryTime());
+                CancelIntervalMetricIfLoggingEnabled(beginId, new HasAccessToEntityQueryTime());
                 throw;
             }
-            EndIntervalMetricIfQueryProcessorLoggingEnabled(new HasAccessToEntityQueryTime());
+            EndIntervalMetricIfLoggingEnabled(beginId, new HasAccessToEntityQueryTime());
             IncrementCountMetricIfLoggingEnabled(new HasAccessToEntityQuery());
 
             return result;
@@ -681,17 +676,17 @@ namespace ApplicationAccess.Metrics
         public override HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
-            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new GetApplicationComponentsAccessibleByUserQueryTime());
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByUserQueryTime());
             try
             {
                 result = base.GetApplicationComponentsAccessibleByUser(user);
             }
             catch
             {
-                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new GetApplicationComponentsAccessibleByUserQueryTime());
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetApplicationComponentsAccessibleByUserQueryTime());
                 throw;
             }
-            EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetApplicationComponentsAccessibleByUserQueryTime());
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetApplicationComponentsAccessibleByUserQueryTime());
             IncrementCountMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByUserQuery());
 
             return result;
@@ -701,17 +696,17 @@ namespace ApplicationAccess.Metrics
         public override HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
-            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQueryTime());
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQueryTime());
             try
             {
                 result = base.GetApplicationComponentsAccessibleByGroup(group);
             }
             catch
             {
-                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQueryTime());
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetApplicationComponentsAccessibleByGroupQueryTime());
                 throw;
             }
-            EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQueryTime());
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetApplicationComponentsAccessibleByGroupQueryTime());
             IncrementCountMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQuery());
 
             return result;
@@ -721,17 +716,17 @@ namespace ApplicationAccess.Metrics
         public override HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             HashSet<String> result;
-            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new GetEntitiesAccessibleByUserQueryTime());
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQueryTime());
             try
             {
                 result = base.GetEntitiesAccessibleByUser(user, entityType);
             }
             catch
             {
-                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new GetEntitiesAccessibleByUserQueryTime());
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByUserQueryTime());
                 throw;
             }
-            EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetEntitiesAccessibleByUserQueryTime());
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByUserQueryTime());
             IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQuery());
 
             return result;
@@ -741,17 +736,17 @@ namespace ApplicationAccess.Metrics
         public override HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {
             HashSet<String> result;
-            BeginIntervalMetricIfQueryProcessorLoggingEnabled(new GetEntitiesAccessibleByGroupQueryTime());
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQueryTime());
             try
             {
                 result = base.GetEntitiesAccessibleByGroup(group, entityType);
             }
             catch
             {
-                CancelIntervalMetricIfQueryProcessorLoggingEnabled(new GetEntitiesAccessibleByGroupQueryTime());
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupQueryTime());
                 throw;
             }
-            EndIntervalMetricIfQueryProcessorLoggingEnabled(new GetEntitiesAccessibleByGroupQueryTime());
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupQueryTime());
             IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQuery());
 
             return result;
@@ -802,17 +797,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TEventProcessorMethodParam, Action> wrappingAction = (actionParameter, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new TIntervalMetric());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new TIntervalMetric());
+                EndIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
                 IncrementCountMetricIfLoggingEnabled(new TCountMetric());
             };
             eventProcessorMethodAction.Invoke(parameterValue, wrappingAction);
@@ -839,17 +834,17 @@ namespace ApplicationAccess.Metrics
         {
             Action<TEventProcessorMethodParam1, TEventProcessorMethodParam2, Action> wrappingAction = (actionParameter1, actionParameter2, baseAction) =>
             {
-                BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
                 try
                 {
                     baseAction.Invoke();
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(new TIntervalMetric());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(new TIntervalMetric());
+                EndIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
                 IncrementCountMetricIfLoggingEnabled(new TCountMetric());
             };
             eventProcessorMethodAction.Invoke(parameterValue1, parameterValue2, wrappingAction);
@@ -907,60 +902,43 @@ namespace ApplicationAccess.Metrics
         /// Logs the starting of the specified interval metric if logging is enabled.
         /// </summary>
         /// <param name="intervalMetric">The interval metric to start.</param>
-        protected void BeginIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
+        /// <returns>A unique id for the starting of the interval metric, or null if metric logging is disabled.</returns>
+        protected Nullable<Guid> BeginIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
         {
-            if (metricLoggingEnabled == true )
-                metricLogger.Begin(intervalMetric);
+            if (metricLoggingEnabled == true)
+            {
+                return metricLogger.Begin(intervalMetric);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
         /// Logs the completion of the specified interval metric if logging is enabled.
         /// </summary>
+        /// <param name="beginId">The id corresponding to the starting of the specified interval metric, or null if metric logging is disabled.</param>
         /// <param name="intervalMetric">The interval metric to complete.</param>
-        protected void EndIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
+        protected void EndIntervalMetricIfLoggingEnabled(Nullable<Guid> beginId, IntervalMetric intervalMetric)
         {
-            if (metricLoggingEnabled == true)
-                metricLogger.End(intervalMetric);
+            if (metricLoggingEnabled == true && beginId.HasValue == true)
+            {
+                metricLogger.End(beginId.Value, intervalMetric);
+            }
         }
 
         /// <summary>
         /// Logs the cancellation of the starting of the specified interval metric if logging is enabled.
         /// </summary>
+        /// <param name="beginId">The id corresponding to the starting of the specified interval metric, or null if metric logging is disabled.</param>
         /// <param name="intervalMetric">The interval metric to cancel.</param>
-        protected void CancelIntervalMetricIfLoggingEnabled(IntervalMetric intervalMetric)
+        protected void CancelIntervalMetricIfLoggingEnabled(Nullable<Guid> beginId, IntervalMetric intervalMetric)
         {
-            if (metricLoggingEnabled == true)
-                metricLogger.CancelBegin(intervalMetric);
-        }
-
-        /// <summary>
-        /// Logs the starting of the specified interval metric if logging is enabled.
-        /// </summary>
-        /// <param name="intervalMetric">The interval metric to start.</param>
-        protected void BeginIntervalMetricIfQueryProcessorLoggingEnabled(IntervalMetric intervalMetric)
-        {
-            if (metricLoggingEnabled == true && logQueryProcessorIntervalMetrics == true)
-                metricLogger.Begin(intervalMetric);
-        }
-
-        /// <summary>
-        /// Logs the completion of the specified interval metric if logging is enabled.
-        /// </summary>
-        /// <param name="intervalMetric">The interval metric to complete.</param>
-        protected void EndIntervalMetricIfQueryProcessorLoggingEnabled(IntervalMetric intervalMetric)
-        {
-            if (metricLoggingEnabled == true && logQueryProcessorIntervalMetrics == true)
-                metricLogger.End(intervalMetric);
-        }
-
-        /// <summary>
-        /// Logs the cancellation of the starting of the specified interval metric if logging is enabled.
-        /// </summary>
-        /// <param name="intervalMetric">The interval metric to cancel.</param>
-        protected void CancelIntervalMetricIfQueryProcessorLoggingEnabled(IntervalMetric intervalMetric)
-        {
-            if (metricLoggingEnabled == true && logQueryProcessorIntervalMetrics == true)
-                metricLogger.CancelBegin(intervalMetric);
+            if (metricLoggingEnabled == true && beginId.HasValue == true)
+            {
+                metricLogger.CancelBegin(beginId.Value, intervalMetric);
+            }
         }
 
         #endregion

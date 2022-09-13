@@ -141,15 +141,16 @@ namespace ApplicationAccess.Utilities
         /// Records the starting of the specified interval metric event.
         /// </summary>
         /// <param name="intervalMetric">The interval metric that started.</param>
-        public void Begin(IntervalMetric intervalMetric)
+        /// <returns>A unique id for the starting of the interval metric, which should be subsequently passed to the <see cref="IMetricLogger.End(System.Guid,ApplicationMetrics.IntervalMetric)"/> or <see cref="IMetricLogger.CancelBegin(System.Guid,ApplicationMetrics.IntervalMetric)"/> methods, when using the class in interleaved mode.</returns>
+        public Guid Begin(IntervalMetric intervalMetric)
         {
             ThrowExceptionIfMetricMapDoesntContainType(intervalMetric.GetType(), nameof(intervalMetric), intervalMetricMap);
 
-            downstreamMetricLogger.Begin(intervalMetricMap[intervalMetric.GetType()]);
+            return downstreamMetricLogger.Begin(intervalMetricMap[intervalMetric.GetType()]);
         }
 
         /// <summary>
-        /// Records the completion of the specified interval metric event.
+        /// Records the completion of the specified interval metric event when using the class in non-interleaved mode.
         /// </summary>
         /// <param name="intervalMetric">The interval metric that completed.</param>
         public void End(IntervalMetric intervalMetric)
@@ -160,7 +161,19 @@ namespace ApplicationAccess.Utilities
         }
 
         /// <summary>
-        /// Cancels the starting of the specified interval metric event (e.g. in the case that an exception occurs between the starting and completion of the event).
+        /// Records the completion of the specified interval metric event when using the class in interleaved mode.
+        /// </summary>
+        /// <param name="beginId">The id corresponding to the starting of the specified interval metric event (i.e. returned when the <see cref="IMetricLogger.Begin(ApplicationMetrics.IntervalMetric)"/> method was called).</param>
+        /// <param name="intervalMetric">The interval metric that completed.</param>
+        public void End(Guid beginId, IntervalMetric intervalMetric)
+        {
+            ThrowExceptionIfMetricMapDoesntContainType(intervalMetric.GetType(), nameof(intervalMetric), intervalMetricMap);
+
+            downstreamMetricLogger.End(beginId, intervalMetricMap[intervalMetric.GetType()]);
+        }
+
+        /// <summary>
+        /// Cancels the starting of the specified interval metric event when using the class in non-interleaved mode (e.g. in the case that an exception occurs between the starting and completion of the event).
         /// </summary>
         /// <param name="intervalMetric">The interval metric that should be cancelled.</param>
         public void CancelBegin(IntervalMetric intervalMetric)
@@ -168,6 +181,18 @@ namespace ApplicationAccess.Utilities
             ThrowExceptionIfMetricMapDoesntContainType(intervalMetric.GetType(), nameof(intervalMetric), intervalMetricMap);
 
             downstreamMetricLogger.CancelBegin(intervalMetricMap[intervalMetric.GetType()]);
+        }
+
+        /// <summary>
+        /// Cancels the starting of the specified interval metric event when using the class in interleaved mode (e.g. in the case that an exception occurs between the starting and completion of the event).
+        /// </summary>
+        /// <param name="beginId">The id corresponding to the starting of the specified interval metric event (i.e. returned when the <see cref="IMetricLogger.Begin(ApplicationMetrics.IntervalMetric)"/> method was called).</param>
+        /// <param name="intervalMetric">The interval metric that should be cancelled.</param>
+        public void CancelBegin(Guid beginId, IntervalMetric intervalMetric)
+        {
+            ThrowExceptionIfMetricMapDoesntContainType(intervalMetric.GetType(), nameof(intervalMetric), intervalMetricMap);
+
+            downstreamMetricLogger.CancelBegin(beginId, intervalMetricMap[intervalMetric.GetType()]);
         }
 
         #region Private/Protected Methods
