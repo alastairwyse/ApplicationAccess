@@ -24,11 +24,7 @@ namespace ApplicationAccess.Persistence
     /// <summary>
     /// Provides common base functionality for implementations of IAccessManagerEventBufferFlushStrategy which use a worker thread to perform buffer flushes.
     /// </summary>
-    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public abstract class WorkerThreadBufferFlushStrategyBase<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public abstract class WorkerThreadBufferFlushStrategyBase : IAccessManagerEventBufferFlushStrategy, IDisposable
     {
         /// <summary>The number of user events currently buffered</summary>
         private Int32 userEventsBuffered;
@@ -72,10 +68,10 @@ namespace ApplicationAccess.Persistence
             get { return flushingException; }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="E:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.BufferFlushed"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="E:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.BufferFlushed"]/*'/>
         public event EventHandler BufferFlushed;
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 UserEventBufferItemCount
         {
@@ -88,7 +84,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 GroupEventBufferItemCount
         {
@@ -101,7 +97,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToGroupMappingEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 UserToGroupMappingEventBufferItemCount
         {
@@ -114,7 +110,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 GroupToGroupMappingEventBufferItemCount
         {
@@ -127,7 +123,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
@@ -140,7 +136,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
@@ -153,7 +149,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityTypeEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.EntityTypeEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 EntityTypeEventBufferItemCount
         {
@@ -166,7 +162,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.EntityEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 EntityEventBufferItemCount
         {
@@ -179,7 +175,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToEntityMappingEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 UserToEntityMappingEventBufferItemCount
         {
@@ -192,7 +188,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount"]/*'/>
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount"]/*'/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual Int32 GroupToEntityMappingEventBufferItemCount
         {

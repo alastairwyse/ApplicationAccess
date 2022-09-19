@@ -6,7 +6,7 @@
     <members>
         <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4">
             <summary>
-            Buffers events which change the structure of an AccessManager class in memory before writing them to an instance of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/>"/>.
+            Buffers events which change the structure of an <see cref="T:ApplicationAccess.AccessManager`4"/> class in memory before writing them to an instance of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/>"/>.
             </summary>
             <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
             <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
@@ -100,7 +100,7 @@
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.groupToEntityMappingEventBufferLock">
             <summary>Lock object for the group to entity mapping event queue.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
             </summary>
@@ -108,7 +108,7 @@
             <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
             <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
             </summary>
@@ -117,7 +117,7 @@
             <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Int64)">
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Int64)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
             </summary>
@@ -126,7 +126,7 @@
             <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
             <param name="lastEventSequenceNumber">The sequence number used for the last event buffered.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger,System.Int64)">
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger,System.Int64)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
             </summary>
@@ -136,7 +136,7 @@
             <param name="metricLogger">The logger for metrics.</param>
             <param name="lastEventSequenceNumber">The sequence number used for the last event buffered.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
             </summary>
@@ -267,7 +267,7 @@
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.Flush">
-            <summary>Flushes the buffers... i.e. transfers all stored events to another event processor, and clears all items stored in the buffers.</summary>
+            <summary>Flushes the buffer... i.e. transfers all stored events to another event processor, and clears all items stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.ThrowExceptionIfValidationFails(ApplicationAccess.Validation.ValidationResult)">
@@ -439,7 +439,7 @@
             <summary>An action which adds something to an AccessManager.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.EventAction.Remove">
-            <summary>An action which removes something to an AccessManager.</summary>
+            <summary>An action which removes something from an AccessManager.</summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.EventBufferItemBase">
             <summary>
@@ -477,6 +477,24 @@
             <param name="eventAction">The action of the event.</param>
             <param name="occurredTime">The time that the event originally occurred.</param>
             <param name="sequenceNumber">The ordinal sequence number of the event.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventNotCachedException">
+            <summary>
+            The exception that is thrown when an event which changes the structure of an access manager is requested from a cache but not found.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.EventNotCachedException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.EventNotCachedException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.EventNotCachedException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.EventNotCachedException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
         </member>
         <member name="T:ApplicationAccess.Persistence.GroupEventBufferItem`1">
             <summary>
@@ -599,42 +617,42 @@
             <summary>Defines methods to buffer events which change the structure of an AccessManager class.</summary><typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam><typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam><typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam><typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
         <member name="M:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4.Flush">
-            <summary>Flushes the buffers... i.e. transfers all stored events to another event processor, and clears all items stored in the buffers.</summary>
+            <summary>Flushes the buffer... i.e. transfers all stored events to another event processor, and clears all items stored in the buffer.</summary>
         </member>
-        <member name="T:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4">
-            <summary>Defines methods to track/monitor the contents of an IAccessManagerEventBuffer implementation, and an event to flush the buffers.</summary><typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam><typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam><typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam><typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        <member name="T:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy">
+            <summary>Defines a strategy/methodology for flushing events buffered in an IAccessManagerEventBuffer implementation, by tracking/monitoring the buffer contents, and raising an event to flush the buffer.</summary>
         </member>
-        <member name="E:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.BufferFlushed">
-            <summary>Occurs when the buffers are flushed... i.e. when events stored in the buffers are processed.</summary>
+        <member name="E:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.BufferFlushed">
+            <summary>Occurs when the buffer is flushed... i.e. when events stored in the buffer are processed.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserEventBufferItemCount">
             <summary>The number of user events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupEventBufferItemCount">
             <summary>The number of group events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToGroupMappingEventBufferItemCount">
             <summary>The number of user to group mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount">
             <summary>The number of group to group mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
             <summary>The number of user to application component and access level mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
             <summary>The number of group to application component and access level mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityTypeEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.EntityTypeEventBufferItemCount">
             <summary>The number of entity type events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.EntityEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.EntityEventBufferItemCount">
             <summary>The number of entity events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToEntityMappingEventBufferItemCount">
             <summary>The number of user to entity mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount">
             <summary>The number of group to entity mapping events stored in the buffer.</summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4">
@@ -648,8 +666,25 @@
         <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
       </remarks>
         </member>
+        <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventCache`4">
+            <summary>
+            Caches events written to <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/>, and defines methods to return the events in order of occurrence.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventCache`4.GetAllEventsSince(System.Guid)">
+            <summary>
+            Retrieves all events which occurred since the event with the specified id.
+            </summary>
+            <param name="eventId">The id of the event to retrieve all events since.</param>
+            <returns>An ordered list of events which occurred since the specified event, and not including the specified event.  Returned in order from least recent to most recent.</returns>
+            <exception cref="T:ApplicationAccess.Persistence.EventNotCachedException">The event with the specified id was not found in the cache.</exception>
+        </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4">
-            <summary>Defines methods to persist events which change the structure of an AccessManager class to permanent storage.  Designed to operate behind a component which buffers the events, and hence methods include a unique id for each event, and the date/time in the past when the even occurred.</summary><typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam><typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam><typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam><typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <summary>Defines methods to write events which change the structure of an AccessManager class to persistent storage.  Designed to operate behind a component which buffers the events, and hence methods include a unique id for each event, and the date/time in the past when the even occurred.</summary><typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam><typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam><typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam><typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
         <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Guid,System.DateTime)">
             <summary>Adds a user.</summary><param name="user">The user to add.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the user was added.</param>
@@ -739,35 +774,31 @@
             <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="T:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4">
+        <member name="T:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy">
             <summary>
             A buffer flush strategy that flushes/processes the buffered events at a regular interval.
             </summary>
-            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.flushLoopInterval">
+        <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.flushLoopInterval">
             <summary>The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.flushLoopIterationCount">
+        <member name="F:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.flushLoopIterationCount">
             <summary>The number of iterations of the worker thread to flush/process.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32)">
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.#ctor(System.Int32)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
             </summary>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
             </summary>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Threading.ManualResetEvent,System.Int32)">
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Threading.ManualResetEvent,System.Int32)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
             </summary>
@@ -979,65 +1010,61 @@
             </summary>
             <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
         </member>
-        <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4">
+        <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy">
             <summary>
             A buffer flush strategy that flushes/processes the buffers when the total number of buffered events reaches a pre-defined limit.
             </summary>
-            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.bufferSizeLimit">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.bufferSizeLimit">
             <summary>The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.bufferProcessSignal">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.bufferProcessSignal">
             <summary>Signal which is used to trigger the worker thread when the specified number of events are bufferred.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.UserEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.UserEventBufferItemCount">
             <summary>The number of user events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.GroupEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.GroupEventBufferItemCount">
             <summary>The number of group events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.UserToGroupMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount">
             <summary>The number of user to group mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.GroupToGroupMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount">
             <summary>The number of group to group mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
             <summary>The number of user to application component and access level mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
             <summary>The number of group to application component and access level mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.EntityTypeEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount">
             <summary>The number of entity type events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.EntityEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.EntityEventBufferItemCount">
             <summary>The number of entity events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.UserToEntityMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.UserToEntityMappingEventBufferItemCount">
             <summary>The number of user to entity mapping events stored in the buffer.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.GroupToEntityMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount">
             <summary>The number of group to entity mapping events stored in the buffer.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.#ctor(System.Int32)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.#ctor(System.Int32)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Threading.ManualResetEvent)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Threading.ManualResetEvent)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
             </summary>
@@ -1046,65 +1073,61 @@
             <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.Stop">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.Stop">
             <summary>
             Stops the worker thread which performs buffer flushes.
             </summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
             <remarks>This is the same as the base class method, but with the addition of a call to bufferProcessSignal.Set()... without this, the call to JoinWorkerThread() will wait forever (since the worker thread is waiting on member 'bufferProcessSignal').</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.CheckBufferLimitReached">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.CheckBufferLimitReached">
             <summary>
             Checks whether the size limit for the buffers has been reached, and if so signals the worker thread to process/flush the buffers.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy`4.Dispose(System.Boolean)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.Dispose(System.Boolean)">
             <summary>
             Provides a method to free unmanaged resources used by this class.
             </summary>
             <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
         </member>
-        <member name="T:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4">
+        <member name="T:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy">
             <summary>
             A buffer flush strategy that flushes/processes the buffers when either the total number of buffered events reaches a pre-defined limit or a specified looping interval expires, whichever occurs first.
             </summary>
-            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.flushLoopInterval">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.flushLoopInterval">
             <summary>The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.dateTimeProvider">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.dateTimeProvider">
             <summary>The provider to use for the current date and time.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.isFlushing">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.isFlushing">
             <summary>Indicates whether the worker thread is currently flushing/processing the buffer contents.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.lastFlushCompleteTimeLockObject">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.lastFlushCompleteTimeLockObject">
             <summary>Mutual exclusion lock object for member 'lastFlushCompleteTime'.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.lastFlushCompleteTime">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.lastFlushCompleteTime">
             <summary>The time at which the last buffer flushing/processing completed.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.loopingTriggerThread">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.loopingTriggerThread">
             <summary>Thread which loops, triggering buffer flushing/processing at specified intervals.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.loopingTriggerThreadLoopCompleteSignal">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.loopingTriggerThreadLoopCompleteSignal">
             <summary>Signal that is waited on each time an iteration of the looping trigger thread completes (for unit testing).</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.lastWaitInterval">
+        <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.lastWaitInterval">
             <summary>The most recent interval that the looping trigger thread waited for between iterations (for unit testing).</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
@@ -1112,7 +1135,7 @@
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
@@ -1120,7 +1143,7 @@
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
@@ -1129,7 +1152,7 @@
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider,System.Threading.AutoResetEvent,System.Threading.ManualResetEvent)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider,System.Threading.AutoResetEvent,System.Threading.ManualResetEvent)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
@@ -1140,22 +1163,22 @@
             <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.Start">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.Start">
             <summary>
             Starts the worker thread which performs buffer flushes.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.Stop">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.Stop">
             <summary>
             Stops the worker thread which performs buffer flushes.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.CheckBufferLimitReached">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.CheckBufferLimitReached">
             <summary>
             Checks whether the size limit for the buffers has been reached, and if so signals the worker thread to process/flush the buffers.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy`4.Dispose(System.Boolean)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.Dispose(System.Boolean)">
             <summary>
             Provides a method to free unmanaged resources used by this class.
             </summary>
@@ -1278,173 +1301,169 @@
             <param name="occurredTime">The time that the event originally occurred.</param>
             <param name="sequenceNumber">The ordinal sequence number of the event.</param>
         </member>
-        <member name="T:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4">
+        <member name="T:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase">
             <summary>
             Provides common base functionality for implementations of IAccessManagerEventBufferFlushStrategy which use a worker thread to perform buffer flushes.
             </summary>
-            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.userEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.userEventsBuffered">
             <summary>The number of user events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.groupEventsBuffered">
             <summary>The number of group events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.userToGroupMappingEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.userToGroupMappingEventsBuffered">
             <summary>The number of user to group mapping events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupToGroupMappingEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.groupToGroupMappingEventsBuffered">
             <summary>The number of group to group mapping events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.userToApplicationComponentAndAccessLevelMappingEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.userToApplicationComponentAndAccessLevelMappingEventsBuffered">
             <summary>The number of user to application component and access level mapping events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupToApplicationComponentAndAccessLevelMappingEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.groupToApplicationComponentAndAccessLevelMappingEventsBuffered">
             <summary>The number of group to application component and access level mapping events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.entityTypeEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.entityTypeEventsBuffered">
             <summary>The number of entity type events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.entityEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.entityEventsBuffered">
             <summary>The number of entity events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.userToEntityMappingEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.userToEntityMappingEventsBuffered">
             <summary>The number of user to entity mapping events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.groupToEntityMappingEventsBuffered">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.groupToEntityMappingEventsBuffered">
             <summary>The number of group to entity mapping events currently buffered</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.metricLogger">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.metricLogger">
             <summary>The logger for metrics.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.bufferFlushingWorkerThread">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.bufferFlushingWorkerThread">
             <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.flushingException">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.flushingException">
             <summary>Set with any exception which occurrs on the worker thread when flushing the buffers.  Null if no exception has occurred.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.stopMethodCalled">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.stopMethodCalled">
             <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.workerThreadCompleteSignal">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.workerThreadCompleteSignal">
             <summary>Signal that is set after the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.disposed">
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.FlushingException">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.FlushingException">
             <summary>
             Contains an exception which occurred on the worker thread during buffer flushing.  Null if no exception has occurred.
             </summary>
         </member>
-        <member name="E:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.BufferFlushed">
-            <summary>Occurs when the buffers are flushed... i.e. when events stored in the buffers are processed.</summary>
+        <member name="E:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.BufferFlushed">
+            <summary>Occurs when the buffer is flushed... i.e. when events stored in the buffer are processed.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.UserEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.UserEventBufferItemCount">
             <summary>The number of user events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.GroupEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.GroupEventBufferItemCount">
             <summary>The number of group events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.UserToGroupMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.UserToGroupMappingEventBufferItemCount">
             <summary>The number of user to group mapping events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.GroupToGroupMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.GroupToGroupMappingEventBufferItemCount">
             <summary>The number of group to group mapping events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
             <summary>The number of user to application component and access level mapping events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount">
             <summary>The number of group to application component and access level mapping events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.EntityTypeEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.EntityTypeEventBufferItemCount">
             <summary>The number of entity type events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.EntityEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.EntityEventBufferItemCount">
             <summary>The number of entity events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.UserToEntityMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.UserToEntityMappingEventBufferItemCount">
             <summary>The number of user to entity mapping events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.GroupToEntityMappingEventBufferItemCount">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.GroupToEntityMappingEventBufferItemCount">
             <summary>The number of group to entity mapping events stored in the buffer.</summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.#ctor">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.#ctor">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.#ctor(ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.#ctor(ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
             </summary>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Start">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.Start">
             <summary>
             Starts the worker thread which performs buffer flushes.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Stop">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.Stop">
             <summary>
             Stops the worker thread which performs buffer flushes.
             </summary>
             <exception cref="T:ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.BufferFlushingAction">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.BufferFlushingAction">
             <summary>
             The action to execute on the worker thread that implements the buffer flush strategy.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.JoinWorkerThread">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.JoinWorkerThread">
             <summary>
             Calls Join() on the worker thread, waiting until it terminates.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.CheckAndThrowFlushingException">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.CheckAndThrowFlushingException">
             <summary>
             Checks whether property 'FlushingException' has been set, and re-throws the exception in the case that it has.
             </summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.TotalEventsBuffered">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.TotalEventsBuffered">
             <summary>
             The total number of events currently stored across all buffers.
             </summary>
             <remarks>Note that the counter members accessed in this property may be accessed by multiple threads (i.e. the worker thread in member bufferFlushingWorkerThread and the client code in the main thread).  This property should only be read from methods which have locks around the queues in the corresponding <see cref="T:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4"/> class (e.g. overrides of the virtual 'Notify' methods defined in this class, which are called from the AddUser(), AddGroup(), etc... methods in the AccessManagerTemporalEventPersisterBuffer class).</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.OnBufferFlushed(System.EventArgs)">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.OnBufferFlushed(System.EventArgs)">
             <summary>
             Raises the BufferFlushed event.
             </summary>
             <param name="e">An EventArgs that contains the event data.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.ThrowExceptionIfParameterLessThanZero(System.String,System.Int32)">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.ThrowExceptionIfParameterLessThanZero(System.String,System.Int32)">
             <summary>
             Throws an ArgumentOutOfRangeException if the value of the specified integer parameter is less than 0.
             </summary>
             <param name="parameterName">The name of the parameter.</param>
             <param name="parameterValue">The value of the parameter.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Dispose">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.Dispose">
             <summary>
             Releases the unmanaged resources used by the WorkerThreadBufferFlushStrategyBase.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase`4.Dispose(System.Boolean)">
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.Dispose(System.Boolean)">
             <summary>
             Provides a method to free unmanaged resources used by this class.
             </summary>

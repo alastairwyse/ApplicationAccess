@@ -38,7 +38,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         private AutoResetEvent loopingTriggerThreadLoopCompleteSignal;
         private ManualResetEvent workerThreadCompleteSignal;
         private EventHandler flushHandler;
-        private SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods<String, String, ApplicationScreen, AccessLevel> testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy;
+        private SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy;
         private Int32 flushEventsRaised;
 
         [SetUp]
@@ -62,7 +62,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
                 testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
             };
-            testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods<String, String, ApplicationScreen, AccessLevel>(3, 250, mockDateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal);
+            testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods(3, 250, mockDateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal);
             testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.BufferFlushed += flushHandler;
             flushEventsRaised = 0;
         }
@@ -81,7 +81,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods<String, String, ApplicationScreen, AccessLevel>(3, 0, mockDateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal);
+                testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods(3, 0, mockDateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'flushLoopInterval' with value 0 cannot be less than 1."));
@@ -259,11 +259,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         /// <summary>
         /// Version of the SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class where private and protected methods are exposed as public so that they can be unit tested.
         /// </summary>
-        /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-        /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-        /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-        /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-        private class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods<TUser, TGroup, TComponent, TAccess> : SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy<TUser, TGroup, TComponent, TAccess>
+        private class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods : SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
         {
             /// <summary>
             /// The most recent interval that the looping trigger thread waited for between iterations.

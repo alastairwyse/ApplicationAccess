@@ -35,7 +35,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
         private ManualResetEvent workerThreadCompleteSignal;
         private EventHandler flushHandler;
-        private SizeLimitedBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel> testSizeLimitedBufferFlushStrategy;
+        private SizeLimitedBufferFlushStrategy testSizeLimitedBufferFlushStrategy;
         private Int32 flushEventsRaised;
         private Int32 millisecondsToWaitBeforeStop;
 
@@ -45,7 +45,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             millisecondsToWaitBeforeStop = 250;
             flushEventsRaised = 0;
             workerThreadCompleteSignal = new ManualResetEvent(false);
-            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(3, new NullMetricLogger(), workerThreadCompleteSignal);
+            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(3, new NullMetricLogger(), workerThreadCompleteSignal);
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;
@@ -76,7 +76,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         [Test]
         public void Start_BufferFlushingActionNotSet()
         {
-            var testBufferFlushStrategyWithNoWorkerThreadImplementation = new BufferFlushStrategyWithNoWorkerThreadImplementation<String, String, ApplicationScreen, AccessLevel>();
+            var testBufferFlushStrategyWithNoWorkerThreadImplementation = new BufferFlushStrategyWithNoWorkerThreadImplementation();
 
             InvalidOperationException e = Assert.Throws<InvalidOperationException>(delegate
             {
@@ -502,7 +502,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         /// <summary>
         /// Implementation of WorkerThreadBufferFlushStrategyBase with no worker thread implementation.
         /// </summary>
-        private class BufferFlushStrategyWithNoWorkerThreadImplementation<TUser, TGroup, TComponent, TAccess> : WorkerThreadBufferFlushStrategyBase<TUser, TGroup, TComponent, TAccess>
+        private class BufferFlushStrategyWithNoWorkerThreadImplementation : WorkerThreadBufferFlushStrategyBase
         {
             public BufferFlushStrategyWithNoWorkerThreadImplementation()
                 : base()

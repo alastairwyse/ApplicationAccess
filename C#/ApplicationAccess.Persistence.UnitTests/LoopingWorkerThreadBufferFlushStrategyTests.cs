@@ -30,7 +30,7 @@ namespace ApplicationAccess.Persistence.UnitTests
     {
         private ManualResetEvent workerThreadCompleteSignal;
         private EventHandler flushHandler;
-        private LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel> testLoopingWorkerThreadBufferFlushStrategy;
+        private LoopingWorkerThreadBufferFlushStrategy testLoopingWorkerThreadBufferFlushStrategy;
         private Int32 flushEventsRaised;
 
         [SetUp]
@@ -38,7 +38,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             flushEventsRaised = 0;
             workerThreadCompleteSignal = new ManualResetEvent(false);
-            testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(250, new NullMetricLogger(), workerThreadCompleteSignal, 2); 
+            testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(250, new NullMetricLogger(), workerThreadCompleteSignal, 2); 
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;
@@ -68,7 +68,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(0);
+                testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(0);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'flushLoopInterval' with value 0 cannot be less than 1."));
@@ -80,7 +80,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>(1000, new NullMetricLogger(), new ManualResetEvent(false), 0);
+                testLoopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(1000, new NullMetricLogger(), new ManualResetEvent(false), 0);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'flushLoopIterationCount' with value 0 cannot be less than 1."));

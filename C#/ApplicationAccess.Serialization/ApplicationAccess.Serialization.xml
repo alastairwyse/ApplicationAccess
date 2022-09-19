@@ -6,7 +6,7 @@
     <members>
         <member name="T:ApplicationAccess.Serialization.AccessManagerJsonSerializer">
             <summary>
-            Serializes and deserializes an AccessManager to and from a JSON document.
+            Serializes and deserializes an <see cref="T:ApplicationAccess.AccessManager`4"/> to and from a JSON document.
             </summary>
         </member>
         <member name="M:ApplicationAccess.Serialization.AccessManagerJsonSerializer.#ctor">
@@ -88,7 +88,7 @@
         </member>
         <member name="T:ApplicationAccess.Serialization.DirectedGraphJsonSerializer">
             <summary>
-            Serializes and deserializes a DirectedGraph to and from a JSON document.
+            Serializes and deserializes a <see cref="T:ApplicationAccess.DirectedGraph`2"/> to and from a JSON document.
             </summary>
         </member>
         <member name="M:ApplicationAccess.Serialization.DirectedGraphJsonSerializer.#ctor">

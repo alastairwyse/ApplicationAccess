@@ -37,7 +37,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>The validator to use to validate events.</summary>
         protected IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator;
         /// <summary>The strategy to use for flushing the buffers.</summary>
-        protected IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy;
+        protected IAccessManagerEventBufferFlushStrategy bufferFlushStrategy;
         /// <summary>The persister to use to write flushed events to permanent storage.</summary>
         protected IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister;
         /// <summary>The provider to use for random Guids.</summary>
@@ -105,7 +105,7 @@ namespace ApplicationAccess.Persistence
         public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator, 
-            IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy, 
+            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy, 
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister
         )
         {
@@ -153,7 +153,7 @@ namespace ApplicationAccess.Persistence
         public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-            IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
+            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger
         ) : this (eventValidator, bufferFlushStrategy, eventPersister)
@@ -171,7 +171,7 @@ namespace ApplicationAccess.Persistence
         public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-            IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy, 
+            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy, 
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister, 
             Int64 lastEventSequenceNumber
         ) : this(eventValidator, bufferFlushStrategy, eventPersister)
@@ -193,7 +193,7 @@ namespace ApplicationAccess.Persistence
         public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-            IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
+            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger, 
             Int64 lastEventSequenceNumber
@@ -213,7 +213,7 @@ namespace ApplicationAccess.Persistence
         public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-            IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
+            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             Utilities.IGuidProvider guidProvider, 
             IDateTimeProvider dateTimeProvider

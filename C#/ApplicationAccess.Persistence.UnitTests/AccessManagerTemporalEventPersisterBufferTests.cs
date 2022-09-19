@@ -36,7 +36,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         private AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testAccessManagerTemporalEventPersisterBuffer;
         private IMethodCallInterceptor methodCallInterceptor;
         private IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel> mockEventValidator;
-        private IAccessManagerEventBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel> mockBufferFlushStrategy;
+        private IAccessManagerEventBufferFlushStrategy mockBufferFlushStrategy;
         private IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
         private IGuidProvider mockGuidProvider;
         private IDateTimeProvider mockDateTimeProvider;
@@ -44,7 +44,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         [SetUp]
         protected void SetUp()
         {
-            mockBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel>>();
+            mockBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
             methodCallInterceptor = Substitute.For<IMethodCallInterceptor>();
             mockEventValidator = Substitute.For<IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
@@ -2003,7 +2003,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             public AccessManagerTemporalEventPersisterBufferForFlushTesting
             (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-                IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy, 
+                IAccessManagerEventBufferFlushStrategy bufferFlushStrategy, 
                 IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
                 IGuidProvider guidProvider,
                 IDateTimeProvider dateTimeProvider
@@ -2181,7 +2181,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             public AccessManagerTemporalEventPersisterBufferWithProtectedMembers
             (
                 IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-                IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
+                IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
                 IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
                 IGuidProvider guidProvider,
                 IDateTimeProvider dateTimeProvider

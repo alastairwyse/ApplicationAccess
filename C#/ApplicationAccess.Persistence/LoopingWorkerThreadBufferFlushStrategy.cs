@@ -23,11 +23,7 @@ namespace ApplicationAccess.Persistence
     /// <summary>
     /// A buffer flush strategy that flushes/processes the buffered events at a regular interval.
     /// </summary>
-    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class LoopingWorkerThreadBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> : WorkerThreadBufferFlushStrategyBase<TUser, TGroup, TComponent, TAccess>
+    public class LoopingWorkerThreadBufferFlushStrategy : WorkerThreadBufferFlushStrategyBase
     {
         /// <summary>The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</summary>
         protected Int32 flushLoopInterval;
