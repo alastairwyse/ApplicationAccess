@@ -11,7 +11,7 @@
 
     <Company>Alastair Wyse</Company>
 
-    <Description>Unit tests for the ApplicationAccess project.</Description>
+    <Description>Unit tests for classes in the ApplicationAccess namespace.</Description>
 
     <Copyright>Copyright © Alastair Wyse 2021</Copyright>
 

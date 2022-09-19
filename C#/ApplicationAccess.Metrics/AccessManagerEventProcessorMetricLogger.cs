@@ -20,7 +20,7 @@ using ApplicationMetrics;
 namespace ApplicationAccess.Metrics
 {
     /// <summary>
-    /// Logs metric events for an implementation of IAccessManagerEventProcessor.
+    /// Logs metric events for an implementation of <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}"/>.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the IAccessManagerEventProcessor implementation.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the IAccessManagerEventProcessor implementation.</typeparam>

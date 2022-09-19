@@ -20,13 +20,13 @@ using ApplicationAccess.Utilities;
 namespace ApplicationAccess
 {
     /// <summary>
-    /// A thread-safe version of the AccessManager class, which can be accessed and modified by multiple threads concurrently.
+    /// A thread-safe version of the <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> class, which can be accessed and modified by multiple threads concurrently.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    /// <remarks>Thread safety is implemented by using concurrent collections internally to represent the user, group, component, access level, and entity mappings (allows for concurrent read and enumeration operations), and locks to serialize modification operations.  Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum IEquatable&lt;T&gt; and GetHashcode()).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
+    /// <remarks>Thread safety is implemented by using concurrent collections internally to represent the user, group, component, access level, and entity mappings (allows for concurrent read and enumeration operations), and locks to serialize modification operations.  Note that all generic type parameters must implement relevant methods to allow storing in a <see cref="System.Collections.Generic.HashSet{T}"/> (at minimum <see cref="IEquatable{T}"/> and <see cref="Object.GetHashCode">GetHashcode()</see>).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
     public class ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> : AccessManagerBase<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>Manages acquiring locks on underlying sets and dictionaries.</summary>

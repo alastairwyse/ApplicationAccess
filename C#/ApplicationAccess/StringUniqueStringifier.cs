@@ -21,7 +21,7 @@ using System.Text;
 namespace ApplicationAccess
 {
     /// <summary>
-    /// An implementation of IUniqueStringifier&lt;T&gt; for strings.
+    /// An implementation of <see cref="IUniqueStringifier{T}"/> for strings.
     /// </summary>
     /// <remarks>Methods simply return the respective string parameters immediately.</remarks>
     public class StringUniqueStringifier : IUniqueStringifier<String>

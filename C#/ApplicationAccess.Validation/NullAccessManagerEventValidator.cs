@@ -19,7 +19,7 @@ using System;
 namespace ApplicationAccess.Validation
 {
     /// <summary>
-    /// An implementation of IAccessManagerEventValidator which calls the post-validation action without validating.
+    /// An implementation of <see cref="IAccessManagerEventValidator{TUser, TGroup, TComponent, TAccess}"/> which calls the post-validation action without validating.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the AccessManager implementation.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the AccessManager implementation.</typeparam>

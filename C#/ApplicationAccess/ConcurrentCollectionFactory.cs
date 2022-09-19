@@ -27,21 +27,21 @@ namespace ApplicationAccess
     public class ConcurrentCollectionFactory : ICollectionFactory
     {
         /// <summary>
-        /// Returns a System.Collections.Concurrent.ConcurrentDictionary&lt;TKey, TValue&gt; instance.
+        /// Returns a <see cref="ConcurrentDictionary{TKey, TValue}"/> instance.
         /// </summary>
         /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
         /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-        /// <returns>The IDictionary instance.</returns>
+        /// <returns>The <see cref="ConcurrentDictionary{TKey, TValue}"/> instance.</returns>
         public IDictionary<TKey, TValue> GetDictionaryInstance<TKey, TValue>()
         {
             return new ConcurrentDictionary<TKey, TValue>();
         }
 
         /// <summary>
-        /// Returns a ApplicationAccess.ConcurrentHashSet&lt;T&gt; instance.
+        /// Returns a <see cref="ConcurrentHashSet{T}"/> instance.
         /// </summary>
         /// <typeparam name="T">The type of elements in the set.</typeparam>
-        /// <returns>The ISet instance</returns>
+        /// <returns>The <see cref="ConcurrentHashSet{T}"/> instance</returns>
         public ISet<T> GetSetInstance<T>()
         {
             return new ConcurrentHashSet<T>();

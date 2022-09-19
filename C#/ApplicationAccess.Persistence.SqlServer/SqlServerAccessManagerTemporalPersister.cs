@@ -26,14 +26,14 @@ using ApplicationMetrics.MetricLoggers;
 namespace ApplicationAccess.Persistence.SqlServer
 {
     /// <summary>
-    /// An implementation of ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister which persists access manager events to a Microsoft SQL Server database.
+    /// An implementation of <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/> and see <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a Microsoft SQL Server database.
     /// </summary>
-    /// <typeparam name="TUser">The validator to use to validate events.</typeparam>
-    /// <typeparam name="TGroup">The strategy to use for flushing the buffers.</typeparam>
-    /// <typeparam name="TComponent">The persister to use to write flushed events to permanent storage.</typeparam>
-    /// <typeparam name="TAccess">The sequence number used for the last event buffered.</typeparam>
-    /// <remarks>Note that <see cref="IAccessManagerEventProcessor&lt;TUser, TGroup, TComponent, TAccess&gt;">IAccessManagerEventProcessor</see> methods implemented in this class should not be called from concurrent threads.  The class is designed to operate behind a class which manages mutual exclusion such as the <see cref="InMemoryEventBuffer&lt;TUser, TGroup, TComponent, TAccess&gt;">InMemoryEventBuffer</see> or <see cref="ApplicationAccess.Validation.ConcurrentAccessManagerEventValidator&lt;TUser, TGroup, TComponent, TAccess&gt;">ConcurrentAccessManagerEventValidator</see> classes.</remarks>
-    public class SqlServerAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
+    /// <typeparam name="TUser">The type of users in the IAccessManagerTemporalEventPersister and IAccessManagerTemporalPersistentReader implementations.</typeparam>
+    /// <typeparam name="TGroup">The type of groups in the IAccessManagerTemporalEventPersister and IAccessManagerTemporalPersistentReader implementations.</typeparam>
+    /// <typeparam name="TComponent">The type of components in the IAccessManagerEventProcessor and IAccessManagerTemporalPersistentReader implementations.</typeparam>
+    /// <typeparam name="TAccess">The type of levels of access in the IAccessManagerTemporalEventPersister and IAccessManagerTemporalPersistentReader implementations.</typeparam>
+    /// <remarks>Note that <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}">IAccessManagerEventProcessor</see> methods implemented in this class should not be called from concurrent threads.  The class is designed to operate behind a class which manages mutual exclusion such as the <see cref="AccessManagerTemporalEventPersisterBuffer{TUser, TGroup, TComponent, TAccess}">AccessManagerTemporalEventPersisterBuffer</see> or <see cref="ApplicationAccess.Validation.ConcurrentAccessManagerEventValidator{TUser, TGroup, TComponent, TAccess}">ConcurrentAccessManagerEventValidator</see> classes.</remarks>
+    public class SqlServerAccessManagerTemporalPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess>
     {
         #pragma warning disable 1591
 
@@ -104,7 +104,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected EventHandler<SqlRetryingEventArgs> connectionRetryAction;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
         /// </summary>
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
@@ -114,7 +114,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
         /// <param name="logger">The logger for general logging.</param>
-        public SqlServerAccessManagerTemporalEventPersister
+        public SqlServerAccessManagerTemporalPersister
         (
             string connectionString,
             Int32 retryCount,
@@ -171,7 +171,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
         /// </summary>
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
@@ -182,7 +182,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public SqlServerAccessManagerTemporalEventPersister
+        public SqlServerAccessManagerTemporalPersister
         (
             string connectionString,
             Int32 retryCount,
@@ -438,7 +438,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             SetupAndExecuteGroupToEntityMappingStoredProcedure(removeGroupToEntityMappingProcedureName, group, entityType, entity, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
         public Tuple<Guid, DateTime> Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             return Load(DateTime.UtcNow, accessManagerToLoadTo);

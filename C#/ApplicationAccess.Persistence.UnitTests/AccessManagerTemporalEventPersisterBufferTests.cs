@@ -29,11 +29,11 @@ using NSubstitute;
 namespace ApplicationAccess.Persistence.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Persistence.InMemoryEventBuffer class.
+    /// Unit tests for the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
     /// </summary>
-    public class InMemoryEventBufferTests
+    public class AccessManagerTemporalEventPersisterBufferTests
     {
-        private InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testInMemoryEventBuffer;
+        private AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testAccessManagerTemporalEventPersisterBuffer;
         private IMethodCallInterceptor methodCallInterceptor;
         private IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel> mockEventValidator;
         private IAccessManagerEventBufferFlushStrategy<String, String, ApplicationScreen, AccessLevel> mockBufferFlushStrategy;
@@ -51,7 +51,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider = Substitute.For<IGuidProvider>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
             var methodInterceptingValidator = new MethodInterceptingAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(methodCallInterceptor, new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>());
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(methodInterceptingValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(methodInterceptingValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
         }
 
         [Test]
@@ -59,7 +59,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                var testInMemoryEventBuffer2 = new InMemoryEventBuffer<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, -1);
+                var testAccessManagerTemporalEventPersisterBuffer2 = new AccessManagerTemporalEventPersisterBuffer<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, -1);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'lastEventSequenceNumber' with value -1 cannot be less than 0."));
@@ -75,18 +75,18 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.UserEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddUser(user);
+            testAccessManagerTemporalEventPersisterBuffer.AddUser(user);
 
             mockBufferFlushStrategy.Received(1).UserEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.UserEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.UserEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(user, testInMemoryEventBuffer.UserEventBuffer.First.Value.User);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.UserEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.UserEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(user, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.User);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -95,14 +95,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddUser(user, Arg.Any<Action<String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddUser(user);
+                testAccessManagerTemporalEventPersisterBuffer.AddUser(user);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -117,18 +117,18 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.UserEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveUser(user);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUser(user);
 
             mockBufferFlushStrategy.Received(1).UserEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.UserEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.UserEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(user, testInMemoryEventBuffer.UserEventBuffer.First.Value.User);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.UserEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.UserEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(user, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.User);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -137,14 +137,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveUser(user, Arg.Any<Action<String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveUser(user);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveUser(user);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -159,18 +159,18 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.GroupEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddGroup(group);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroup(group);
 
             mockBufferFlushStrategy.Received(1).GroupEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.GroupEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.GroupEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(group, testInMemoryEventBuffer.GroupEventBuffer.First.Value.Group);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.GroupEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.GroupEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(group, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.Group);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -179,14 +179,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddGroup(group, Arg.Any<Action<String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddGroup(group);
+                testAccessManagerTemporalEventPersisterBuffer.AddGroup(group);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -201,18 +201,18 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.GroupEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveGroup(group);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroup(group);
 
             mockBufferFlushStrategy.Received(1).GroupEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.GroupEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.GroupEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(group, testInMemoryEventBuffer.GroupEventBuffer.First.Value.Group);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.GroupEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.GroupEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(group, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.Group);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -221,14 +221,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveGroup(group, Arg.Any<Action<String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveGroup(group);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveGroup(group);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -244,19 +244,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.UserToGroupMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddUserToGroupMapping(user, group);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToGroupMapping(user, group);
 
             mockBufferFlushStrategy.Received(1).UserToGroupMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(user, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.User);
-            Assert.AreEqual(group, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.Group);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(user, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.User);
+            Assert.AreEqual(group, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.Group);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -266,14 +266,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddUserToGroupMapping(user, group, Arg.Any<Action<String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddUserToGroupMapping(user, group);
+                testAccessManagerTemporalEventPersisterBuffer.AddUserToGroupMapping(user, group);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -289,19 +289,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.UserToGroupMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveUserToGroupMapping(user, group);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToGroupMapping(user, group);
 
             mockBufferFlushStrategy.Received(1).UserToGroupMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(user, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.User);
-            Assert.AreEqual(group, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.Group);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.UserToGroupMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(user, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.User);
+            Assert.AreEqual(group, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.Group);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -311,14 +311,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveUserToGroupMapping(user, group, Arg.Any<Action<String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveUserToGroupMapping(user, group);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveUserToGroupMapping(user, group);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -334,19 +334,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.GroupToGroupMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
 
             mockBufferFlushStrategy.Received(1).GroupToGroupMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(fromGroup, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.FromGroup);
-            Assert.AreEqual(toGroup, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.ToGroup);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(fromGroup, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.FromGroup);
+            Assert.AreEqual(toGroup, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.ToGroup);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -356,14 +356,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddGroupToGroupMapping(fromGroup, toGroup, Arg.Any<Action<String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
+                testAccessManagerTemporalEventPersisterBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -379,19 +379,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.GroupToGroupMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
 
             mockBufferFlushStrategy.Received(1).GroupToGroupMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(fromGroup, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.FromGroup);
-            Assert.AreEqual(toGroup, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.ToGroup);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.GroupToGroupMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(fromGroup, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.FromGroup);
+            Assert.AreEqual(toGroup, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.ToGroup);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -401,14 +401,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveGroupToGroupMapping(fromGroup, toGroup, Arg.Any<Action<String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -423,20 +423,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
 
             mockBufferFlushStrategy.Received(1).UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(user, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User);
-            Assert.AreEqual(ApplicationScreen.Summary, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent);
-            Assert.AreEqual(AccessLevel.View, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(user, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User);
+            Assert.AreEqual(ApplicationScreen.Summary, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent);
+            Assert.AreEqual(AccessLevel.View, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -445,14 +445,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View, Arg.Any<Action<String, ApplicationScreen, AccessLevel>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
+                testAccessManagerTemporalEventPersisterBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -467,20 +467,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
 
             mockBufferFlushStrategy.Received(1).UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(user, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User);
-            Assert.AreEqual(ApplicationScreen.Summary, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent);
-            Assert.AreEqual(AccessLevel.View, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(user, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User);
+            Assert.AreEqual(ApplicationScreen.Summary, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent);
+            Assert.AreEqual(AccessLevel.View, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -489,14 +489,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String user = "user1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View, Arg.Any<Action<String, ApplicationScreen, AccessLevel>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -511,20 +511,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
 
             mockBufferFlushStrategy.Received(1).GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(group, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group);
-            Assert.AreEqual(ApplicationScreen.Order, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent);
-            Assert.AreEqual(AccessLevel.Create, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(group, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group);
+            Assert.AreEqual(ApplicationScreen.Order, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent);
+            Assert.AreEqual(AccessLevel.Create, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -533,14 +533,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create, Arg.Any<Action<String, ApplicationScreen, AccessLevel>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
+                testAccessManagerTemporalEventPersisterBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -555,20 +555,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
 
             mockBufferFlushStrategy.Received(1).GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(group, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group);
-            Assert.AreEqual(ApplicationScreen.Order, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent);
-            Assert.AreEqual(AccessLevel.Create, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(group, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group);
+            Assert.AreEqual(ApplicationScreen.Order, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent);
+            Assert.AreEqual(AccessLevel.Create, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -577,14 +577,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String group = "group1";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create, Arg.Any<Action<String, ApplicationScreen, AccessLevel>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -599,18 +599,18 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.EntityTypeEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddEntityType(entityType);
+            testAccessManagerTemporalEventPersisterBuffer.AddEntityType(entityType);
 
             mockBufferFlushStrategy.Received(1).EntityTypeEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.EntityTypeEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(entityType, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.EntityType);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(entityType, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.EntityType);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -619,14 +619,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String entityType = "ClientAccount";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddEntityType(entityType, Arg.Any<Action<String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddEntityType(entityType);
+                testAccessManagerTemporalEventPersisterBuffer.AddEntityType(entityType);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -641,18 +641,18 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.EntityTypeEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveEntityType(entityType);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveEntityType(entityType);
 
             mockBufferFlushStrategy.Received(1).EntityTypeEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.EntityTypeEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(entityType, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.EntityType);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.EntityTypeEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(entityType, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.EntityType);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -661,14 +661,14 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             const String entityType = "ClientAccount";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveEntityType(entityType, Arg.Any<Action<String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveEntityType(entityType);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveEntityType(entityType);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -684,19 +684,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.EntityEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EntityEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddEntity(entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.AddEntity(entityType, entity);
 
             mockBufferFlushStrategy.Received(1).EntityEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.EntityEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.EntityEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(entityType, testInMemoryEventBuffer.EntityEventBuffer.First.Value.EntityType);
-            Assert.AreEqual(entity, testInMemoryEventBuffer.EntityEventBuffer.First.Value.Entity);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.EntityEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.EntityEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(entityType, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.EntityType);
+            Assert.AreEqual(entity, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.Entity);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -706,14 +706,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddEntity(entityType, entity, Arg.Any<Action<String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddEntity(entityType, entity);
+                testAccessManagerTemporalEventPersisterBuffer.AddEntity(entityType, entity);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -729,19 +729,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.EntityEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EntityEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveEntity(entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveEntity(entityType, entity);
 
             mockBufferFlushStrategy.Received(1).EntityEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.EntityEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.EntityEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(entityType, testInMemoryEventBuffer.EntityEventBuffer.First.Value.EntityType);
-            Assert.AreEqual(entity, testInMemoryEventBuffer.EntityEventBuffer.First.Value.Entity);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.EntityEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.EntityEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(entityType, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.EntityType);
+            Assert.AreEqual(entity, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.Entity);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -751,14 +751,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveEntity(entityType, entity, Arg.Any<Action<String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveEntity(entityType, entity);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveEntity(entityType, entity);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -775,20 +775,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.UserToEntityMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddUserToEntityMapping(user, entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToEntityMapping(user, entityType, entity);
 
             mockBufferFlushStrategy.Received(1).UserToEntityMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(user, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.User);
-            Assert.AreEqual(entityType, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.EntityType);
-            Assert.AreEqual(entity, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.Entity);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(user, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.User);
+            Assert.AreEqual(entityType, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.EntityType);
+            Assert.AreEqual(entity, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.Entity);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -799,14 +799,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddUserToEntityMapping(user, entityType, entity, Arg.Any<Action<String, String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddUserToEntityMapping(user, entityType, entity);
+                testAccessManagerTemporalEventPersisterBuffer.AddUserToEntityMapping(user, entityType, entity);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -823,20 +823,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.UserToEntityMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveUserToEntityMapping(user, entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToEntityMapping(user, entityType, entity);
 
             mockBufferFlushStrategy.Received(1).UserToEntityMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(user, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.User);
-            Assert.AreEqual(entityType, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.EntityType);
-            Assert.AreEqual(entity, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.Entity);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.UserToEntityMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(user, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.User);
+            Assert.AreEqual(entityType, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.EntityType);
+            Assert.AreEqual(entity, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.Entity);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -847,14 +847,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveUserToEntityMapping(user, entityType, entity, Arg.Any<Action<String, String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveUserToEntityMapping(user, entityType, entity);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveUserToEntityMapping(user, entityType, entity);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -871,20 +871,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.GroupToEntityMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.AddGroupToEntityMapping(group, entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToEntityMapping(group, entityType, entity);
 
             mockBufferFlushStrategy.Received(1).GroupToEntityMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Add, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(group, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.Group);
-            Assert.AreEqual(entityType, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.EntityType);
-            Assert.AreEqual(entity, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.Entity);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Add, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(group, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.Group);
+            Assert.AreEqual(entityType, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.EntityType);
+            Assert.AreEqual(entity, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.Entity);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -895,14 +895,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateAddGroupToEntityMapping(group, entityType, entity, Arg.Any<Action<String, String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.AddGroupToEntityMapping(group, entityType, entity);
+                testAccessManagerTemporalEventPersisterBuffer.AddGroupToEntityMapping(group, entityType, entity);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -919,20 +919,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
-                Assert.IsTrue(Monitor.IsEntered(testInMemoryEventBuffer.GroupToEntityMappingEventBufferLock));
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBufferLock));
                 assertionsWereChecked = true;
             });
 
-            testInMemoryEventBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
 
             mockBufferFlushStrategy.Received(1).GroupToEntityMappingEventBufferItemCount = 1;
-            Assert.AreEqual(1, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.Count);
-            Assert.AreEqual(EventAction.Remove, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.EventAction);
-            Assert.AreEqual(group, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.Group);
-            Assert.AreEqual(entityType, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.EntityType);
-            Assert.AreEqual(entity, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.Entity);
-            Assert.AreEqual(eventOccurredTime, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.OccurredTime);
-            Assert.AreEqual(0, testInMemoryEventBuffer.GroupToEntityMappingEventBuffer.First.Value.SequenceNumber);
+            Assert.AreEqual(1, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.Count);
+            Assert.AreEqual(EventAction.Remove, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.EventAction);
+            Assert.AreEqual(group, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.Group);
+            Assert.AreEqual(entityType, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.EntityType);
+            Assert.AreEqual(entity, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.Entity);
+            Assert.AreEqual(eventOccurredTime, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.OccurredTime);
+            Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.SequenceNumber);
             Assert.IsTrue(assertionsWereChecked);
         }
 
@@ -943,14 +943,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String mockExceptionMessage = "Mock Exception.";
-            testInMemoryEventBuffer = new InMemoryEventBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             var mockException = new Exception(mockExceptionMessage);
             var validationResult = new ValidationResult(false, mockException.Message, mockException);
             mockEventValidator.ValidateRemoveGroupToEntityMapping(group, entityType, entity, Arg.Any<Action<String, String, String>>()).Returns(validationResult);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
+                testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
             });
 
             Assert.That(e.Message, Does.StartWith(mockExceptionMessage));
@@ -968,11 +968,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddUser(user, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddUser(user);
+            testAccessManagerTemporalEventPersisterBuffer.AddUser(user);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add user' event."));
@@ -991,11 +991,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveUser(user, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveUser(user);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUser(user);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove user' event."));
@@ -1014,11 +1014,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddGroup(group, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddGroup(group);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroup(group);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add group' event."));
@@ -1037,11 +1037,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveGroup(group, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveGroup(group);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroup(group);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove group' event."));
@@ -1061,11 +1061,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddUserToGroupMapping(user, group, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddUserToGroupMapping(user, group);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToGroupMapping(user, group);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add user to group mapping' event."));
@@ -1085,11 +1085,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToGroupMapping(user, group, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveUserToGroupMapping(user, group);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToGroupMapping(user, group);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove user to group mapping' event."));
@@ -1109,11 +1109,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddGroupToGroupMapping(fromGroup, toGroup, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add group to group mapping' event."));
@@ -1133,11 +1133,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToGroupMapping(fromGroup, toGroup, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove group to group mapping' event."));
@@ -1156,11 +1156,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Order, AccessLevel.Delete, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Order, AccessLevel.Delete);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Order, AccessLevel.Delete);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add user to application component and access level mapping' event."));
@@ -1179,11 +1179,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Settings, AccessLevel.Modify, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Settings, AccessLevel.Modify);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove user to application component and access level mapping' event."));
@@ -1202,11 +1202,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Delete, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Delete);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Delete);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add group to application component and access level mapping' event."));
@@ -1225,11 +1225,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Settings, AccessLevel.Modify, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Settings, AccessLevel.Modify);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove group to application component and access level mapping' event."));
@@ -1248,11 +1248,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddEntityType(entityType, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddEntityType(entityType);
+            testAccessManagerTemporalEventPersisterBuffer.AddEntityType(entityType);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add entity type' event."));
@@ -1271,11 +1271,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveEntityType(entityType, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveEntityType(entityType);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveEntityType(entityType);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove entity type' event."));
@@ -1295,11 +1295,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddEntity(entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddEntity(entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.AddEntity(entityType, entity);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add entity' event."));
@@ -1319,11 +1319,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveEntity(entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveEntity(entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveEntity(entityType, entity);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove entity' event."));
@@ -1344,11 +1344,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddUserToEntityMapping(user, entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddUserToEntityMapping(user, entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToEntityMapping(user, entityType, entity);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add user to entity mapping' event."));
@@ -1369,11 +1369,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveUserToEntityMapping(user, entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveUserToEntityMapping(user, entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToEntityMapping(user, entityType, entity);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove user to entity mapping' event."));
@@ -1394,11 +1394,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.AddGroupToEntityMapping(group, entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.AddGroupToEntityMapping(group, entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToEntityMapping(group, entityType, entity);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'add group to entity mapping' event."));
@@ -1419,11 +1419,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
             mockEventPersister.When((eventPersister) => eventPersister.RemoveGroupToEntityMapping(group, entityType, entity, eventId, eventOccurredTime)).Do((callInfo) => throw mockException);
 
-            testInMemoryEventBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testInMemoryEventBuffer.Flush();
+                testAccessManagerTemporalEventPersisterBuffer.Flush();
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to persist 'remove group to entity mapping' event."));
@@ -1525,36 +1525,36 @@ namespace ApplicationAccess.Persistence.UnitTests
                 CreateDataTimeFromString("2021-06-12 13:43:27")
             );
 
-            testInMemoryEventBuffer.AddEntityType("Clients");
-            testInMemoryEventBuffer.AddEntity("Clients", "CompanyA");
-            testInMemoryEventBuffer.AddGroup("group1");
-            testInMemoryEventBuffer.AddUser("user1");
-            testInMemoryEventBuffer.AddUser("user2");
-            testInMemoryEventBuffer.AddGroup("group2");
-            testInMemoryEventBuffer.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View);
-            testInMemoryEventBuffer.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
-            testInMemoryEventBuffer.AddGroupToGroupMapping("group1", "group2");
-            testInMemoryEventBuffer.AddUserToGroupMapping("user1", "group2");
-            testInMemoryEventBuffer.AddGroupToEntityMapping("group2", "Clients", "CompanyA");
-            testInMemoryEventBuffer.AddUserToGroupMapping("user2", "group1");
-            testInMemoryEventBuffer.AddUserToEntityMapping("user1", "Clients", "CompanyA");
-            testInMemoryEventBuffer.AddEntity("Clients", "CompanyB");
-            testInMemoryEventBuffer.RemoveEntity("Clients", "CompanyB");
-            testInMemoryEventBuffer.RemoveUserToEntityMapping("user1", "Clients", "CompanyA");
-            testInMemoryEventBuffer.RemoveUserToGroupMapping("user2", "group1");
-            testInMemoryEventBuffer.RemoveGroupToEntityMapping("group2", "Clients", "CompanyA");
-            testInMemoryEventBuffer.RemoveUserToGroupMapping("user1", "group2");
-            testInMemoryEventBuffer.RemoveGroupToGroupMapping("group1", "group2");
-            testInMemoryEventBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
-            testInMemoryEventBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View);
-            testInMemoryEventBuffer.RemoveGroup("group2");
-            testInMemoryEventBuffer.RemoveUser("user2");
-            testInMemoryEventBuffer.RemoveUser("user1");
-            testInMemoryEventBuffer.RemoveGroup("group1");
-            testInMemoryEventBuffer.RemoveEntity("Clients", "CompanyA");
-            testInMemoryEventBuffer.RemoveEntityType("Clients");
+            testAccessManagerTemporalEventPersisterBuffer.AddEntityType("Clients");
+            testAccessManagerTemporalEventPersisterBuffer.AddEntity("Clients", "CompanyA");
+            testAccessManagerTemporalEventPersisterBuffer.AddGroup("group1");
+            testAccessManagerTemporalEventPersisterBuffer.AddUser("user1");
+            testAccessManagerTemporalEventPersisterBuffer.AddUser("user2");
+            testAccessManagerTemporalEventPersisterBuffer.AddGroup("group2");
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToGroupMapping("group1", "group2");
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToGroupMapping("user1", "group2");
+            testAccessManagerTemporalEventPersisterBuffer.AddGroupToEntityMapping("group2", "Clients", "CompanyA");
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToGroupMapping("user2", "group1");
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToEntityMapping("user1", "Clients", "CompanyA");
+            testAccessManagerTemporalEventPersisterBuffer.AddEntity("Clients", "CompanyB");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveEntity("Clients", "CompanyB");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToEntityMapping("user1", "Clients", "CompanyA");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToGroupMapping("user2", "group1");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToEntityMapping("group2", "Clients", "CompanyA");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToGroupMapping("user1", "group2");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToGroupMapping("group1", "group2");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Order, AccessLevel.Modify);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.View);
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroup("group2");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUser("user2");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveUser("user1");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveGroup("group1");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveEntity("Clients", "CompanyA");
+            testAccessManagerTemporalEventPersisterBuffer.RemoveEntityType("Clients");
 
-            testInMemoryEventBuffer.Flush();
+            testAccessManagerTemporalEventPersisterBuffer.Flush();
 
             Received.InOrder(() => {
                 // These get called as the initial events are buffered
@@ -1637,9 +1637,9 @@ namespace ApplicationAccess.Persistence.UnitTests
         [Test]
         public void Flush_EventsCreatedAfterCallToFlushAreNotProcessed()
         {
-            // This tests that calls to the main public methods of InMemoryEventBuffer like AddUser(), AddGroup() etc... will NOT be included in Flush() processing, if they're called after the start of processing of a current Flush() call
+            // This tests that calls to the main public methods of AccessManagerTemporalEventPersisterBuffer like AddUser(), AddGroup() etc... will NOT be included in Flush() processing, if they're called after the start of processing of a current Flush() call
             // This situation would arise in multi-thread environments where a separate thread is processing the flush strategy
-            // InMemoryEventBuffer uses field 'lastEventSequenceNumber' to record which events should be processed as part of each Flush()
+            // AccessManagerTemporalEventPersisterBuffer uses field 'lastEventSequenceNumber' to record which events should be processed as part of each Flush()
 
             const String user1 = "user1";
             const String user2 = "user2";
@@ -1701,26 +1701,26 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             mockEventPersister.When((eventPersister) => eventPersister.AddUser(user3, guid2, CreateDataTimeFromString("2021-06-13 09:58:02"))).Do((callInfo) =>
             {
-                testInMemoryEventBuffer.AddGroup(group3);
-                testInMemoryEventBuffer.AddGroup(group4);
-                testInMemoryEventBuffer.AddGroupToGroupMapping(group1, group2);
-                testInMemoryEventBuffer.AddEntityType("Clients");
-                testInMemoryEventBuffer.AddEntity("Clients", "CompanyA");
-                testInMemoryEventBuffer.AddGroupToEntityMapping(group3, "Clients", "CompanyA");
-                testInMemoryEventBuffer.AddGroupToEntityMapping(group4, "Clients", "CompanyA");
+                testAccessManagerTemporalEventPersisterBuffer.AddGroup(group3);
+                testAccessManagerTemporalEventPersisterBuffer.AddGroup(group4);
+                testAccessManagerTemporalEventPersisterBuffer.AddGroupToGroupMapping(group1, group2);
+                testAccessManagerTemporalEventPersisterBuffer.AddEntityType("Clients");
+                testAccessManagerTemporalEventPersisterBuffer.AddEntity("Clients", "CompanyA");
+                testAccessManagerTemporalEventPersisterBuffer.AddGroupToEntityMapping(group3, "Clients", "CompanyA");
+                testAccessManagerTemporalEventPersisterBuffer.AddGroupToEntityMapping(group4, "Clients", "CompanyA");
             });
 
-            testInMemoryEventBuffer.AddUser(user1);
-            testInMemoryEventBuffer.AddUser(user2);
-            testInMemoryEventBuffer.AddUser(user3);
-            testInMemoryEventBuffer.AddGroup(group1);
-            testInMemoryEventBuffer.AddGroup(group2);
-            testInMemoryEventBuffer.AddUserToGroupMapping(user1, group1);
-            testInMemoryEventBuffer.AddUserToGroupMapping(user2, group1);
-            testInMemoryEventBuffer.Flush();
+            testAccessManagerTemporalEventPersisterBuffer.AddUser(user1);
+            testAccessManagerTemporalEventPersisterBuffer.AddUser(user2);
+            testAccessManagerTemporalEventPersisterBuffer.AddUser(user3);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroup(group1);
+            testAccessManagerTemporalEventPersisterBuffer.AddGroup(group2);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToGroupMapping(user1, group1);
+            testAccessManagerTemporalEventPersisterBuffer.AddUserToGroupMapping(user2, group1);
+            testAccessManagerTemporalEventPersisterBuffer.Flush();
 
             Received.InOrder(() => {
-                // These are the calls to the flush strategy that occur within the main public methods of the InMemoryEventBuffer class
+                // These are the calls to the flush strategy that occur within the main public methods of the AccessManagerTemporalEventPersisterBuffer class
                 mockBufferFlushStrategy.UserEventBufferItemCount = 1;
                 mockBufferFlushStrategy.UserEventBufferItemCount = 2;
                 mockBufferFlushStrategy.UserEventBufferItemCount = 3;
@@ -1774,7 +1774,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockBufferFlushStrategy.ClearReceivedCalls();
             mockEventPersister.ClearReceivedCalls();
 
-            testInMemoryEventBuffer.Flush();
+            testAccessManagerTemporalEventPersisterBuffer.Flush();
 
             Received.InOrder(() =>
             {                
@@ -1856,27 +1856,27 @@ namespace ApplicationAccess.Persistence.UnitTests
             );
 
             var nullAccessManagerEventValidator = new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>();
-            var testInMemoryEventBuffer2 = new InMemoryEventBufferForFlushTesting<String, String, ApplicationScreen, AccessLevel>(nullAccessManagerEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            var testAccessManagerTemporalEventPersisterBuffer2 = new AccessManagerTemporalEventPersisterBufferForFlushTesting<String, String, ApplicationScreen, AccessLevel>(nullAccessManagerEventValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
             mockBufferFlushStrategy.ClearReceivedCalls();
             var beforeMoveEventsToTemporaryQueuesAction = new Action(() =>
             {
-                testInMemoryEventBuffer2.AddEntityType("Accounts");
-                testInMemoryEventBuffer2.RemoveEntityType("Accounts");
-                testInMemoryEventBuffer2.AddEntity("Clients", "CompanyA");
-                testInMemoryEventBuffer2.AddEntity("Clients", "CompanyB");
-                testInMemoryEventBuffer2.AddEntity("Clients", "CompanyC");
-                testInMemoryEventBuffer2.RemoveEntity("Clients", "CompanyA");
+                testAccessManagerTemporalEventPersisterBuffer2.AddEntityType("Accounts");
+                testAccessManagerTemporalEventPersisterBuffer2.RemoveEntityType("Accounts");
+                testAccessManagerTemporalEventPersisterBuffer2.AddEntity("Clients", "CompanyA");
+                testAccessManagerTemporalEventPersisterBuffer2.AddEntity("Clients", "CompanyB");
+                testAccessManagerTemporalEventPersisterBuffer2.AddEntity("Clients", "CompanyC");
+                testAccessManagerTemporalEventPersisterBuffer2.RemoveEntity("Clients", "CompanyA");
             });
-            testInMemoryEventBuffer2.BeforeMoveEventsToTemporaryQueueAction = beforeMoveEventsToTemporaryQueuesAction;
-            testInMemoryEventBuffer2.AddUser("user1");
-            testInMemoryEventBuffer2.AddGroup("group1");
-            testInMemoryEventBuffer2.AddGroup("group2");
-            testInMemoryEventBuffer2.AddGroup("group3");
-            testInMemoryEventBuffer2.AddGroup("group4");
-            testInMemoryEventBuffer2.AddEntityType("Clients");
-            testInMemoryEventBuffer2.AddEntityType("Products");
+            testAccessManagerTemporalEventPersisterBuffer2.BeforeMoveEventsToTemporaryQueueAction = beforeMoveEventsToTemporaryQueuesAction;
+            testAccessManagerTemporalEventPersisterBuffer2.AddUser("user1");
+            testAccessManagerTemporalEventPersisterBuffer2.AddGroup("group1");
+            testAccessManagerTemporalEventPersisterBuffer2.AddGroup("group2");
+            testAccessManagerTemporalEventPersisterBuffer2.AddGroup("group3");
+            testAccessManagerTemporalEventPersisterBuffer2.AddGroup("group4");
+            testAccessManagerTemporalEventPersisterBuffer2.AddEntityType("Clients");
+            testAccessManagerTemporalEventPersisterBuffer2.AddEntityType("Products");
 
-            testInMemoryEventBuffer2.Flush();
+            testAccessManagerTemporalEventPersisterBuffer2.Flush();
 
             Received.InOrder(() => {
                 // These get called as the initial events are buffered
@@ -1922,7 +1922,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockBufferFlushStrategy.ClearReceivedCalls();
             mockEventPersister.ClearReceivedCalls();
 
-            testInMemoryEventBuffer2.Flush();
+            testAccessManagerTemporalEventPersisterBuffer2.Flush();
 
             Received.InOrder(() =>
             {
@@ -1968,13 +1968,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         #region Nested Classes
 
         /// <summary>
-        /// Version of the InMemoryEventBuffer class allowing additional 'hooks' into protected methods, to facilitate unit testing of the Flush() method.
+        /// Version of the AccessManagerTemporalEventPersisterBuffer class allowing additional 'hooks' into protected methods, to facilitate unit testing of the Flush() method.
         /// </summary>
         /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
         /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
         /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
         /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-        private class InMemoryEventBufferForFlushTesting<TUser, TGroup, TComponent, TAccess> : InMemoryEventBuffer<TUser, TGroup, TComponent, TAccess>
+        private class AccessManagerTemporalEventPersisterBufferForFlushTesting<TUser, TGroup, TComponent, TAccess> : AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>An action to perform during the MoveEventsToTemporaryQueues() method, after capturing variable 'maxSequenceNumber', but before moving events to temporary queues.</summary>
             protected Action beforeMoveEventsToTemporaryQueueAction;
@@ -1993,14 +1993,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             }
 
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.InMemoryEventBuffer+InMemoryEventBufferForFlushTesting class.
+            /// Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.AccessManagerTemporalEventPersisterBuffer+AccessManagerTemporalEventPersisterBufferForFlushTesting class.
             /// </summary>
             /// <param name="eventValidator">The validator to use to validate events.</param>
             /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
             /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
             /// <param name="guidProvider">The provider to use for random Guids.</param>
             /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
-            public InMemoryEventBufferForFlushTesting
+            public AccessManagerTemporalEventPersisterBufferForFlushTesting
             (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
                 IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy, 
@@ -2042,13 +2042,13 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         /// <summary>
-        /// Version of the InMemoryEventBuffer class where private and protected methods are exposed as public so that they can be unit tested.
+        /// Version of the AccessManagerTemporalEventPersisterBuffer class where private and protected methods are exposed as public so that they can be unit tested.
         /// </summary>
         /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
         /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
         /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
         /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-        private class InMemoryEventBufferWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : InMemoryEventBuffer<TUser, TGroup, TComponent, TAccess>
+        private class AccessManagerTemporalEventPersisterBufferWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>The queue used to buffer user events.</summary>
             public LinkedList<UserEventBufferItem<TUser>> UserEventBuffer
@@ -2171,14 +2171,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             }
 
             /// <summary>
-            ///  Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.InMemoryEventBufferTests+InMemoryEventBufferWithProtectedMembers class.
+            ///  Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.AccessManagerTemporalEventPersisterBuffer+AccessManagerTemporalEventPersisterBufferWithProtectedMembers class.
             /// </summary>
             /// <param name="eventValidator">The validator to use to validate events.</param>
             /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
             /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
             /// <param name="guidProvider">The provider to use for random Guids.</param>
             /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
-            public InMemoryEventBufferWithProtectedMembers
+            public AccessManagerTemporalEventPersisterBufferWithProtectedMembers
             (
                 IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
                 IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
@@ -2206,7 +2206,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             protected NullAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> nullAccessManagerEventValidator;
 
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.InMemoryEventBuffer+MethodInterceptingAccessManagerEventValidator class.
+            /// Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.AccessManagerTemporalEventPersisterBuffer+MethodInterceptingAccessManagerEventValidator class.
             /// </summary>
             /// <param name="interceptor">A mock of IMethodCallInterceptor (for intercepting method calls).</param>
             /// <param name="nullAccessManagerEventValidator">An instance of NullAccessManagerEventValidator to perform the IAccessManagerEventValidator functionality.</param>

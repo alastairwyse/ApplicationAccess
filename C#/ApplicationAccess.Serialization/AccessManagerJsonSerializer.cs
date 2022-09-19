@@ -21,7 +21,7 @@ using Newtonsoft.Json.Linq;
 namespace ApplicationAccess.Serialization
 {
     /// <summary>
-    /// Serializes and deserializes an AccessManager to and from a JSON document.
+    /// Serializes and deserializes an <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> to and from a JSON document.
     /// </summary>
     public class AccessManagerJsonSerializer : IAccessManagerSerializer<JObject>
     {

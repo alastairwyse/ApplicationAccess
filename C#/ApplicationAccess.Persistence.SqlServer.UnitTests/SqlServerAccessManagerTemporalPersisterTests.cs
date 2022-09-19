@@ -24,21 +24,21 @@ using ApplicationLogging;
 namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalEventPersister class.
+    /// Unit tests for the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
     /// </summary>
-    public class SqlServerAccessManagerTemporalEventPersisterTests
+    public class SqlServerAccessManagerTemporalPersisterTests
     {
         private const Int32 varCharColumnSizeLimit = 450;
         private Guid testEventId;
         private DateTime testOccurredTime; 
-        private SqlServerAccessManagerTemporalEventPersister<String, String, String, String> testSqlServerAccessManagerTemporalEventPersister;
+        private SqlServerAccessManagerTemporalPersister<String, String, String, String> testSqlServerAccessManagerTemporalPersister;
 
         [SetUp]
         protected void SetUp()
         {
             testEventId = Guid.Parse("e191a845-0f09-406c-b8e3-6c39663ef58b");
             testOccurredTime = DateTime.ParseExact("2022-07-18 12:15:33", "yyyy-MM-dd HH:mm:ss", DateTimeFormatInfo.InvariantInfo);
-            testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+            testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
             (
                 "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                 5, 
@@ -61,7 +61,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
                 (
                     "  ",
                     5,
@@ -83,7 +83,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
                 (
                     "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                     -1,
@@ -105,7 +105,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
                 (
                     "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                     60,
@@ -127,7 +127,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
                 (
                     "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                     5,
@@ -149,7 +149,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister = new SqlServerAccessManagerTemporalEventPersister<String, String, String, String>
+                testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
                 (
                     "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                     5,
@@ -173,7 +173,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUser(testUser, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUser(testUser, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'user' with stringified value '{testUser}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -187,7 +187,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddGroup(testGroup, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddGroup(testGroup, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -202,7 +202,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUserToGroupMapping(testUser, testGroup, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUserToGroupMapping(testUser, testGroup, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'user' with stringified value '{testUser}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -217,7 +217,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUserToGroupMapping(testUser, testGroup, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUserToGroupMapping(testUser, testGroup, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -233,7 +233,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'user' with stringified value '{testUser}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -249,7 +249,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'applicationComponent' with stringified value '{testApplicationComponent}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -265,7 +265,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'accessLevel' with stringified value '{testAccessLevel}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -281,7 +281,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -297,7 +297,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'applicationComponent' with stringified value '{testApplicationComponent}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -313,7 +313,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'accessLevel' with stringified value '{testAccessLevel}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -327,7 +327,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddEntityType(testTypeEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddEntityType(testTypeEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'entityType' with stringified value '{testTypeEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -342,7 +342,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddEntity(testTypeEntity, testEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddEntity(testTypeEntity, testEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'entityType' with stringified value '{testTypeEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -357,7 +357,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddEntity(testTypeEntity, testEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddEntity(testTypeEntity, testEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'entity' with stringified value '{testEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -373,7 +373,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'user' with stringified value '{testUser}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -389,7 +389,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'entityType' with stringified value '{testTypeEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -405,7 +405,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddUserToEntityMapping(testUser, testTypeEntity, testEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'entity' with stringified value '{testEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -421,7 +421,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'group' with stringified value '{testGroup}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -437,7 +437,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'entityType' with stringified value '{testTypeEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -453,7 +453,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
+                testSqlServerAccessManagerTemporalPersister.AddGroupToEntityMapping(testGroup, testTypeEntity, testEntity, testEventId, testOccurredTime);
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'entity' with stringified value '{testEntity}' is longer than the maximum allowable column size of {varCharColumnSizeLimit}."));
@@ -467,7 +467,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.Load(DateTime.Now, new AccessManager<String, String, String, String>());
+                testSqlServerAccessManagerTemporalPersister.Load(DateTime.Now, new AccessManager<String, String, String, String>());
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' must be expressed as UTC."));
@@ -479,7 +479,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerAccessManagerTemporalEventPersister.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>());
+                testSqlServerAccessManagerTemporalPersister.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>());
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' will value '{DateTime.MaxValue.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff")}' is greater than the current time '"));

@@ -21,7 +21,7 @@ using ApplicationMetrics;
 namespace ApplicationAccess.Metrics
 {
     /// <summary>
-    /// Logs metric events for an implementation of IAccessManagerQueryProcessor.
+    /// Logs metric events for an implementation of <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/>.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the IAccessManagerQueryProcessor implementation.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the IAccessManagerQueryProcessor implementation.</typeparam>

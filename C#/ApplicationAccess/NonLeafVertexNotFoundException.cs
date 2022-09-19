@@ -26,7 +26,7 @@ namespace ApplicationAccess
     /// <typeparam name="T">The type of non-leaf vertices in the graph.</typeparam>
     public class NonLeafVertexNotFoundException<T> : Exception
     {
-        /// <summary>The mpm-leaf vertex which does not exist in the graph.</summary>
+        /// <summary>The non-leaf vertex which does not exist in the graph.</summary>
         protected T nonLeafVertex;
 
         /// <summary>

@@ -26,21 +26,21 @@ namespace ApplicationAccess
     public class StandardCollectionFactory : ICollectionFactory
     {
         /// <summary>
-        /// Returns a System.Collections.Generic.Dictionary&lt;TKey, TValue&gt; instance.
+        /// Returns a <see cref="Dictionary{TKey, TValue}"/> instance.
         /// </summary>
         /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
         /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-        /// <returns>The IDictionary instance.</returns>
+        /// <returns>The <see cref="Dictionary{TKey, TValue}"/> instance.</returns>
         public IDictionary<TKey, TValue> GetDictionaryInstance<TKey, TValue>()
         {
             return new Dictionary<TKey, TValue>();
         }
 
         /// <summary>
-        /// Returns a System.Collections.Generic.HashSet&lt;T&gt; instance.
+        /// Returns a <see cref="HashSet{T}"/> instance.
         /// </summary>
         /// <typeparam name="T">The type of elements in the set.</typeparam>
-        /// <returns>The ISet instance</returns>
+        /// <returns>The <see cref="HashSet{T}"/> instance</returns>
         public ISet<T> GetSetInstance<T>()
         {
             return new HashSet<T>();

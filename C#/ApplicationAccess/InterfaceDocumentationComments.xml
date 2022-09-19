@@ -17,9 +17,9 @@
       <summary>
         Defines methods which query state/structure of an AccessManager implementation.
       </summary>
-      <typeparam name="TUser">The type of users in the application.</typeparam>
-      <typeparam name="TGroup">The type of groups in the application.</typeparam>
-      <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+      <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+      <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
       <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     </member>
     <member name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Users">
@@ -53,17 +53,19 @@
     </member>
     <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToGroupMappings(`0)">
       <summary>
-        Gets the groups that the specified user is mapped to (i.e. is a member of).
+        Gets the groups that the specified user is directly mapped to (i.e. is a member of).
       </summary>
       <param name="user">The user to retrieve the groups for.</param>
       <returns>A collection of groups the specified user is a member of.</returns>
+      <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified user are returned.</remarks>
     </member>
     <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToGroupMappings(`1)">
       <summary>
-        Gets the groups that the specified group is mapped to.
+        Gets the groups that the specified group is directly mapped to.
       </summary>
       <param name="group">The group to retrieve the mapped groups for.</param>
       <returns>A collection of groups the specified group is mapped to.</returns>
+      <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified group are returned.</remarks>
     </member>
     <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
       <summary>

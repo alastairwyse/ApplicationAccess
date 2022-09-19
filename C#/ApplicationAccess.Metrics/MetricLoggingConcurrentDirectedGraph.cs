@@ -19,6 +19,11 @@ using ApplicationMetrics;
 
 namespace ApplicationAccess.Metrics
 {
+    /// <summary>
+    /// A thread-safe version of the <see cref="DirectedGraph{TLeaf, TNonLeaf}"/> class, which can be accessed and modified by multiple threads concurrently, and which logs various metrics.
+    /// </summary>
+    /// <typeparam name="TLeaf">The type of leaf vertices.</typeparam>
+    /// <typeparam name="TNonLeaf">The type of non-leaf vertices.</typeparam>
     public class MetricLoggingConcurrentDirectedGraph<TLeaf, TNonLeaf> : ConcurrentDirectedGraph<TLeaf, TNonLeaf>
     {
         /// <summary>The number of leaf to non-leaf edges in the graph.</summary>

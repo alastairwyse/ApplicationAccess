@@ -40,7 +40,7 @@ namespace ApplicationAccess.Persistence
             set
             {
                 base.UserEventBufferItemCount = value;
-                // Since the Flush() method of InMemoryEventBuffer sets item counts to 0, need to ensure those setter calls don't trigger repeated flushes by filtering them out
+                // Since the Flush() method of AccessManagerTemporalEventPersisterBuffer sets item counts to 0, need to ensure those setter calls don't trigger repeated flushes by filtering them out
                 if (value > 0)
                 {
                     CheckBufferLimitReached();

@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Company>Alastair Wyse</Company>
     <Authors>Alastair Wyse</Authors>
-    <Description>Unit tests for the ApplicationAccess.Serialization project.</Description>
+    <Description>Unit tests for classes in the ApplicationAccess.Serialization namespace.</Description>
     <Copyright>Copyright © Alastair Wyse 2021</Copyright>
     <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>

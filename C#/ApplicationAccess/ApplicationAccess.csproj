@@ -7,7 +7,7 @@
     <Copyright>Copyright © Alastair Wyse 2021</Copyright>
     <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
-    <Description>ApplicationAccess provides flexible and configurable user permission and authorization management for applications.</Description>
+    <Description>Core and foundational classes which provide flexible and configurable user permission and authorization management for applications.</Description>
     <PackageReleaseNotes>First release.</PackageReleaseNotes>
     <PackageTags>application access authorization authorisation permission permissions user group users groups</PackageTags>
   </PropertyGroup>

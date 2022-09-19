@@ -26,13 +26,13 @@ using ApplicationMetrics.MetricLoggers;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Buffers events which change the structure of an AccessManager class in memory.
+    /// Buffers events which change the structure of an <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> class in memory before writing them to an instance of <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/>"/>.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class InMemoryEventBuffer<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventBuffer<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public class AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventBuffer<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
         /// <summary>The validator to use to validate events.</summary>
         protected IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator;
@@ -97,12 +97,12 @@ namespace ApplicationAccess.Persistence
         protected Object groupToEntityMappingEventBufferLock;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.InMemoryEventBuffer class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
-        public InMemoryEventBuffer
+        public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator, 
             IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy, 
@@ -144,13 +144,13 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.InMemoryEventBuffer class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public InMemoryEventBuffer
+        public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
@@ -162,13 +162,13 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.InMemoryEventBuffer class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         /// <param name="lastEventSequenceNumber">The sequence number used for the last event buffered.</param>
-        public InMemoryEventBuffer
+        public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy, 
@@ -183,14 +183,14 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.InMemoryEventBuffer class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="lastEventSequenceNumber">The sequence number used for the last event buffered.</param>
-        public InMemoryEventBuffer
+        public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
@@ -203,14 +203,14 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.InMemoryEventBuffer class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         /// <param name="guidProvider">The provider to use for random Guids.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
-        public InMemoryEventBuffer
+        public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy<TUser, TGroup, TComponent, TAccess> bufferFlushStrategy,
@@ -1134,7 +1134,7 @@ namespace ApplicationAccess.Persistence
         #region Finalize / Dispose Methods
 
         /// <summary>
-        /// Releases the unmanaged resources used by the InMemoryEventBuffer.
+        /// Releases the unmanaged resources used by the AccessManagerTemporalEventPersisterBuffer.
         /// </summary>
         public void Dispose()
         {
@@ -1144,7 +1144,7 @@ namespace ApplicationAccess.Persistence
 
         #pragma warning disable 1591
 
-        ~InMemoryEventBuffer()
+        ~AccessManagerTemporalEventPersisterBuffer()
         {
             Dispose(false);
         }
@@ -1220,7 +1220,7 @@ namespace ApplicationAccess.Persistence
             }
 
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Persistence.InMemoryEventBuffer+SequenceNumberAndEventBuffer class.
+            /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer+SequenceNumberAndEventBuffer class.
             /// </summary>
             /// <param name="eventSequenceNumber">The sequence number of the event.</param>
             /// <param name="eventBuffer"> The buffer that the event is stored in.</param>

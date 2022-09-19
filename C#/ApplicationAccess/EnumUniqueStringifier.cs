@@ -21,7 +21,7 @@ using System.Text;
 namespace ApplicationAccess
 {
     /// <summary>
-    /// An implementation of IUniqueStringifier&lt;T&gt; for enums.
+    /// An implementation of <see cref="IUniqueStringifier{T}"/> for enums.
     /// </summary>
     /// <typeparam name="T">The type of enum to convert.</typeparam>
     public class EnumUniqueStringifier<T> : IUniqueStringifier<T> where T : struct, Enum

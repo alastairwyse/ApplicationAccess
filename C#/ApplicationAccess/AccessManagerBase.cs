@@ -27,7 +27,7 @@ namespace ApplicationAccess
     /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    /// <remarks>Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum IEquatable&lt;T&gt; and GetHashcode()).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
+    /// <remarks>Note that all generic type parameters must implement relevant methods to allow storing in a <see cref="System.Collections.Generic.HashSet{T}"/> (at minimum <see cref="IEquatable{T}"/> and <see cref="Object.GetHashCode">GetHashcode()</see>).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
     public abstract class AccessManagerBase<TUser, TGroup, TComponent, TAccess> : IAccessManager<TUser, TGroup, TComponent, TAccess>
     {        
         /// <summary>Creates instances of collection classes.</summary>

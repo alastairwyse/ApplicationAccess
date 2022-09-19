@@ -93,7 +93,7 @@ namespace ApplicationAccess
         /// <summary>
         /// Returns an enumerator that iterates through the set.
         /// </summary>
-        /// <returns>An ISet&lt;T&gt;.Enumerator object for set.</returns>
+        /// <returns>An <see cref="IEnumerator{T}"/> object for the set.</returns>
         public IEnumerator<T> GetEnumerator()
         {
             return dictionary.Keys.GetEnumerator();

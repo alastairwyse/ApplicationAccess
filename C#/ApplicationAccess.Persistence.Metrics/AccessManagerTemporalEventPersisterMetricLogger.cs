@@ -23,7 +23,7 @@ using ApplicationMetrics;
 namespace ApplicationAccess.Persistence.Metrics
 {
     /// <summary>
-    /// Logs metric events for an implementation of IAccessManagerTemporalEventPersister.
+    /// Logs metric events for an implementation of <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/>.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the IAccessManagerTemporalEventPersister implementation.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the IAccessManagerTemporalEventPersister implementation.</typeparam>
@@ -33,7 +33,7 @@ namespace ApplicationAccess.Persistence.Metrics
     public class AccessManagerTemporalEventPersisterMetricLogger<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>The IAccessManagerTemporalEventPersister implementation to log metrics for.</summary>
-        protected IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> persister;
+        protected AccessManagerTemporalEventPersisterMetricLogger<TUser, TGroup, TComponent, TAccess> persister;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
 
@@ -42,7 +42,7 @@ namespace ApplicationAccess.Persistence.Metrics
         /// </summary>
         /// <param name="persister">The IAccessManagerTemporalEventPersister implementation to log metrics for.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public AccessManagerTemporalEventPersisterMetricLogger(IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> persister, IMetricLogger metricLogger)
+        public AccessManagerTemporalEventPersisterMetricLogger(AccessManagerTemporalEventPersisterMetricLogger<TUser, TGroup, TComponent, TAccess> persister, IMetricLogger metricLogger)
         {
             this.persister = persister;
             this.metricLogger = metricLogger;
@@ -688,61 +688,5 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToEntityMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventPersister`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
-        {
-            Tuple<Guid, DateTime> stateInfo;
-            Guid beginId = metricLogger.Begin(new LoadTime());
-            try
-            {
-                stateInfo = persister.Load(accessManagerToLoadTo);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new LoadTime());
-                throw;
-            }
-            metricLogger.End(beginId, new LoadTime());
-
-            return stateInfo;
-        }
-
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(Guid eventId, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
-        {
-            Tuple<Guid, DateTime> stateInfo;
-            Guid beginId = metricLogger.Begin(new LoadTime());
-            try
-            {
-                stateInfo = persister.Load(eventId, accessManagerToLoadTo);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new LoadTime());
-                throw;
-            }
-            metricLogger.End(beginId, new LoadTime());
-
-            return stateInfo;
-        }
-
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
-        {
-            Tuple<Guid, DateTime> stateInfo;
-            Guid beginId = metricLogger.Begin(new LoadTime());
-            try
-            {
-                stateInfo = persister.Load(stateTime, accessManagerToLoadTo);
-            }
-            catch
-            {
-                metricLogger.CancelBegin(beginId, new LoadTime());
-                throw;
-            }
-            metricLogger.End(beginId, new LoadTime());
-
-            return stateInfo;
-        }
     }
 }

@@ -20,7 +20,7 @@ using Newtonsoft.Json.Linq;
 namespace ApplicationAccess.Serialization
 {
     /// <summary>
-    /// Serializes and deserializes a DirectedGraph to and from a JSON document.
+    /// Serializes and deserializes a <see cref="DirectedGraph{TLeaf, TNonLeaf}"/> to and from a JSON document.
     /// </summary>
     public class DirectedGraphJsonSerializer : IDirectedGraphSerializer<JObject>
     {

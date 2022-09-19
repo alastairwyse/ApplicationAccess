@@ -48,7 +48,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;
-                // The following property sets simulate resetting that occurs in the InMemoryEventBuffer.Flush() method
+                // The following property sets simulate resetting that occurs in the AccessManagerTemporalEventPersisterBuffer.Flush() method
                 testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 0;
                 testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 0;
                 testSizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
@@ -326,7 +326,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             {
                 flushEventsRaised++;
                 Thread.Sleep(250);
-                // The following property sets simulate resetting that occurs in the InMemoryEventBuffer.Flush() method
+                // The following property sets simulate resetting that occurs in the AccessManagerTemporalEventPersisterBuffer.Flush() method
                 testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 0;
                 testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 0;
                 testSizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;

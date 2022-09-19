@@ -12,7 +12,7 @@
             <typeparam name="TGroup">The type of groups in the application.</typeparam>
             <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-            <remarks>Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum IEquatable&lt;T&gt; and GetHashcode()).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
+            <remarks>Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum <see cref="T:System.IEquatable`1"/> and <see cref="M:System.Object.GetHashCode">GetHashcode()</see>).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
         </member>
         <member name="M:ApplicationAccess.AccessManager`4.#ctor">
             <summary>
@@ -27,7 +27,7 @@
             <typeparam name="TGroup">The type of groups in the application.</typeparam>
             <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-            <remarks>Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum IEquatable&lt;T&gt; and GetHashcode()).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
+            <remarks>Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum <see cref="T:System.IEquatable`1"/> and <see cref="M:System.Object.GetHashCode">GetHashcode()</see>).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
         </member>
         <member name="F:ApplicationAccess.AccessManagerBase`4.collectionFactory">
             <summary>Creates instances of collection classes.</summary>
@@ -331,7 +331,7 @@
             <typeparam name="TGroup">The type of groups in the application.</typeparam>
             <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-            <remarks>Thread safety is implemented by using concurrent collections internally to represent the user, group, component, access level, and entity mappings (allows for concurrent read and enumeration operations), and locks to serialize modification operations.  Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum IEquatable&lt;T&gt; and GetHashcode()).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
+            <remarks>Thread safety is implemented by using concurrent collections internally to represent the user, group, component, access level, and entity mappings (allows for concurrent read and enumeration operations), and locks to serialize modification operations.  Note that all generic type parameters must implement relevant methods to allow storing in a HashSet (at minimum <see cref="T:System.IEquatable`1"/> and <see cref="M:System.Object.GetHashCode">GetHashcode()</see>).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
         </member>
         <member name="F:ApplicationAccess.ConcurrentAccessManager`4.lockManager">
             <summary>Manages acquiring locks on underlying sets and dictionaries.</summary>
@@ -831,7 +831,7 @@
         </member>
         <member name="M:ApplicationAccess.ConcurrentCollectionFactory.GetDictionaryInstance``2">
             <summary>
-            Returns a System.Collections.Concurrent.ConcurrentDictionary&lt;TKey, TValue&gt; instance.
+            Returns a <see cref="T:System.Collections.Concurrent.ConcurrentDictionary`2"/> instance.
             </summary>
             <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
             <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
@@ -839,7 +839,7 @@
         </member>
         <member name="M:ApplicationAccess.ConcurrentCollectionFactory.GetSetInstance``1">
             <summary>
-            Returns a ApplicationAccess.ConcurrentHashSet&lt;T&gt; instance.
+            Returns a <see cref="T:ApplicationAccess.ConcurrentHashSet`1"/> instance.
             </summary>
             <typeparam name="T">The type of elements in the set.</typeparam>
             <returns>The ISet instance</returns>
@@ -1054,7 +1054,7 @@
             <summary>
             Returns an enumerator that iterates through the set.
             </summary>
-            <returns>An ISet&lt;T&gt;.Enumerator object for set.</returns>
+            <returns>An <see cref="T:System.Collections.Generic.IEnumerator`1"/> object for the set.</returns>
         </member>
         <member name="M:ApplicationAccess.ConcurrentHashSet`1.Remove(`0)">
             <summary>
@@ -1255,7 +1255,7 @@
         </member>
         <member name="T:ApplicationAccess.EnumUniqueStringifier`1">
             <summary>
-            An implementation of IUniqueStringifier&lt;T&gt; for enums.
+            An implementation of <see cref="T:ApplicationAccess.IUniqueStringifier`1"/> for enums.
             </summary>
             <typeparam name="T">The type of enum to convert.</typeparam>
         </member>
@@ -1386,7 +1386,7 @@
         <member name="T:ApplicationAccess.IAccessManagerQueryProcessor`4">
             <summary>
         Defines methods which query state/structure of an AccessManager implementation.
-      </summary><typeparam name="TUser">The type of users in the application.</typeparam><typeparam name="TGroup">The type of groups in the application.</typeparam><typeparam name="TComponent">The type of components in the application to manage access to.</typeparam><typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+      </summary><typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam><typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam><typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam><typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
         <member name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Users">
             <summary>
@@ -1741,7 +1741,7 @@
         </member>
         <member name="M:ApplicationAccess.StandardCollectionFactory.GetDictionaryInstance``2">
             <summary>
-            Returns a System.Collections.Generic.Dictionary&lt;TKey, TValue&gt; instance.
+            Returns a <see cref="T:System.Collections.Generic.Dictionary`2"/> instance.
             </summary>
             <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
             <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
@@ -1749,14 +1749,14 @@
         </member>
         <member name="M:ApplicationAccess.StandardCollectionFactory.GetSetInstance``1">
             <summary>
-            Returns a System.Collections.Generic.HashSet&lt;T&gt; instance.
+            Returns a <see cref="T:System.Collections.Generic.HashSet`1"/> instance.
             </summary>
             <typeparam name="T">The type of elements in the set.</typeparam>
             <returns>The ISet instance</returns>
         </member>
         <member name="T:ApplicationAccess.StringUniqueStringifier">
             <summary>
-            An implementation of IUniqueStringifier&lt;T&gt; for strings.
+            An implementation of <see cref="T:ApplicationAccess.IUniqueStringifier`1"/> for strings.
             </summary>
             <remarks>Methods simply return the respective string parameters immediately.</remarks>
         </member>

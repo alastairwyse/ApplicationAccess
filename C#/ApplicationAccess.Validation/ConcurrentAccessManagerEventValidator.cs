@@ -15,13 +15,11 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ApplicationAccess.Validation
 {
     /// <summary>
-    /// An implementation of IAccessManagerEventValidator which uses a ConcurrentAccessManager instance to perform the event validation.
+    /// An implementation of <see cref="IAccessManagerEventValidator{TUser, TGroup, TComponent, TAccess}"/> which uses a <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> instance to perform the event validation.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the AccessManager implementation.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the AccessManager implementation.</typeparam>

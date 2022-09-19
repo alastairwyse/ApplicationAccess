@@ -25,7 +25,7 @@ namespace ApplicationAccess.Persistence
     {
         /// <summary>An action which adds something to an AccessManager.</summary>
         Add,
-        /// <summary>An action which removes something to an AccessManager.</summary>
+        /// <summary>An action which removes something from an AccessManager.</summary>
         Remove
     }
 }
