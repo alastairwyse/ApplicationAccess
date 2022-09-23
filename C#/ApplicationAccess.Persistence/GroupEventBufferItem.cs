@@ -19,9 +19,9 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Container class for buffered group events.
+    /// Container class for a buffered/cached group event.
     /// </summary>
-    public class GroupEventBufferItem<TGroup> : EventBufferItemBase
+    public class GroupEventBufferItem<TGroup> : TemporalEventBufferItemBase
     {
         /// <summary>The group the event occured for.</summary>
         protected TGroup group;
@@ -37,12 +37,12 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.GroupEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="group">The group the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public GroupEventBufferItem(EventAction eventAction, TGroup group, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, occurredTime, sequenceNumber)
+        public GroupEventBufferItem(Guid eventId, EventAction eventAction, TGroup group, DateTime occurredTime)
+            : base(eventId, eventAction, occurredTime)
         {
             this.group = group;
         }

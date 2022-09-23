@@ -19,9 +19,9 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Container class for buffered user events.
+    /// Container class for a buffered/cached user event.
     /// </summary>
-    public class UserEventBufferItem<TUser> : EventBufferItemBase
+    public class UserEventBufferItem<TUser> : TemporalEventBufferItemBase
     {
         /// <summary>The user the event occured for.</summary>
         protected TUser user;
@@ -37,12 +37,12 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.UserEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="user">The user the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public UserEventBufferItem(EventAction eventAction, TUser user, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, occurredTime, sequenceNumber)
+        public UserEventBufferItem(Guid eventId, EventAction eventAction, TUser user, DateTime occurredTime)
+            : base(eventId, eventAction, occurredTime)
         {
             this.user = user;
         }

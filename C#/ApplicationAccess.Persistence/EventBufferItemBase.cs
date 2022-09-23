@@ -19,16 +19,22 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Base class for container classes which get stored in an AccessManager event buffer.
+    /// Base class for container classes which represent a change in the structure of an AccessManager implementation, and are stored in an AccessManager event buffer or cache.
     /// </summary>
     public abstract class EventBufferItemBase
     {
+        /// <summary>A unique id for the event.</summary>
+        protected Guid eventId;
         /// <summary>The action of the event.</summary>
         protected EventAction eventAction;
-        /// <summary>The time that the event originally occurred.</summary>
-        protected DateTime occurredTime;
-        /// <summary>The ordinal sequence number of the event.</summary>
-        protected Int64 sequenceNumber;
+
+        /// <summary>
+        /// A unique id for the event.
+        /// </summary>
+        public Guid EventId
+        {
+            get { return eventId; }
+        }
 
         /// <summary>
         /// The action of the event.
@@ -39,37 +45,14 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <summary>
-        /// The time that the event originally occurred.
-        /// </summary>
-        public DateTime OccurredTime
-        {
-            get { return occurredTime; }
-        }
-
-        /// <summary>
-        /// The ordinal sequence number of the event.
-        /// </summary>
-        public Int64 SequenceNumber
-        {
-            get { return sequenceNumber; }
-        }
-
-        /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.EventBufferItemBase class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
-        /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public EventBufferItemBase(EventAction eventAction, DateTime occurredTime, Int64 sequenceNumber)
+        public EventBufferItemBase(Guid eventId, EventAction eventAction)
         {
-            if (occurredTime.Kind != DateTimeKind.Utc)
-                throw new ArgumentException($"Parameter '{nameof(occurredTime)}' must be based in UTC (i.e. '{nameof(occurredTime.Kind)}' property must be '{nameof(DateTimeKind.Utc)}').", nameof(occurredTime));
-            if (sequenceNumber < 0)
-                throw new ArgumentException($"Parameter '{nameof(sequenceNumber)}' must be greater than or equal to 0.", nameof(sequenceNumber));
-
+            this.eventId = eventId;
             this.eventAction = eventAction;
-            this.occurredTime = occurredTime;
-            this.sequenceNumber = sequenceNumber;
         }
     }
 }

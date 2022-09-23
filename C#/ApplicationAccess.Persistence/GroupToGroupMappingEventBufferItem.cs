@@ -19,9 +19,9 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Container class for buffered group to group mapping events.
+    /// Container class for a buffered/cached group to group mapping event.
     /// </summary>
-    public class GroupToGroupMappingEventBufferItem<TGroup> : EventBufferItemBase
+    public class GroupToGroupMappingEventBufferItem<TGroup> : TemporalEventBufferItemBase
     {
         /// <summary>The 'from' group in the mapping.</summary>
         protected TGroup fromGroup;
@@ -47,13 +47,13 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.GroupToGroupMappingEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="fromGroup">The 'from' group in the mapping.</param>
         /// <param name="toGroup">The 'to' group in the mapping.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public GroupToGroupMappingEventBufferItem(EventAction eventAction, TGroup fromGroup, TGroup toGroup, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, occurredTime, sequenceNumber)
+        public GroupToGroupMappingEventBufferItem(Guid eventId, EventAction eventAction, TGroup fromGroup, TGroup toGroup, DateTime occurredTime)
+            : base(eventId, eventAction, occurredTime)
         {
             this.fromGroup = fromGroup;
             this.toGroup = toGroup;

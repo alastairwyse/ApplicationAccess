@@ -46,33 +46,34 @@ namespace ApplicationAccess.Persistence
         protected IDateTimeProvider dateTimeProvider;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
-        /// <summary>The delegate which handles when a BufferFlushed event is raised.</summary>
+        /// <summary>The delegate which handles a <see cref="IAccessManagerEventBufferFlushStrategy.BufferFlushed">BufferFlushed</see> event.</summary>
         protected EventHandler bufferFlushedEventHandler;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
         /// <summary>The sequence number used for the last event buffered.</summary>
         protected Int64 lastEventSequenceNumber;
 
+        // The Int64 value in the below queue tuple item is the ordinal sequence number of the queued event, unique across all queues/buffers
         /// <summary>The queue used to buffer user events.</summary>
-        protected LinkedList<UserEventBufferItem<TUser>> userEventBuffer;
+        protected LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>> userEventBuffer;
         /// <summary>The queue used to buffer group events.</summary>
-        protected LinkedList<GroupEventBufferItem<TGroup>> groupEventBuffer;
+        protected LinkedList<Tuple<GroupEventBufferItem<TGroup>, Int64>> groupEventBuffer;
         /// <summary>The queue used to buffer user to group mapping events.</summary>
-        protected LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>> userToGroupMappingEventBuffer;
+        protected LinkedList<Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>> userToGroupMappingEventBuffer;
         /// <summary>The queue used to buffer group to group mapping events.</summary>
-        protected LinkedList<GroupToGroupMappingEventBufferItem<TGroup>> groupToGroupMappingEventBuffer;
+        protected LinkedList<Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>> groupToGroupMappingEventBuffer;
         /// <summary>The queue used to buffer user to application component and access level mapping events.</summary>
-        protected LinkedList<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>> userToApplicationComponentAndAccessLevelMappingEventBuffer;
+        protected LinkedList<Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>> userToApplicationComponentAndAccessLevelMappingEventBuffer;
         /// <summary>The queue used to buffer group to application component and access level mapping events.</summary>
-        protected LinkedList<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>> groupToApplicationComponentAndAccessLevelMappingEventBuffer;
+        protected LinkedList<Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>> groupToApplicationComponentAndAccessLevelMappingEventBuffer;
         /// <summary>The queue used to buffer entity type events.</summary>
-        protected LinkedList<EntityTypeEventBufferItem> entityTypeEventBuffer;
+        protected LinkedList<Tuple<EntityTypeEventBufferItem, Int64>> entityTypeEventBuffer;
         /// <summary>The queue used to buffer entity events.</summary>
-        protected LinkedList<EntityEventBufferItem> entityEventBuffer;
+        protected LinkedList<Tuple<EntityEventBufferItem, Int64>> entityEventBuffer;
         /// <summary>The queue used to buffer user to entity mapping events.</summary>
-        protected LinkedList<UserToEntityMappingEventBufferItem<TUser>> userToEntityMappingEventBuffer;
+        protected LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>> userToEntityMappingEventBuffer;
         /// <summary>The queue used to buffer group to entity mapping events.</summary>
-        protected LinkedList<GroupToEntityMappingEventBufferItem<TGroup>> groupToEntityMappingEventBuffer;
+        protected LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>> groupToEntityMappingEventBuffer;
 
         // Separate lock objects are required.  The queues cannot be locked directly as they are reassigned whilst locked as part of the flush process
         /// <summary>Lock object for the user event queue.</summary>
@@ -104,8 +105,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         public AccessManagerTemporalEventPersisterBuffer
         (
-            IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator, 
-            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy, 
+            IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
+            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister
         )
         {
@@ -118,18 +119,19 @@ namespace ApplicationAccess.Persistence
             guidProvider = new Utilities.DefaultGuidProvider();
             dateTimeProvider = new StopwatchDateTimeProvider();
             metricLogger = new NullMetricLogger();
+            disposed = false;
             lastEventSequenceNumber = -1;
 
-            userEventBuffer = new LinkedList<UserEventBufferItem<TUser>>();
-            groupEventBuffer = new LinkedList<GroupEventBufferItem<TGroup>>();
-            userToGroupMappingEventBuffer = new LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>>();
-            groupToGroupMappingEventBuffer = new LinkedList<GroupToGroupMappingEventBufferItem<TGroup>>();
-            userToApplicationComponentAndAccessLevelMappingEventBuffer = new LinkedList<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>();
-            groupToApplicationComponentAndAccessLevelMappingEventBuffer = new LinkedList<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>();
-            entityTypeEventBuffer = new LinkedList<EntityTypeEventBufferItem>();
-            entityEventBuffer = new LinkedList<EntityEventBufferItem>();
-            userToEntityMappingEventBuffer = new LinkedList<UserToEntityMappingEventBufferItem<TUser>>();
-            groupToEntityMappingEventBuffer = new LinkedList<GroupToEntityMappingEventBufferItem<TGroup>>();
+            userEventBuffer = new LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>>();
+            groupEventBuffer = new LinkedList<Tuple<GroupEventBufferItem<TGroup>, Int64>>();
+            userToGroupMappingEventBuffer = new LinkedList<Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>>();
+            groupToGroupMappingEventBuffer = new LinkedList<Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>>();
+            userToApplicationComponentAndAccessLevelMappingEventBuffer = new LinkedList<Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>>();
+            groupToApplicationComponentAndAccessLevelMappingEventBuffer = new LinkedList<Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>>();
+            entityTypeEventBuffer = new LinkedList<Tuple<EntityTypeEventBufferItem, Int64>>();
+            entityEventBuffer = new LinkedList<Tuple<EntityEventBufferItem, Int64>>();
+            userToEntityMappingEventBuffer = new LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>>();
+            groupToEntityMappingEventBuffer = new LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>>();
 
             userEventBufferLock = new Object();
             groupEventBufferLock = new Object();
@@ -156,7 +158,7 @@ namespace ApplicationAccess.Persistence
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger
-        ) : this (eventValidator, bufferFlushStrategy, eventPersister)
+        ) : this(eventValidator, bufferFlushStrategy, eventPersister)
         {
             this.metricLogger = metricLogger;
         }
@@ -171,8 +173,8 @@ namespace ApplicationAccess.Persistence
         public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy, 
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister, 
+            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             Int64 lastEventSequenceNumber
         ) : this(eventValidator, bufferFlushStrategy, eventPersister)
         {
@@ -195,7 +197,7 @@ namespace ApplicationAccess.Persistence
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IMetricLogger metricLogger, 
+            IMetricLogger metricLogger,
             Int64 lastEventSequenceNumber
         ) : this(eventValidator, bufferFlushStrategy, eventPersister, lastEventSequenceNumber)
         {
@@ -215,7 +217,7 @@ namespace ApplicationAccess.Persistence
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            Utilities.IGuidProvider guidProvider, 
+            Utilities.IGuidProvider guidProvider,
             IDateTimeProvider dateTimeProvider
         ) : this(eventValidator, bufferFlushStrategy, eventPersister)
         {
@@ -229,8 +231,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser> postValidationAction = (actionUser) =>
             {
-                var userEvent = new UserEventBufferItem<TUser>(EventAction.Add, user, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                userEventBuffer.AddLast(userEvent);
+                var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                userEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
                 metricLogger.Increment(new AddUserEventBuffered());
                 metricLogger.Set(new UserEventsBuffered(), userEventBuffer.Count);
@@ -247,8 +250,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser> postValidationAction = (actionUser) =>
             {
-                var userEvent = new UserEventBufferItem<TUser>(EventAction.Remove, user, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                userEventBuffer.AddLast(userEvent);
+                var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                userEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
                 metricLogger.Increment(new RemoveUserEventBuffered());
                 metricLogger.Set(new UserEventsBuffered(), userEventBuffer.Count);
@@ -265,8 +269,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup> postValidationAction = (actionGroup) =>
             {
-                var groupEvent = new GroupEventBufferItem<TGroup>(EventAction.Add, group, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                groupEventBuffer.AddLast(groupEvent);
+                var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                groupEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
                 metricLogger.Increment(new AddGroupEventBuffered());
                 metricLogger.Set(new GroupEventsBuffered(), groupEventBuffer.Count);
@@ -283,8 +288,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup> postValidationAction = (actionGroup) =>
             {
-                var groupEvent = new GroupEventBufferItem<TGroup>(EventAction.Remove, group, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                groupEventBuffer.AddLast(groupEvent);
+                var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                groupEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
                 metricLogger.Increment(new RemoveGroupEventBuffered());
                 metricLogger.Set(new GroupEventsBuffered(), groupEventBuffer.Count);
@@ -301,8 +307,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
             {
-                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(EventAction.Add, user, group, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                userToGroupMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Add, user, group, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                userToGroupMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
                 metricLogger.Increment(new AddUserToGroupMappingEventBuffered());
                 metricLogger.Set(new UserToGroupMappingEventsBuffered(), userToGroupMappingEventBuffer.Count);
@@ -319,8 +326,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
             {
-                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(EventAction.Remove, user, group, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                userToGroupMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Remove, user, group, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                userToGroupMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveUserToGroupMappingEventBuffered());
                 metricLogger.Set(new UserToGroupMappingEventsBuffered(), userToGroupMappingEventBuffer.Count);
@@ -337,8 +345,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
             {
-                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(EventAction.Add, fromGroup, toGroup, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                groupToGroupMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, fromGroup, toGroup, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                groupToGroupMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
                 metricLogger.Increment(new AddGroupToGroupMappingEventBuffered());
                 metricLogger.Set(new GroupToGroupMappingEventsBuffered(), groupToGroupMappingEventBuffer.Count);
@@ -355,8 +364,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
             {
-                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(EventAction.Remove, fromGroup, toGroup, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                groupToGroupMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, fromGroup, toGroup, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                groupToGroupMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveGroupToGroupMappingEventBuffered());
                 metricLogger.Set(new GroupToGroupMappingEventsBuffered(), groupToGroupMappingEventBuffer.Count);
@@ -373,8 +383,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
             {
-                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(EventAction.Add, user, applicationComponent, accessLevel, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, user, applicationComponent, accessLevel, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
                 metricLogger.Increment(new AddUserToApplicationComponentAndAccessLevelMappingEventBuffered());
                 metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingEventsBuffered(), userToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
@@ -391,8 +402,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
             {
-                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(EventAction.Remove, user, applicationComponent, accessLevel, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, user, applicationComponent, accessLevel, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered());
                 metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingEventsBuffered(), userToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
@@ -409,8 +421,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
             {
-                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(EventAction.Add, group, applicationComponent, accessLevel, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, group, applicationComponent, accessLevel, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
                 metricLogger.Increment(new AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
                 metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingEventsBuffered(), groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
@@ -427,8 +440,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
             {
-                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(EventAction.Remove, group, applicationComponent, accessLevel, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, group, applicationComponent, accessLevel, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
                 metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingEventsBuffered(), groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
@@ -445,8 +459,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<string> postValidationAction = (actionEntityType) =>
             {
-                var entityTypeEvent = new EntityTypeEventBufferItem(EventAction.Add, entityType, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                entityTypeEventBuffer.AddLast(entityTypeEvent);
+                var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                entityTypeEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
                 metricLogger.Increment(new AddEntityTypeEventBuffered());
                 metricLogger.Set(new EntityTypeEventsBuffered(), entityTypeEventBuffer.Count);
@@ -463,8 +478,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<string> postValidationAction = (actionEntityType) =>
             {
-                var entityTypeEvent = new EntityTypeEventBufferItem(EventAction.Remove, entityType, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                entityTypeEventBuffer.AddLast(entityTypeEvent);
+                var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                entityTypeEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
                 metricLogger.Increment(new RemoveEntityTypeEventBuffered());
                 metricLogger.Set(new EntityTypeEventsBuffered(), entityTypeEventBuffer.Count);
@@ -481,8 +497,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
             {
-                var entityEvent = new EntityEventBufferItem(EventAction.Add, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                entityEventBuffer.AddLast(entityEvent);
+                var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, entity, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<EntityEventBufferItem, Int64>(entityEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                entityEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
                 metricLogger.Increment(new AddEntityEventBuffered());
                 metricLogger.Set(new EntityEventsBuffered(), entityEventBuffer.Count);
@@ -499,8 +516,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
             {
-                var entityEvent = new EntityEventBufferItem(EventAction.Remove, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                entityEventBuffer.AddLast(entityEvent);
+                var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, entity, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<EntityEventBufferItem, Int64>(entityEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                entityEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
                 metricLogger.Increment(new RemoveEntityEventBuffered());
                 metricLogger.Set(new EntityEventsBuffered(), entityEventBuffer.Count);
@@ -517,8 +535,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
             {
-                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(EventAction.Add, user, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                userToEntityMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, entityType, entity, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                userToEntityMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
                 metricLogger.Increment(new AddUserToEntityMappingEventBuffered());
                 metricLogger.Set(new UserToEntityMappingEventsBuffered(), userToEntityMappingEventBuffer.Count);
@@ -535,8 +554,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
             {
-                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(EventAction.Remove, user, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                userToEntityMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, entityType, entity, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                userToEntityMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveUserToEntityMappingEventBuffered());
                 metricLogger.Set(new UserToEntityMappingEventsBuffered(), userToEntityMappingEventBuffer.Count);
@@ -553,8 +573,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
             {
-                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(EventAction.Add, group, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                groupToEntityMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, entityType, entity, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                groupToEntityMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
                 metricLogger.Increment(new AddGroupToEntityMappingEventBuffered());
                 metricLogger.Set(new GroupToEntityMappingEventsBuffered(), groupToEntityMappingEventBuffer.Count);
@@ -571,8 +592,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
             {
-                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(EventAction.Remove, group, entityType, entity, dateTimeProvider.UtcNow(), Interlocked.Increment(ref lastEventSequenceNumber));
-                groupToEntityMappingEventBuffer.AddLast(mappingEvent);
+                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, entityType, entity, dateTimeProvider.UtcNow());
+                var queueNode = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                groupToEntityMappingEventBuffer.AddLast(queueNode);
                 bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveGroupToEntityMappingEventBuffered());
                 metricLogger.Set(new GroupToEntityMappingEventsBuffered(), groupToEntityMappingEventBuffer.Count);
@@ -593,16 +615,16 @@ namespace ApplicationAccess.Persistence
             try
             {
                 // Move all events to temporary queues
-                LinkedList<UserEventBufferItem<TUser>> tempUserEventBuffer = null;
-                LinkedList<GroupEventBufferItem<TGroup>> tempGroupEventBuffer = null;
-                LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>> tempUserToGroupMappingEventBuffer = null;
-                LinkedList<GroupToGroupMappingEventBufferItem<TGroup>> tempGroupToGroupMappingEventBuffer = null;
-                LinkedList<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>> tempUserToApplicationComponentAndAccessLevelMappingEventBuffer = null;
-                LinkedList<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>> tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer = null;
-                LinkedList<EntityTypeEventBufferItem> tempEntityTypeEventBuffer = null;
-                LinkedList<EntityEventBufferItem> tempEntityEventBuffer = null;
-                LinkedList<UserToEntityMappingEventBufferItem<TUser>> tempUserToEntityMappingEventBuffer = null;
-                LinkedList<GroupToEntityMappingEventBufferItem<TGroup>> tempGroupToEntityMappingEventBuffer = null;
+                LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>> tempUserEventBuffer = null;
+                LinkedList<Tuple<GroupEventBufferItem<TGroup>, Int64>> tempGroupEventBuffer = null;
+                LinkedList<Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>> tempUserToGroupMappingEventBuffer = null;
+                LinkedList<Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>> tempGroupToGroupMappingEventBuffer = null;
+                LinkedList<Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>> tempUserToApplicationComponentAndAccessLevelMappingEventBuffer = null;
+                LinkedList<Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>> tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer = null;
+                LinkedList<Tuple<EntityTypeEventBufferItem, Int64>> tempEntityTypeEventBuffer = null;
+                LinkedList<Tuple<EntityEventBufferItem, Int64>> tempEntityEventBuffer = null;
+                LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>> tempUserToEntityMappingEventBuffer = null;
+                LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>> tempGroupToEntityMappingEventBuffer = null;
                 MoveEventsToTemporaryQueues
                 (
                     out tempUserEventBuffer,
@@ -616,14 +638,14 @@ namespace ApplicationAccess.Persistence
                     out tempUserToEntityMappingEventBuffer,
                     out tempGroupToEntityMappingEventBuffer
                 );
-                
+
                 // Do a k-way merge to send everything to the event persister in sequence number order
 
                 // Initialize the heap
                 var nextSequenceNumbers = new MinHeap<SequenceNumberAndEventBuffer>();
                 InitializeHeap
                 (
-                    nextSequenceNumbers, 
+                    nextSequenceNumbers,
                     tempUserEventBuffer,
                     tempGroupEventBuffer,
                     tempUserToGroupMappingEventBuffer,
@@ -643,24 +665,60 @@ namespace ApplicationAccess.Persistence
                     switch (nextSequenceNumber.EventBuffer)
                     {
                         case EventBuffer.User:
-                            ProcessKWayMergeStep<LinkedList<UserEventBufferItem<TUser>>, UserEventBufferItem<TUser>>
+                            ProcessKWayMergeStep<LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>>, UserEventBufferItem<TUser>>
                             (
                                 tempUserEventBuffer,
-                                (eventPersister) => { eventPersister.AddUser(tempUserEventBuffer.First.Value.User, guidProvider.NewGuid(), tempUserEventBuffer.First.Value.OccurredTime); },
-                                (eventPersister) => { eventPersister.RemoveUser(tempUserEventBuffer.First.Value.User, guidProvider.NewGuid(), tempUserEventBuffer.First.Value.OccurredTime); },
+                                (eventPersister) =>
+                                {
+                                    UserEventBufferItem<TUser> bufferFirstItem = tempUserEventBuffer.First.Value.Item1;
+                                    eventPersister.AddUser
+                                    (
+                                        bufferFirstItem.User,
+                                        bufferFirstItem.EventId, 
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
+                                (eventPersister) =>
+                                {
+                                    UserEventBufferItem<TUser> bufferFirstItem = tempUserEventBuffer.First.Value.Item1;
+                                    eventPersister.RemoveUser
+                                    (
+                                        bufferFirstItem.User,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
                                 "user",
-                                EventBuffer.User, 
+                                EventBuffer.User,
                                 nextSequenceNumbers
                             );
                             flushedEventCount++;
                             break;
 
                         case EventBuffer.Group:
-                            ProcessKWayMergeStep<LinkedList<GroupEventBufferItem<TGroup>>, GroupEventBufferItem<TGroup>>
+                            ProcessKWayMergeStep<LinkedList<Tuple<GroupEventBufferItem<TGroup>, Int64>>, GroupEventBufferItem<TGroup>>
                             (
                                 tempGroupEventBuffer,
-                                (eventPersister) => { eventPersister.AddGroup(tempGroupEventBuffer.First.Value.Group, guidProvider.NewGuid(), tempGroupEventBuffer.First.Value.OccurredTime); },
-                                (eventPersister) => { eventPersister.RemoveGroup(tempGroupEventBuffer.First.Value.Group, guidProvider.NewGuid(), tempGroupEventBuffer.First.Value.OccurredTime); },
+                                (eventPersister) => 
+                                {
+                                    GroupEventBufferItem<TGroup> bufferFirstItem = tempGroupEventBuffer.First.Value.Item1;
+                                    eventPersister.AddGroup
+                                    (
+                                        bufferFirstItem.Group,
+                                        bufferFirstItem.EventId, 
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
+                                (eventPersister) =>
+                                {
+                                    GroupEventBufferItem<TGroup> bufferFirstItem = tempGroupEventBuffer.First.Value.Item1;
+                                    eventPersister.RemoveGroup
+                                    (
+                                        bufferFirstItem.Group,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
                                 "group",
                                 EventBuffer.Group,
                                 nextSequenceNumbers
@@ -669,11 +727,31 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         case EventBuffer.UserToGroupMapping:
-                            ProcessKWayMergeStep<LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>>, UserToGroupMappingEventBufferItem<TUser, TGroup>>
+                            ProcessKWayMergeStep<LinkedList<Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>>, UserToGroupMappingEventBufferItem<TUser, TGroup>>
                             (
                                 tempUserToGroupMappingEventBuffer,
-                                (eventPersister) => { eventPersister.AddUserToGroupMapping(tempUserToGroupMappingEventBuffer.First.Value.User, tempUserToGroupMappingEventBuffer.First.Value.Group, guidProvider.NewGuid(), tempUserToGroupMappingEventBuffer.First.Value.OccurredTime); },
-                                (eventPersister) => { eventPersister.RemoveUserToGroupMapping(tempUserToGroupMappingEventBuffer.First.Value.User, tempUserToGroupMappingEventBuffer.First.Value.Group, guidProvider.NewGuid(), tempUserToGroupMappingEventBuffer.First.Value.OccurredTime); },
+                                (eventPersister) => 
+                                {
+                                    UserToGroupMappingEventBufferItem<TUser, TGroup> bufferFirstItem = tempUserToGroupMappingEventBuffer.First.Value.Item1;
+                                    eventPersister.AddUserToGroupMapping
+                                    (
+                                        bufferFirstItem.User,
+                                        bufferFirstItem.Group,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
+                                (eventPersister) =>
+                                {
+                                    UserToGroupMappingEventBufferItem<TUser, TGroup> bufferFirstItem = tempUserToGroupMappingEventBuffer.First.Value.Item1;
+                                    eventPersister.RemoveUserToGroupMapping
+                                    (
+                                        bufferFirstItem.User,
+                                        bufferFirstItem.Group,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
                                 "user to group mapping",
                                 EventBuffer.UserToGroupMapping,
                                 nextSequenceNumbers
@@ -682,11 +760,31 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         case EventBuffer.GroupToGroupMapping:
-                            ProcessKWayMergeStep<LinkedList<GroupToGroupMappingEventBufferItem<TGroup>>, GroupToGroupMappingEventBufferItem<TGroup>>
+                            ProcessKWayMergeStep<LinkedList<Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>>, GroupToGroupMappingEventBufferItem<TGroup>>
                             (
                                 tempGroupToGroupMappingEventBuffer,
-                                (eventPersister) => { eventPersister.AddGroupToGroupMapping(tempGroupToGroupMappingEventBuffer.First.Value.FromGroup, tempGroupToGroupMappingEventBuffer.First.Value.ToGroup, guidProvider.NewGuid(), tempGroupToGroupMappingEventBuffer.First.Value.OccurredTime); },
-                                (eventPersister) => { eventPersister.RemoveGroupToGroupMapping(tempGroupToGroupMappingEventBuffer.First.Value.FromGroup, tempGroupToGroupMappingEventBuffer.First.Value.ToGroup, guidProvider.NewGuid(), tempGroupToGroupMappingEventBuffer.First.Value.OccurredTime); },
+                                (eventPersister) => 
+                                {
+                                    GroupToGroupMappingEventBufferItem<TGroup> bufferFirstItem = tempGroupToGroupMappingEventBuffer.First.Value.Item1;
+                                    eventPersister.AddGroupToGroupMapping
+                                    (
+                                        bufferFirstItem.FromGroup,
+                                        bufferFirstItem.ToGroup,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    ); 
+                                },
+                                (eventPersister) =>
+                                {
+                                    GroupToGroupMappingEventBufferItem<TGroup> bufferFirstItem = tempGroupToGroupMappingEventBuffer.First.Value.Item1;
+                                    eventPersister.RemoveGroupToGroupMapping
+                                    (
+                                        bufferFirstItem.FromGroup,
+                                        bufferFirstItem.ToGroup,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
                                 "group to group mapping",
                                 EventBuffer.GroupToGroupMapping,
                                 nextSequenceNumbers
@@ -695,29 +793,31 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         case EventBuffer.UserToApplicationComponentAndAccessLevelMapping:
-                            ProcessKWayMergeStep<LinkedList<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>, UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>
+                            ProcessKWayMergeStep<LinkedList<Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>>, UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>
                             (
                                 tempUserToApplicationComponentAndAccessLevelMappingEventBuffer,
-                                (eventPersister) => 
-                                { 
+                                (eventPersister) =>
+                                {
+                                    UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess> bufferFirstItem = tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item1;
                                     eventPersister.AddUserToApplicationComponentAndAccessLevelMapping
                                     (
-                                        tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User,
-                                        tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent,
-                                        tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel,
-                                        guidProvider.NewGuid(),
-                                        tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime
-                                    ); 
+                                        bufferFirstItem.User,
+                                        bufferFirstItem.ApplicationComponent,
+                                        bufferFirstItem.AccessLevel,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
                                 },
                                 (eventPersister) =>
                                 {
+                                    UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess> bufferFirstItem = tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item1;
                                     eventPersister.RemoveUserToApplicationComponentAndAccessLevelMapping
                                     (
-                                        tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.User,
-                                        tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent,
-                                        tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel,
-                                        guidProvider.NewGuid(),
-                                        tempUserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime
+                                        bufferFirstItem.User,
+                                        bufferFirstItem.ApplicationComponent,
+                                        bufferFirstItem.AccessLevel,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
                                     );
                                 },
                                 "user to application component and access level mapping",
@@ -728,29 +828,31 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         case EventBuffer.GroupToApplicationComponentAndAccessLevelMapping:
-                            ProcessKWayMergeStep<LinkedList<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>, GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>
+                            ProcessKWayMergeStep<LinkedList<Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>>, GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>
                             (
                                 tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer,
                                 (eventPersister) =>
                                 {
+                                    GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> bufferFirstItem = tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item1;
                                     eventPersister.AddGroupToApplicationComponentAndAccessLevelMapping
                                     (
-                                        tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group,
-                                        tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent,
-                                        tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel,
-                                        guidProvider.NewGuid(),
-                                        tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime
+                                        bufferFirstItem.Group,
+                                        bufferFirstItem.ApplicationComponent,
+                                        bufferFirstItem.AccessLevel,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
                                     );
                                 },
                                 (eventPersister) =>
                                 {
+                                    GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> bufferFirstItem = tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item1;
                                     eventPersister.RemoveGroupToApplicationComponentAndAccessLevelMapping
                                     (
-                                        tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Group,
-                                        tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.ApplicationComponent,
-                                        tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.AccessLevel,
-                                        guidProvider.NewGuid(),
-                                        tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.OccurredTime
+                                        bufferFirstItem.Group,
+                                        bufferFirstItem.ApplicationComponent,
+                                        bufferFirstItem.AccessLevel,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
                                     );
                                 },
                                 "group to application component and access level mapping",
@@ -761,11 +863,29 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         case EventBuffer.EntityType:
-                            ProcessKWayMergeStep<LinkedList<EntityTypeEventBufferItem>, EntityTypeEventBufferItem>
+                            ProcessKWayMergeStep<LinkedList<Tuple<EntityTypeEventBufferItem, Int64>>, EntityTypeEventBufferItem>
                             (
                                 tempEntityTypeEventBuffer,
-                                (eventPersister) => { eventPersister.AddEntityType(tempEntityTypeEventBuffer.First.Value.EntityType, guidProvider.NewGuid(), tempEntityTypeEventBuffer.First.Value.OccurredTime); },
-                                (eventPersister) => { eventPersister.RemoveEntityType(tempEntityTypeEventBuffer.First.Value.EntityType, guidProvider.NewGuid(), tempEntityTypeEventBuffer.First.Value.OccurredTime); },
+                                (eventPersister) =>
+                                {
+                                    EntityTypeEventBufferItem bufferFirstItem = tempEntityTypeEventBuffer.First.Value.Item1;
+                                    eventPersister.AddEntityType
+                                    (
+                                        bufferFirstItem.EntityType,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    ); 
+                                },
+                                (eventPersister) =>
+                                {
+                                    EntityTypeEventBufferItem bufferFirstItem = tempEntityTypeEventBuffer.First.Value.Item1;
+                                    eventPersister.RemoveEntityType
+                                    (
+                                        bufferFirstItem.EntityType,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
                                 "entity type",
                                 EventBuffer.EntityType,
                                 nextSequenceNumbers
@@ -774,11 +894,31 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         case EventBuffer.Entity:
-                            ProcessKWayMergeStep<LinkedList<EntityEventBufferItem>, EntityEventBufferItem>
+                            ProcessKWayMergeStep<LinkedList<Tuple<EntityEventBufferItem, Int64>>, EntityEventBufferItem>
                             (
                                 tempEntityEventBuffer,
-                                (eventPersister) => { eventPersister.AddEntity(tempEntityEventBuffer.First.Value.EntityType, tempEntityEventBuffer.First.Value.Entity, guidProvider.NewGuid(), tempEntityEventBuffer.First.Value.OccurredTime); },
-                                (eventPersister) => { eventPersister.RemoveEntity(tempEntityEventBuffer.First.Value.EntityType, tempEntityEventBuffer.First.Value.Entity, guidProvider.NewGuid(), tempEntityEventBuffer.First.Value.OccurredTime); },
+                                (eventPersister) => 
+                                {
+                                    EntityEventBufferItem bufferFirstItem = tempEntityEventBuffer.First.Value.Item1;
+                                    eventPersister.AddEntity
+                                    (
+                                        bufferFirstItem.EntityType,
+                                        bufferFirstItem.Entity,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    ); 
+                                },
+                                (eventPersister) =>
+                                {
+                                    EntityEventBufferItem bufferFirstItem = tempEntityEventBuffer.First.Value.Item1;
+                                    eventPersister.RemoveEntity
+                                    (
+                                        bufferFirstItem.EntityType,
+                                        bufferFirstItem.Entity,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
+                                },
                                 "entity",
                                 EventBuffer.Entity,
                                 nextSequenceNumbers
@@ -787,29 +927,31 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         case EventBuffer.UserToEntityMapping:
-                            ProcessKWayMergeStep<LinkedList<UserToEntityMappingEventBufferItem<TUser>>, UserToEntityMappingEventBufferItem<TUser>>
+                            ProcessKWayMergeStep<LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>>, UserToEntityMappingEventBufferItem<TUser>>
                             (
                                 tempUserToEntityMappingEventBuffer,
-                                (eventPersister) => 
+                                (eventPersister) =>
                                 {
+                                    UserToEntityMappingEventBufferItem<TUser> bufferFirstItem = tempUserToEntityMappingEventBuffer.First.Value.Item1;
                                     eventPersister.AddUserToEntityMapping
                                     (
-                                        tempUserToEntityMappingEventBuffer.First.Value.User,
-                                        tempUserToEntityMappingEventBuffer.First.Value.EntityType, 
-                                        tempUserToEntityMappingEventBuffer.First.Value.Entity,
-                                        guidProvider.NewGuid(),
-                                        tempUserToEntityMappingEventBuffer.First.Value.OccurredTime
-                                    ); 
+                                        bufferFirstItem.User,
+                                        bufferFirstItem.EntityType,
+                                        bufferFirstItem.Entity,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
+                                    );
                                 },
                                 (eventPersister) =>
                                 {
+                                    UserToEntityMappingEventBufferItem<TUser> bufferFirstItem = tempUserToEntityMappingEventBuffer.First.Value.Item1;
                                     eventPersister.RemoveUserToEntityMapping
                                     (
-                                        tempUserToEntityMappingEventBuffer.First.Value.User,
-                                        tempUserToEntityMappingEventBuffer.First.Value.EntityType,
-                                        tempUserToEntityMappingEventBuffer.First.Value.Entity,
-                                        guidProvider.NewGuid(),
-                                        tempUserToEntityMappingEventBuffer.First.Value.OccurredTime
+                                        bufferFirstItem.User,
+                                        bufferFirstItem.EntityType,
+                                        bufferFirstItem.Entity,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
                                     );
                                 },
                                 "user to entity mapping",
@@ -820,30 +962,32 @@ namespace ApplicationAccess.Persistence
                             break;
 
                         case EventBuffer.GroupToEntityMapping:
-                            ProcessKWayMergeStep<LinkedList<GroupToEntityMappingEventBufferItem<TGroup>>, GroupToEntityMappingEventBufferItem<TGroup>>
+                            ProcessKWayMergeStep<LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>>, GroupToEntityMappingEventBufferItem<TGroup>>
                             (
                                 tempGroupToEntityMappingEventBuffer,
                                 (eventPersister) =>
                                 {
+                                    GroupToEntityMappingEventBufferItem<TGroup> bufferFirstItem = tempGroupToEntityMappingEventBuffer.First.Value.Item1;
                                     eventPersister.AddGroupToEntityMapping
                                     (
-                                        tempGroupToEntityMappingEventBuffer.First.Value.Group,
-                                        tempGroupToEntityMappingEventBuffer.First.Value.EntityType,
-                                        tempGroupToEntityMappingEventBuffer.First.Value.Entity,
-                                        guidProvider.NewGuid(),
-                                        tempGroupToEntityMappingEventBuffer.First.Value.OccurredTime
+                                        bufferFirstItem.Group,
+                                        bufferFirstItem.EntityType,
+                                        bufferFirstItem.Entity,
+                                        bufferFirstItem.EventId,
+                                        bufferFirstItem.OccurredTime
                                     );
                                 },
                                 (eventPersister) =>
                                 {
+                                    GroupToEntityMappingEventBufferItem<TGroup> bufferFirstItem = tempGroupToEntityMappingEventBuffer.First.Value.Item1;
                                     eventPersister.RemoveGroupToEntityMapping
                                     (
-                                        tempGroupToEntityMappingEventBuffer.First.Value.Group,
-                                        tempGroupToEntityMappingEventBuffer.First.Value.EntityType,
-                                        tempGroupToEntityMappingEventBuffer.First.Value.Entity,
-                                        guidProvider.NewGuid(),
-                                        tempGroupToEntityMappingEventBuffer.First.Value.OccurredTime
-                                    );
+                                        bufferFirstItem.Group,
+                                        bufferFirstItem.EntityType,
+                                        bufferFirstItem.Entity,
+                                        bufferFirstItem.EventId, 
+                                        bufferFirstItem.OccurredTime
+                                    ); ;
                                 },
                                 "group to entity mapping",
                                 EventBuffer.GroupToEntityMapping,
@@ -887,96 +1031,96 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         protected void MoveEventsToTemporaryQueues
         (
-            out LinkedList<UserEventBufferItem<TUser>> tempUserEventBuffer,
-            out LinkedList<GroupEventBufferItem<TGroup>> tempGroupEventBuffer,
-            out LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>> tempUserToGroupMappingEventBuffer,
-            out LinkedList<GroupToGroupMappingEventBufferItem<TGroup>> tempGroupToGroupMappingEventBuffer ,
-            out LinkedList<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>> tempUserToApplicationComponentAndAccessLevelMappingEventBuffer,
-            out LinkedList<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>> tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer,
-            out LinkedList<EntityTypeEventBufferItem> tempEntityTypeEventBuffer,
-            out LinkedList<EntityEventBufferItem> tempEntityEventBuffer,
-            out LinkedList<UserToEntityMappingEventBufferItem<TUser>> tempUserToEntityMappingEventBuffer,
-            out LinkedList<GroupToEntityMappingEventBufferItem<TGroup>> tempGroupToEntityMappingEventBuffer
+            out LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>> tempUserEventBuffer,
+            out LinkedList<Tuple<GroupEventBufferItem<TGroup>, Int64>> tempGroupEventBuffer,
+            out LinkedList<Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>> tempUserToGroupMappingEventBuffer,
+            out LinkedList<Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>> tempGroupToGroupMappingEventBuffer,
+            out LinkedList<Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>> tempUserToApplicationComponentAndAccessLevelMappingEventBuffer,
+            out LinkedList<Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>> tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer,
+            out LinkedList<Tuple<EntityTypeEventBufferItem, Int64>> tempEntityTypeEventBuffer,
+            out LinkedList<Tuple<EntityEventBufferItem, Int64>> tempEntityEventBuffer,
+            out LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>> tempUserToEntityMappingEventBuffer,
+            out LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>> tempGroupToEntityMappingEventBuffer
         )
         {
             Int64 maxSequenceNumber = lastEventSequenceNumber;
-            MoveEventsToTemporaryQueue<LinkedList<UserEventBufferItem<TUser>>, UserEventBufferItem<TUser>>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>>, UserEventBufferItem<TUser>>
             (
-                ref userEventBuffer, 
-                out tempUserEventBuffer, 
-                userEventBufferLock, 
-                maxSequenceNumber, 
+                ref userEventBuffer,
+                out tempUserEventBuffer,
+                userEventBufferLock,
+                maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.UserEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<GroupEventBufferItem<TGroup>>, GroupEventBufferItem<TGroup>>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<GroupEventBufferItem<TGroup>, Int64>>, GroupEventBufferItem<TGroup>>
             (
-                ref groupEventBuffer, 
-                out tempGroupEventBuffer, 
-                groupEventBufferLock, 
+                ref groupEventBuffer,
+                out tempGroupEventBuffer,
+                groupEventBufferLock,
                 maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.GroupEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>>, UserToGroupMappingEventBufferItem<TUser, TGroup>>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>>, UserToGroupMappingEventBufferItem<TUser, TGroup>>
             (
-                ref userToGroupMappingEventBuffer, 
-                out tempUserToGroupMappingEventBuffer, 
+                ref userToGroupMappingEventBuffer,
+                out tempUserToGroupMappingEventBuffer,
                 userToGroupMappingEventBufferLock,
-                maxSequenceNumber, 
+                maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<GroupToGroupMappingEventBufferItem<TGroup>>, GroupToGroupMappingEventBufferItem<TGroup>>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>>, GroupToGroupMappingEventBufferItem<TGroup>>
             (
-                ref groupToGroupMappingEventBuffer, 
-                out tempGroupToGroupMappingEventBuffer, 
+                ref groupToGroupMappingEventBuffer,
+                out tempGroupToGroupMappingEventBuffer,
                 groupToGroupMappingEventBufferLock,
                 maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>, UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>>, UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>
             (
-                ref userToApplicationComponentAndAccessLevelMappingEventBuffer, 
-                out tempUserToApplicationComponentAndAccessLevelMappingEventBuffer, 
+                ref userToApplicationComponentAndAccessLevelMappingEventBuffer,
+                out tempUserToApplicationComponentAndAccessLevelMappingEventBuffer,
                 userToApplicationComponentAndAccessLevelMappingEventBufferLock,
-                maxSequenceNumber, 
+                maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>, GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>>, GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>
             (
-                ref groupToApplicationComponentAndAccessLevelMappingEventBuffer, 
+                ref groupToApplicationComponentAndAccessLevelMappingEventBuffer,
                 out tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer,
-                groupToApplicationComponentAndAccessLevelMappingEventBufferLock, 
+                groupToApplicationComponentAndAccessLevelMappingEventBufferLock,
                 maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<EntityTypeEventBufferItem>, EntityTypeEventBufferItem>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<EntityTypeEventBufferItem, Int64>>, EntityTypeEventBufferItem>
             (
-                ref entityTypeEventBuffer, 
-                out tempEntityTypeEventBuffer, 
+                ref entityTypeEventBuffer,
+                out tempEntityTypeEventBuffer,
                 entityTypeEventBufferLock,
-                maxSequenceNumber, 
+                maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.EntityTypeEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<EntityEventBufferItem>, EntityEventBufferItem>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<EntityEventBufferItem, Int64>>, EntityEventBufferItem>
             (
-                ref entityEventBuffer, 
-                out tempEntityEventBuffer, 
-                entityEventBufferLock, 
+                ref entityEventBuffer,
+                out tempEntityEventBuffer,
+                entityEventBufferLock,
                 maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.EntityEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<UserToEntityMappingEventBufferItem<TUser>>, UserToEntityMappingEventBufferItem<TUser>>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>>, UserToEntityMappingEventBufferItem<TUser>>
             (
                 ref userToEntityMappingEventBuffer,
-                out tempUserToEntityMappingEventBuffer, 
+                out tempUserToEntityMappingEventBuffer,
                 userToEntityMappingEventBufferLock,
                 maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = eventBufferItemCount; }
             );
-            MoveEventsToTemporaryQueue<LinkedList<GroupToEntityMappingEventBufferItem<TGroup>>, GroupToEntityMappingEventBufferItem<TGroup>>
+            MoveEventsToTemporaryQueue<LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>>, GroupToEntityMappingEventBufferItem<TGroup>>
             (
-                ref groupToEntityMappingEventBuffer, 
-                out tempGroupToEntityMappingEventBuffer, 
-                groupToEntityMappingEventBufferLock, 
+                ref groupToEntityMappingEventBuffer,
+                out tempGroupToEntityMappingEventBuffer,
+                groupToEntityMappingEventBufferLock,
                 maxSequenceNumber,
                 (Int32 eventBufferItemCount) => { bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = eventBufferItemCount; }
             );
@@ -988,28 +1132,28 @@ namespace ApplicationAccess.Persistence
         protected void InitializeHeap
         (
             MinHeap<SequenceNumberAndEventBuffer> heap,
-            LinkedList<UserEventBufferItem<TUser>> tempUserEventBuffer,
-            LinkedList<GroupEventBufferItem<TGroup>> tempGroupEventBuffer,
-            LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>> tempUserToGroupMappingEventBuffer,
-            LinkedList<GroupToGroupMappingEventBufferItem<TGroup>> tempGroupToGroupMappingEventBuffer,
-            LinkedList<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>> tempUserToApplicationComponentAndAccessLevelMappingEventBuffer,
-            LinkedList<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>> tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer,
-            LinkedList<EntityTypeEventBufferItem> tempEntityTypeEventBuffer,
-            LinkedList<EntityEventBufferItem> tempEntityEventBuffer,
-            LinkedList<UserToEntityMappingEventBufferItem<TUser>> tempUserToEntityMappingEventBuffer,
-            LinkedList<GroupToEntityMappingEventBufferItem<TGroup>> tempGroupToEntityMappingEventBuffer
+            LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>> tempUserEventBuffer,
+            LinkedList<Tuple<GroupEventBufferItem<TGroup>, Int64>> tempGroupEventBuffer,
+            LinkedList<Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>> tempUserToGroupMappingEventBuffer,
+            LinkedList<Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>> tempGroupToGroupMappingEventBuffer,
+            LinkedList<Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>> tempUserToApplicationComponentAndAccessLevelMappingEventBuffer,
+            LinkedList<Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>> tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer,
+            LinkedList<Tuple<EntityTypeEventBufferItem, Int64>> tempEntityTypeEventBuffer,
+            LinkedList<Tuple<EntityEventBufferItem, Int64>> tempEntityEventBuffer,
+            LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>> tempUserToEntityMappingEventBuffer,
+            LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>> tempGroupToEntityMappingEventBuffer
         )
         {
-            AddBufferedEventToHeap<LinkedList<UserEventBufferItem<TUser>>, UserEventBufferItem<TUser>>(tempUserEventBuffer, heap, EventBuffer.User);
-            AddBufferedEventToHeap<LinkedList<GroupEventBufferItem<TGroup>>, GroupEventBufferItem<TGroup>>(tempGroupEventBuffer, heap, EventBuffer.Group);
-            AddBufferedEventToHeap<LinkedList<UserToGroupMappingEventBufferItem<TUser, TGroup>>, UserToGroupMappingEventBufferItem<TUser, TGroup>>(tempUserToGroupMappingEventBuffer, heap, EventBuffer.UserToGroupMapping);
-            AddBufferedEventToHeap<LinkedList<GroupToGroupMappingEventBufferItem<TGroup>>, GroupToGroupMappingEventBufferItem<TGroup>>(tempGroupToGroupMappingEventBuffer, heap, EventBuffer.GroupToGroupMapping);
-            AddBufferedEventToHeap<LinkedList<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>, UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>(tempUserToApplicationComponentAndAccessLevelMappingEventBuffer, heap, EventBuffer.UserToApplicationComponentAndAccessLevelMapping);
-            AddBufferedEventToHeap<LinkedList<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>, GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>(tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer, heap, EventBuffer.GroupToApplicationComponentAndAccessLevelMapping);
-            AddBufferedEventToHeap<LinkedList<EntityTypeEventBufferItem>, EntityTypeEventBufferItem>(tempEntityTypeEventBuffer, heap, EventBuffer.EntityType);
-            AddBufferedEventToHeap<LinkedList<EntityEventBufferItem>, EntityEventBufferItem>(tempEntityEventBuffer, heap, EventBuffer.Entity);
-            AddBufferedEventToHeap<LinkedList<UserToEntityMappingEventBufferItem<TUser>>, UserToEntityMappingEventBufferItem<TUser>>(tempUserToEntityMappingEventBuffer, heap, EventBuffer.UserToEntityMapping);
-            AddBufferedEventToHeap<LinkedList<GroupToEntityMappingEventBufferItem<TGroup>>, GroupToEntityMappingEventBufferItem<TGroup>>(tempGroupToEntityMappingEventBuffer, heap, EventBuffer.GroupToEntityMapping);
+            AddBufferedEventToHeap<LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>>, UserEventBufferItem<TUser>>(tempUserEventBuffer, heap, EventBuffer.User);
+            AddBufferedEventToHeap<LinkedList<Tuple<GroupEventBufferItem<TGroup>, Int64>>, GroupEventBufferItem<TGroup>>(tempGroupEventBuffer, heap, EventBuffer.Group);
+            AddBufferedEventToHeap<LinkedList<Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>>, UserToGroupMappingEventBufferItem<TUser, TGroup>>(tempUserToGroupMappingEventBuffer, heap, EventBuffer.UserToGroupMapping);
+            AddBufferedEventToHeap<LinkedList<Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>>, GroupToGroupMappingEventBufferItem<TGroup>>(tempGroupToGroupMappingEventBuffer, heap, EventBuffer.GroupToGroupMapping);
+            AddBufferedEventToHeap<LinkedList<Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>>, UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>>(tempUserToApplicationComponentAndAccessLevelMappingEventBuffer, heap, EventBuffer.UserToApplicationComponentAndAccessLevelMapping);
+            AddBufferedEventToHeap<LinkedList<Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>>, GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>>(tempGroupToApplicationComponentAndAccessLevelMappingEventBuffer, heap, EventBuffer.GroupToApplicationComponentAndAccessLevelMapping);
+            AddBufferedEventToHeap<LinkedList<Tuple<EntityTypeEventBufferItem, Int64>>, EntityTypeEventBufferItem>(tempEntityTypeEventBuffer, heap, EventBuffer.EntityType);
+            AddBufferedEventToHeap<LinkedList<Tuple<EntityEventBufferItem, Int64>>, EntityEventBufferItem>(tempEntityEventBuffer, heap, EventBuffer.Entity);
+            AddBufferedEventToHeap<LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>>, UserToEntityMappingEventBufferItem<TUser>>(tempUserToEntityMappingEventBuffer, heap, EventBuffer.UserToEntityMapping);
+            AddBufferedEventToHeap<LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>>, GroupToEntityMappingEventBufferItem<TGroup>>(tempGroupToEntityMappingEventBuffer, heap, EventBuffer.GroupToEntityMapping);
         }
 
         /// <summary>
@@ -1029,17 +1173,17 @@ namespace ApplicationAccess.Persistence
             Action<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>> addAction,
             Action<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>> removeAction,
             String eventName,
-            EventBuffer eventBufferEnum, 
+            EventBuffer eventBufferEnum,
             MinHeap<SequenceNumberAndEventBuffer> nextSequenceNumbers
-        ) 
-            where TEventBuffer: LinkedList<TEventBufferItemType>
-            where TEventBufferItemType: EventBufferItemBase
+        )
+            where TEventBuffer : LinkedList<Tuple<TEventBufferItemType, Int64>>
+            where TEventBufferItemType : TemporalEventBufferItemBase
         {
-            if (temporaryEventBuffer.First.Value.EventAction == EventAction.Add)
+            if (temporaryEventBuffer.First.Value.Item1.EventAction == EventAction.Add)
             {
                 InvokeEventPersisterAction(addAction, $"Failed to persist 'add {eventName}' event.");
             }
-            else if (temporaryEventBuffer.First.Value.EventAction == EventAction.Remove)
+            else if (temporaryEventBuffer.First.Value.Item1.EventAction == EventAction.Remove)
             {
                 InvokeEventPersisterAction(removeAction, $"Failed to persist 'remove {eventName}' event.");
             }
@@ -1056,12 +1200,12 @@ namespace ApplicationAccess.Persistence
         /// <param name="nextSequenceNumbers">The min-heap to add the event to.</param>
         /// <param name="eventBufferEnum">The enum representing the event buffer.</param>
         protected void AddBufferedEventToHeap<TEventBuffer, TEventBufferItemType>(TEventBuffer eventBuffer, MinHeap<SequenceNumberAndEventBuffer> nextSequenceNumbers, EventBuffer eventBufferEnum)
-            where TEventBuffer : LinkedList<TEventBufferItemType>
-            where TEventBufferItemType : EventBufferItemBase
+            where TEventBuffer : LinkedList<Tuple<TEventBufferItemType, Int64>>
+            where TEventBufferItemType : TemporalEventBufferItemBase
         {
             if (eventBuffer.Count > 0)
             {
-                nextSequenceNumbers.Insert(new SequenceNumberAndEventBuffer(eventBuffer.First.Value.SequenceNumber, eventBufferEnum));
+                nextSequenceNumbers.Insert(new SequenceNumberAndEventBuffer(eventBuffer.First.Value.Item2, eventBufferEnum));
             }
         }
 
@@ -1077,19 +1221,19 @@ namespace ApplicationAccess.Persistence
         /// <param name="bufferFlushStrategyEventCountSetAction">An action which sets the relevant 'EventBufferItemCount' property on the 'bufferFlushStrategy' member.</param>
         protected virtual void MoveEventsToTemporaryQueue<TEventBuffer, TEventBufferItemType>
         (
-            ref TEventBuffer eventBuffer, 
-            out TEventBuffer temporaryEventBuffer, 
-            Object eventBufferLockObject, 
-            Int64 maxSequenceNumber, 
+            ref TEventBuffer eventBuffer,
+            out TEventBuffer temporaryEventBuffer,
+            Object eventBufferLockObject,
+            Int64 maxSequenceNumber,
             Action<Int32> bufferFlushStrategyEventCountSetAction
-        ) 
-            where TEventBuffer: LinkedList<TEventBufferItemType>, new() 
-            where TEventBufferItemType: EventBufferItemBase
+        )
+            where TEventBuffer : LinkedList<Tuple<TEventBufferItemType, Int64>>, new()
+            where TEventBufferItemType : TemporalEventBufferItemBase
         {
-            lock(eventBufferLockObject)
+            lock (eventBufferLockObject)
             {
                 // If the sequence number of the first item in the event buffer is greater than parameter 'maxSequenceNumber', it means that all events were buffered after the current flush process started, and hence none of them need to be processed
-                if (eventBuffer.Count > 0 && eventBuffer.First.Value.SequenceNumber > maxSequenceNumber)
+                if (eventBuffer.Count > 0 && eventBuffer.First.Value.Item2 > maxSequenceNumber)
                 {
                     temporaryEventBuffer = new TEventBuffer();
                 }
@@ -1100,7 +1244,7 @@ namespace ApplicationAccess.Persistence
                     eventBuffer = new TEventBuffer();
                     // Move any events queued since 'maxSequenceNumber' was captured back to the front of the main queue
                     //   This will prevent any events from being processed before an event they depend on (e.g. if a 'user add' event and an 'user to entity mapping add' event both occur after the flush has started, and after the 'userEventBuffer' has been processed, but before the 'userToEntityMappingEventBuffer' has been processed)
-                    while (temporaryEventBuffer.Count > 0 && temporaryEventBuffer.Last.Value.SequenceNumber > maxSequenceNumber)
+                    while (temporaryEventBuffer.Count > 0 && temporaryEventBuffer.Last.Value.Item2 > maxSequenceNumber)
                     {
                         eventBuffer.AddFirst(temporaryEventBuffer.Last.Value);
                         temporaryEventBuffer.RemoveLast();
@@ -1183,8 +1327,8 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         protected enum EventBuffer
         {
-            User, 
-            Group, 
+            User,
+            Group,
             UserToGroupMapping,
             GroupToGroupMapping,
             UserToApplicationComponentAndAccessLevelMapping,
@@ -1235,8 +1379,6 @@ namespace ApplicationAccess.Persistence
                 return eventSequenceNumber.CompareTo(other.eventSequenceNumber);
             }
         }
-
-        #pragma warning restore 1591
 
         #endregion
     }

@@ -19,7 +19,7 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Container class for buffered entity events.
+    /// Container class for a buffered/cached entity event.
     /// </summary>
     public class EntityEventBufferItem : EntityTypeEventBufferItem
     {
@@ -37,13 +37,13 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.EntityTypeEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="entityType">The type of the entity the event occured for.</param>
         /// <param name="entity">The entity the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public EntityEventBufferItem(EventAction eventAction, String entityType, String entity, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, entityType, occurredTime, sequenceNumber)
+        public EntityEventBufferItem(Guid eventId, EventAction eventAction, String entityType, String entity, DateTime occurredTime)
+            : base(eventId, eventAction, entityType, occurredTime)
         {
             this.entity = entity;
         }

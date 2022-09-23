@@ -18,10 +18,10 @@ using System;
 
 namespace ApplicationAccess.Persistence
 {
-    /// <summary>
-    /// Container class for buffered user to group mapping events.
+    /// <summary> 
+    /// Container class for a buffered/cached user to group mapping event.
     /// </summary>
-    public class UserToGroupMappingEventBufferItem<TUser, TGroup> : EventBufferItemBase
+    public class UserToGroupMappingEventBufferItem<TUser, TGroup> : TemporalEventBufferItemBase
     {
         /// <summary>The user in the mapping.</summary>
         protected TUser user;
@@ -47,13 +47,13 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.UserToGroupMappingEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="user">The user in the mapping.</param>
         /// <param name="group">The group in the mapping.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public UserToGroupMappingEventBufferItem(EventAction eventAction, TUser user, TGroup group, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, occurredTime, sequenceNumber)
+        public UserToGroupMappingEventBufferItem(Guid eventId, EventAction eventAction, TUser user, TGroup group, DateTime occurredTime)
+            : base(eventId, eventAction, occurredTime)
         {
             this.user = user;
             this.group = group;

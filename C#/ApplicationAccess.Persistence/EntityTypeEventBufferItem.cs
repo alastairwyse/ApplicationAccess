@@ -19,9 +19,9 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Container class for buffered entity type events.
+    /// Container class for a buffered/cached entity type event.
     /// </summary>
-    public class EntityTypeEventBufferItem : EventBufferItemBase
+    public class EntityTypeEventBufferItem : TemporalEventBufferItemBase
     {
         /// <summary>The entity type the event occured for.</summary>
         protected String entityType;
@@ -37,12 +37,12 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.EntityTypeEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="entityType">The entity type the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public EntityTypeEventBufferItem(EventAction eventAction, String entityType, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, occurredTime, sequenceNumber)
+        public EntityTypeEventBufferItem(Guid eventId, EventAction eventAction, String entityType, DateTime occurredTime)
+            : base(eventId, eventAction, occurredTime)
         {
             this.entityType = entityType;
         }

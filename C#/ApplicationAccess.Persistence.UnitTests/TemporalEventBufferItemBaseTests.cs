@@ -20,33 +20,21 @@ using NUnit.Framework;
 namespace ApplicationAccess.Persistence.UnitTests
 {
     /// <summary>
-    /// Unit tests for the EventBufferItemBase class.
+    /// Unit tests for the TemporalEventBufferItemBase class.
     /// </summary>
     /// <remarks>Tests are performed via derived (non-abstract) class UserEventBufferItem.</remarks>
-    public class EventBufferItemBaseTests
+    public class TemporalEventBufferItemBaseTests
     {
         [Test]
         public void Constructor_OccurredTimeNotUtc()
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                var testUserEventBufferItem = new UserEventBufferItem<String>(EventAction.Add, "user1", new DateTime(2021, 11, 3), 1);
+                var testUserEventBufferItem = new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "user1", new DateTime(2021, 11, 3));
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'occurredTime' must be based in UTC (i.e. 'Kind' property must be 'Utc')."));
             Assert.AreEqual("occurredTime", e.ParamName);
-        }
-
-        [Test]
-        public void Constructor_SequenceNumberLessThanZero()
-        {
-            var e = Assert.Throws<ArgumentException>(delegate
-            {
-                var testUserEventBufferItem = new UserEventBufferItem<String>(EventAction.Add, "user1", DateTime.UtcNow, -1);
-            });
-
-            Assert.That(e.Message, Does.StartWith("Parameter 'sequenceNumber' must be greater than or equal to 0."));
-            Assert.AreEqual("sequenceNumber", e.ParamName);
         }
     }
 }

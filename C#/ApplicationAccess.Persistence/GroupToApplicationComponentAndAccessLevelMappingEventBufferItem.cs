@@ -19,9 +19,9 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Container class for buffered group to application component and access level mapping events.
+    /// Container class for a buffered/cached group to application component and access level mapping event.
     /// </summary>
-    public class GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> : EventBufferItemBase
+    public class GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> : TemporalEventBufferItemBase
     {
         /// <summary>The group in the mapping.</summary>
         protected TGroup group;
@@ -57,14 +57,14 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.GroupToApplicationComponentAndAccessLevelMappingEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="group">The group in the mapping.</param>
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The access level in the mapping.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public GroupToApplicationComponentAndAccessLevelMappingEventBufferItem(EventAction eventAction, TGroup group, TComponent applicationComponent, TAccess accessLevel, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, occurredTime, sequenceNumber)
+        public GroupToApplicationComponentAndAccessLevelMappingEventBufferItem(Guid eventId, EventAction eventAction, TGroup group, TComponent applicationComponent, TAccess accessLevel, DateTime occurredTime)
+            : base(eventId, eventAction, occurredTime)
         {
             this.group = group;
             this.applicationComponent = applicationComponent;

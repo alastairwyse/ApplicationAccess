@@ -19,7 +19,7 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Container class for buffered user to entity mapping events.
+    /// Container class for a buffered/cached user to entity mapping event.
     /// </summary>
     public class UserToEntityMappingEventBufferItem<TUser> : EntityEventBufferItem
     {
@@ -37,14 +37,14 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.UserToEntityMappingEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="user">The user the event occured for.</param>
         /// <param name="entityType">The type of the entity the event occured for.</param>
         /// <param name="entity">The entity the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public UserToEntityMappingEventBufferItem(EventAction eventAction, TUser user, String entityType, String entity, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, entityType, entity, occurredTime, sequenceNumber)
+        public UserToEntityMappingEventBufferItem(Guid eventId, EventAction eventAction, TUser user, String entityType, String entity, DateTime occurredTime)
+            : base(eventId, eventAction, entityType, entity, occurredTime)
         {
             this.user = user;
         }

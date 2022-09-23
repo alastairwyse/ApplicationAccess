@@ -687,6 +687,5 @@ namespace ApplicationAccess.Persistence.Metrics
             }
             metricLogger.End(beginId, new GroupToEntityMappingRemoveTime());
         }
-
     }
 }

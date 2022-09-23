@@ -19,7 +19,7 @@ using System;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Container class for buffered group to entity mapping events.
+    /// Container class for a buffered/cached group to entity mapping event.
     /// </summary>
     public class GroupToEntityMappingEventBufferItem<TGroup> : EntityEventBufferItem
     {
@@ -37,14 +37,14 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.GroupToEntityMappingEventBufferItem class.
         /// </summary>
+        /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
         /// <param name="group">The group the event occured for.</param>
         /// <param name="entityType">The type of the entity the event occured for.</param>
         /// <param name="entity">The entity the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        /// <param name="sequenceNumber">The ordinal sequence number of the event.</param>
-        public GroupToEntityMappingEventBufferItem(EventAction eventAction, TGroup group, String entityType, String entity, DateTime occurredTime, Int64 sequenceNumber)
-            : base(eventAction, entityType, entity, occurredTime, sequenceNumber)
+        public GroupToEntityMappingEventBufferItem(Guid eventId, EventAction eventAction, TGroup group, String entityType, String entity, DateTime occurredTime)
+            : base(eventId, eventAction, entityType, entity, occurredTime)
         {
             this.group = group;
         }

@@ -21,7 +21,7 @@ using System.Text;
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Caches events written to <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/>, and defines methods to return the events in order of occurrence.
+    /// Caches events written to an <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/>, and defines methods to return the events in order of occurrence.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
@@ -29,6 +29,8 @@ namespace ApplicationAccess.Persistence
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public interface IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
     {
+        // TODO: Move XML comments to InterfaceDocumentationComments.xml
+
         /// <summary>
         /// Retrieves all events which occurred since the event with the specified id.
         /// </summary>
