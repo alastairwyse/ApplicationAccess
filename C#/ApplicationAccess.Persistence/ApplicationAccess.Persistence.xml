@@ -16,6 +16,18 @@
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.cachedEventCount">
             <summary>The number of events to retain on the cache.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.cachedEvents">
+            <summary>Holds all cached events, with the <see cref="P:System.Collections.Generic.LinkedList`1.Last">Last</see> property holding the most recently cached.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.cachedEventsGuidIndex">
+            <summary>Holds the <see cref="T:System.Collections.Generic.LinkedListNode`1"/> wrapping each cached event, indexed by its <see cref="P:ApplicationAccess.Persistence.EventBufferItemBase.EventId">EventId</see> property.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.guidProvider">
+            <summary>The provider to use for random Guids.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.dateTimeProvider">
+            <summary>The provider to use for the current date and time.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
@@ -24,6 +36,15 @@
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCache class.
             </summary>
             <param name="cachedEventCount">The number of events to retain on the cache.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.#ctor(System.Int32,ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCache class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+            <param name="guidProvider">The provider to use for random Guids.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.AddUser(`0)">
             <summary>
@@ -185,6 +206,17 @@
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
             <!-- Failed to insert some or all of included XML --><include file="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)&quot;]/*" />
         </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.CacheEvent(ApplicationAccess.Persistence.TemporalEventBufferItemBase)">
+            <summary>
+            Adds the specified event to the cache structures.
+            </summary>
+            <param name="newEvent">The event to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.TrimCachedEvents">
+            <summary>
+            Trims any events in excess of the 'cachedEventCount' property from the cache structures.
+            </summary>
+        </member>
         <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4">
             <summary>
             Buffers events which change the structure of an <see cref="T:ApplicationAccess.AccessManager`4"/> class in memory before writing them to an instance of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/>"/>.
@@ -326,6 +358,7 @@
             <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
             <param name="guidProvider">The provider to use for random Guids.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.AddUser(`0)">
             <summary>
