@@ -22,10 +22,10 @@ namespace ApplicationAccess.Persistence
     /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"]/*'/>
     public interface IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> : IAccessManagerPersistentReader<TUser, TGroup, TComponent, TAccess>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        Tuple<Guid, DateTime> Load(Guid eventId, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
+        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
     }
 }

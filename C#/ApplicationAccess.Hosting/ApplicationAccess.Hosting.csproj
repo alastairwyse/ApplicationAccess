@@ -5,7 +5,12 @@
     <Authors>Alastair Wyse</Authors>
     <Company>Alastair WyseAlastair Wyse</Company>
     <Copyright>Copyright © Alastair Wyse 2022</Copyright>
-    <Description>Classes which represent holistic components within an ApplicationAccess hosting environment.</Description>
+    <Description>Classes which represent cohesive components within an ApplicationAccess hosting environment.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
+    <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
+  </ItemGroup>
 
 </Project>

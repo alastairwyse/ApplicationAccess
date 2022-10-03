@@ -4,6 +4,30 @@
         <name>ApplicationAccess.Persistence</name>
     </assembly>
     <members>
+        <member name="T:ApplicationAccess.Persistence.AccessManagerEventProcessor`4">
+            <summary>
+            Processes a collecion of <see cref="T:ApplicationAccess.Persistence.EventBufferItemBase"/> objects, applying the changes to an <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> instance.
+            </summary>
+            <typeparam name="TUser">The type of users in the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerEventProcessor`4.eventProcessorInstance">
+            <summary>The <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> instance to apply the events to.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerEventProcessor`4.#ctor(ApplicationAccess.IAccessManagerEventProcessor{`0,`1,`2,`3})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerEventProcessor class.
+            </summary>
+            <param name="eventProcessorInstance">The <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> instance to apply the events to.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerEventProcessor`4.Process(System.Collections.Generic.IEnumerable{ApplicationAccess.Persistence.EventBufferItemBase})">
+            <summary>
+            Processes the specified collecion of event objects, applying the changes to the AccessManager instance.
+            </summary>
+            <param name="events">The events to process/apply.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4">
             <summary>
             Caches a predefined number of <see cref="T:ApplicationAccess.Persistence.EventBufferItemBase"/> events.
@@ -584,7 +608,7 @@
             <summary>
             The exception that is thrown when an error occurs attempting to flush buffered events.
             </summary>
-            <remarks>The flushing would usually be performed by a worker thread (e.g. in the case of classes deriving from WorkerThreadBufferFlushStrategyBase), and hence this exception would usually be thrown from the worker thread.  Additionally this exception would usually result from a critical inner exception (e.g. failure to write to a database), hence this exception will often need to be excplicity caught and acted upon in client code.</remarks>
+            <remarks>The flushing would usually be performed by a worker thread (e.g. in the case of classes deriving from <see cref="T:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase"/>), and hence this exception would usually be thrown from the worker thread.  Additionally this exception would usually result from a critical inner exception (e.g. failure to write to a database), hence this exception will often need to be excplicity caught and acted upon in client code.</remarks>
         </member>
         <member name="M:ApplicationAccess.Persistence.BufferFlushingException.#ctor(System.String)">
             <summary>
@@ -863,7 +887,7 @@
         <member name="T:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4">
             <summary>Defines methods to read an AccessManager class from persistent storage.</summary><typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam><typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam><typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam><typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
             <summary>
         Loads the access manager from persistent storage.
       </summary><param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param><returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns><remarks>
@@ -954,7 +978,7 @@
         <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4">
             <summary>Defines methods to read the current or historic state of an AccessManager class from persistent storage.</summary><typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam><typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam><typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam><typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
             <summary>
         Loads the access manager with state corresponding to the specified event id from persistent storage.
       </summary><param name="eventId">The id of the most recent event persisted into the access manager, at the desired state to load.</param><param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param><returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns><remarks>
@@ -962,7 +986,7 @@
         <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
       </remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
             <summary>
         Loads the access manager with state corresponding to the specified timestamp from persistent storage.
       </summary><param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param><param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param><returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns><remarks>
@@ -1670,7 +1694,7 @@
             <summary>
             The total number of events currently stored across all buffers.
             </summary>
-            <remarks>Note that the counter members accessed in this property may be accessed by multiple threads (i.e. the worker thread in member bufferFlushingWorkerThread and the client code in the main thread).  This property should only be read from methods which have locks around the queues in the corresponding <see cref="T:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4"/> class (e.g. overrides of the virtual 'Notify' methods defined in this class, which are called from the AddUser(), AddGroup(), etc... methods in the AccessManagerTemporalEventPersisterBuffer class).</remarks>
+            <remarks>Note that the counter members accessed in this property may be accessed by multiple threads (i.e. the worker thread in member bufferFlushingWorkerThread and the client code in the main thread).  This property should only be read from methods which have locks around the queues in the corresponding <see cref="T:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4"/> class (e.g. overrides of the virtual setters defined in this class, which are called from the AddUser(), AddGroup(), etc... methods in the AccessManagerTemporalEventPersisterBuffer class).</remarks>
         </member>
         <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.OnBufferFlushed(System.EventArgs)">
             <summary>

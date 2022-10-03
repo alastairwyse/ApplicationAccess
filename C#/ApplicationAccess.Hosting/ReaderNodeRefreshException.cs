@@ -16,29 +16,29 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Hosting
 {
     /// <summary>
-    /// The exception that is thrown when an error occurs attempting to flush buffered events.
+    /// The exception that is thrown when an error occurs attempting to refresh the contents of a <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/>.
     /// </summary>
-    /// <remarks>The flushing would usually be performed by a worker thread (e.g. in the case of classes deriving from <see cref="WorkerThreadBufferFlushStrategyBase"/>), and hence this exception would usually be thrown from the worker thread.  Additionally this exception would usually result from a critical inner exception (e.g. failure to write to a database), hence this exception will often need to be excplicity caught and acted upon in client code.</remarks>
-    public class BufferFlushingException : Exception
+    /// <remarks>Refreshing may be performed by a worker thread, and hence this exception would usually be thrown from the worker thread.  Additionally this exception would usually result from a critical inner exception (e.g. failure to read from a database), hence this exception will often need to be excplicity caught and acted upon in client code.</remarks>
+    public class ReaderNodeRefreshException : Exception
     {
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.BufferFlushingException class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeRefreshException class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
-        public BufferFlushingException(String message)
+        public ReaderNodeRefreshException(String message)
             : base(message)
         {
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.BufferFlushingException class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeRefreshException class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
         /// <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
-        public BufferFlushingException(String message, Exception innerException)
+        public ReaderNodeRefreshException(String message, Exception innerException)
             : base(message, innerException)
         {
         }

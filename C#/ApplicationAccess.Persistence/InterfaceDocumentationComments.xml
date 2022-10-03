@@ -57,7 +57,7 @@
       <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
       <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
       <summary>
         Loads the access manager from persistent storage.
       </summary>
@@ -224,7 +224,7 @@
       <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
       <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
       <summary>
         Loads the access manager with state corresponding to the specified event id from persistent storage.
       </summary>
@@ -236,7 +236,7 @@
         <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
       </remarks>
     </member>
-    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})">
+    <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
       <summary>
         Loads the access manager with state corresponding to the specified timestamp from persistent storage.
       </summary>

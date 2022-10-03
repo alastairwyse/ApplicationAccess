@@ -332,7 +332,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// The total number of events currently stored across all buffers.
         /// </summary>
-        /// <remarks>Note that the counter members accessed in this property may be accessed by multiple threads (i.e. the worker thread in member bufferFlushingWorkerThread and the client code in the main thread).  This property should only be read from methods which have locks around the queues in the corresponding <see cref="AccessManagerTemporalEventPersisterBuffer{TUser, TGroup, TComponent, TAccess}"/> class (e.g. overrides of the virtual 'Notify' methods defined in this class, which are called from the AddUser(), AddGroup(), etc... methods in the AccessManagerTemporalEventPersisterBuffer class).</remarks>
+        /// <remarks>Note that the counter members accessed in this property may be accessed by multiple threads (i.e. the worker thread in member bufferFlushingWorkerThread and the client code in the main thread).  This property should only be read from methods which have locks around the queues in the corresponding <see cref="AccessManagerTemporalEventPersisterBuffer{TUser, TGroup, TComponent, TAccess}"/> class (e.g. overrides of the virtual setters defined in this class, which are called from the AddUser(), AddGroup(), etc... methods in the AccessManagerTemporalEventPersisterBuffer class).</remarks>
         protected virtual long TotalEventsBuffered
         {
             get

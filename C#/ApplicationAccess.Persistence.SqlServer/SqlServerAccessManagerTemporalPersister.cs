@@ -438,14 +438,14 @@ namespace ApplicationAccess.Persistence.SqlServer
             SetupAndExecuteGroupToEntityMappingStoredProcedure(removeGroupToEntityMappingProcedureName, group, entityType, entity, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        public Tuple<Guid, DateTime> Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             return Load(DateTime.UtcNow, accessManagerToLoadTo);
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(Guid eventId, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        public Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             // Get the transaction time corresponding to specified event id
             String query =
@@ -483,8 +483,8 @@ namespace ApplicationAccess.Persistence.SqlServer
             return new Tuple<Guid, DateTime>(eventId, stateTime);
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             if (stateTime.Kind != DateTimeKind.Utc)
                 throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
@@ -1296,7 +1296,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-        protected void LoadToAccessManager(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        protected void LoadToAccessManager(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             accessManagerToLoadTo.Clear();
             foreach (TUser currentUser in GetUsers(stateTime))

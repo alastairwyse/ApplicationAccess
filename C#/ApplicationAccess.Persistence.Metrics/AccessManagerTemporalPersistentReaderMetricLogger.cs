@@ -47,8 +47,8 @@ namespace ApplicationAccess.Persistence.Metrics
             this.metricLogger = metricLogger;
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4.Load(ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        public Tuple<Guid, DateTime> Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             Tuple<Guid, DateTime> stateInfo;
             Guid beginId = metricLogger.Begin(new LoadTime());
@@ -66,8 +66,8 @@ namespace ApplicationAccess.Persistence.Metrics
             return stateInfo;
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(Guid eventId, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        public Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             Tuple<Guid, DateTime> stateInfo;
             Guid beginId = metricLogger.Begin(new LoadTime());
@@ -85,8 +85,8 @@ namespace ApplicationAccess.Persistence.Metrics
             return stateInfo;
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManager{`0,`1,`2,`3})"]/*'/>
-        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManager<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             Tuple<Guid, DateTime> stateInfo;
             Guid beginId = metricLogger.Begin(new LoadTime());
