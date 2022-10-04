@@ -49,133 +49,142 @@ namespace ApplicationAccess.Persistence
         {
             foreach (EventBufferItemBase currentEvent in events)
             {
-                switch (currentEvent)
-                {
-                    case UserEventBufferItem<TUser> userEventBufferItem:
-                        if (userEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddUser(userEventBufferItem.User);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveUser(userEventBufferItem.User);
-                        }
-                        break;
+                Process(currentEvent);
+            }
+        }
 
-                    case GroupEventBufferItem<TGroup> groupEventBufferItem:
-                        if (groupEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddGroup(groupEventBufferItem.Group);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveGroup(groupEventBufferItem.Group);
-                        }
-                        break;
+        /// <summary>
+        /// Processes the specified event object, applying the changes to the AccessManager instance.
+        /// </summary>
+        /// <param name="eventBufferItem">The event to process/apply.</param>
+        public void Process(EventBufferItemBase eventBufferItem)
+        {
+            switch (eventBufferItem)
+            {
+                case UserEventBufferItem<TUser> userEventBufferItem:
+                    if (userEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddUser(userEventBufferItem.User);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveUser(userEventBufferItem.User);
+                    }
+                    break;
 
-                    case UserToGroupMappingEventBufferItem<TUser, TGroup> userToGroupMappingEventBufferItem:
-                        if (userToGroupMappingEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddUserToGroupMapping(userToGroupMappingEventBufferItem.User, userToGroupMappingEventBufferItem.Group);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveUserToGroupMapping(userToGroupMappingEventBufferItem.User, userToGroupMappingEventBufferItem.Group);
-                        }
-                        break;
+                case GroupEventBufferItem<TGroup> groupEventBufferItem:
+                    if (groupEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddGroup(groupEventBufferItem.Group);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveGroup(groupEventBufferItem.Group);
+                    }
+                    break;
 
-                    case GroupToGroupMappingEventBufferItem<TGroup> groupToGroupMappingEventBufferItem:
-                        if (groupToGroupMappingEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddGroupToGroupMapping(groupToGroupMappingEventBufferItem.FromGroup, groupToGroupMappingEventBufferItem.ToGroup);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveGroupToGroupMapping(groupToGroupMappingEventBufferItem.FromGroup, groupToGroupMappingEventBufferItem.ToGroup);
-                        }
-                        break;
+                case UserToGroupMappingEventBufferItem<TUser, TGroup> userToGroupMappingEventBufferItem:
+                    if (userToGroupMappingEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddUserToGroupMapping(userToGroupMappingEventBufferItem.User, userToGroupMappingEventBufferItem.Group);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveUserToGroupMapping(userToGroupMappingEventBufferItem.User, userToGroupMappingEventBufferItem.Group);
+                    }
+                    break;
 
-                    case UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess> userToApplicationComponentAndAccessLevelMappingEventBufferItem:
-                        TUser user = userToApplicationComponentAndAccessLevelMappingEventBufferItem.User;
-                        TComponent applicationComponent = userToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent;
-                        TAccess accessLevel = userToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel;
-                        if (userToApplicationComponentAndAccessLevelMappingEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
-                        }
-                        break;
+                case GroupToGroupMappingEventBufferItem<TGroup> groupToGroupMappingEventBufferItem:
+                    if (groupToGroupMappingEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddGroupToGroupMapping(groupToGroupMappingEventBufferItem.FromGroup, groupToGroupMappingEventBufferItem.ToGroup);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveGroupToGroupMapping(groupToGroupMappingEventBufferItem.FromGroup, groupToGroupMappingEventBufferItem.ToGroup);
+                    }
+                    break;
 
-                    case GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> groupToApplicationComponentAndAccessLevelMappingEventBufferItem:
-                        TGroup group = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.Group;
-                        applicationComponent = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent;
-                        accessLevel = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel;
-                        if (groupToApplicationComponentAndAccessLevelMappingEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
-                        }
-                        break;
+                case UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess> userToApplicationComponentAndAccessLevelMappingEventBufferItem:
+                    TUser user = userToApplicationComponentAndAccessLevelMappingEventBufferItem.User;
+                    TComponent applicationComponent = userToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent;
+                    TAccess accessLevel = userToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel;
+                    if (userToApplicationComponentAndAccessLevelMappingEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+                    }
+                    break;
 
-                    case UserToEntityMappingEventBufferItem<TUser> userToEntityMappingEventBufferItem:
-                        user = userToEntityMappingEventBufferItem.User;
-                        String entityType = userToEntityMappingEventBufferItem.EntityType;
-                        String entity = userToEntityMappingEventBufferItem.Entity;
-                        if (userToEntityMappingEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddUserToEntityMapping(user, entityType, entity);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveUserToEntityMapping(user, entityType, entity);
-                        }
-                        break;
+                case GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> groupToApplicationComponentAndAccessLevelMappingEventBufferItem:
+                    TGroup group = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.Group;
+                    applicationComponent = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent;
+                    accessLevel = groupToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel;
+                    if (groupToApplicationComponentAndAccessLevelMappingEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+                    }
+                    break;
 
-                    case GroupToEntityMappingEventBufferItem<TGroup> groupToEntityMappingEventBufferItem:
-                        group = groupToEntityMappingEventBufferItem.Group;
-                        entityType = groupToEntityMappingEventBufferItem.EntityType;
-                        entity = groupToEntityMappingEventBufferItem.Entity;
-                        if (groupToEntityMappingEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddGroupToEntityMapping(group, entityType, entity);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveGroupToEntityMapping(group, entityType, entity);
-                        }
-                        break;
+                case UserToEntityMappingEventBufferItem<TUser> userToEntityMappingEventBufferItem:
+                    user = userToEntityMappingEventBufferItem.User;
+                    String entityType = userToEntityMappingEventBufferItem.EntityType;
+                    String entity = userToEntityMappingEventBufferItem.Entity;
+                    if (userToEntityMappingEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddUserToEntityMapping(user, entityType, entity);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveUserToEntityMapping(user, entityType, entity);
+                    }
+                    break;
 
-                    case EntityEventBufferItem entityEventBufferItem:
-                        if (entityEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddEntity(entityEventBufferItem.EntityType, entityEventBufferItem.Entity);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveEntity(entityEventBufferItem.EntityType, entityEventBufferItem.Entity);
-                        }
-                        break;
+                case GroupToEntityMappingEventBufferItem<TGroup> groupToEntityMappingEventBufferItem:
+                    group = groupToEntityMappingEventBufferItem.Group;
+                    entityType = groupToEntityMappingEventBufferItem.EntityType;
+                    entity = groupToEntityMappingEventBufferItem.Entity;
+                    if (groupToEntityMappingEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddGroupToEntityMapping(group, entityType, entity);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveGroupToEntityMapping(group, entityType, entity);
+                    }
+                    break;
 
-                    case EntityTypeEventBufferItem entityTypeEventBufferItem:
-                        if (entityTypeEventBufferItem.EventAction == EventAction.Add)
-                        {
-                            eventProcessorInstance.AddEntityType(entityTypeEventBufferItem.EntityType);
-                        }
-                        else
-                        {
-                            eventProcessorInstance.RemoveEntityType(entityTypeEventBufferItem.EntityType);
-                        }
-                        break;
+                case EntityEventBufferItem entityEventBufferItem:
+                    if (entityEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddEntity(entityEventBufferItem.EntityType, entityEventBufferItem.Entity);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveEntity(entityEventBufferItem.EntityType, entityEventBufferItem.Entity);
+                    }
+                    break;
 
-                    default:
-                        throw new Exception($"Encountered unhandled event type '{currentEvent.GetType().FullName}' when processing AccessManager events.");
-                }
+                case EntityTypeEventBufferItem entityTypeEventBufferItem:
+                    if (entityTypeEventBufferItem.EventAction == EventAction.Add)
+                    {
+                        eventProcessorInstance.AddEntityType(entityTypeEventBufferItem.EntityType);
+                    }
+                    else
+                    {
+                        eventProcessorInstance.RemoveEntityType(entityTypeEventBufferItem.EntityType);
+                    }
+                    break;
+
+                default:
+                    throw new Exception($"Encountered unhandled event type '{eventBufferItem.GetType().FullName}.");
             }
         }
     }

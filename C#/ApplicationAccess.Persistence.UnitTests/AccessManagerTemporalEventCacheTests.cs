@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
+using ApplicationMetrics;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
@@ -30,6 +31,7 @@ namespace ApplicationAccess.Persistence.UnitTests
     /// </summary>
     public class AccessManagerTemporalEventCacheTests
     {
+        private IMetricLogger mockMetricLogger;
         private IGuidProvider mockGuidProvider;
         private IDateTimeProvider mockDateTimeProvider;
         private AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel> testAccessManagerTemporalEventCache;
@@ -37,9 +39,10 @@ namespace ApplicationAccess.Persistence.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            mockMetricLogger = Substitute.For<IMetricLogger>();
             mockGuidProvider = Substitute.For<IGuidProvider>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
-            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(2, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(2, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
         }
 
         [Test]
@@ -47,7 +50,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(0, mockGuidProvider, mockDateTimeProvider);
+                testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(0, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'cachedEventCount' must be greater than or equal to 1."));
@@ -631,7 +634,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             DateTime occurredTime2 = CreateDataTimeFromString("2022-09-25 13:51:37");
             DateTime occurredTime3 = CreateDataTimeFromString("2022-09-25 13:51:38");
             DateTime occurredTime4 = CreateDataTimeFromString("2022-09-25 13:51:39");
-            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(5, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(5, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
             testAccessManagerTemporalEventCache.AddUser(user, eventId1, occurredTime1);
             testAccessManagerTemporalEventCache.AddGroup(group, eventId2, occurredTime2);
 
@@ -723,7 +726,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             DateTime occurredTime2 = CreateDataTimeFromString("2022-09-25 14:04:11");
             DateTime occurredTime3 = CreateDataTimeFromString("2022-09-25 14:04:12");
             DateTime occurredTime4 = CreateDataTimeFromString("2022-09-25 14:04:13");
-            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(3, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(3, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
             testAccessManagerTemporalEventCache.AddUser(user, eventId1, occurredTime1);
             testAccessManagerTemporalEventCache.AddGroup(group, eventId2, occurredTime2);
             testAccessManagerTemporalEventCache.AddEntityType(entityType, eventId3, occurredTime3);

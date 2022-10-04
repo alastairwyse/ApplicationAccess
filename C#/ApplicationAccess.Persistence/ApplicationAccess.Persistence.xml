@@ -28,6 +28,12 @@
             </summary>
             <param name="events">The events to process/apply.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerEventProcessor`4.Process(ApplicationAccess.Persistence.EventBufferItemBase)">
+            <summary>
+            Processes the specified event object, applying the changes to the AccessManager instance.
+            </summary>
+            <param name="eventBufferItem">The event to process/apply.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4">
             <summary>
             Caches a predefined number of <see cref="T:ApplicationAccess.Persistence.EventBufferItemBase"/> events.
@@ -46,6 +52,9 @@
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.cachedEventsGuidIndex">
             <summary>Holds the <see cref="T:System.Collections.Generic.LinkedListNode`1"/> wrapping each cached event, indexed by its <see cref="P:ApplicationAccess.Persistence.EventBufferItemBase.EventId">EventId</see> property.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.guidProvider">
             <summary>The provider to use for random Guids.</summary>
         </member>
@@ -61,11 +70,19 @@
             </summary>
             <param name="cachedEventCount">The number of events to retain on the cache.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.#ctor(System.Int32,ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCache class.
             </summary>
             <param name="cachedEventCount">The number of events to retain on the cache.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCache class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+            <param name="metricLogger">The logger for metrics.</param>
             <param name="guidProvider">The provider to use for random Guids.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
@@ -229,6 +246,9 @@
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
             <!-- Failed to insert some or all of included XML --><include file="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml" path="doc/members/member[@name=&quot;M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)&quot;]/*" />
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.GetAllEventsSince(System.Guid)">
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.CacheEvent(ApplicationAccess.Persistence.TemporalEventBufferItemBase)">
             <summary>

@@ -64,11 +64,13 @@ namespace ApplicationAccess.Hosting
             // TODO: Are metrics going to be captured inside this class, or in an AccessManagerQueryProcessorMetricLogger wrapping this?
             // TODO: Mechanism to rethrow worked thread exceptions on main thread
             // TODO: Need some sort of base 'FatalOperationException' or similar to allow surrounding host to figure out when something fatal has happened
+            // TODO: Unit tests for this class
             // TODO: Specific metrics to capture
             //    Instances of cache misses
             //    Time to perform load
             //    Number of latest events received
             //    Difference between event time and current time
+            //    Refresh occurred > RefreshOperationCompleted
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Users"]/*'/>
@@ -305,7 +307,10 @@ namespace ApplicationAccess.Hosting
             if (updateEvents != null)
             {
                 var eventProcessor = new AccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>(accessManager);
-                eventProcessor.Process(updateEvents);
+                foreach (EventBufferItemBase currentEvent in updateEvents)
+                {
+                    eventProcessor.Process(currentEvent);
+                }
                 latestEventId = updateEvents[updateEvents.Count - 1].EventId;
             }
         }

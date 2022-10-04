@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 using ApplicationAccess.Utilities;
+using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Persistence
 {
@@ -35,8 +37,10 @@ namespace ApplicationAccess.Persistence
         protected LinkedList<TemporalEventBufferItemBase> cachedEvents;
         /// <summary>Holds the <see cref="LinkedListNode{T}"/> wrapping each cached event, indexed by its <see cref="EventBufferItemBase.EventId">EventId</see> property.</summary>
         protected Dictionary<Guid, LinkedListNode<TemporalEventBufferItemBase>> cachedEventsGuidIndex;
+        /// <summary>The logger for metrics.</summary>
+        protected IMetricLogger metricLogger;
         /// <summary>The provider to use for random Guids.</summary>
-        protected IGuidProvider guidProvider;
+        protected Utilities.IGuidProvider guidProvider;
         /// <summary>The provider to use for the current date and time.</summary>
         protected IDateTimeProvider dateTimeProvider;
         /// <summary>Indicates whether the object has been disposed.</summary>
@@ -54,7 +58,8 @@ namespace ApplicationAccess.Persistence
             this.cachedEventCount = cachedEventCount;
             cachedEvents = new LinkedList<TemporalEventBufferItemBase>();
             cachedEventsGuidIndex = new Dictionary<Guid, LinkedListNode<TemporalEventBufferItemBase>>();
-            guidProvider = new DefaultGuidProvider();
+            metricLogger = new NullMetricLogger();
+            guidProvider = new Utilities.DefaultGuidProvider();
             dateTimeProvider = new DefaultDateTimeProvider();
             disposed = false;
         }
@@ -63,11 +68,23 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCache class.
         /// </summary>
         /// <param name="cachedEventCount">The number of events to retain on the cache.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public AccessManagerTemporalEventCache(Int32 cachedEventCount, IMetricLogger metricLogger)
+            : this(cachedEventCount)
+        {
+            this.metricLogger = metricLogger;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCache class.
+        /// </summary>
+        /// <param name="cachedEventCount">The number of events to retain on the cache.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="guidProvider">The provider to use for random Guids.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public AccessManagerTemporalEventCache(Int32 cachedEventCount, IGuidProvider guidProvider, IDateTimeProvider dateTimeProvider)
-            : this(cachedEventCount)
+        public AccessManagerTemporalEventCache(Int32 cachedEventCount, IMetricLogger metricLogger, Utilities.IGuidProvider guidProvider, IDateTimeProvider dateTimeProvider)
+            : this(cachedEventCount, metricLogger)
         {
             this.guidProvider = guidProvider;
             this.dateTimeProvider = dateTimeProvider;
@@ -333,13 +350,9 @@ namespace ApplicationAccess.Persistence
             CacheEvent(newEvent);
         }
 
+        /// <inheritdoc/>
         public IList<EventBufferItemBase> GetAllEventsSince(Guid eventId)
         {
-            // TODO: Take XML comments from InterfaceDocumentationComments.xml
-            // TODO: Add metrics...
-            //   Number of events returned
-            //   Event cached
-
             lock (cachedEvents)
             {
                 if (cachedEventsGuidIndex.ContainsKey(eventId) == false)
@@ -353,6 +366,7 @@ namespace ApplicationAccess.Persistence
                     returnList.Add(currentNode.Value);
                     currentNode = currentNode.Next;
                 }
+                metricLogger.Add(new CachedEventsRead(), returnList.Count);
 
                 return returnList;
             }
@@ -371,6 +385,7 @@ namespace ApplicationAccess.Persistence
                 cachedEvents.AddLast(newEvent);
                 cachedEventsGuidIndex.Add(newEvent.EventId, cachedEvents.Last);
                 TrimCachedEvents();
+                metricLogger.Increment(new EventCached());
             }
         }
 

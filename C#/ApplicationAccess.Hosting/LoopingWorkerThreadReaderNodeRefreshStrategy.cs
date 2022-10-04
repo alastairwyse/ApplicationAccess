@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Threading;
 
 namespace ApplicationAccess.Hosting
 {
@@ -23,13 +24,38 @@ namespace ApplicationAccess.Hosting
     /// </summary>
     public class LoopingWorkerThreadReaderNodeRefreshStrategy : IReaderNodeRefreshStrategy
     {
+        /// <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
+        private Thread readerNodeRefreshWorkerThread;
+        /// <summary>Set with any exception which occurrs on the worker thread when refreshing the reader node.  Null if no exception has occurred.</summary>
+        private Exception refreshException;
+        /// <summary>The time to wait (in milliseconds) between reader node refreshes.</summary>
+        protected Int32 refreshLoopInterval;
+
         /// <inheritdoc/>
         public event EventHandler ReaderNodeRefreshed;
+
+        /// <summary>
+        /// Contains an exception which occurred on the worker thread during reader node refreshing.  Null if no exception has occurred.
+        /// </summary>
+        protected Exception RefreshException
+        {
+            get { return refreshException; }
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy class.
+        /// </summary>
+        /// <param name="refreshLoopInterval">The time to wait (in milliseconds) between reader node refreshes.</param>
+        public LoopingWorkerThreadReaderNodeRefreshStrategy(Int32 refreshLoopInterval)
+        {
+            if (refreshLoopInterval < 1)
+                throw new ArgumentOutOfRangeException(nameof(refreshLoopInterval), $"Parameter '{nameof(refreshLoopInterval)}' with value {refreshLoopInterval} cannot be less than 1.");
+        }
 
         /// <inheritdoc/>
         public void NotifyQueryMethodCalled()
         {
-
+            refreshException = null;
         }
     }
 }

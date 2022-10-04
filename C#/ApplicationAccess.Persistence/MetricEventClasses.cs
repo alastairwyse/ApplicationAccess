@@ -625,5 +625,29 @@ namespace ApplicationAccess.Persistence
         }
     }
 
+    public class EventCached : CountMetric
+    {
+        protected static String staticName = "EventCached";
+        protected static String staticDescription = "An event cached";
+
+        public EventCached()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    public class CachedEventsRead : AmountMetric
+    {
+        protected static String staticName = "CachedEventsRead";
+        protected static String staticDescription = "The number of events read from the cache.";
+
+        public CachedEventsRead()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
     #pragma warning restore 1591
 }
