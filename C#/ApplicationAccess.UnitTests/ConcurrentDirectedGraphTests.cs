@@ -43,6 +43,38 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void LeafVertices()
+        {
+            // ConcurrentDirectedGraph methods which returned IEnumerable<T> we just returning the underlying ISet<T> implementation in a previous version of the class
+            //   Problem was that the ISet<T> implementation was a ConcurrentHashSet<T> which left several ISet<T> methods not implemented
+            //   This would usually be OK, but found cases where the IEnumerable<T> was being up-cast, and then the unimplemented methods attempting to be called and failing
+            //   Was suprised that this happens in one of the constructor overloads of List<T> (https://www.dotnetframework.org/default.aspx/Net/Net/3@5@50727@3053/DEVDIV/depot/DevDiv/releases/whidbey/netfxsp/ndp/clr/src/BCL/System/Collections/Generic/List@cs/2/List@cs)
+            //   Hence including this test and other similar to ensure an 'uncastable' IEnumerable<T> is returned
+
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>();
+            String testPerson = "Per1";
+            testConcurrentDirectedGraph2.AddLeafVertex(testPerson);
+
+            var result = new List<String>(testConcurrentDirectedGraph2.LeafVertices);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testPerson, result[0]);
+        }
+
+        [Test]
+        public void NonLeafVertices()
+        {
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>();
+            String testPerson = "Per1";
+            testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson);
+
+            var result = new List<String>(testConcurrentDirectedGraph2.NonLeafVertices);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testPerson, result[0]);
+        }
+
+        [Test]
         public void AddLeafVertex_LocksAreSet()
         {
             String testPerson = "Per1";
@@ -246,6 +278,22 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void GetLeafEdges()
+        {
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>();
+            String testPerson1 = "Per1";
+            String testPerson2 = "Per2";
+            testConcurrentDirectedGraph2.AddLeafVertex(testPerson1);
+            testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson2);
+            testConcurrentDirectedGraph2.AddLeafToNonLeafEdge(testPerson1, testPerson2);
+
+            var result = new List<String>(testConcurrentDirectedGraph2.GetLeafEdges(testPerson1));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testPerson2, result[0]);
+        }
+
+        [Test]
         public void RemoveLeafToNonLeafEdge_LocksAreSet()
         {
             String testPerson1 = "Per1";
@@ -337,6 +385,22 @@ namespace ApplicationAccess.UnitTests
             testConcurrentDirectedGraph.AddNonLeafToNonLeafEdge(testGroup1, testGroup2);
 
             mockSet.Received(1).Add(testGroup2);
+        }
+
+        [Test]
+        public void GetNonLeafEdges()
+        {
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>();
+            String testPerson1 = "Per1";
+            String testPerson2 = "Per2";
+            testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson1);
+            testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson2);
+            testConcurrentDirectedGraph2.AddNonLeafToNonLeafEdge(testPerson1, testPerson2);
+
+            var result = new List<String>(testConcurrentDirectedGraph2.GetNonLeafEdges(testPerson1));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testPerson2, result[0]);
         }
 
         [Test]

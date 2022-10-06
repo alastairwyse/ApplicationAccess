@@ -70,7 +70,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddUser(user);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -95,7 +95,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveUser(user);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -120,7 +120,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddGroup(group);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -145,7 +145,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveGroup(group);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -171,7 +171,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddUserToGroupMapping(user, group);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -198,7 +198,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveUserToGroupMapping(user, group);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -225,7 +225,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddGroupToGroupMapping(fromGroup, toGroup);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -252,7 +252,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveGroupToGroupMapping(fromGroup, toGroup);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -278,7 +278,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Order, AccessLevel.Create);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -305,7 +305,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Order, AccessLevel.Create);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -333,7 +333,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Settings, AccessLevel.Modify);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -360,7 +360,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Settings, AccessLevel.Modify);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -387,7 +387,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddEntityType(entityType);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -412,7 +412,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveEntityType(entityType);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -438,7 +438,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddEntity(entityType, entity);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -465,7 +465,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveEntity(entityType, entity);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -493,7 +493,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddUserToEntityMapping(user, entityType, entity);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -522,7 +522,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveUserToEntityMapping(user, entityType, entity);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -551,7 +551,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.AddGroupToEntityMapping(group, entityType, entity);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -580,7 +580,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             testAccessManagerTemporalEventCache.RemoveGroupToEntityMapping(group, entityType, entity);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
             mockGuidProvider.Received(1).NewGuid();
             mockDateTimeProvider.Received(1).UtcNow();
             Assert.AreEqual(1, result.Count);
@@ -638,7 +638,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             testAccessManagerTemporalEventCache.AddUser(user, eventId1, occurredTime1);
             testAccessManagerTemporalEventCache.AddGroup(group, eventId2, occurredTime2);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
 
             Assert.AreEqual(1, result.Count);
             Assert.IsInstanceOf<GroupEventBufferItem<String>>(result[0]);
@@ -731,7 +731,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             testAccessManagerTemporalEventCache.AddGroup(group, eventId2, occurredTime2);
             testAccessManagerTemporalEventCache.AddEntityType(entityType, eventId3, occurredTime3);
 
-            IList<EventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
+            IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
 
             Assert.AreEqual(2, result.Count);
             Assert.IsInstanceOf<GroupEventBufferItem<String>>(result[0]);

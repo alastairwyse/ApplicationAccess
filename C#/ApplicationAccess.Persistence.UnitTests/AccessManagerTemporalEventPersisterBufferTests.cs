@@ -55,18 +55,6 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         [Test]
-        public void Constructor_LastEventSequenceNumberLessThanZero()
-        {
-            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
-            {
-                var testAccessManagerTemporalEventPersisterBuffer2 = new AccessManagerTemporalEventPersisterBuffer<String, String, ApplicationScreen, AccessLevel>(mockEventValidator, mockBufferFlushStrategy, mockEventPersister, -1);
-            });
-
-            Assert.That(e.Message, Does.StartWith("Parameter 'lastEventSequenceNumber' with value -1 cannot be less than 0."));
-            Assert.AreEqual(e.ParamName, "lastEventSequenceNumber");
-        }
-
-        [Test]
         public void AddUser()
         {
             Guid eventId = Guid.NewGuid();

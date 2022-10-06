@@ -169,47 +169,6 @@ namespace ApplicationAccess.Persistence
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
-        /// <param name="lastEventSequenceNumber">The sequence number used for the last event buffered.</param>
-        public AccessManagerTemporalEventPersisterBuffer
-        (
-            IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            Int64 lastEventSequenceNumber
-        ) : this(eventValidator, bufferFlushStrategy, eventPersister)
-        {
-            if (lastEventSequenceNumber < 0)
-                throw new ArgumentOutOfRangeException(nameof(lastEventSequenceNumber), $"Parameter '{nameof(lastEventSequenceNumber)}' with value {lastEventSequenceNumber} cannot be less than 0.");
-
-            this.lastEventSequenceNumber = lastEventSequenceNumber;
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
-        /// </summary>
-        /// <param name="eventValidator">The validator to use to validate events.</param>
-        /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
-        /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
-        /// <param name="metricLogger">The logger for metrics.</param>
-        /// <param name="lastEventSequenceNumber">The sequence number used for the last event buffered.</param>
-        public AccessManagerTemporalEventPersisterBuffer
-        (
-            IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
-            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IMetricLogger metricLogger,
-            Int64 lastEventSequenceNumber
-        ) : this(eventValidator, bufferFlushStrategy, eventPersister, lastEventSequenceNumber)
-        {
-            this.metricLogger = metricLogger;
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
-        /// </summary>
-        /// <param name="eventValidator">The validator to use to validate events.</param>
-        /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
-        /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         /// <param name="guidProvider">The provider to use for random Guids.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>

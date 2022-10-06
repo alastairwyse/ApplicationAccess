@@ -45,7 +45,10 @@ namespace ApplicationAccess
         {
             get
             {
-                return leafVertices;
+                foreach (TLeaf currentLeafVertex in leafVertices)
+                {
+                    yield return currentLeafVertex;
+                }
             }
         }
 
@@ -56,7 +59,10 @@ namespace ApplicationAccess
         {
             get
             {
-                return nonLeafVertices;
+                foreach(TNonLeaf currentNonLeafVertex in nonLeafVertices)
+                {
+                    yield return currentNonLeafVertex;
+                }
             }
         }
 
@@ -430,7 +436,13 @@ namespace ApplicationAccess
 
             if (leafToNonLeafEdges.ContainsKey(leafVertex) == true)
             {
-                return leafToNonLeafEdges[leafVertex];
+                var returnList = new List<TNonLeaf>(leafToNonLeafEdges[leafVertex].Count);
+                foreach (TNonLeaf currentNonLeafVertex in leafToNonLeafEdges[leafVertex])
+                {
+                    returnList.Add(currentNonLeafVertex);
+                }
+
+                return returnList;
             }
             else
             {
@@ -451,7 +463,13 @@ namespace ApplicationAccess
 
             if (nonLeafToNonLeafEdges.ContainsKey(nonLeafVertex) == true)
             {
-                return nonLeafToNonLeafEdges[nonLeafVertex];
+                var returnList = new List<TNonLeaf>(nonLeafToNonLeafEdges[nonLeafVertex].Count);
+                foreach (TNonLeaf currentNonLeafVertex in nonLeafToNonLeafEdges[nonLeafVertex])
+                {
+                    returnList.Add(currentNonLeafVertex);
+                }
+
+                return returnList;
             }
             else
             {

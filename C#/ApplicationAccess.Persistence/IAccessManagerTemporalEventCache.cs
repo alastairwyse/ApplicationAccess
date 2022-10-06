@@ -37,6 +37,6 @@ namespace ApplicationAccess.Persistence
         /// <param name="eventId">The id of the event to retrieve all events since.</param>
         /// <returns>An ordered list of events which occurred since the specified event, and not including the specified event.  Returned in order from least recent to most recent.</returns>
         /// <exception cref="EventNotCachedException">The event with the specified id was not found in the cache.</exception>
-        IList<EventBufferItemBase> GetAllEventsSince(Guid eventId);
+        IList<TemporalEventBufferItemBase> GetAllEventsSince(Guid eventId);
     }
 }

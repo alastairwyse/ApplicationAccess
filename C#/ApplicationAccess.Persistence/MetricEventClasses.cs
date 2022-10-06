@@ -15,8 +15,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using ApplicationMetrics;
 
 namespace ApplicationAccess.Persistence
@@ -625,6 +623,9 @@ namespace ApplicationAccess.Persistence
         }
     }
 
+    /// <summary>
+    /// Count metric which records an event cached.
+    /// </summary>
     public class EventCached : CountMetric
     {
         protected static String staticName = "EventCached";
@@ -637,6 +638,9 @@ namespace ApplicationAccess.Persistence
         }
     }
 
+    /// <summary>
+    /// Amount metric which records the number of events read from the cache.
+    /// </summary>
     public class CachedEventsRead : AmountMetric
     {
         protected static String staticName = "CachedEventsRead";

@@ -351,14 +351,14 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <inheritdoc/>
-        public IList<EventBufferItemBase> GetAllEventsSince(Guid eventId)
+        public IList<TemporalEventBufferItemBase> GetAllEventsSince(Guid eventId)
         {
             lock (cachedEvents)
             {
                 if (cachedEventsGuidIndex.ContainsKey(eventId) == false)
                     throw new EventNotCachedException($"No event with {nameof(eventId)} '{eventId}' was found in the cache.");
 
-                var returnList = new List<EventBufferItemBase>();
+                var returnList = new List<TemporalEventBufferItemBase>();
                 LinkedListNode<TemporalEventBufferItemBase> currentNode = cachedEventsGuidIndex[eventId];
                 currentNode = currentNode.Next;
                 while (currentNode != null)

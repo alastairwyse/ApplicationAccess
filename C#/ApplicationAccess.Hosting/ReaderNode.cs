@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using ApplicationAccess.Persistence;
+using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Hosting
 {
@@ -38,6 +40,8 @@ namespace ApplicationAccess.Hosting
         protected IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader;
         /// <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
         protected AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager;
+        /// <summary>The logger for metrics.</summary>
+        protected IMetricLogger metricLogger;
         /// <summary>The id of the most recent event which changed the AccessManager.</summary>
         protected Guid latestEventId;
         /// <summary>The delegate which handles an <see cref="IReaderNodeRefreshStrategy.ReaderNodeRefreshed">ReaderNodeRefreshed</see> event.</summary>
@@ -56,13 +60,13 @@ namespace ApplicationAccess.Hosting
             this.refreshStrategy = refreshStrategy;
             this.eventCache = eventCache;
             this.persistentReader = persistentReader;
+            metricLogger = new NullMetricLogger();
             accessManager = new ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>();
             // Subscribe to the refreshStrategy's 'ReaderNodeRefreshed' event
             refreshedEventHandler = (Object sender, EventArgs e) => { Refresh(); };
             refreshStrategy.ReaderNodeRefreshed += refreshedEventHandler;
             disposed = false;
             // TODO: Are metrics going to be captured inside this class, or in an AccessManagerQueryProcessorMetricLogger wrapping this?
-            // TODO: Mechanism to rethrow worked thread exceptions on main thread
             // TODO: Need some sort of base 'FatalOperationException' or similar to allow surrounding host to figure out when something fatal has happened
             // TODO: Unit tests for this class
             // TODO: Specific metrics to capture
@@ -71,6 +75,19 @@ namespace ApplicationAccess.Hosting
             //    Number of latest events received
             //    Difference between event time and current time
             //    Refresh occurred > RefreshOperationCompleted
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
+        /// </summary>
+        /// <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+        /// <param name="eventCache">Cache for events which change the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted.</param>
+        /// <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, IMetricLogger metricLogger)
+            : this(refreshStrategy, eventCache, persistentReader)
+        {
+            this.metricLogger = metricLogger;
         }
 
         /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Users"]/*'/>
@@ -264,6 +281,7 @@ namespace ApplicationAccess.Hosting
         public void Load()
         {
             AccessManagerBase<TUser, TGroup, TComponent, TAccess> newAccessManager = new ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>();
+            Guid beginId = metricLogger.Begin(new ReaderNodeLoadTime());
             try
             {
                 Tuple<Guid, DateTime> state = persistentReader.Load(newAccessManager);
@@ -271,9 +289,11 @@ namespace ApplicationAccess.Hosting
             }
             catch (Exception e)
             {
+                metricLogger.CancelBegin(beginId, new ReaderNodeLoadTime());
                 throw new Exception("Failed to load access manager state from persistent storage.", e);
             }
             Interlocked.Exchange(ref accessManager, newAccessManager);
+            metricLogger.End(beginId, new ReaderNodeLoadTime());
         }
 
         #region Private/Protected Methods
@@ -283,13 +303,14 @@ namespace ApplicationAccess.Hosting
         /// </summary>
         protected void Refresh()
         {
-            IList<EventBufferItemBase> updateEvents = null;
+            IList<TemporalEventBufferItemBase> updateEvents = null;
             try
             {
                 updateEvents = eventCache.GetAllEventsSince(latestEventId);
             }
             catch (EventNotCachedException)
             {
+                metricLogger.Increment(new CacheMiss());
                 try
                 {
                     Load();
@@ -306,13 +327,17 @@ namespace ApplicationAccess.Hosting
 
             if (updateEvents != null)
             {
+                metricLogger.Add(new CachedEventsReceived(), updateEvents.Count);
                 var eventProcessor = new AccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>(accessManager);
-                foreach (EventBufferItemBase currentEvent in updateEvents)
+                foreach (TemporalEventBufferItemBase currentEvent in updateEvents)
                 {
                     eventProcessor.Process(currentEvent);
+                    TimeSpan processingDelay = DateTime.UtcNow - currentEvent.OccurredTime;
+                    metricLogger.Add(new EventProcessingDelay(), Convert.ToInt64(Math.Round(processingDelay.TotalMilliseconds)));
                 }
                 latestEventId = updateEvents[updateEvents.Count - 1].EventId;
             }
+            metricLogger.Increment(new RefreshOperationCompleted());
         }
 
         #endregion

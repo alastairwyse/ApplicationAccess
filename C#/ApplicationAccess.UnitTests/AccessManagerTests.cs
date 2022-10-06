@@ -218,7 +218,7 @@ namespace ApplicationAccess.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManager.GetUserToGroupMappings("user1");
+                testAccessManager.GetUserToGroupMappings("user1").FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
@@ -352,7 +352,7 @@ namespace ApplicationAccess.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManager.GetGroupToGroupMappings("group11");
+                testAccessManager.GetGroupToGroupMappings("group11").FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group11' does not exist."));
@@ -728,7 +728,7 @@ namespace ApplicationAccess.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManager.GetEntities("ClientAccount");
+                testAccessManager.GetEntities("ClientAccount").FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));

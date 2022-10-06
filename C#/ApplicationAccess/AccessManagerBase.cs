@@ -448,7 +448,10 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
 
-            return entities[entityType];
+            foreach (String currentEntity in entities[entityType])
+            {
+                yield return currentEntity;
+            }
         }
 
         /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntity(System.String,System.String)"]/*'/>
@@ -515,11 +518,14 @@ namespace ApplicationAccess
 
             if (userToEntityMap.ContainsKey(user) == true && userToEntityMap[user].ContainsKey(entityType) == true)
             {
-                return userToEntityMap[user][entityType];
+                foreach (String currentEntity in userToEntityMap[user][entityType])
+                {
+                    yield return currentEntity;
+                }
             }
             else
             {
-                return Enumerable.Empty<String>();
+                yield break;
             }
         }
 
@@ -594,11 +600,14 @@ namespace ApplicationAccess
 
             if (groupToEntityMap.ContainsKey(group) == true && groupToEntityMap[group].ContainsKey(entityType) == true)
             {
-                return groupToEntityMap[group][entityType];
+                foreach (String currentEntity in groupToEntityMap[group][entityType])
+                {
+                    yield return currentEntity;
+                }
             }
             else
             {
-                return Enumerable.Empty<String>();
+                yield break;
             }
         }
 

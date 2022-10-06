@@ -262,7 +262,7 @@ namespace ApplicationAccess.UnitTests
         {
             var e = Assert.Throws<LeafVertexNotFoundException<String>>(delegate
             {
-                testDirectedGraph.GetLeafEdges("child");
+                testDirectedGraph.GetLeafEdges("child").FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("Vertex 'child' does not exist in the graph."));
@@ -451,7 +451,7 @@ namespace ApplicationAccess.UnitTests
         {
             var e = Assert.Throws<NonLeafVertexNotFoundException<String>>(delegate
             {
-                testDirectedGraph.GetNonLeafEdges("parent1");
+                testDirectedGraph.GetNonLeafEdges("parent1").FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("Vertex 'parent1' does not exist in the graph."));

@@ -374,25 +374,6 @@
             <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Int64)">
-            <summary>
-            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
-            </summary>
-            <param name="eventValidator">The validator to use to validate events.</param>
-            <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
-            <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
-            <param name="lastEventSequenceNumber">The sequence number used for the last event buffered.</param>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger,System.Int64)">
-            <summary>
-            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
-            </summary>
-            <param name="eventValidator">The validator to use to validate events.</param>
-            <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
-            <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
-            <param name="metricLogger">The logger for metrics.</param>
-            <param name="lastEventSequenceNumber">The sequence number used for the last event buffered.</param>
-        </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
@@ -1258,6 +1239,16 @@
             Count metric which records a buffer flush being triggered due to the buffer size limit being reached, whilst the buffer flushing worker thread was sleeping.
             </summary>
             <remarks>Created specifically for class SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy which can trigger flushes from either the worker thread loop interval expiring or the buffer size limit being reached.</remarks>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventCached">
+            <summary>
+            Count metric which records an event cached.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.CachedEventsRead">
+            <summary>
+            Amount metric which records the number of events read from the cache.
+            </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy">
             <summary>

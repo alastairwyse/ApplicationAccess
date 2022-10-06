@@ -359,6 +359,26 @@ namespace ApplicationAccess.UnitTests
         }
         
         [Test]
+        public void GetEntities()
+        {
+            // ConcurrentAccessManager methods which returned IEnumerable<T> we just returning the underlying ISet<T> implementation in a previous version of the class
+            //   Problem was that the ISet<T> implementation was a ConcurrentHashSet<T> which left several ISet<T> methods not implemented
+            //   This would usually be OK, but found cases where the IEnumerable<T> was being up-cast, and then the unimplemented methods attempting to be called and failing
+            //   Was suprised that this happens in one of the constructor overloads of List<T> (https://www.dotnetframework.org/default.aspx/Net/Net/3@5@50727@3053/DEVDIV/depot/DevDiv/releases/whidbey/netfxsp/ndp/clr/src/BCL/System/Collections/Generic/List@cs/2/List@cs)
+            //   Hence including this test and other similar to ensure an 'uncastable' IEnumerable<T> is returned
+
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testConcurrentAccessManager.AddEntityType(testEntityType);
+            testConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+
+            var result = new List<String>(testConcurrentAccessManager.GetEntities(testEntityType));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testEntity, result[0]);
+        }
+
+        [Test]
         public void RemoveEntity_LocksAreSet()
         {
             String testEntityType = "ClientAccount";
@@ -410,6 +430,23 @@ namespace ApplicationAccess.UnitTests
         }
         
         [Test]
+        public void GetUserToEntityMappings()
+        {
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testConcurrentAccessManager.AddUser(testUser);
+            testConcurrentAccessManager.AddEntityType(testEntityType);
+            testConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            testConcurrentAccessManager.AddUserToEntityMapping(testUser, testEntityType, testEntity);
+
+            var result = new List<String>(testConcurrentAccessManager.GetUserToEntityMappings(testUser, testEntityType));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testEntity, result[0]);
+        }
+
+        [Test]
         public void RemoveUserToEntityMapping_LocksAreSet()
         {
             String testUser = "user1";
@@ -460,6 +497,23 @@ namespace ApplicationAccess.UnitTests
             testConcurrentAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity, postProcessingAction);
 
             Assert.IsTrue(assertionsWereChecked);
+        }
+
+        [Test]
+        public void GetGroupToEntityMappings()
+        {
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testConcurrentAccessManager.AddGroup(testGroup);
+            testConcurrentAccessManager.AddEntityType(testEntityType);
+            testConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            testConcurrentAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
+
+            var result = new List<String>(testConcurrentAccessManager.GetGroupToEntityMappings(testGroup, testEntityType));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testEntity, result[0]);
         }
 
         [Test]

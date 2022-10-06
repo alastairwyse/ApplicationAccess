@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting\ApplicationAccess.Hosting.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.UnitTests\ApplicationAccess.UnitTests.csproj" />
   </ItemGroup>
 
 </Project>
