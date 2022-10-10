@@ -18,67 +18,89 @@ using System;
 
 namespace ApplicationAccess.Persistence
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy"]/*'/>
+    /// <summary>
+    /// Defines a strategy/methodology for flushing events buffered in an IAccessManagerEventBuffer implementation, by tracking/monitoring the buffer contents, and raising an event to flush the buffer.
+    /// </summary>
     public interface IAccessManagerEventBufferFlushStrategy
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="E:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.BufferFlushed"]/*'/>
+        /// <summary>Occurs when the buffer is flushed... i.e. when events stored in the buffer are processed.</summary>
         event EventHandler BufferFlushed;
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of user events stored in the buffer.
+        /// </summary>
         Int32 UserEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of group events stored in the buffer.
+        /// </summary>
         Int32 GroupEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToGroupMappingEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of user to group mapping events stored in the buffer.
+        /// </summary>
         Int32 UserToGroupMappingEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of group to group mapping events stored in the buffer.
+        /// </summary>
         Int32 GroupToGroupMappingEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of user to application component and access level mapping events stored in the buffer.
+        /// </summary>
         Int32 UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of group to application component and access level mapping events stored in the buffer.
+        /// </summary>
         Int32 GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.EntityTypeEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of entity type events stored in the buffer.
+        /// </summary>
         Int32 EntityTypeEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.EntityEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of entity events stored in the buffer.
+        /// </summary>
         Int32 EntityEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToEntityMappingEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of user to entity mapping events stored in the buffer.
+        /// </summary>
         Int32 UserToEntityMappingEventBufferItemCount
         {
             set;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount"]/*'/>
+        /// <summary>
+        /// The number of group to entity mapping events stored in the buffer.
+        /// </summary>
         Int32 GroupToEntityMappingEventBufferItemCount
         {
             set;

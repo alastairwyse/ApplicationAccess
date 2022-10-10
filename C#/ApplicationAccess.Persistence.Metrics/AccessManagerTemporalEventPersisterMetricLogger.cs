@@ -48,7 +48,7 @@ namespace ApplicationAccess.Persistence.Metrics
             this.metricLogger = metricLogger;
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public void AddUser(TUser user)
         {
             Guid beginId = metricLogger.Begin(new UserAddTime());
@@ -64,7 +64,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUser(TUser user)
         {
             Guid beginId = metricLogger.Begin(new UserRemoveTime());
@@ -80,7 +80,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroup(TGroup group)
         {
             Guid beginId = metricLogger.Begin(new GroupAddTime());
@@ -96,7 +96,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroup(TGroup group)
         {
             Guid beginId = metricLogger.Begin(new GroupRemoveTime());
@@ -112,7 +112,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
             Guid beginId = metricLogger.Begin(new UserToGroupMappingAddTime());
@@ -128,7 +128,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToGroupMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             Guid beginId = metricLogger.Begin(new UserToGroupMappingRemoveTime());
@@ -144,7 +144,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToGroupMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Guid beginId = metricLogger.Begin(new GroupToGroupMappingAddTime());
@@ -160,7 +160,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToGroupMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Guid beginId = metricLogger.Begin(new GroupToGroupMappingRemoveTime());
@@ -176,7 +176,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToGroupMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Guid beginId = metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingAddTime());
@@ -192,7 +192,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToApplicationComponentAndAccessLevelMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Guid beginId = metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
@@ -208,7 +208,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Guid beginId = metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
@@ -224,7 +224,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToApplicationComponentAndAccessLevelMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Guid beginId = metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
@@ -240,7 +240,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntityType(String entityType)
         {
             Guid beginId = metricLogger.Begin(new EntityTypeAddTime());
@@ -256,7 +256,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new EntityTypeAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntityType(String entityType)
         {
             Guid beginId = metricLogger.Begin(new EntityTypeRemoveTime());
@@ -272,7 +272,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new EntityTypeRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntity(String entityType, String entity)
         {
             Guid beginId = metricLogger.Begin(new EntityAddTime());
@@ -288,7 +288,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new EntityAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntity(String entityType, String entity)
         {
             Guid beginId = metricLogger.Begin(new EntityRemoveTime());
@@ -304,7 +304,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new EntityRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
             Guid beginId = metricLogger.Begin(new UserToEntityMappingAddTime());
@@ -320,7 +320,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToEntityMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             Guid beginId = metricLogger.Begin(new UserToEntityMappingRemoveTime());
@@ -336,7 +336,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToEntityMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             Guid beginId = metricLogger.Begin(new GroupToEntityMappingAddTime());
@@ -352,7 +352,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToEntityMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess\ApplicationAccess.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             Guid beginId = metricLogger.Begin(new GroupToEntityMappingRemoveTime());
@@ -368,7 +368,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToEntityMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddUser(TUser user, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new UserAddTime());
@@ -384,7 +384,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUser(`0,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUser(TUser user, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new UserRemoveTime());
@@ -400,7 +400,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroup(`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroup(TGroup group, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new GroupAddTime());
@@ -416,7 +416,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroup(`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroup(TGroup group, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new GroupRemoveTime());
@@ -432,7 +432,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new UserToGroupMappingAddTime());
@@ -448,7 +448,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToGroupMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new UserToGroupMappingRemoveTime());
@@ -464,7 +464,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToGroupMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new GroupToGroupMappingAddTime());
@@ -480,7 +480,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToGroupMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new GroupToGroupMappingRemoveTime());
@@ -496,7 +496,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToGroupMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingAddTime());
@@ -512,7 +512,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToApplicationComponentAndAccessLevelMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
@@ -528,7 +528,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
@@ -544,7 +544,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToApplicationComponentAndAccessLevelMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
@@ -560,7 +560,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntityType(System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntityType(String entityType, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new EntityTypeAddTime());
@@ -576,7 +576,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new EntityTypeAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntityType(System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new EntityTypeRemoveTime());
@@ -592,7 +592,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new EntityTypeRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntity(System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        //// <inheritdoc/>
         public void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new EntityAddTime());
@@ -608,7 +608,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new EntityAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntity(System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new EntityRemoveTime());
@@ -624,7 +624,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new EntityRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new UserToEntityMappingAddTime());
@@ -640,7 +640,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToEntityMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new UserToEntityMappingRemoveTime());
@@ -656,7 +656,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new UserToEntityMappingRemoveTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new GroupToEntityMappingAddTime());
@@ -672,7 +672,7 @@ namespace ApplicationAccess.Persistence.Metrics
             metricLogger.End(beginId, new GroupToEntityMappingAddTime());
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             Guid beginId = metricLogger.Begin(new GroupToEntityMappingRemoveTime());

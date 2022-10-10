@@ -19,13 +19,37 @@ using ApplicationAccess;
 
 namespace ApplicationAccess.Persistence
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"]/*'/>
+    /// <summary>
+    /// Defines methods to read the current or historic state of an AccessManager class from persistent storage.
+    /// </summary>
+    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public interface IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> : IAccessManagerPersistentReader<TUser, TGroup, TComponent, TAccess>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        /// <summary>
+        /// Loads the access manager with state corresponding to the specified event id from persistent storage.
+        /// </summary>
+        /// <param name="eventId">The id of the most recent event persisted into the access manager, at the desired state to load.</param>
+        /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
+        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        /// <remarks>
+        ///   <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
+        ///   <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
+        /// </remarks>
         Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})"]/*'/>
+        /// <summary>
+        /// Loads the access manager with state corresponding to the specified timestamp from persistent storage.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
+        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        /// <remarks>
+        ///   <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
+        ///   <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
+        /// </remarks>
         Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
     }
 }

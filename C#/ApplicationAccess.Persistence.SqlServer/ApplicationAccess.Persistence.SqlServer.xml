@@ -91,188 +91,133 @@
             <param name="metricLogger">The logger for metrics.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUser(`0)">
-            <summary>
-        Adds a user.
-      </summary><param name="user">The user to add.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUser(`0)">
-            <summary>
-        Removes a user.
-      </summary><param name="user">The user to remove.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroup(`1)">
-            <summary>
-        Adds a group.
-      </summary><param name="group">The group to add.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroup(`1)">
-            <summary>
-        Removes a group.
-      </summary><param name="group">The group to remove.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToGroupMapping(`0,`1)">
-            <summary>
-        Adds a mapping between the specified user and group.
-      </summary><param name="user">The user in the mapping.</param><param name="group">The group in the mapping.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToGroupMapping(`0,`1)">
-            <summary>
-        Removes the mapping between the specified user and group.
-      </summary><param name="user">The user in the mapping.</param><param name="group">The group in the mapping.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToGroupMapping(`1,`1)">
-            <summary>
-        Adds a mapping between the specified groups.
-      </summary><param name="fromGroup">The 'from' group in the mapping.</param><param name="toGroup">The 'to' group in the mapping.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToGroupMapping(`1,`1)">
-            <summary>
-        Removes the mapping between the specified groups.
-      </summary><param name="fromGroup">The 'from' group in the mapping.</param><param name="toGroup">The 'to' group in the mapping.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
-            <summary>
-        Adds a mapping between the specified user, application component, and level of access to that component.
-      </summary><param name="user">The user in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
-            <summary>
-        Removes a mapping between the specified user, application component, and level of access to that component.
-      </summary><param name="user">The user in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
-            <summary>
-        Adds a mapping between the specified group, application component, and level of access to that component.
-      </summary><param name="group">The group in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
-            <summary>
-        Removes a mapping between the specified group, application component, and level of access to that component.
-      </summary><param name="group">The group in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddEntityType(System.String)">
-            <summary>
-        Adds an entity type.
-      </summary><param name="entityType">The entity type to add.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveEntityType(System.String)">
-            <summary>
-        Removes an entity type.
-      </summary><param name="entityType">The entity type to remove.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddEntity(System.String,System.String)">
-            <summary>
-        Adds an entity.
-      </summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to add.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveEntity(System.String,System.String)">
-            <summary>
-        Removes an entity.
-      </summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to remove.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToEntityMapping(`0,System.String,System.String)">
-            <summary>
-        Adds a mapping between the specified user, and entity.
-      </summary><param name="user">The user in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
-            <summary>
-        Removes a mapping between the specified user, and entity.
-      </summary><param name="user">The user in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToEntityMapping(`1,System.String,System.String)">
-            <summary>
-        Adds a mapping between the specified group, and entity.
-      </summary><param name="group">The group in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
-            <summary>
-        Removes a mapping between the specified group, and entity.
-      </summary><param name="group">The group in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUser(`0,System.Guid,System.DateTime)">
-            <summary>Adds a user.</summary><param name="user">The user to add.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the user was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUser(`0,System.Guid,System.DateTime)">
-            <summary>Removes a user.</summary><param name="user">The user to remove.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the user was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroup(`1,System.Guid,System.DateTime)">
-            <summary>Adds a group.</summary><param name="group">The group to add.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the group was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroup(`1,System.Guid,System.DateTime)">
-            <summary>Removes a group.</summary><param name="group">The group to remove.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the group was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime)">
-            <summary>Adds a mapping between the specified user and group.</summary><param name="user">The user in the mapping.</param><param name="group">The group in the mapping.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the user to group mapping was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime)">
-            <summary>Removes a mapping between the specified user and group.</summary><param name="user">The user in the mapping.</param><param name="group">The group in the mapping.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the user to group mapping was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)">
-            <summary>Adds a mapping between the specified groups.</summary><param name="fromGroup">The 'from' group in the mapping.</param><param name="toGroup">The 'to' group in the mapping.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping between the groups was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)">
-            <summary>Removes a mapping between the specified groups.</summary><param name="fromGroup">The 'from' group in the mapping.</param><param name="toGroup">The 'to' group in the mapping.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping between the groups was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)">
-            <summary>Adds a mapping between the specified user, application component, and level of access to that component.</summary><param name="user">The user in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)">
-            <summary>Removes a mapping between the specified user, application component, and level of access to that component.</summary><param name="user">The user in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)">
-            <summary>Adds a mapping between the specified group, application component, and level of access to that component.</summary><param name="group">The group in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)">
-            <summary>Removes a mapping between the specified group, application component, and level of access to that component.</summary><param name="group">The group in the mapping.</param><param name="applicationComponent">The application component in the mapping.</param><param name="accessLevel">The level of access to the component.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddEntityType(System.String,System.Guid,System.DateTime)">
-            <summary>Adds an entity type.</summary><param name="entityType">The entity type to add.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the entity type was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveEntityType(System.String,System.Guid,System.DateTime)">
-            <summary>Removes an entity type.</summary><param name="entityType">The entity type to remove.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the entity type was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddEntity(System.String,System.String,System.Guid,System.DateTime)">
-            <summary>Adds an entity.</summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to add.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the entity was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveEntity(System.String,System.String,System.Guid,System.DateTime)">
-            <summary>Removes an entity.</summary><param name="entityType">The type of the entity.</param><param name="entity">The entity to remove.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the entity was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)">
-            <summary>Adds a mapping between the specified user, and entity.</summary><param name="user">The user in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)">
-            <summary>Removes a mapping between the specified user, and entity.</summary><param name="user">The user in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
-            <summary>Adds a mapping between the specified group, and entity.</summary><param name="group">The group in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping was added.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
-            <summary>Removes a mapping between the specified group, and entity.</summary><param name="group">The group in the mapping.</param><param name="entityType">The type of the entity.</param><param name="entity">The entity in the mapping.</param><param name="eventId">The unique id of the event.</param><param name="occurredTime">The historic date and time that the mapping was removed.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.Load(ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
-            <summary>
-        Loads the access manager from persistent storage.
-      </summary><param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param><returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns><remarks>
-        <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
-        <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
-      </remarks>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
-            <summary>
-        Loads the access manager with state corresponding to the specified event id from persistent storage.
-      </summary><param name="eventId">The id of the most recent event persisted into the access manager, at the desired state to load.</param><param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param><returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns><remarks>
-        <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
-        <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
-      </remarks>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
-            <summary>
-        Loads the access manager with state corresponding to the specified timestamp from persistent storage.
-      </summary><param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param><param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param><returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns><remarks>
-        <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
-        <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
-      </remarks>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.GenerateSqlServerTransientErrorNumbers">
             <summary>

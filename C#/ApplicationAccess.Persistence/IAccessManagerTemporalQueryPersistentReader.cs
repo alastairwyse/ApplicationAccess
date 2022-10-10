@@ -29,6 +29,5 @@ namespace ApplicationAccess.Persistence
     {
         // TODO: Placeholder for interface which allows temporal/historic versions of the methods in IAccessManagerQueryProcessor
         //   Similar to IAccessManagerTemporalEventPersister, but query by DateTime or EventId
-        //   Also need to put comments in 'InterfaceDocumentationComments.xml'
     }
 }

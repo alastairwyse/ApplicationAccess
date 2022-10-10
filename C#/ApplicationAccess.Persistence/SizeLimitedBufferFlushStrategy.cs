@@ -27,10 +27,10 @@ namespace ApplicationAccess.Persistence
     {
         /// <summary>The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</summary>
         protected Int32 bufferSizeLimit;
-        /// <summary>Signal which is used to trigger the worker thread when the specified number of events are bufferred.</summary>
+        /// <summary>Signal which is used to trigger the worker thread when the specified number of events are buffered.</summary>
         protected ManualResetEvent bufferProcessSignal;
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 UserEventBufferItemCount
         {
             set
@@ -44,7 +44,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 GroupEventBufferItemCount
         {
             set
@@ -57,7 +57,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToGroupMappingEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 UserToGroupMappingEventBufferItemCount
         {
             set
@@ -70,7 +70,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 GroupToGroupMappingEventBufferItemCount
         {
             set
@@ -83,7 +83,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
             set
@@ -96,7 +96,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount
         {
             set
@@ -109,7 +109,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.EntityTypeEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 EntityTypeEventBufferItemCount
         {
             set
@@ -122,7 +122,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.EntityEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 EntityEventBufferItemCount
         {
             set
@@ -135,7 +135,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.UserToEntityMappingEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 UserToEntityMappingEventBufferItemCount
         {
             set
@@ -148,7 +148,7 @@ namespace ApplicationAccess.Persistence
             }
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount"]/*'/>
+        /// <inheritdoc/>
         public override Int32 GroupToEntityMappingEventBufferItemCount
         {
             set

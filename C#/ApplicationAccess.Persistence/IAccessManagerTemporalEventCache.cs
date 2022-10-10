@@ -29,8 +29,6 @@ namespace ApplicationAccess.Persistence
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public interface IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
     {
-        // TODO: Move XML comments to InterfaceDocumentationComments.xml
-
         /// <summary>
         /// Retrieves all events which occurred since the event with the specified id.
         /// </summary>

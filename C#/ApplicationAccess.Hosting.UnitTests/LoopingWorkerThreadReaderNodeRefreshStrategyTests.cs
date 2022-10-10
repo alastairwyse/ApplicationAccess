@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Threading;
 using NUnit.Framework;
 
 namespace ApplicationAccess.Hosting.UnitTests
@@ -29,7 +30,7 @@ namespace ApplicationAccess.Hosting.UnitTests
         [SetUp]
         protected void SetUp()
         {
-            testLoopingWorkerThreadReaderNodeRefreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(1000);
+            testLoopingWorkerThreadReaderNodeRefreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(250);
         }
 
         [Test]
@@ -42,6 +43,42 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             Assert.That(e.Message, Does.StartWith("Parameter 'refreshLoopInterval' with value 0 cannot be less than 1."));
             Assert.AreEqual("refreshLoopInterval", e.ParamName);
+        }
+
+        [Test]
+        public void NotifyQueryMethodCalled_ExceptionOccurredOnWorkerThread()
+        {
+            var mockException = new Exception("Worker thread refresh exception.");
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed += (Object sender, EventArgs e) => { throw mockException; };
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.Start();
+            // Wait for the worker thread loop iterval to elapse
+            Thread.Sleep(500);
+
+            var e = Assert.Throws<ReaderNodeRefreshException>(delegate
+            {
+                testLoopingWorkerThreadReaderNodeRefreshStrategy.NotifyQueryMethodCalled();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Exception occurred on reader node refreshing worker thread at "));
+            Assert.AreEqual(e.InnerException, mockException);
+        }
+
+        [Test]
+        public void Stop_ExceptionOccurredOnWorkerThread()
+        {
+            var mockException = new Exception("Worker thread refresh exception.");
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed += (Object sender, EventArgs e) => { throw mockException; };
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.Start();
+            // Wait for the worker thread loop iterval to elapse
+            Thread.Sleep(500);
+
+            var e = Assert.Throws<ReaderNodeRefreshException>(delegate
+            {
+                testLoopingWorkerThreadReaderNodeRefreshStrategy.Stop();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Exception occurred on reader node refreshing worker thread at "));
+            Assert.AreEqual(e.InnerException, mockException);
         }
     }
 }

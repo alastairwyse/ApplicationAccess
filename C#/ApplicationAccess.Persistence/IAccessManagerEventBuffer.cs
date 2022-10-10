@@ -18,10 +18,18 @@ using System;
 
 namespace ApplicationAccess.Persistence
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"]/*'/>
+    /// <summary>
+    /// Defines methods to buffer events which change the structure of an AccessManager class.
+    /// </summary>
+    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public interface IAccessManagerEventBuffer<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4.Flush"]/*'/>
+        /// <summary>
+        /// Flushes the buffer...i.e.transfers all stored events to another event processor, and clears all items stored in the buffer.
+        /// </summary>
         void Flush();
     }
 }

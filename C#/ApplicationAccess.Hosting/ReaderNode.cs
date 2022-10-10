@@ -24,7 +24,7 @@ using ApplicationMetrics.MetricLoggers;
 namespace ApplicationAccess.Hosting
 {
     /// <summary>
-    /// A node in an ApplicationAccess hosting environment which allows reading permissions and authorizations for an application.
+    /// A node in a multi-reader, single-writer ApplicationAccess hosting environment which allows reading permissions and authorizations for an application.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
@@ -66,15 +66,6 @@ namespace ApplicationAccess.Hosting
             refreshedEventHandler = (Object sender, EventArgs e) => { Refresh(); };
             refreshStrategy.ReaderNodeRefreshed += refreshedEventHandler;
             disposed = false;
-            // TODO: Are metrics going to be captured inside this class, or in an AccessManagerQueryProcessorMetricLogger wrapping this?
-            // TODO: Need some sort of base 'FatalOperationException' or similar to allow surrounding host to figure out when something fatal has happened
-            // TODO: Unit tests for this class
-            // TODO: Specific metrics to capture
-            //    Instances of cache misses
-            //    Time to perform load
-            //    Number of latest events received
-            //    Difference between event time and current time
-            //    Refresh occurred > RefreshOperationCompleted
         }
 
         /// <summary>

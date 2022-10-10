@@ -431,6 +431,12 @@ namespace ApplicationAccess
         /// <returns>A collection of non-leaf vertices the specified leaf vertex is connected to by an edge.</returns>
         protected IEnumerable<TNonLeaf> GetLeafEdges(TLeaf leafVertex, Boolean checkVertexExists)
         {
+            // TODO: Would like to not have to copy the items to a List here, but...
+            //   1. If I just return the ISet<TNonLeaf> it has problem implications for the ConcurrentAccessManager (since it's using the ConcurrentSet class which has unimplemented methods)
+            //   2. If I do a yield in the foreach, the AccessManagerBase class can't catch the LeafVertexNotFoundException and rethrow as something else
+            //   Hence copying to list was only option I could find which resolved both of the above
+            //   Same applies for GetNonLeafEdges()
+
             if (checkVertexExists == true)
                 ThrowExceptionIfLeafVertexDoesntExistInGraph(leafVertex, nameof(leafVertex));
 
