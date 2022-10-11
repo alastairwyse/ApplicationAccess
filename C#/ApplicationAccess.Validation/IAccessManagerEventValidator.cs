@@ -18,67 +18,195 @@ using System;
 
 namespace ApplicationAccess.Validation
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Validation.IAccessManagerEventValidator`4"]/*'/>
+    /// <summary>
+    /// Defines methods to validate events which change the structure of an AccessManager implementation.  Includes the ability to invoke an arbitary 'postValidationAction, which in the case of implementations which use mutual-exclusion locks, should be invoked while those locks are still acquired.
+    /// </summary>
+    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public interface IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddUser(`0,System.Action{`0})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds a user.
+        /// </summary>
+        /// <param name="user">The user to add.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddUser(TUser user, Action<TUser> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveUser(`0,System.Action{`0})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes a user.
+        /// </summary>
+        /// <param name="user">The user to remove.</param>
+        /// <param name="postValidationAction">An action to invoke after removing the user but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveUser(TUser user, Action<TUser> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddGroup(`1,System.Action{`1})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds a group.
+        /// </summary>
+        /// <param name="group">The group to add.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddGroup(TGroup group, Action<TGroup> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveGroup(`1,System.Action{`1})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes a group.
+        /// </summary>
+        /// <param name="group">The group to remove.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveGroup(TGroup group, Action<TGroup> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddUserToGroupMapping(`0,`1,System.Action{`0,`1})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds a mapping between a user and a group.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveUserToGroupMapping(`0,`1,System.Action{`0,`1})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes a mapping between a user and a group.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddGroupToGroupMapping(`1,`1,System.Action{`1,`1})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds a mapping between groups.
+        /// </summary>
+        /// <param name="fromGroup">The 'from' group in the mapping.</param>
+        /// <param name="toGroup">The 'to' group in the mapping.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveGroupToGroupMapping(`1,`1,System.Action{`1,`1})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes a mapping between groups.
+        /// </summary>
+        /// <param name="fromGroup">The 'from' group in the mapping.</param>
+        /// <param name="toGroup">The 'to' group in the mapping.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Action{`0,`2,`3})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds a mapping between a user, an application component, and level of access to that component.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="applicationComponent">The application component in the mapping.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Action{`0,`2,`3})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes a mapping between a user, an application component, and level of access to that component.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="applicationComponent">The application component in the mapping.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Action{`1,`2,`3})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds a mapping between a group, an application component, and level of access to that component.
+        /// </summary>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="applicationComponent">The application component in the mapping.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Action{`1,`2,`3})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes a mapping between a group, an application component, and level of access to that component.
+        /// </summary>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="applicationComponent">The application component in the mapping.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddEntityType(System.String,System.Action{System.String})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds an entity type.
+        /// </summary>
+        /// <param name="entityType">The entity type to add.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddEntityType(String entityType, Action<String> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveEntityType(System.String,System.Action{System.String})"]/*'/>
+        /// <summary>
+        ///   Validates an event which removes an entity type.
+        /// </summary>
+        /// <param name="entityType">The entity type to remove.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveEntityType(String entityType, Action<String> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddEntity(System.String,System.String,System.Action{System.String,System.String})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds an entity.
+        /// </summary>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity to add.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddEntity(String entityType, String entity, Action<String, String> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveEntity(System.String,System.String,System.Action{System.String,System.String})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes an entity.
+        /// </summary>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity to remove.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveEntity(String entityType, String entity, Action<String, String> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds a mapping between a user, and an entity..
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity in the mapping.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes a mapping between a user, and an entity..
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity in the mapping.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddGroupToEntityMapping(`1,System.String,System.String,System.Action{`1,System.String,System.String})"]/*'/>
+        /// <summary>
+        /// Validates an event which adds a mapping between a group, and an entity.
+        /// </summary>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity in the mapping.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateAddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postValidationAction);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveGroupToEntityMapping(`1,System.String,System.String,System.Action{`1,System.String,System.String})"]/*'/>
+        /// <summary>
+        /// Validates an event which removes a mapping between a group, and an entity.
+        /// </summary>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity in the mapping.</param>
+        /// <param name="postValidationAction">An action to invoke after validating the event but whilst any mutual-exclusion locks are still acquired.</param>
+        /// <returns>The result of the validation.</returns>
         ValidationResult ValidateRemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postValidationAction);
     }
 }

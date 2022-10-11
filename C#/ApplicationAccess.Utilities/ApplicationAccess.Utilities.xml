@@ -10,14 +10,10 @@
             </summary>
         </member>
         <member name="M:ApplicationAccess.Utilities.DefaultDateTimeProvider.Now">
-            <summary>
-        Returns the current date and time.
-      </summary><returns>The current date and time.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Utilities.DefaultDateTimeProvider.UtcNow">
-            <summary>
-        Returns the current date and time expressed as the Coordinated Universal Time (UTC).
-      </summary><returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
+            <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Utilities.DefaultGuidProvider">
             <summary>
@@ -25,34 +21,35 @@
             </summary>
         </member>
         <member name="M:ApplicationAccess.Utilities.DefaultGuidProvider.NewGuid">
-            <summary>
-        Creates a new random Guid.
-      </summary><returns>A new Guid.</returns>
+            <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Utilities.IDateTimeProvider">
             <summary>
-        Defines methods which returns the current date and time.
-      </summary>
+            Defines methods which returns the current date and time.
+            </summary>
         </member>
         <member name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now">
             <summary>
-        Returns the current date and time.
-      </summary><returns>The current date and time.</returns>
+            Returns the current date and time.
+            </summary>
+            <returns>The current date and time.</returns>
         </member>
         <member name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow">
             <summary>
-        Returns the current date and time expressed as the Coordinated Universal Time (UTC).
-      </summary><returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
+            Returns the current date and time expressed as the Coordinated Universal Time (UTC).
+            </summary>
+            <returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
         </member>
         <member name="T:ApplicationAccess.Utilities.IGuidProvider">
             <summary>
-        Defines a method which returns random Guids.
-      </summary>
+            Defines a method which returns random Guids.
+            </summary>
         </member>
         <member name="M:ApplicationAccess.Utilities.IGuidProvider.NewGuid">
             <summary>
-        Creates a new random Guid.
-      </summary><returns>A new Guid.</returns>
+            Creates a new random Guid.
+            </summary>
+            <returns>A new Guid.</returns>
         </member>
         <member name="T:ApplicationAccess.Utilities.LockManager">
             <summary>
@@ -305,14 +302,10 @@
             </summary>
         </member>
         <member name="M:ApplicationAccess.Utilities.StopwatchDateTimeProvider.Now">
-            <summary>
-        Returns the current date and time.
-      </summary><returns>The current date and time.</returns>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Utilities.StopwatchDateTimeProvider.UtcNow">
-            <summary>
-        Returns the current date and time expressed as the Coordinated Universal Time (UTC).
-      </summary><returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
+            <inheritdoc/>
         </member>
     </members>
 </doc>

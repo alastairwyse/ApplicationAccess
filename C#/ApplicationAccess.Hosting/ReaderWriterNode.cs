@@ -107,7 +107,7 @@ namespace ApplicationAccess.Hosting
             metricLogger.End(beginId, new ReaderWriterNodeLoadTime());
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Users"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<TUser> Users
         {
             get
@@ -116,7 +116,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Groups"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<TGroup> Groups
         {
             get
@@ -125,7 +125,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.EntityTypes"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<String> EntityTypes
         {
             get
@@ -134,235 +134,235 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public Boolean ContainsUser(TUser user)
         {
             return concurrentAccessManager.ContainsUser(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public Boolean ContainsGroup(TGroup group)
         {
             return concurrentAccessManager.ContainsGroup(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToGroupMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
         {
             return concurrentAccessManager.GetUserToGroupMappings(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToGroupMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
         {
             return concurrentAccessManager.GetGroupToGroupMappings(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             return concurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             return concurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public Boolean ContainsEntityType(String entityType)
         {
             return concurrentAccessManager.ContainsEntityType(entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntities(System.String)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<String> GetEntities(String entityType)
         {
             return concurrentAccessManager.GetEntities(entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public Boolean ContainsEntity(String entityType, String entity)
         {
             return concurrentAccessManager.ContainsEntity(entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
             return concurrentAccessManager.GetUserToEntityMappings(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0,System.String)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
             return concurrentAccessManager.GetUserToEntityMappings(user, entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             return concurrentAccessManager.GetGroupToEntityMappings(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1,System.String)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             return concurrentAccessManager.GetGroupToEntityMappings(group, entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             return concurrentAccessManager.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             return concurrentAccessManager.HasAccessToEntity(user, entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
             return concurrentAccessManager.GetApplicationComponentsAccessibleByUser(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
             return concurrentAccessManager.GetApplicationComponentsAccessibleByGroup(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)"]/*'/>
+        /// <inheritdoc/>
         public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             return concurrentAccessManager.GetEntitiesAccessibleByUser(user, entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)"]/*'/>
+        /// <inheritdoc/>
         public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {
             return concurrentAccessManager.GetEntitiesAccessibleByGroup(group, entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public void AddUser(TUser user)
         {
             eventBuffer.AddUser(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUser(TUser user)
         {
             eventBuffer.RemoveUser(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroup(TGroup group)
         {
             eventBuffer.AddGroup(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroup(TGroup group)
         {
             eventBuffer.RemoveGroup(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
             eventBuffer.AddUserToGroupMapping(user, group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             eventBuffer.RemoveUserToGroupMapping(user, group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             eventBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             eventBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             eventBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             eventBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             eventBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             eventBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntityType(String entityType)
         {
             eventBuffer.AddEntityType(entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntityType(String entityType)
         {
             eventBuffer.RemoveEntityType(entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntity(String entityType, String entity)
         {
             eventBuffer.AddEntity(entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntity(String entityType, String entity)
         {
             eventBuffer.RemoveEntity(entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        //// <inheritdoc/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
             eventBuffer.AddUserToEntityMapping(user, entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             eventBuffer.RemoveUserToEntityMapping(user, entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             eventBuffer.AddGroupToEntityMapping(group, entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             eventBuffer.RemoveGroupToEntityMapping(group, entityType, entity);

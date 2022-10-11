@@ -31,7 +31,7 @@ namespace ApplicationAccess.Serialization.Metrics
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
 
-        /// <include file='..\ApplicationAccess.Serialization\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})"]/*'/>
+        /// <inheritdoc/>
         public TSerializedObject Serialize<TUser, TGroup, TComponent, TAccess>(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager, IUniqueStringifier<TUser> userStringifier, IUniqueStringifier<TGroup> groupStringifier, IUniqueStringifier<TComponent> applicationComponentStringifier, IUniqueStringifier<TAccess> accessLevelStringifier)
         {
             TSerializedObject result;
@@ -51,7 +51,7 @@ namespace ApplicationAccess.Serialization.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess.Serialization\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Deserialize``4(`0,ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.AccessManagerBase{``0,``1,``2,``3})"]/*'/>
+        /// <inheritdoc/>
         public void Deserialize<TUser, TGroup, TComponent, TAccess>
         (
             TSerializedObject serializedAccessManager,

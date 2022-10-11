@@ -18,15 +18,23 @@ using System;
 
 namespace ApplicationAccess.Utilities
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Utilities.IDateTimeProvider"]/*'/>
+    /// <summary>
+    /// Defines methods which returns the current date and time.
+    /// </summary>
     public interface IDateTimeProvider
     {
         // TODO: Think about removing Now() method as it's not used (as of 2022-05) and better practice is to always use UtcNow()
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now"]/*'/>
+        /// <summary>
+        /// Returns the current date and time.
+        /// </summary>
+        /// <returns>The current date and time.</returns>
         DateTime Now();
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow"]/*'/>
+        /// <summary>
+        /// Returns the current date and time expressed as the Coordinated Universal Time (UTC).
+        /// </summary>
+        /// <returns>The current date and time expressed as the Coordinated Universal Time (UTC).</returns>
         DateTime UtcNow();
     }
 }

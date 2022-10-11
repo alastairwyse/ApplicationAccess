@@ -81,7 +81,7 @@ namespace ApplicationAccess.Hosting
             this.metricLogger = metricLogger;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Users"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<TUser> Users
         {
@@ -92,7 +92,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Groups"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<TGroup> Groups
         {
@@ -103,7 +103,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.EntityTypes"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<String> EntityTypes
         {
@@ -114,7 +114,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsUser(`0)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean ContainsUser(TUser user)
         {
@@ -122,7 +122,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.ContainsUser(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean ContainsGroup(TGroup group)
         {
@@ -130,7 +130,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.ContainsGroup(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToGroupMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
         {
@@ -138,7 +138,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetUserToGroupMappings(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToGroupMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
         {
@@ -146,7 +146,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetGroupToGroupMappings(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
@@ -154,7 +154,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetUserToApplicationComponentAndAccessLevelMappings(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
@@ -162,7 +162,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetGroupToApplicationComponentAndAccessLevelMappings(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean ContainsEntityType(String entityType)
         {
@@ -170,7 +170,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.ContainsEntityType(entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntities(System.String)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<String> GetEntities(String entityType)
         {
@@ -178,7 +178,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetEntities(entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean ContainsEntity(String entityType, String entity)
         {
@@ -186,7 +186,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.ContainsEntity(entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
@@ -194,7 +194,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetUserToEntityMappings(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0,System.String)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
@@ -202,7 +202,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetUserToEntityMappings(user, entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
@@ -210,7 +210,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetGroupToEntityMappings(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1,System.String)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
@@ -218,7 +218,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetGroupToEntityMappings(group, entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
@@ -226,7 +226,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
@@ -234,7 +234,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.HasAccessToEntity(user, entityType, entity);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
@@ -242,7 +242,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetApplicationComponentsAccessibleByUser(user);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
@@ -250,7 +250,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetApplicationComponentsAccessibleByGroup(group);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
@@ -258,7 +258,7 @@ namespace ApplicationAccess.Hosting
             return accessManager.GetEntitiesAccessibleByUser(user, entityType);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)"]/*'/>
+        /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {

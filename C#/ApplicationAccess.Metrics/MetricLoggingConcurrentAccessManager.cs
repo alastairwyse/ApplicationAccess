@@ -105,7 +105,7 @@ namespace ApplicationAccess.Metrics
             InitializeItemAndMappingCountFields();
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public override void AddUser(TUser user)
         {
             Action<TUser, Action<TUser, Action>> addUserAction = (actionUser, baseAction) =>
@@ -115,13 +115,13 @@ namespace ApplicationAccess.Metrics
             CallBaseClassEventProcessingMethodWithMetricLogging<TUser, UserAddTime, UserAdded>(user, addUserAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public override Boolean ContainsUser(TUser user)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsUserQuery>(() => { return base.ContainsUser(user); });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveUser(TUser user)
         {
             Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
@@ -152,7 +152,7 @@ namespace ApplicationAccess.Metrics
             this.RemoveUser(user, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public override void AddGroup(TGroup group)
         {
             Action<TGroup, Action<TGroup, Action>> addGroupAction = (actionGroup, baseAction) =>
@@ -162,13 +162,13 @@ namespace ApplicationAccess.Metrics
             CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, GroupAddTime, GroupAdded>(group, addGroupAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public override Boolean ContainsGroup(TGroup group)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsGroupQuery>(() => { return base.ContainsGroup(group); });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveGroup(TGroup group)
         {
             Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
@@ -199,7 +199,7 @@ namespace ApplicationAccess.Metrics
             this.RemoveGroup(group, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public override void AddUserToGroupMapping(TUser user, TGroup group)
         {
             Action<TUser, TGroup, Action<TUser, TGroup, Action>> addUserToGroupMappingAction = (actionUser, actionGroup, baseAction) =>
@@ -209,13 +209,13 @@ namespace ApplicationAccess.Metrics
             CallBaseClassEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingAddTime, UserToGroupMappingAdded>(user, group, addUserToGroupMappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToGroupMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         public override IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetUserToGroupMappingsQuery>(() => { return base.GetUserToGroupMappings(user); });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             Action<TUser, TGroup, Action<TUser, TGroup, Action>> removeUserToGroupMappingAction = (actionUser, actionGroup, baseAction) =>
@@ -225,7 +225,7 @@ namespace ApplicationAccess.Metrics
             CallBaseClassEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingRemoveTime, UserToGroupMappingRemoved>(user, group, removeUserToGroupMappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Action<TGroup, TGroup, Action<TGroup, TGroup, Action>> addGroupToGroupMappingAction = (actionFromGroup, actionToGroup, baseAction) =>
@@ -235,12 +235,13 @@ namespace ApplicationAccess.Metrics
             CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingAddTime, GroupToGroupMappingAdded>(fromGroup, toGroup, addGroupToGroupMappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToGroupMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public override IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetGroupToGroupMappingsQuery>(() => { return base.GetGroupToGroupMappings(group); });
         }
 
+        /// <inheritdoc/>
         public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Action<TGroup, TGroup, Action<TGroup, TGroup, Action>> removeGroupToGroupMappingAction = (actionFromGroup, actionToGroup, baseAction) =>
@@ -250,7 +251,7 @@ namespace ApplicationAccess.Metrics
             CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingRemoveTime, GroupToGroupMappingRemoved>(fromGroup, toGroup, removeGroupToGroupMappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
@@ -273,7 +274,7 @@ namespace ApplicationAccess.Metrics
             this.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         public override IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<TComponent, TAccess>>, GetUserToApplicationComponentAndAccessLevelMappingsQuery>(() =>
@@ -282,7 +283,7 @@ namespace ApplicationAccess.Metrics
             });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
@@ -305,7 +306,7 @@ namespace ApplicationAccess.Metrics
             this.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
@@ -328,7 +329,7 @@ namespace ApplicationAccess.Metrics
             this.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public override IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<TComponent, TAccess>>, GetGroupToApplicationComponentAndAccessLevelMappingsQuery>(() =>
@@ -337,7 +338,7 @@ namespace ApplicationAccess.Metrics
             });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
@@ -360,7 +361,7 @@ namespace ApplicationAccess.Metrics
             this.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void AddEntityType(String entityType)
         {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
@@ -382,13 +383,13 @@ namespace ApplicationAccess.Metrics
             this.AddEntityType(entityType, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public override Boolean ContainsEntityType(String entityType)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityTypeQuery>(() => { return base.ContainsEntityType(entityType); });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveEntityType(String entityType)
         {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
@@ -430,7 +431,7 @@ namespace ApplicationAccess.Metrics
             this.RemoveEntityType(entityType, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void AddEntity(String entityType, String entity)
         {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
@@ -453,19 +454,19 @@ namespace ApplicationAccess.Metrics
             this.AddEntity(entityType, entity, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntities(System.String)"]/*'/>
+        /// <inheritdoc/>
         public override IEnumerable<String> GetEntities(String entityType)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetEntitiesQuery>(() => { return base.GetEntities(entityType); });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override Boolean ContainsEntity(String entityType, String entity)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityQuery>(() => { return base.ContainsEntity(entityType, entity); });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveEntity(String entityType, String entity)
         {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
@@ -501,7 +502,7 @@ namespace ApplicationAccess.Metrics
             this.RemoveEntity(entityType, entity, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
@@ -524,7 +525,8 @@ namespace ApplicationAccess.Metrics
             };
             this.AddUserToEntityMapping(user, entityType, entity, wrappingAction);
         }
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0)"]/*'/>
+
+        /// <inheritdoc/>
         public override IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<String, String>>, GetUserToEntityMappingsForUserQuery>(() =>
@@ -533,7 +535,7 @@ namespace ApplicationAccess.Metrics
             });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetUserToEntityMappingsForUserAndEntityTypeQuery>(() =>
@@ -542,7 +544,7 @@ namespace ApplicationAccess.Metrics
             });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
@@ -566,7 +568,7 @@ namespace ApplicationAccess.Metrics
             this.RemoveUserToEntityMapping(user, entityType, entity, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
@@ -590,7 +592,7 @@ namespace ApplicationAccess.Metrics
             this.AddGroupToEntityMapping(group, entityType, entity, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public override IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<String, String>>, GetGroupToEntityMappingsForGroupQuery>(() =>
@@ -599,7 +601,7 @@ namespace ApplicationAccess.Metrics
             });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetGroupToEntityMappingsForGroupAndEntityTypeQuery>(() =>
@@ -608,7 +610,7 @@ namespace ApplicationAccess.Metrics
             });
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
@@ -632,7 +634,7 @@ namespace ApplicationAccess.Metrics
             this.RemoveGroupToEntityMapping(group, entityType, entity, wrappingAction);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Boolean result;
@@ -652,7 +654,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             Boolean result;
@@ -672,7 +674,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public override HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
@@ -692,7 +694,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public override HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
@@ -712,7 +714,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             HashSet<String> result;
@@ -732,7 +734,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {
             HashSet<String> result;

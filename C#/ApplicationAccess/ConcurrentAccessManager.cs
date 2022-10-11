@@ -87,7 +87,7 @@ namespace ApplicationAccess
             base.Clear();
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public override void AddUser(TUser user)
         {
             Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
@@ -113,7 +113,7 @@ namespace ApplicationAccess
             this.AddUser(user, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveUser(TUser user)
         {
             Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
@@ -138,7 +138,7 @@ namespace ApplicationAccess
             this.RemoveUser(user, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public override void AddGroup(TGroup group)
         {
             Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
@@ -163,7 +163,7 @@ namespace ApplicationAccess
             this.AddGroup(group, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveGroup(TGroup group)
         {
             Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
@@ -188,7 +188,7 @@ namespace ApplicationAccess
             this.RemoveGroup(group, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public override void AddUserToGroupMapping(TUser user, TGroup group)
         {
             Action<TUser, TGroup, Action> wrappingAction = (actionUser, actionGroup, baseAction) =>
@@ -214,7 +214,7 @@ namespace ApplicationAccess
             this.AddUserToGroupMapping(user, group, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             Action<TUser, TGroup, Action> wrappingAction = (actionUser, actionGroup, baseAction) =>
@@ -240,7 +240,7 @@ namespace ApplicationAccess
             this.RemoveUserToGroupMapping(user, group, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Action<TGroup, TGroup, Action> wrappingAction = (actionFromGroup, actionToGroup, baseAction) =>
@@ -266,7 +266,7 @@ namespace ApplicationAccess
             this.AddGroupToGroupMapping(fromGroup, toGroup, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Action<TGroup, TGroup, Action> wrappingAction = (actionFromGroup, actionToGroup, baseAction) =>
@@ -292,7 +292,7 @@ namespace ApplicationAccess
             this.RemoveGroupToGroupMapping(fromGroup, toGroup, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
@@ -319,7 +319,7 @@ namespace ApplicationAccess
             this.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
@@ -346,7 +346,7 @@ namespace ApplicationAccess
             this.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
@@ -373,7 +373,7 @@ namespace ApplicationAccess
             this.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
@@ -400,7 +400,7 @@ namespace ApplicationAccess
             this.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void AddEntityType(String entityType)
         {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
@@ -425,7 +425,7 @@ namespace ApplicationAccess
             this.AddEntityType(entityType, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveEntityType(String entityType)
         {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
@@ -450,7 +450,7 @@ namespace ApplicationAccess
             this.RemoveEntityType(entityType, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void AddEntity(String entityType, String entity)
         {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
@@ -476,7 +476,7 @@ namespace ApplicationAccess
             this.AddEntity(entityType, entity, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveEntity(String entityType, String entity)
         {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
@@ -502,7 +502,7 @@ namespace ApplicationAccess
             this.RemoveEntity(entityType, entity, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
@@ -529,7 +529,7 @@ namespace ApplicationAccess
             this.AddUserToEntityMapping(user, entityType, entity, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
@@ -556,7 +556,7 @@ namespace ApplicationAccess
             this.RemoveUserToEntityMapping(user, entityType, entity, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
@@ -583,7 +583,7 @@ namespace ApplicationAccess
             this.AddGroupToEntityMapping(group, entityType, entity, wrappingAction);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>

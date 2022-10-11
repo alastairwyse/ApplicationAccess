@@ -18,10 +18,15 @@ using System;
 
 namespace ApplicationAccess.Utilities
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Utilities.IGuidProvider"]/*'/>
+    /// <summary>
+    /// Defines a method which returns random Guids.
+    /// </summary>
     public interface IGuidProvider
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IGuidProvider.NewGuid"]/*'/>
+        /// <summary>
+        /// Creates a new random Guid.
+        /// </summary>
+        /// <returns>A new Guid.</returns>
         Guid NewGuid();
     }
 }

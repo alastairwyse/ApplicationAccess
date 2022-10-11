@@ -62,7 +62,7 @@ namespace ApplicationAccess.Hosting
             this.dateTimeProvider = dateTimeProvider;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public void AddUser(TUser user)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -70,7 +70,7 @@ namespace ApplicationAccess.Hosting
             AddUser(user, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUser(TUser user)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -78,7 +78,7 @@ namespace ApplicationAccess.Hosting
             RemoveUser(user, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroup(TGroup group)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -86,7 +86,7 @@ namespace ApplicationAccess.Hosting
             AddGroup(group, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroup(TGroup group)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -94,7 +94,7 @@ namespace ApplicationAccess.Hosting
             RemoveGroup(group, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -102,7 +102,7 @@ namespace ApplicationAccess.Hosting
             AddUserToGroupMapping(user, group, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -110,7 +110,7 @@ namespace ApplicationAccess.Hosting
             RemoveUserToGroupMapping(user, group, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -118,7 +118,7 @@ namespace ApplicationAccess.Hosting
             AddGroupToGroupMapping(fromGroup, toGroup, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -126,7 +126,7 @@ namespace ApplicationAccess.Hosting
             RemoveGroupToGroupMapping(fromGroup, toGroup, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -134,7 +134,7 @@ namespace ApplicationAccess.Hosting
             AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -142,7 +142,7 @@ namespace ApplicationAccess.Hosting
             RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -150,7 +150,7 @@ namespace ApplicationAccess.Hosting
             AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -158,7 +158,7 @@ namespace ApplicationAccess.Hosting
             RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntityType(String entityType)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -166,7 +166,7 @@ namespace ApplicationAccess.Hosting
             AddEntityType(entityType, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntityType(String entityType)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -174,7 +174,7 @@ namespace ApplicationAccess.Hosting
             RemoveEntityType(entityType, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntity(String entityType, String entity)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -183,7 +183,7 @@ namespace ApplicationAccess.Hosting
             AddEntity(entityType, entity, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntity(String entityType, String entity)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -191,7 +191,7 @@ namespace ApplicationAccess.Hosting
             RemoveEntity(entityType, entity, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -200,7 +200,7 @@ namespace ApplicationAccess.Hosting
             AddUserToEntityMapping(user, entityType, entity, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -209,7 +209,7 @@ namespace ApplicationAccess.Hosting
             RemoveUserToEntityMapping(user, entityType, entity, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -218,7 +218,7 @@ namespace ApplicationAccess.Hosting
             AddGroupToEntityMapping(group, entityType, entity, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             Guid eventId = guidProvider.NewGuid();
@@ -226,7 +226,7 @@ namespace ApplicationAccess.Hosting
             RemoveGroupToEntityMapping(group, entityType, entity, eventId, occurredTime);
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUser(`0,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddUser(TUser user, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -235,7 +235,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUser(`0,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUser(TUser user, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -244,7 +244,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroup(`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroup(TGroup group, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -253,7 +253,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroup(`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroup(TGroup group, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -262,7 +262,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -271,7 +271,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -280,7 +280,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -289,7 +289,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -298,7 +298,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -307,7 +307,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -316,7 +316,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -325,7 +325,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -334,7 +334,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntityType(System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntityType(String entityType, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -343,7 +343,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntityType(System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -352,7 +352,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddEntity(System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -361,7 +361,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveEntity(System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -370,7 +370,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -379,7 +379,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -388,7 +388,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)
@@ -397,7 +397,7 @@ namespace ApplicationAccess.Hosting
             }
         }
 
-        /// <include file='..\ApplicationAccess.Persistence\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)"]/*'/>
+        /// <inheritdoc/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
         {
             foreach (var currentEventPersister in eventPersisters)

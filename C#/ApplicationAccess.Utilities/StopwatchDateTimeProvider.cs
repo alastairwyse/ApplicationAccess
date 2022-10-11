@@ -42,13 +42,13 @@ namespace ApplicationAccess.Utilities
             stopwatchStartTime = DateTime.UtcNow;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now"]/*'/>
+        /// <inheritdoc/>
         public DateTime Now()
         {
             return UtcNow().ToLocalTime();
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow"]/*'/>
+        /// <inheritdoc/>
         public DateTime UtcNow()
         {
             return stopwatchStartTime.AddTicks(stopwatch.ElapsedTicks);

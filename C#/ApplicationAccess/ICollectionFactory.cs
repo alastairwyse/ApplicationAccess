@@ -20,13 +20,24 @@ using System.Text;
 
 namespace ApplicationAccess
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.ICollectionFactory"]/*'/>
+    /// <summary>
+    /// Defines methods which follow a factory pattern to return instances of collection classes.
+    /// </summary>
     public interface ICollectionFactory
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.ICollectionFactory.GetDictionaryInstance``2"]/*'/>
+        /// <summary>
+        /// Returns an IDictionary instance.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+        /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
+        /// <returns>The IDictionary instance.</returns>
         IDictionary<TKey, TValue> GetDictionaryInstance<TKey, TValue>();
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.ICollectionFactory.GetSetInstance``1"]/*'/>
+        /// <summary>
+        /// Returns an ISet instance.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the set.</typeparam>
+        /// <returns>The ISet instance</returns>
         ISet<T> GetSetInstance<T>();
     }
 }

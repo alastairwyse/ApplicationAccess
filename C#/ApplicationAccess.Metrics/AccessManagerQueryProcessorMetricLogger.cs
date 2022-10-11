@@ -46,7 +46,7 @@ namespace ApplicationAccess.Metrics
             this.metricLogger = metricLogger;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Users"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<TUser> Users
         {
             get
@@ -69,7 +69,7 @@ namespace ApplicationAccess.Metrics
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Groups"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<TGroup> Groups
         {
             get
@@ -92,7 +92,7 @@ namespace ApplicationAccess.Metrics
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.EntityTypes"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<String> EntityTypes
         {
             get
@@ -115,7 +115,7 @@ namespace ApplicationAccess.Metrics
             }
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public Boolean ContainsUser(TUser user)
         {
             Boolean result;
@@ -135,7 +135,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public Boolean ContainsGroup(TGroup group)
         {
             Boolean result;
@@ -155,7 +155,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToGroupMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
         {
             IEnumerable<TGroup> result;
@@ -175,7 +175,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToGroupMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
         {
             IEnumerable<TGroup> result;
@@ -195,7 +195,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             IEnumerable<Tuple<TComponent, TAccess>> result;
@@ -215,7 +215,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             IEnumerable<Tuple<TComponent, TAccess>> result;
@@ -235,7 +235,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntityType(System.String)"]/*'/>
+        /// <inheritdoc/>
         public Boolean ContainsEntityType(String entityType)
         {
             Boolean result;
@@ -255,7 +255,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntities(System.String)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<String> GetEntities(String entityType)
         {
             IEnumerable<String> result;
@@ -275,7 +275,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntity(System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public Boolean ContainsEntity(String entityType, String entity)
         {
             Boolean result;
@@ -295,7 +295,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
             IEnumerable<Tuple<String, String>> result;
@@ -315,7 +315,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0,System.String)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
             IEnumerable<String> result;
@@ -335,7 +335,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             IEnumerable<Tuple<String, String>> result;
@@ -355,7 +355,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1,System.String)"]/*'/>
+        /// <inheritdoc/>
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             IEnumerable<String> result;
@@ -375,7 +375,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)"]/*'/>
+        /// <inheritdoc/>
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Boolean result;
@@ -395,7 +395,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)"]/*'/>
+        /// <inheritdoc/>
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             Boolean result;
@@ -415,7 +415,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)"]/*'/>
+        /// <inheritdoc/>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
@@ -435,7 +435,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)"]/*'/>
+        /// <inheritdoc/>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
@@ -455,7 +455,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)"]/*'/>
+        /// <inheritdoc/>
         public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             HashSet<String> result;
@@ -475,7 +475,7 @@ namespace ApplicationAccess.Metrics
             return result;
         }
 
-        /// <include file='..\ApplicationAccess\InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)"]/*'/>
+        /// <inheritdoc/>
         public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {
             HashSet<String> result;

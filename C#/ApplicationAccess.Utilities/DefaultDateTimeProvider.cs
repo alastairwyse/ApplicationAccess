@@ -23,13 +23,13 @@ namespace ApplicationAccess.Utilities
     /// </summary>
     public class DefaultDateTimeProvider : IDateTimeProvider
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now"]/*'/>
+        /// <inheritdoc/>
         public DateTime Now()
         {
             return DateTime.Now;
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow"]/*'/>
+        /// <inheritdoc/>
         public DateTime UtcNow()
         {
             return DateTime.UtcNow;

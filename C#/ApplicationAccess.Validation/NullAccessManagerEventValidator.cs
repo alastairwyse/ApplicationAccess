@@ -34,140 +34,140 @@ namespace ApplicationAccess.Validation
         {
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddUser(`0,System.Action{`0})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddUser(TUser user, Action<TUser> postValidationAction)
         {
             postValidationAction.Invoke(user);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveUser(`0,System.Action{`0})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveUser(TUser user, Action<TUser> postValidationAction)
         {
             postValidationAction.Invoke(user);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddGroup(`1,System.Action{`1})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddGroup(TGroup group, Action<TGroup> postValidationAction)
         {
             postValidationAction.Invoke(group);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveGroup(`1,System.Action{`1})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveGroup(TGroup group, Action<TGroup> postValidationAction)
         {
             postValidationAction.Invoke(group);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddUserToGroupMapping(`0,`1,System.Action{`0,`1})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postValidationAction)
         {
             postValidationAction.Invoke(user, group);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveUserToGroupMapping(`0,`1,System.Action{`0,`1})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postValidationAction)
         {
             postValidationAction.Invoke(user, group);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddGroupToGroupMapping(`1,`1,System.Action{`1,`1})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postValidationAction)
         {
             postValidationAction.Invoke(fromGroup, toGroup);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveGroupToGroupMapping(`1,`1,System.Action{`1,`1})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postValidationAction)
         {
             postValidationAction.Invoke(fromGroup, toGroup);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Action{`0,`2,`3})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postValidationAction)
         {
             postValidationAction.Invoke(user, applicationComponent, accessLevel);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Action{`0,`2,`3})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postValidationAction)
         {
             postValidationAction.Invoke(user, applicationComponent, accessLevel);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Action{`1,`2,`3})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postValidationAction)
         {
             postValidationAction.Invoke(group, applicationComponent, accessLevel);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Action{`1,`2,`3})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postValidationAction)
         {
             postValidationAction.Invoke(group, applicationComponent, accessLevel);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddEntityType(System.String,System.Action{System.String})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddEntityType(string entityType, Action<string> postValidationAction)
         {
             postValidationAction.Invoke(entityType);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveEntityType(System.String,System.Action{System.String})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveEntityType(string entityType, Action<string> postValidationAction)
         {
             postValidationAction.Invoke(entityType);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddEntity(System.String,System.String,System.Action{System.String,System.String})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddEntity(string entityType, string entity, Action<string, string> postValidationAction)
         {
             postValidationAction.Invoke(entityType, entity);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveEntity(System.String,System.String,System.Action{System.String,System.String})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveEntity(string entityType, string entity, Action<string, string> postValidationAction)
         {
             postValidationAction.Invoke(entityType, entity);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddUserToEntityMapping(TUser user, string entityType, string entity, Action<TUser, string, string> postValidationAction)
         {
             postValidationAction.Invoke(user, entityType, entity);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveUserToEntityMapping(TUser user, string entityType, string entity, Action<TUser, string, string> postValidationAction)
         {
             postValidationAction.Invoke(user, entityType, entity);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateAddGroupToEntityMapping(`1,System.String,System.String,System.Action{`1,System.String,System.String})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateAddGroupToEntityMapping(TGroup group, string entityType, string entity, Action<TGroup, string, string> postValidationAction)
         {
             postValidationAction.Invoke(group, entityType, entity);
             return new ValidationResult(true);
         }
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Validation.IAccessManagerEventValidator`4.ValidateRemoveGroupToEntityMapping(`1,System.String,System.String,System.Action{`1,System.String,System.String})"]/*'/>
+        /// <inheritdoc/>
         public ValidationResult ValidateRemoveGroupToEntityMapping(TGroup group, string entityType, string entity, Action<TGroup, string, string> postValidationAction)
         {
             postValidationAction.Invoke(group, entityType, entity);

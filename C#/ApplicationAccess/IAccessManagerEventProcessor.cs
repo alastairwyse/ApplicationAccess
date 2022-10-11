@@ -18,67 +18,155 @@ using System;
 
 namespace ApplicationAccess
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.IAccessManagerEventProcessor`4"]/*'/>
+    /// <summary>
+    /// Defines methods to process events which change the structure of an AccessManager implementation.
+    /// </summary>
+    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public interface IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)"]/*'/>
+        /// <summary>
+        /// Adds a user.
+        /// </summary>
+        /// <param name="user">The user to add.</param>
         void AddUser(TUser user);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)"]/*'/>
+        /// <summary>
+        /// Removes a user.
+        /// </summary>
+        /// <param name="user">The user to remove.</param>
         void RemoveUser(TUser user);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)"]/*'/>
+        /// <summary>
+        /// Adds a group.
+        /// </summary>
+        /// <param name="group">The group to add.</param>
         void AddGroup(TGroup group);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)"]/*'/>
+        /// <summary>
+        /// Removes a group.
+        /// </summary>
+        /// <param name="group">The group to remove.</param>
         void RemoveGroup(TGroup group);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)"]/*'/>
+        /// <summary>
+        /// Adds a mapping between the specified user and group.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="group">The group in the mapping.</param>
         void AddUserToGroupMapping(TUser user, TGroup group);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)"]/*'/>
+        /// <summary>
+        /// Removes the mapping between the specified user and group.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="group">The group in the mapping.</param>
         void RemoveUserToGroupMapping(TUser user, TGroup group);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <summary>
+        /// Adds a mapping between the specified groups.
+        /// </summary>
+        /// <param name="fromGroup">The 'from' group in the mapping.</param>
+        /// <param name="toGroup">The 'to' group in the mapping.</param>
         void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)"]/*'/>
+        /// <summary>
+        /// Removes the mapping between the specified groups.
+        /// </summary>
+        /// <param name="fromGroup">The 'from' group in the mapping.</param>
+        /// <param name="toGroup">The 'to' group in the mapping.</param>
         void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <summary>
+        /// Adds a mapping between the specified user, application component, and level of access to that component.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="applicationComponent">The application component in the mapping.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
         void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)"]/*'/>
+        /// <summary>
+        /// Removes a mapping between the specified user, application component, and level of access to that component.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="applicationComponent">The application component in the mapping.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
         void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <summary>
+        /// Adds a mapping between the specified group, application component, and level of access to that component.
+        /// </summary>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="applicationComponent">The application component in the mapping.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
         void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)"]/*'/>
+        /// <summary>
+        /// Removes a mapping between the specified group, application component, and level of access to that component.
+        /// </summary>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="applicationComponent">The application component in the mapping.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
         void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)"]/*'/>
+        /// <summary>
+        /// Adds an entity type.
+        /// </summary>
+        /// <param name="entityType">The entity type to add.</param>
         void AddEntityType(String entityType);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)"]/*'/>
+        /// <summary>
+        /// Removes an entity type.
+        /// </summary>
+        /// <param name="entityType">The entity type to remove.</param>
         void RemoveEntityType(String entityType);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)"]/*'/>
+        /// <summary>
+        /// Adds an entity.
+        /// </summary>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity to add.</param>
         void AddEntity(String entityType, String entity);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)"]/*'/>
+        /// <summary>
+        /// Removes an entity.
+        /// </summary>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity to remove.</param>
         void RemoveEntity(String entityType, String entity);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <summary>
+        /// Adds a mapping between the specified user, and entity.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity in the mapping.</param>
         void AddUserToEntityMapping(TUser user, String entityType, String entity);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)"]/*'/>
+        /// <summary>
+        /// Removes a mapping between the specified user, and entity.
+        /// </summary>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity in the mapping.</param>
         void RemoveUserToEntityMapping(TUser user, String entityType, String entity);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <summary>
+        /// Adds a mapping between the specified group, and entity.
+        /// </summary>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity in the mapping.</param>
         void AddGroupToEntityMapping(TGroup group, String entityType, String entity);
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)"]/*'/>
+        /// <summary>
+        /// Removes a mapping between the specified group, and entity.
+        /// </summary>
+        /// <param name="group">The group in the mapping.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity in the mapping.</param>
         void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity);
     }
 }

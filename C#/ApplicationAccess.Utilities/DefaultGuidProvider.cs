@@ -7,7 +7,7 @@ namespace ApplicationAccess.Utilities
     /// </summary>
     public class DefaultGuidProvider : IGuidProvider
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Utilities.IGuidProvider.NewGuid"]/*'/>
+        /// <inheritdoc/>
         public Guid NewGuid()
         {
             return Guid.NewGuid();

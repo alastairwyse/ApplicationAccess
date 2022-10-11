@@ -18,7 +18,13 @@ using System;
 
 namespace ApplicationAccess
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.IAccessManager`4"]/*'/>
+    /// <summary>
+    /// Defines methods to manage the access of users and groups of users to components and entities within an application.
+    /// </summary>
+    /// <typeparam name="TUser">The type of users in the application.</typeparam>
+    /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
+    /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public interface IAccessManager<TUser, TGroup, TComponent, TAccess> : IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
     }

@@ -14,16 +14,27 @@
  * limitations under the License.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace ApplicationAccess.Serialization
 {
-    /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="T:ApplicationAccess.Serialization.IAccessManagerSerializer`1"]/*'/>
+    /// <summary>
+    /// Defines methods to serialize and deserialize an AccessManager.
+    /// </summary>
+    /// <typeparam name="TSerializedObject">The type of object to serialize to and from.</typeparam>
     public interface IAccessManagerSerializer<TSerializedObject>
     {
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Serialize``4(ApplicationAccess.AccessManagerBase{``0,``1,``2,``3},ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3})"]/*'/>
+        /// <summary>
+        /// Serializes the specified access manager.
+        /// </summary>
+        /// <typeparam name="TUser">The type of users stored in the access manager.</typeparam>
+        /// <typeparam name="TGroup">The type of groups stored in the access manager.</typeparam>
+        /// <typeparam name="TComponent">The type of application components stored in the access manager.</typeparam>
+        /// <typeparam name="TAccess">The type of access levels stored in the access manager.</typeparam>
+        /// <param name="accessManager">The access manager to serialize.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <returns>An object representing the access manager.</returns>
         TSerializedObject Serialize<TUser, TGroup, TComponent, TAccess>
         (
             AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager, 
@@ -33,7 +44,23 @@ namespace ApplicationAccess.Serialization
             IUniqueStringifier<TAccess> accessLevelStringifier
         );
 
-        /// <include file='InterfaceDocumentationComments.xml' path='doc/members/member[@name="M:ApplicationAccess.Serialization.IAccessManagerSerializer`1.Deserialize``4(`0,ApplicationAccess.IUniqueStringifier{``0},ApplicationAccess.IUniqueStringifier{``1},ApplicationAccess.IUniqueStringifier{``2},ApplicationAccess.IUniqueStringifier{``3},ApplicationAccess.AccessManagerBase{``0,``1,``2,``3})"]/*'/>
+        /// <summary>
+        /// Deserializes an access manager.
+        /// </summary>
+        /// <typeparam name="TUser"> The type of users stored in the access manager.</typeparam>
+        /// <typeparam name="TGroup"> The type of groups stored in the access manager.</typeparam>
+        /// <typeparam name="TComponent"> The type of application components stored in the access manager.</typeparam>
+        /// <typeparam name="TAccess"> The type of access levels stored in the access manager.</typeparam>
+        /// <param name="serializedAccessManager">The object to deserialize the access manager from.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="accessManagerToDeserializeTo">The AccessManager instance to deserialize to.</param>
+        /// <remarks>
+        ///   <para>Any existing items and mappings stored in parameter 'accessManagerToDeserializeTo' will be cleared.</para>
+        ///   <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow deserializing into types derived from AccessManager aswell as AccessManager itself.</para>
+        /// </remarks>
         void Deserialize<TUser, TGroup, TComponent, TAccess>
         (
             TSerializedObject serializedAccessManager,
