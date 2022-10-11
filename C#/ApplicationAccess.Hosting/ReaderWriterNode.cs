@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using ApplicationAccess.Validation;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Metrics;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
 
@@ -30,10 +31,11 @@ namespace ApplicationAccess.Hosting
     /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    /// <remarks>Note that as per remarks for <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> interval metrics are not logged for <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> methods that return <see cref="IEnumerable{T}"/>, or perform simple dictionary and set lookups (e.g. <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}.ContainsUser(TUser)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="IEnumerable{T}"/> the metric logging must wrap the code that enumerates the result.</remarks>
     public class ReaderWriterNode<TUser, TGroup, TComponent, TAccess> : IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>AccessManager instance used to store all permissions and to back the event validator.</summary>
-        protected ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> concurrentAccessManager;
+        protected MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> concurrentAccessManager;
         /// <summary>Validates events created by calls to <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}"/> methods.</summary>
         protected IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator;
         /// <summary>Buffers events events created by calls to <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}"/> methods.</summary>
@@ -62,11 +64,11 @@ namespace ApplicationAccess.Hosting
         {
             this.eventBufferFlushStrategy = eventBufferFlushStrategy;
             this.persistentReader = persistentReader;
-            this.eventPersister = eventPersister;
-            concurrentAccessManager = new ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>();
+            this.eventPersister = eventPersister; 
+            metricLogger = new NullMetricLogger();
+            concurrentAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
             eventValidator = new ConcurrentAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>(concurrentAccessManager);
             eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister);
-            metricLogger = new NullMetricLogger();
         }
 
         /// <summary>
@@ -86,6 +88,8 @@ namespace ApplicationAccess.Hosting
             : this(eventBufferFlushStrategy, persistentReader, eventPersister)
         {
             this.metricLogger = metricLogger;
+            concurrentAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
+            eventValidator = new ConcurrentAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>(concurrentAccessManager);
             eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister, metricLogger);
         }
 
@@ -97,7 +101,9 @@ namespace ApplicationAccess.Hosting
             Guid beginId = metricLogger.Begin(new ReaderWriterNodeLoadTime());
             try
             {
+                concurrentAccessManager.MetricLoggingEnabled = false;
                 persistentReader.Load(concurrentAccessManager);
+                concurrentAccessManager.MetricLoggingEnabled = true;
             }
             catch (Exception e)
             {

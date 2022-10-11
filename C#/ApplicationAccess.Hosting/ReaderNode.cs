@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Metrics;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
 
@@ -30,6 +31,7 @@ namespace ApplicationAccess.Hosting
     /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    /// <remarks>Note that as per remarks for <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> interval metrics are not logged for <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> methods that return <see cref="IEnumerable{T}"/>, or perform simple dictionary and set lookups (e.g. <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}.ContainsUser(TUser)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="IEnumerable{T}"/> the metric logging must wrap the code that enumerates the result.</remarks>
     public class ReaderNode<TUser, TGroup, TComponent, TAccess> : IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
         /// <summary>The strategy/methodology to use to refresh the contents of the reader node.</summary>
@@ -39,7 +41,7 @@ namespace ApplicationAccess.Hosting
         /// <summary>Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</summary>
         protected IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader;
         /// <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
-        protected AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager;
+        protected MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> accessManager;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
         /// <summary>The id of the most recent event which changed the AccessManager.</summary>
@@ -61,7 +63,7 @@ namespace ApplicationAccess.Hosting
             this.eventCache = eventCache;
             this.persistentReader = persistentReader;
             metricLogger = new NullMetricLogger();
-            accessManager = new ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>();
+            accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
             // Subscribe to the refreshStrategy's 'ReaderNodeRefreshed' event
             refreshedEventHandler = (Object sender, EventArgs e) => { Refresh(); };
             refreshStrategy.ReaderNodeRefreshed += refreshedEventHandler;
@@ -79,6 +81,7 @@ namespace ApplicationAccess.Hosting
             : this(refreshStrategy, eventCache, persistentReader)
         {
             this.metricLogger = metricLogger;
+            accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
         }
 
         /// <inheritdoc/>
@@ -271,7 +274,8 @@ namespace ApplicationAccess.Hosting
         /// </summary>
         public void Load()
         {
-            AccessManagerBase<TUser, TGroup, TComponent, TAccess> newAccessManager = new ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>();
+            MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> newAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
+            newAccessManager.MetricLoggingEnabled = false;
             Guid beginId = metricLogger.Begin(new ReaderNodeLoadTime());
             try
             {
@@ -283,6 +287,9 @@ namespace ApplicationAccess.Hosting
                 metricLogger.CancelBegin(beginId, new ReaderNodeLoadTime());
                 throw new Exception("Failed to load access manager state from persistent storage.", e);
             }
+            newAccessManager.MetricLoggingEnabled = true;
+            // TODO: Possible risk here if interval metrics being Begun() against the old access manager and then End()ed against the new one, which may cause errors in the metric logger
+            //   Need to test this and check for effect
             Interlocked.Exchange(ref accessManager, newAccessManager);
             metricLogger.End(beginId, new ReaderNodeLoadTime());
         }

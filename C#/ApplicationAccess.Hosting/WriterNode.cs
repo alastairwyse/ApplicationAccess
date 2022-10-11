@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using ApplicationAccess.Validation;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Metrics;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
 
@@ -33,7 +34,7 @@ namespace ApplicationAccess.Hosting
     public class WriterNode<TUser, TGroup, TComponent, TAccess> : IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>AccessManager instance which backs the event validator.</summary>
-        protected ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> concurrentAccessManager;
+        protected MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> concurrentAccessManager;
         /// <summary>Validates events passed to the event buffer.</summary>
         protected IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator;
         /// <summary>Buffers events which change the AccessManager, writing them to the <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/> instance and the event cache.</summary>
@@ -70,14 +71,15 @@ namespace ApplicationAccess.Hosting
             this.persistentReader = persistentReader;
             this.eventPersister = eventPersister;
             this.eventCache = eventCache;
-            concurrentAccessManager = new ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>();
+            metricLogger = new NullMetricLogger();
+            concurrentAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
             eventValidator = new ConcurrentAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>(concurrentAccessManager);
             eventDistributor = new AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess>
             (
                 new List<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>>(){ eventPersister, eventCache }
             );
             eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor); 
-            metricLogger = new NullMetricLogger();
+            
         }
 
         /// <summary>
@@ -99,6 +101,8 @@ namespace ApplicationAccess.Hosting
             : this(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache)
         {
             this.metricLogger = metricLogger;
+            concurrentAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
+            eventValidator = new ConcurrentAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>(concurrentAccessManager);
             eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor, metricLogger);
         }
 
@@ -109,7 +113,9 @@ namespace ApplicationAccess.Hosting
         {
             try
             {
+                concurrentAccessManager.MetricLoggingEnabled = false;
                 persistentReader.Load(concurrentAccessManager);
+                concurrentAccessManager.MetricLoggingEnabled = true;
             }
             catch(Exception e)
             {
