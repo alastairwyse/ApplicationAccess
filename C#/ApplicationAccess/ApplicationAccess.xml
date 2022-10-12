@@ -1158,6 +1158,69 @@
             <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
+        <member name="T:ApplicationAccess.IAccessManagerEntityEventProcessor">
+            <summary>
+            Defines methods to process events which change entity-based structures in an AccessManager implementation.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerEntityEventProcessor.AddEntityType(System.String)">
+            <summary>
+            Adds an entity type.
+            </summary>
+            <param name="entityType">The entity type to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerEntityEventProcessor.RemoveEntityType(System.String)">
+            <summary>
+            Removes an entity type.
+            </summary>
+            <param name="entityType">The entity type to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerEntityEventProcessor.AddEntity(System.String,System.String)">
+            <summary>
+            Adds an entity.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerEntityEventProcessor.RemoveEntity(System.String,System.String)">
+            <summary>
+            Removes an entity.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity to remove.</param>
+        </member>
+        <member name="T:ApplicationAccess.IAccessManagerEntityQueryProcessor">
+            <summary>
+             Defines methods which query state of entity-based structures in an AccessManager implementation.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.IAccessManagerEntityQueryProcessor.EntityTypes">
+            <summary>
+            Returns a collection of all entity types in the access manager.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerEntityQueryProcessor.ContainsEntityType(System.String)">
+            <summary>
+            Returns true if the specified entity type exists.
+            </summary>
+            <param name="entityType">The entity type to check for.</param>
+            <returns>True if the entity type exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerEntityQueryProcessor.GetEntities(System.String)">
+            <summary>
+            Returns all entities of the specified type.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <returns>A collection of all entities of the specified type.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerEntityQueryProcessor.ContainsEntity(System.String,System.String)">
+            <summary>
+            Returns true if the specified entity exists.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity to check for.</param>
+            <returns>True if the entity exists.  False otherwise.</returns>
+        </member>
         <member name="T:ApplicationAccess.IAccessManagerEventProcessor`4">
             <summary>
             Defines methods to process events which change the structure of an AccessManager implementation.
@@ -1167,75 +1230,27 @@
             <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUser(`0)">
+        <member name="T:ApplicationAccess.IAccessManagerGroupEventProcessor`3">
             <summary>
-            Adds a user.
+            Defines methods to process events which change group-based structures in an AccessManager implementation.
             </summary>
-            <param name="user">The user to add.</param>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUser(`0)">
-            <summary>
-            Removes a user.
-            </summary>
-            <param name="user">The user to remove.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroup(`1)">
+        <member name="M:ApplicationAccess.IAccessManagerGroupEventProcessor`3.AddGroup(`0)">
             <summary>
             Adds a group.
             </summary>
             <param name="group">The group to add.</param>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroup(`1)">
+        <member name="M:ApplicationAccess.IAccessManagerGroupEventProcessor`3.RemoveGroup(`0)">
             <summary>
             Removes a group.
             </summary>
             <param name="group">The group to remove.</param>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)">
-            <summary>
-            Adds a mapping between the specified user and group.
-            </summary>
-            <param name="user">The user in the mapping.</param>
-            <param name="group">The group in the mapping.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)">
-            <summary>
-            Removes the mapping between the specified user and group.
-            </summary>
-            <param name="user">The user in the mapping.</param>
-            <param name="group">The group in the mapping.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)">
-            <summary>
-            Adds a mapping between the specified groups.
-            </summary>
-            <param name="fromGroup">The 'from' group in the mapping.</param>
-            <param name="toGroup">The 'to' group in the mapping.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)">
-            <summary>
-            Removes the mapping between the specified groups.
-            </summary>
-            <param name="fromGroup">The 'from' group in the mapping.</param>
-            <param name="toGroup">The 'to' group in the mapping.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
-            <summary>
-            Adds a mapping between the specified user, application component, and level of access to that component.
-            </summary>
-            <param name="user">The user in the mapping.</param>
-            <param name="applicationComponent">The application component in the mapping.</param>
-            <param name="accessLevel">The level of access to the component.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
-            <summary>
-            Removes a mapping between the specified user, application component, and level of access to that component.
-            </summary>
-            <param name="user">The user in the mapping.</param>
-            <param name="applicationComponent">The application component in the mapping.</param>
-            <param name="accessLevel">The level of access to the component.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+        <member name="M:ApplicationAccess.IAccessManagerGroupEventProcessor`3.AddGroupToApplicationComponentAndAccessLevelMapping(`0,`1,`2)">
             <summary>
             Adds a mapping between the specified group, application component, and level of access to that component.
             </summary>
@@ -1243,57 +1258,16 @@
             <param name="applicationComponent">The application component in the mapping.</param>
             <param name="accessLevel">The level of access to the component.</param>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+        <member name="M:ApplicationAccess.IAccessManagerGroupEventProcessor`3.RemoveGroupToApplicationComponentAndAccessLevelMapping(`0,`1,`2)">
             <summary>
             Removes a mapping between the specified group, application component, and level of access to that component.
             </summary>
             <param name="group">The group in the mapping.</param>
             <param name="applicationComponent">The application component in the mapping.</param>
             <param name="accessLevel">The level of access to the component.</param>
+            
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntityType(System.String)">
-            <summary>
-            Adds an entity type.
-            </summary>
-            <param name="entityType">The entity type to add.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntityType(System.String)">
-            <summary>
-            Removes an entity type.
-            </summary>
-            <param name="entityType">The entity type to remove.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddEntity(System.String,System.String)">
-            <summary>
-            Adds an entity.
-            </summary>
-            <param name="entityType">The type of the entity.</param>
-            <param name="entity">The entity to add.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)">
-            <summary>
-            Removes an entity.
-            </summary>
-            <param name="entityType">The type of the entity.</param>
-            <param name="entity">The entity to remove.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)">
-            <summary>
-            Adds a mapping between the specified user, and entity.
-            </summary>
-            <param name="user">The user in the mapping.</param>
-            <param name="entityType">The type of the entity.</param>
-            <param name="entity">The entity in the mapping.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
-            <summary>
-            Removes a mapping between the specified user, and entity.
-            </summary>
-            <param name="user">The user in the mapping.</param>
-            <param name="entityType">The type of the entity.</param>
-            <param name="entity">The entity in the mapping.</param>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+        <member name="M:ApplicationAccess.IAccessManagerGroupEventProcessor`3.AddGroupToEntityMapping(`0,System.String,System.String)">
             <summary>
             Adds a mapping between the specified group, and entity.
             </summary>
@@ -1301,13 +1275,104 @@
             <param name="entityType">The type of the entity.</param>
             <param name="entity">The entity in the mapping.</param>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+        <member name="M:ApplicationAccess.IAccessManagerGroupEventProcessor`3.RemoveGroupToEntityMapping(`0,System.String,System.String)">
             <summary>
             Removes a mapping between the specified group, and entity.
             </summary>
             <param name="group">The group in the mapping.</param>
             <param name="entityType">The type of the entity.</param>
             <param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="T:ApplicationAccess.IAccessManagerGroupQueryProcessor`3">
+            <summary>
+            Defines methods which query state of group-based structures in an AccessManager implementation.
+            </summary>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="P:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.Groups">
+            <summary>
+            Returns a collection of all groups in the access manager.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.ContainsGroup(`0)">
+            <summary>
+            Returns true if the specified group exists.
+            </summary>
+            <param name="group">The group to check for.</param>
+            <returns>True if the group exists.  False otherwise.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetGroupToApplicationComponentAndAccessLevelMappings(`0)">
+            <summary>
+            Gets the application component and access level pairs that the specified group is mapped to.
+            </summary>
+            <param name="group">The group to retrieve the mappings for.</param>
+            <returns>A collection of Tuples containing the application component and access level pairs that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetGroupToEntityMappings(`0)">
+            <summary>
+            Gets the entities that the specified group is mapped to.
+            </summary>
+            <param name="group">The group to retrieve the mappings for.</param>
+            <returns>A collection of Tuples containing the entity type and entity that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetGroupToEntityMappings(`0,System.String)">
+            <summary>
+            Gets the entities of a given type that the specified group is mapped to.
+            </summary>
+            <param name="group">The group to retrieve the mappings for.</param>
+            <param name="entityType">The entity type to retrieve the mappings for.</param>
+            <returns>A collection of entities that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetApplicationComponentsAccessibleByGroup(`0)">
+            <summary>
+            Gets all application components and levels of access that the specified group (or group that the specified group is mapped to) has access to.
+            </summary>
+            <param name="group">The group to retrieve the application components and levels of access for.</param>
+            <returns>The application components and levels of access to those application components that the group has.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetEntitiesAccessibleByGroup(`0,System.String)">
+            <summary>
+            Gets all entities of a given type that the specified group (or group that the specified group is mapped to) has access to.
+            </summary>
+            <param name="group">The group to retrieve the entities for.</param>
+            <param name="entityType">The type of entities to retrieve.</param>
+            <returns>The entities the group has access to.</returns>
+        </member>
+        <member name="T:ApplicationAccess.IAccessManagerGroupToGroupEventProcessor`1">
+            <summary>
+            Defines methods to process events which change group to group mapping structures in an AccessManager implementation.
+            </summary>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupToGroupEventProcessor`1.AddGroupToGroupMapping(`0,`0)">
+            <summary>
+            Adds a mapping between the specified groups.
+            </summary>
+            <param name="fromGroup">The 'from' group in the mapping.</param>
+            <param name="toGroup">The 'to' group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupToGroupEventProcessor`1.RemoveGroupToGroupMapping(`0,`0)">
+            <summary>
+            Removes the mapping between the specified groups.
+            </summary>
+            <param name="fromGroup">The 'from' group in the mapping.</param>
+            <param name="toGroup">The 'to' group in the mapping.</param>
+        </member>
+        <member name="T:ApplicationAccess.IAccessManagerGroupToGroupQueryProcessor`1">
+            <summary>
+            Defines methods which query state of group to group mapping structures in an AccessManager implementation.
+            </summary>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupToGroupQueryProcessor`1.GetGroupToGroupMappings(`0)">
+            <summary>
+            Gets the groups that the specified group is directly mapped to.
+            </summary>
+            <param name="group">The group to retrieve the mapped groups for.</param>
+            <returns>A collection of groups the specified group is mapped to.</returns>
+            <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified group are returned.</remarks>
         </member>
         <member name="T:ApplicationAccess.IAccessManagerQueryProcessor`4">
             <summary>
@@ -1318,36 +1383,95 @@
             <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Users">
+        <member name="T:ApplicationAccess.IAccessManagerUserEventProcessor`4">
+            <summary>
+            Defines methods to process events which change user-based structures in an AccessManager implementation.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserEventProcessor`4.AddUser(`0)">
+            <summary>
+            Adds a user.
+            </summary>
+            <param name="user">The user to add.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserEventProcessor`4.RemoveUser(`0)">
+            <summary>
+            Removes a user.
+            </summary>
+            <param name="user">The user to remove.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserEventProcessor`4.AddUserToGroupMapping(`0,`1)">
+            <summary>
+            Adds a mapping between the specified user and group.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="group">The group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserEventProcessor`4.RemoveUserToGroupMapping(`0,`1)">
+            <summary>
+            Removes the mapping between the specified user and group.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="group">The group in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <summary>
+            Adds a mapping between the specified user, application component, and level of access to that component.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="applicationComponent">The application component in the mapping.</param>
+            <param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <summary>
+            Removes a mapping between the specified user, application component, and level of access to that component.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="applicationComponent">The application component in the mapping.</param>
+            <param name="accessLevel">The level of access to the component.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <summary>
+            Adds a mapping between the specified user, and entity.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <summary>
+            Removes a mapping between the specified user, and entity.
+            </summary>
+            <param name="user">The user in the mapping.</param>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity in the mapping.</param>
+        </member>
+        <member name="T:ApplicationAccess.IAccessManagerUserQueryProcessor`4">
+            <summary>
+            Defines methods which query state of user-based structures in an AccessManager implementation.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="P:ApplicationAccess.IAccessManagerUserQueryProcessor`4.Users">
             <summary>
             Returns a collection of all users in the access manager.
             </summary>
         </member>
-        <member name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.Groups">
-            <summary>
-            Returns a collection of all groups in the access manager.
-            </summary>
-        </member>
-        <member name="P:ApplicationAccess.IAccessManagerQueryProcessor`4.EntityTypes">
-            <summary>
-            Returns a collection of all entity types in the access manager.
-            </summary>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsUser(`0)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.ContainsUser(`0)">
             <summary>
             Returns true if the specified user exists.
             </summary>
             <param name="user">The user to check for.</param>
             <returns>True if the user exists.  False otherwise.</returns>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsGroup(`1)">
-            <summary>
-            Returns true if the specified group exists.
-            </summary>
-            <param name="group">The group to check for.</param>
-            <returns>True if the group exists.  False otherwise.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToGroupMappings(`0)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToGroupMappings(`0)">
             <summary>
             Gets the groups that the specified user is directly mapped to (i.e. is a member of).
             </summary>
@@ -1355,58 +1479,21 @@
             <returns>A collection of groups the specified user is a member of.</returns>
             <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified user are returned.</remarks>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToGroupMappings(`1)">
-            <summary>
-            Gets the groups that the specified group is directly mapped to.
-            </summary>
-            <param name="group">The group to retrieve the mapped groups for.</param>
-            <returns>A collection of groups the specified group is mapped to.</returns>
-            <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified group are returned.</remarks>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
             <summary>
             Gets the application component and access level pairs that the specified user is mapped to.
             </summary>
             <param name="user">The user to retrieve the mappings for.</param>
             <returns>A collection of Tuples containing the application component and access level pairs that the specified user is mapped to.</returns>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
-            <summary>
-            Gets the application component and access level pairs that the specified group is mapped to.
-            </summary>
-            <param name="group">The group to retrieve the mappings for.</param>
-            <returns>A collection of Tuples containing the application component and access level pairs that the specified group is mapped to.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntityType(System.String)">
-            <summary>
-            Returns true if the specified entity type exists.
-            </summary>
-            <param name="entityType">The entity type to check for.</param>
-            <returns>True if the entity type exists.  False otherwise.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntities(System.String)">
-            <summary>
-            Returns all entities of the specified type.
-            </summary>
-            <param name="entityType">The type of the entity.</param>
-            <returns>A collection of all entities of the specified type.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.ContainsEntity(System.String,System.String)">
-            <summary>
-            Returns true if the specified entity exists.
-            </summary>
-            <param name="entityType">The type of the entity.</param>
-            <param name="entity">The entity to check for.</param>
-            <returns>True if the entity exists.  False otherwise.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToEntityMappings(`0)">
             <summary>
             Gets the entities that the specified user is mapped to.
             </summary>
             <param name="user">The user to retrieve the mappings for.</param>
             <returns>A collection of Tuples containing the entity type and entity that the specified user is mapped to.</returns>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetUserToEntityMappings(`0,System.String)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToEntityMappings(`0,System.String)">
             <summary>
             Gets the entities of a given type that the specified user is mapped to.
             </summary>
@@ -1414,22 +1501,7 @@
             <param name="entityType">The entity type to retrieve the mappings for.</param>
             <returns>A collection of entities that the specified user is mapped to.</returns>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1)">
-            <summary>
-            Gets the entities that the specified group is mapped to.
-            </summary>
-            <param name="group">The group to retrieve the mappings for.</param>
-            <returns>A collection of Tuples containing the entity type and entity that the specified group is mapped to.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetGroupToEntityMappings(`1,System.String)">
-            <summary>
-            Gets the entities of a given type that the specified group is mapped to.
-            </summary>
-            <param name="group">The group to retrieve the mappings for.</param>
-            <param name="entityType">The entity type to retrieve the mappings for.</param>
-            <returns>A collection of entities that the specified group is mapped to.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)">
             <summary>
             Checks whether the specified user (or a group that the user is a member of) has access to an application component at the specified level of access.
             </summary>
@@ -1438,7 +1510,7 @@
             <param name="accessLevel">The level of access to the component.</param>
             <returns>True if the user has access the component.  False otherwise.</returns>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)">
             <summary>
             Checks whether the specified user (or a group that the user is a member of) has access to the specified entity.
             </summary>
@@ -1447,35 +1519,20 @@
             <param name="entity">The entity.</param>
             <returns>True if the user has access the entity.  False otherwise.</returns>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetApplicationComponentsAccessibleByUser(`0)">
             <summary>
             Gets all application components and levels of access that the specified user (or a group that the user is a member of) has access to.
             </summary>
             <param name="user">The user to retrieve the application components and levels of access for.</param>
             <returns>The application components and levels of access to those application components that the user has.</returns>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetApplicationComponentsAccessibleByGroup(`1)">
-            <summary>
-            Gets all application components and levels of access that the specified group (or group that the specified group is mapped to) has access to.
-            </summary>
-            <param name="group">The group to retrieve the application components and levels of access for.</param>
-            <returns>The application components and levels of access to those application components that the group has.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)">
             <summary>
             Gets all entities of a given type that the specified user (or a group that the user is a member of) has access to.
             </summary>
             <param name="user">The user to retrieve the entities for.</param>
             <param name="entityType">The type of entities to retrieve.</param>
             <returns>The entities the user has access to.</returns>
-        </member>
-        <member name="M:ApplicationAccess.IAccessManagerQueryProcessor`4.GetEntitiesAccessibleByGroup(`1,System.String)">
-            <summary>
-            Gets all entities of a given type that the specified group (or group that the specified group is mapped to) has access to.
-            </summary>
-            <param name="group">The group to retrieve the entities for.</param>
-            <param name="entityType">The type of entities to retrieve.</param>
-            <returns>The entities the group has access to.</returns>
         </member>
         <member name="T:ApplicationAccess.ICollectionFactory">
             <summary>
