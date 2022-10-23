@@ -27,7 +27,7 @@ namespace ApplicationAccess.Hosting
     /// <typeparam name="TUser">The type of users in the IAccessManagerTemporalEventPersister instances.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the IAccessManagerTemporalEventPersister instances.</typeparam>
     /// <typeparam name="TComponent">The type of components in the IAccessManagerTemporalEventPersister instances.</typeparam>
-    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an <see cref="TComponent"/>.</typeparam>
+    /// <typeparam name="TAccess">The type of levels of access which can be assigned to a component.</typeparam>
     public class AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>The provider to use for random Guids.</summary>

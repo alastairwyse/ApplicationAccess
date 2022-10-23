@@ -350,7 +350,7 @@ namespace ApplicationAccess.Hosting
             eventBuffer.RemoveEntity(entityType, entity);
         }
 
-        //// <inheritdoc/>
+        /// <inheritdoc/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
             eventBuffer.AddUserToEntityMapping(user, entityType, entity);

@@ -1,0 +1,738 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ApplicationAccess.Hosting</name>
+    </assembly>
+    <members>
+        <member name="T:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4">
+            <summary>
+            Distributes methods calls syncronously to multiple <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> instances.
+            </summary>
+            <typeparam name="TUser">The type of users in the IAccessManagerTemporalEventPersister instances.</typeparam>
+            <typeparam name="TGroup">The type of groups in the IAccessManagerTemporalEventPersister instances.</typeparam>
+            <typeparam name="TComponent">The type of components in the IAccessManagerTemporalEventPersister instances.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to a component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.guidProvider">
+            <summary>The provider to use for random Guids.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.dateTimeProvider">
+            <summary>The provider to use for the current date and time.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.eventPersisters">
+            <summary>Holds the <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> instances to distribute to.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.#ctor(System.Collections.Generic.IEnumerable{ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3}})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor class.
+            </summary>
+            <param name="eventPersisters">The <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> instances to distribute to.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.#ctor(System.Collections.Generic.IEnumerable{ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3}},ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor class.
+            </summary>
+            <param name="eventPersisters">The <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> instances to distribute to.</param>
+            <param name="guidProvider">The provider to use for random Guids.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddUser(`0,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveUser(`0,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddGroup(`1,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveGroup(`1,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddEntityType(System.String,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveEntityType(System.String,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddEntity(System.String,System.String,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveEntity(System.String,System.String,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.AccessManagerTemporalEventPersisterDistributor`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy">
+            <summary>
+            Defines a strategy/methodology for refreshing/updating the contents of a <see cref="T:ApplicationAccess.Hosting.ReaderNode`4"/>.
+            </summary>
+        </member>
+        <member name="E:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy.ReaderNodeRefreshed">
+            <summary>Occurs when the contents of the reader node are updated to reflect the latest changes/updates to the system.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy.NotifyQueryMethodCalled">
+            <summary>
+            Notifies the strategy that a <see cref="T:ApplicationAccess.Hosting.ReaderNode`4"/> query method was called.
+            </summary>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy">
+            <summary>
+            A reader node refresh strategy that refreshes/updates a reader node at a regular interval, using a worker thread.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.readerNodeRefreshWorkerThread">
+            <summary>Worker thread which implements the strategy to refresh the contents of reader node.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.refreshException">
+            <summary>Set with any exception which occurrs on the worker thread when refreshing the reader node.  Null if no exception has occurred.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.refreshLoopInterval">
+            <summary>The time to wait (in milliseconds) between reader node refreshes.</summary>
+        </member>
+        <member name="E:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.#ctor(System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy class.
+            </summary>
+            <param name="refreshLoopInterval">The time to wait (in milliseconds) between reader node refreshes.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.NotifyQueryMethodCalled">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.Start">
+            <summary>
+            Starts the worker thread which performs reader node refreshes.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.Stop">
+            <summary>
+            Stops the worker thread which performs reader node refreshes.
+            </summary>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.OnReaderNodeRefreshed(System.EventArgs)">
+            <summary>
+            Raises the ReaderNodeRefreshed event.
+            </summary>
+            <param name="e">An EventArgs that contains the event data.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.JoinWorkerThread">
+            <summary>
+            Calls Join() on the worker thread, waiting until it terminates.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.CheckAndThrowRefreshException">
+            <summary>
+            Checks whether property 'refreshException' has been set, and re-throws the exception in the case that it has.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.CacheMiss">
+            <summary>
+            Count metric which records a cache miss occurring.
+            </summary>
+            <remarks>Created for the <see cref="T:ApplicationAccess.Hosting.ReaderNode`4"/> class, and records when a refresh operation finds that events subsequent to the most recently stored event are not stored in the event cache.</remarks>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.CachedEventsReceived">
+            <summary>
+            Amount metric which records the number of events received in response to a request to an event cache.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.EventProcessingDelay">
+            <summary>
+            Amount metric which records the time in milliseconds between the original occurence of an event, and when that change was processed / applied to a reader node.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.ReaderNodeLoadTime">
+            <summary>
+            Count metric which records the time taken to load the entire contents of a reader node.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.RefreshOperationCompleted">
+            <summary>
+            Count metric which records a reader node being refreshed with the latest data.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.ReaderWriterNodeLoadTime">
+            <summary>
+            Count metric which records the time taken to load the entire contents of a reader/writer node.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.ReaderNode`4">
+            <summary>
+            A node in a multi-reader, single-writer ApplicationAccess hosting environment which allows reading permissions and authorizations for an application.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.refreshStrategy">
+            <summary>The strategy/methodology to use to refresh the contents of the reader node.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.eventCache">
+            <summary>Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.persistentReader">
+            <summary>Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.accessManager">
+            <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.latestEventId">
+            <summary>The id of the most recent event which changed the AccessManager.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.refreshedEventHandler">
+            <summary>The delegate which handles an <see cref="E:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy.ReaderNodeRefreshed">ReaderNodeRefreshed</see> event.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderNode`4.Users">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderNode`4.Groups">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderNode`4.EntityTypes">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.ContainsUser(`0)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.ContainsGroup(`1)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToGroupMappings(`0)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToGroupMappings(`1)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.ContainsEntityType(System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntities(System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.ContainsEntity(System.String,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToEntityMappings(`0)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToEntityMappings(`0,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToEntityMappings(`1)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToEntityMappings(`1,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.HasAccessToApplicationComponent(`0,`2,`3)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.HasAccessToEntity(`0,System.String,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetApplicationComponentsAccessibleByUser(`0)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetApplicationComponentsAccessibleByGroup(`1)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByUser(`0,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByGroup(`1,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Load">
+            <summary>
+            Loads all permissions and authorizations from persistent storage.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Refresh">
+            <summary>
+            Refreshes/updates the contents of the AccessManager by first attempting to retrieve any events occurring after the one stored in 'latestEventId' and applying them to the AccessManager instance, or by reading the entire latest state from persistent storage if the event retrieval fails.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the ReaderNode.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">
+            <summary>
+            The exception that is thrown when an error occurs attempting to refresh the contents of a <see cref="T:ApplicationAccess.Hosting.ReaderNode`4"/>.
+            </summary>
+            <remarks>Refreshing may be performed by a worker thread, and hence this exception would usually be thrown from the worker thread.  Additionally this exception would usually result from a critical inner exception (e.g. failure to read from a database), hence this exception will often need to be excplicity caught and acted upon in client code.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeRefreshException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeRefreshException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeRefreshException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeRefreshException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.ReaderWriterNode`4">
+            <summary>
+            A node in a single-reader, single-writer ApplicationAccess hosting environment which handles both reading and writing of permissions and authorizations for an application.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.concurrentAccessManager">
+            <summary>AccessManager instance used to store all permissions and to back the event validator.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.eventValidator">
+            <summary>Validates events created by calls to <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> methods.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.eventBuffer">
+            <summary>Buffers events events created by calls to <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> methods.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.eventBufferFlushStrategy">
+            <summary>Flush strategy for the event buffer.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.persistentReader">
+            <summary>Used to load the complete state of the AccessManager instance.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.eventPersister">
+            <summary>Persists changes to the AccessManager.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNode class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNode class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.Load">
+            <summary>
+            Loads the latest state of the AccessManager from persistent storage.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderWriterNode`4.Users">
+            <inheritdoc/>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderWriterNode`4.Groups">
+            <inheritdoc/>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderWriterNode`4.EntityTypes">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToGroupMappings(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToGroupMappings(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntities(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToEntityMappings(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToEntityMappings(`0,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToEntityMappings(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToEntityMappings(`1,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.HasAccessToApplicationComponent(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.HasAccessToEntity(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetApplicationComponentsAccessibleByUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetApplicationComponentsAccessibleByGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByUser(`0,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByGroup(`1,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.WriterNode`4">
+            <summary>
+            A node in a multi-reader, single-writer ApplicationAccess hosting environment which allows writing permissions and authorizations for an application.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.concurrentAccessManager">
+            <summary>AccessManager instance which backs the event validator.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventValidator">
+            <summary>Validates events passed to the event buffer.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventBuffer">
+            <summary>Buffers events which change the AccessManager, writing them to the <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> instance and the event cache.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventBufferFlushStrategy">
+            <summary>Flush strategy for the event buffer.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.persistentReader">
+            <summary>Used to load the complete state of the AccessManager instance.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventDistributor">
+            <summary>Distributes buffered events to both the <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> instance and the event cache.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventPersister">
+            <summary>Persists changes to the AccessManager.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventCache">
+            <summary>Caches recent events which changed the AccessManager, so the can be accessed quickly by <see cref="T:ApplicationAccess.Hosting.ReaderNode`4">ReaderNodes</see></summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNode`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which changed the AccessManager.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which changed the AccessManager.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Load">
+            <summary>
+            Loads the latest state of the AccessManager from persistent storage.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>

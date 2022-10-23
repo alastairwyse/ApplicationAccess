@@ -288,8 +288,6 @@ namespace ApplicationAccess.Hosting
                 throw new Exception("Failed to load access manager state from persistent storage.", e);
             }
             newAccessManager.MetricLoggingEnabled = true;
-            // TODO: Possible risk here if interval metrics being Begun() against the old access manager and then End()ed against the new one, which may cause errors in the metric logger
-            //   Need to test this and check for effect
             Interlocked.Exchange(ref accessManager, newAccessManager);
             metricLogger.End(beginId, new ReaderNodeLoadTime());
         }

@@ -8,6 +8,10 @@
     <Description>Classes which represent cohesive components within an ApplicationAccess hosting environment.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess.Hosting\ApplicationAccess.Hosting.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Metrics\ApplicationAccess.Metrics.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />

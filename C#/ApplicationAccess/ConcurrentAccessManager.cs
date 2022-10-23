@@ -635,8 +635,8 @@ namespace ApplicationAccess
             lockManager.RegisterLockObjectDependency(groupToGroupMapLock, groupsLock);
             lockManager.RegisterLockObjectDependency(userToComponentMap, usersLock);
             lockManager.RegisterLockObjectDependency(userToEntityMap, usersLock);
-            lockManager.RegisterLockObjectDependency(groupToComponentMap, groupsLock);
             lockManager.RegisterLockObjectDependency(userToEntityMap, entities);
+            lockManager.RegisterLockObjectDependency(groupToComponentMap, groupsLock);
             lockManager.RegisterLockObjectDependency(groupToEntityMap, groupsLock);
             lockManager.RegisterLockObjectDependency(groupToEntityMap, entities);
         }
