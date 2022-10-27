@@ -23,18 +23,15 @@ namespace ApplicationAccess.TestHarness
     /// </summary>
     public enum StorageStructure
     {
-        // TODO: 2022-10-24
-        //   Should sets to postfixed with 'set'... e.g. 'UsersSet'?
-        //   Should 'Entities' be 'EntitiyMap' since it holds a mapping
-        //   What to do for storing counts against these... e.g. where the structure has a KeyCount and ValueCount?
-
         Users, 
         Groups, 
         UserToGroupMap, 
         GroupToGroupMap, 
         UserToComponentMap, 
         GroupToComponentMap, 
-        Entities, 
+        // Entity types and entities are actually stored in a single Dictionary, but will keep them as separate enums so that (for example) counts can be kept separately for each.
+        EntityTypes,
+        Entities,
         UserToEntityMap, 
         GroupToEntityMap
     }

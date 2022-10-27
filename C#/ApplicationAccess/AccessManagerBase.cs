@@ -806,8 +806,6 @@ namespace ApplicationAccess
             return returnEntities;
         }
 
-        #region Private/Protected Methods
-
         /// <summary>
         /// Removes an entity type.
         /// </summary>
@@ -872,6 +870,8 @@ namespace ApplicationAccess
         }
 
         #pragma warning disable 1591
+
+        #region Private/Protected Methods
 
         protected void ThrowUserDoesntExistException(TUser user, String parameterName)
         {
