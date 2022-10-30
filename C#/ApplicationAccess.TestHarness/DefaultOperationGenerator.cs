@@ -16,7 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using MoreComplexDataStructures;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -27,10 +27,14 @@ namespace ApplicationAccess.TestHarness
     {
         /// <summary>The data elements stored in the AccessManager instance under test.</summary>
         protected DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
+        /// <summary>The target elements counts for each storage structure.</summary>
+        protected Dictionary<StorageStructure, Int32> targetStorageStructureCounts;
+        /// <summary>The ratio of query operations (get) to event operations (add/remove).</summary>
+        protected Double queryToEventOperationRatio;
         /// <summary>Stores mappings of the storage structures in an AccessManager, to the operations that depend on them.</summary>
         protected Dictionary<StorageStructure, HashSet<AccessManagerOperation>> storageStructureToOperationDependencyMap;
         /// <summary>Stores mappings of the operations in an AccessManager, to the storage structures that they depend on.</summary>
-        protected Dictionary<HashSet<AccessManagerOperation>, StorageStructure> operationToStorageStructureDependencyMap;
+        protected Dictionary<AccessManagerOperation, HashSet<StorageStructure>> operationToStorageStructureDependencyMap;
         /// <summary>All operations which retrieve data elements from an AccessManager.</summary>
         protected HashSet<AccessManagerOperation> getOperations;
         /// <summary>All operations which add data elements to an AccessManager.</summary>
@@ -42,9 +46,17 @@ namespace ApplicationAccess.TestHarness
         /// Initialises a new instance of the ApplicationAccess.TestHarness.DefaultOperationGenerator class.
         /// </summary>
         /// <param name="dataElementStorer">The data elements stored in the AccessManager instance under test.</param>
-        public DefaultOperationGenerator(DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer)
+        /// <param name="targetStorageStructureCounts">The target elements counts for each storage structure.</param>
+        /// <param name="queryToEventOperationRatio">The ratio of query operations (get) to event operations (add/remove).  E.g. a value of 2.0 would make query operations twice as likely as event operations.</param>
+        public DefaultOperationGenerator(DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, Dictionary<StorageStructure, Int32> targetStorageStructureCounts, Double queryToEventOperationRatio)
         {
+            if (queryToEventOperationRatio <= 0.0)
+                throw new ArgumentOutOfRangeException(nameof(queryToEventOperationRatio), $"Parameter '{nameof(queryToEventOperationRatio)}' must be greater than 0.");
+
+            ValidateTargetStorageStructureCounts(targetStorageStructureCounts);
             this.dataElementStorer = dataElementStorer;
+            this.targetStorageStructureCounts = targetStorageStructureCounts;
+            this.queryToEventOperationRatio = queryToEventOperationRatio;
             InitializeDependencyMaps();
             InitializeOperationClassificationSets();
         }
@@ -55,7 +67,9 @@ namespace ApplicationAccess.TestHarness
         /// <returns>The operation to perform.</returns>
         public AccessManagerOperation Generate()
         {
-            throw new NotImplementedException();
+            Dictionary<StorageStructure, Int32> storageStructureCounts = GetStorageStructureCounts();
+            Dictionary<AccessManagerOperation, Double> baseProbabilities = CalculateBaseOperationProbabilities(storageStructureCounts);
+            ApplyQueryToEventOperationRatio(baseProbabilities);
         }
 
         #region Private/Protected Methods
@@ -98,12 +112,132 @@ namespace ApplicationAccess.TestHarness
         {
             var returnDictionary = new Dictionary<AccessManagerOperation, Double>();
 
+            // Set the probability for 'remove' operations
             foreach (AccessManagerOperation currentRemoveOperation in removeOperations)
             {
-                var countsOfDependentStorageStructures = new Dictionary<StorageStructure, Int32>();
                 Boolean dependentStorageStructureIsEmpty = false;
-                foreach (StorageStructure currentDependentStorageStructure in )
+                Double currentOperationProbability = 0.0;
+                // Average out the probability for each of the dependent structures
+                foreach (StorageStructure currentDependentStorageStructure in operationToStorageStructureDependencyMap[currentRemoveOperation])
+                {
+                    if (storageStructureCounts[currentDependentStorageStructure] == 0)
+                    {
+                        // If any one of the dependent structures has 0 elements, set the probability to 0
+                        dependentStorageStructureIsEmpty = true;
+                        break;
+                    }
+                    else
+                    {
+                        // Probability is (current count) / (2 * target count)
+                        currentOperationProbability += Convert.ToDouble(storageStructureCounts[currentDependentStorageStructure]) / (2.0 * Convert.ToDouble(targetStorageStructureCounts[currentDependentStorageStructure]));
+                    }
+                }
+                if (dependentStorageStructureIsEmpty == true)
+                {
+                    returnDictionary[currentRemoveOperation] = 0.0;
+                }
+                else
+                {
+                    returnDictionary[currentRemoveOperation] = currentOperationProbability / Convert.ToDouble(operationToStorageStructureDependencyMap[currentRemoveOperation].Count);
+                }
             }
+
+            // Set the proability for 'add' and 'get' operations (inverse of the equivalent 'remove' operation)
+            foreach (IEnumerable<AccessManagerOperation> currentOperationCollection in new HashSet<AccessManagerOperation>[] { addOperations, getOperations })
+            {
+                foreach (AccessManagerOperation currentOperation in currentOperationCollection)
+                {
+                    Boolean dependentStorageStructureIsEmpty = false;
+                    Double currentOperationProbability = 0.0;
+                    // Average out the probability for each of the dependent structures
+                    foreach (StorageStructure currentDependentStorageStructure in operationToStorageStructureDependencyMap[currentOperation])
+                    {
+                        if (storageStructureCounts[currentDependentStorageStructure] == 0)
+                        {
+                            // If any one of the dependent structures has 0 elements, set the probability to 1
+                            dependentStorageStructureIsEmpty = true;
+                            break;
+                        }
+                        else
+                        {
+                            currentOperationProbability += Convert.ToDouble(storageStructureCounts[currentDependentStorageStructure]) / (2.0 * Convert.ToDouble(targetStorageStructureCounts[currentDependentStorageStructure]));
+                        }
+                    }
+                    if (dependentStorageStructureIsEmpty == true)
+                    {
+                        returnDictionary[currentOperation] = 1.0;
+                    }
+                    else
+                    {
+                        returnDictionary[currentOperation] = 1.0 - (currentOperationProbability / Convert.ToDouble(operationToStorageStructureDependencyMap[currentOperation].Count));
+                    }
+                }
+            }
+
+            return returnDictionary;
+        }
+
+        /// <summary>
+        /// Applies the query to event operation ratio to the specified set of operation probabilities.
+        /// </summary>
+        /// <param name="operationProbabilities">The relative probabilities of each <see cref="AccessManagerOperation"/> being executed.</param>
+        protected void ApplyQueryToEventOperationRatio(Dictionary<AccessManagerOperation, Double> operationProbabilities)
+        {
+            // Sum the event operations vs query operations
+            Double queryOperationsTotalProbabililty = 0.0;
+            Double eventOperationsTotalProbabililty = 0.0;
+            foreach (KeyValuePair<AccessManagerOperation, Double> currentKvp in operationProbabilities)
+            {
+                if (getOperations.Contains(currentKvp.Key) == true)
+                {
+                    queryOperationsTotalProbabililty += currentKvp.Value;
+                }
+                else
+                {
+                    eventOperationsTotalProbabililty += currentKvp.Value;
+                }
+            }
+            // If probabilities are 0 for query operations (e.g. if all data structures are empty) or event operations, don't need to apply any scaling
+            if (!(queryOperationsTotalProbabililty == 0.0 || eventOperationsTotalProbabililty == 0.0))
+            {
+                Double currentQueryToEventOperationRatio = queryOperationsTotalProbabililty / eventOperationsTotalProbabililty;
+                Double requiredScaleFactor = queryToEventOperationRatio / currentQueryToEventOperationRatio;
+                foreach (AccessManagerOperation currentQueryOperation in getOperations)
+                {
+                    if (operationProbabilities.ContainsKey(currentQueryOperation) == true)
+                    {
+                        operationProbabilities[currentQueryOperation] *= requiredScaleFactor;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates the specified set of target elements counts for each storage structure.
+        /// </summary>
+        /// <param name="targetStorageStructureCounts">The target elements counts to validate.</param>
+        protected void ValidateTargetStorageStructureCounts(Dictionary<StorageStructure, Int32> targetStorageStructureCounts)
+        {
+            foreach (Int32 currentStorageStructureValue in Enum.GetValues(typeof(StorageStructure)))
+            {
+                if (targetStorageStructureCounts.ContainsKey((StorageStructure)currentStorageStructureValue) == false)
+                    throw new ArgumentException($"Parameter '{nameof(targetStorageStructureCounts)}' does not contain a target storage structure count for '{(StorageStructure)currentStorageStructureValue}'.", nameof(targetStorageStructureCounts));
+
+                if (targetStorageStructureCounts[(StorageStructure)currentStorageStructureValue] < 1)
+                    throw new ArgumentOutOfRangeException(nameof(targetStorageStructureCounts), $"Parameter '{nameof(targetStorageStructureCounts)}' with count {targetStorageStructureCounts[(StorageStructure)currentStorageStructureValue]} for storage structure '{(StorageStructure)currentStorageStructureValue}' cannot be less than 1.");
+            }
+        }
+
+        /// <summary>
+        /// Randomly chooses an <see cref="AccessManagerOperation"/> based on the specified probabilities.
+        /// </summary>
+        /// <param name="operationProbabilities">The relative probabilities of each <see cref="AccessManagerOperation"/>.</param>
+        /// <returns>A randomly chosen  <see cref="AccessManagerOperation"/>.</returns>
+        protected AccessManagerOperation ChooseOperation(Dictionary<AccessManagerOperation, Double> operationProbabilities)
+        {
+            var randomGenerator = new WeightedRandomGenerator<AccessManagerOperation>();
+            // Generate the weightings by iterating operationProbabilities, getting the total, and then re-iterating and creating the following Int64 val...
+            //   current weighting / total * Int64.MaxValue
         }
 
         #region Storage Structure Initialization Methods
@@ -129,7 +263,7 @@ namespace ApplicationAccess.TestHarness
             storageStructureToOperationDependencyMap.Add(StorageStructure.UserToEntityMap, new HashSet<AccessManagerOperation>());
             storageStructureToOperationDependencyMap.Add(StorageStructure.GroupToEntityMap, new HashSet<AccessManagerOperation>());
             // Add the dependencies
-            storageStructureToOperationDependencyMap[StorageStructure.Users].UnionWith(new AccessManagerOperation[] 
+            storageStructureToOperationDependencyMap[StorageStructure.Users].UnionWith(new AccessManagerOperation[]
             {
                 AccessManagerOperation.UsersPropertyGet,
                 AccessManagerOperation.AddUser,
@@ -148,10 +282,10 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.HasAccessToApplicationComponent,
                 AccessManagerOperation.HasAccessToEntity,
                 AccessManagerOperation.GetApplicationComponentsAccessibleByUser,
-                AccessManagerOperation.GetEntitiesAccessibleByUser 
+                AccessManagerOperation.GetEntitiesAccessibleByUser
             });
-            storageStructureToOperationDependencyMap[StorageStructure.Groups].UnionWith(new AccessManagerOperation[] 
-            { 
+            storageStructureToOperationDependencyMap[StorageStructure.Groups].UnionWith(new AccessManagerOperation[]
+            {
                 AccessManagerOperation.GroupsPropertyGet,
                 AccessManagerOperation.AddGroup,
                 AccessManagerOperation.ContainsGroup,
@@ -170,15 +304,15 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
                 AccessManagerOperation.RemoveGroupToEntityMapping,
                 AccessManagerOperation.GetApplicationComponentsAccessibleByGroup,
-                AccessManagerOperation.GetEntitiesAccessibleByGroup 
+                AccessManagerOperation.GetEntitiesAccessibleByGroup
             });
-            storageStructureToOperationDependencyMap[StorageStructure.UserToGroupMap].UnionWith(new AccessManagerOperation[] 
-            { 
+            storageStructureToOperationDependencyMap[StorageStructure.UserToGroupMap].UnionWith(new AccessManagerOperation[]
+            {
                 AccessManagerOperation.AddUserToGroupMapping,
                 AccessManagerOperation.GetUserToGroupMappings,
-                AccessManagerOperation.RemoveUserToGroupMapping 
+                AccessManagerOperation.RemoveUserToGroupMapping
             });
-            storageStructureToOperationDependencyMap[StorageStructure.GroupToGroupMap].UnionWith(new AccessManagerOperation[] 
+            storageStructureToOperationDependencyMap[StorageStructure.GroupToGroupMap].UnionWith(new AccessManagerOperation[]
             {
                 AccessManagerOperation.AddUserToGroupMapping,
                 AccessManagerOperation.GetUserToGroupMappings,
@@ -202,7 +336,7 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.RemoveGroupToApplicationComponentAndAccessLevelMapping,
                 AccessManagerOperation.GetApplicationComponentsAccessibleByGroup
             });
-            storageStructureToOperationDependencyMap[StorageStructure.EntityTypes].UnionWith(new AccessManagerOperation[] 
+            storageStructureToOperationDependencyMap[StorageStructure.EntityTypes].UnionWith(new AccessManagerOperation[]
             {
                 AccessManagerOperation.EntityTypesPropertyGet,
                 AccessManagerOperation.AddEntityType,
@@ -224,7 +358,7 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.GetEntitiesAccessibleByUser,
                 AccessManagerOperation.GetEntitiesAccessibleByGroup
             });
-            storageStructureToOperationDependencyMap[StorageStructure.Entities].UnionWith(new AccessManagerOperation[] 
+            storageStructureToOperationDependencyMap[StorageStructure.Entities].UnionWith(new AccessManagerOperation[]
             {
                 AccessManagerOperation.AddEntity,
                 AccessManagerOperation.GetEntities,
@@ -242,15 +376,15 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.GetEntitiesAccessibleByUser,
                 AccessManagerOperation.GetEntitiesAccessibleByGroup
             });
-            storageStructureToOperationDependencyMap[StorageStructure.UserToEntityMap].UnionWith(new AccessManagerOperation[] 
-            { 
+            storageStructureToOperationDependencyMap[StorageStructure.UserToEntityMap].UnionWith(new AccessManagerOperation[]
+            {
                 AccessManagerOperation.AddUserToEntityMapping,
                 AccessManagerOperation.GetUserToEntityMappings,
                 AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
                 AccessManagerOperation.RemoveUserToEntityMapping,
-                AccessManagerOperation.GetEntitiesAccessibleByUser 
+                AccessManagerOperation.GetEntitiesAccessibleByUser
             });
-            storageStructureToOperationDependencyMap[StorageStructure.GroupToEntityMap].UnionWith(new AccessManagerOperation[] 
+            storageStructureToOperationDependencyMap[StorageStructure.GroupToEntityMap].UnionWith(new AccessManagerOperation[]
             {
                 AccessManagerOperation.AddGroupToEntityMapping,
                 AccessManagerOperation.GetGroupToEntityMappings,
@@ -258,8 +392,18 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.RemoveGroupToEntityMapping,
                 AccessManagerOperation.GetEntitiesAccessibleByGroup
             });
-
-            TODO: Generate operationToStorageStructureDependencyMap from storageStructureToOperationDependencyMap
+            // Add reversed despendencies to 'operationToStorageStructureDependencyMap'
+            foreach (KeyValuePair<StorageStructure, HashSet<AccessManagerOperation>> currentMapping in storageStructureToOperationDependencyMap)
+            {
+                foreach (AccessManagerOperation currentOperation in currentMapping.Value)
+                {
+                    if (operationToStorageStructureDependencyMap.ContainsKey(currentOperation) == false)
+                    {
+                        operationToStorageStructureDependencyMap.Add(currentOperation, new HashSet<StorageStructure>());
+                    }
+                    operationToStorageStructureDependencyMap[currentOperation].Add(currentMapping.Key);
+                }
+            }
         }
 
         /// <summary>
