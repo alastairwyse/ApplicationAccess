@@ -70,6 +70,9 @@ namespace ApplicationAccess.TestHarness
             Dictionary<StorageStructure, Int32> storageStructureCounts = GetStorageStructureCounts();
             Dictionary<AccessManagerOperation, Double> baseProbabilities = CalculateBaseOperationProbabilities(storageStructureCounts);
             ApplyQueryToEventOperationRatio(baseProbabilities);
+            AccessManagerOperation returnOperation = ChooseOperation(baseProbabilities);
+
+            return returnOperation;
         }
 
         #region Private/Protected Methods
@@ -236,8 +239,28 @@ namespace ApplicationAccess.TestHarness
         protected AccessManagerOperation ChooseOperation(Dictionary<AccessManagerOperation, Double> operationProbabilities)
         {
             var randomGenerator = new WeightedRandomGenerator<AccessManagerOperation>();
-            // Generate the weightings by iterating operationProbabilities, getting the total, and then re-iterating and creating the following Int64 val...
-            //   current weighting / total * Int64.MaxValue
+            var weightings = new List<Tuple<AccessManagerOperation, Int64>>();
+            
+            // Get the total of all relative probabilities
+            Double totalProbability = 0.0;
+            foreach (Double currentProbability in operationProbabilities.Values)
+            {
+                totalProbability += currentProbability;
+            }
+
+            // Calculate and set the weightings
+            Int64 weightingsTotal = Int64.MaxValue / 2; // Using Int64.MaxValue / 2 avoids possibility of multiple roundings up pushing the total into overflow, as could happen with Int64.MaxValue
+            foreach (KeyValuePair<AccessManagerOperation, Double> currentKvp in operationProbabilities)
+            {
+                if (currentKvp.Value != 0.0)
+                {
+                    Int64 currentWeighting = Convert.ToInt64(Math.Round(currentKvp.Value / totalProbability) * weightingsTotal);
+                    weightings.Add(new Tuple<AccessManagerOperation, Int64>(currentKvp.Key, currentWeighting));
+                }
+            }
+            randomGenerator.SetWeightings(weightings);
+
+            return randomGenerator.Generate();
         }
 
         #region Storage Structure Initialization Methods

@@ -806,13 +806,15 @@ namespace ApplicationAccess
             return returnEntities;
         }
 
+        #region Private/Protected Methods
+
         /// <summary>
         /// Removes an entity type.
         /// </summary>
         /// <param name="entityType">The entity type to remove.</param>
         /// <param name="userToEntityTypeMappingPreRemovalAction">An action which is invoked before removing the entity type mappings for a user.  Accepts 4 parameters: the user in the mappings, the type of the entity of the mappings being removed, the entities in the mappings, and the number of entities in the mappings.</param>
         /// <param name="groupToEntityTypeMappingPreRemovalAction">An action which is invoked before removing the entity type mappings for a group.  Accepts 4 parameters: the group in the mappings, the type of the entity of the mappings being removed, the entities in the mappings, and the number of entities in the mappings.</param>
-        public virtual void RemoveEntityType(String entityType, Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction, Action<TGroup, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction)
+        protected virtual void RemoveEntityType(String entityType, Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction, Action<TGroup, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction)
         {
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
@@ -843,7 +845,7 @@ namespace ApplicationAccess
         /// <param name="entity">The entity to remove.</param>
         /// <param name="userToEntityMappingPostRemovalAction">An action which is invoked after removing a user to entity mapping.  Accepts 3 parameters: the user in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
         /// <param name="groupToEntityMappingPostRemovalAction">An action which is invoked after removing a group to entity mapping.  Accepts 3 parameters: the group in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
-        public virtual void RemoveEntity(String entityType, String entity, Action<TUser, String, String> userToEntityMappingPostRemovalAction, Action<TGroup, String, String> groupToEntityMappingPostRemovalAction)
+        protected virtual void RemoveEntity(String entityType, String entity, Action<TUser, String, String> userToEntityMappingPostRemovalAction, Action<TGroup, String, String> groupToEntityMappingPostRemovalAction)
         {
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
@@ -870,8 +872,6 @@ namespace ApplicationAccess
         }
 
         #pragma warning disable 1591
-
-        #region Private/Protected Methods
 
         protected void ThrowUserDoesntExistException(TUser user, String parameterName)
         {
