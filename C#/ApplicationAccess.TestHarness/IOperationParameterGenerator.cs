@@ -19,21 +19,86 @@ using System;
 namespace ApplicationAccess.TestHarness
 {
     /// <summary>
-    /// Defines methods to generate parameters for <see cref="AccessManagerOperation">AccessManagerOperations</see>.
+    /// Defines methods to generate parameters for AccessManager operations.
     /// </summary>
     public interface IOperationParameterGenerator<TUser, TGroup, TComponent, TAccess>
     {
+        TUser GenerateAddUserParameter();
 
-        // TODO: Split these into 2 separate methods... one generic which creates the params (will need overloads of these with different numbers of arguments)
-        //   And other which returns the action
-        //   Need to have the params as individual objects so that they could be 'recorded' or for detailed exception handling
+        TUser GenerateContainsUserParameter();
 
-        /// <summary>
-        /// Generates parameters for the specified operation, and returns them as an action which can be invoked against an AccessManager instance.
-        /// </summary>
-        /// <param name="operation">The operation to generate the parameters for.</param>
-        /// <param name="accessManagerInstance">The AccessManager instance to create the action against.</param>
-        /// <returns>An action which can be invoked against an AccessManager instance.</returns>
-        Action GenerateParameters(AccessManagerOperation operation, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerInstance);
+        TUser GenerateRemoveUserParameter();
+
+        TGroup GenerateAddGroupParameter();
+
+        TGroup GenerateContainsGroupParameter();
+
+        TGroup GenerateRemoveGroupParameter();
+
+        Tuple<TUser, TGroup> GenerateAddUserToGroupMappingParameters();
+
+        TUser GenerateGetUserToGroupMappingsParameter();
+
+        Tuple<TUser, TGroup> GenerateRemoveUserToGroupMappingParameters();
+        
+        Tuple<TGroup, TGroup> GenerateAddGroupToGroupMappingParameters();
+
+        TGroup GenerateGetGroupToGroupMappingsParameter();
+
+        Tuple<TGroup, TGroup> GenerateRemoveGroupToGroupMappingParameters();
+
+        Tuple<TUser, TComponent, TAccess> GenerateAddUserToApplicationComponentAndAccessLevelMappingParameters();
+
+        TUser GenerateGetUserToApplicationComponentAndAccessLevelMappingsParameter();
+
+        Tuple<TUser, TComponent, TAccess> GenerateRemoveUserToApplicationComponentAndAccessLevelMappingParameters();
+
+        Tuple<TGroup, TComponent, TAccess> GenerateAddGroupToApplicationComponentAndAccessLevelMappingParameters();
+
+        TGroup GenerateGetGroupToApplicationComponentAndAccessLevelMappingsParameter();
+
+        Tuple<TGroup, TComponent, TAccess> GenerateRemoveGroupToApplicationComponentAndAccessLevelMappingParameters();
+
+        String GenerateAddEntityTypeParameter();
+
+        String GenerateContainsEntityTypeParameter();
+
+        String GenerateRemoveEntityTypeParameter();
+
+        Tuple<String, String> GenerateAddEntityParameters();
+
+        String GenerateGetEntitiesParameter();
+
+        Tuple<String, String> GenerateContainsKeyParameters();
+
+        Tuple<String, String> GenerateRemoveEntityParameters();
+
+        Tuple<TUser, String, String> GenerateAddUserToEntityMappingParameters();
+
+        TUser GenerateGetUserToEntityMappingsParameter();
+
+        Tuple<TUser, String> GenerateGetUserToEntityMappingsEntityTypeOverloadParameters();
+
+        Tuple<TUser, String, String> GenerateRemoveUserToEntityMappingParameters();
+
+        Tuple<TGroup, String, String> GenerateAddGroupToEntityMappingParameters();
+
+        TGroup GenerateGetGroupToEntityMappingsParameter();
+
+        Tuple<TGroup, String> GenerateGetGroupToEntityMappingsEntityTypeOverloadParameters();
+
+        Tuple<TGroup, String, String> GenerateRemoveGroupToEntityMappingParameters();
+
+        Tuple<TUser, TComponent, TAccess> GenerateHasAccessToApplicationComponentParameters();
+
+        Tuple<TUser, String, String> GenerateHasAccessToEntityParameters();
+
+        TUser GenerateGetApplicationComponentsAccessibleByUserParameter();
+
+        TGroup GenerateGetApplicationComponentsAccessibleByGroupParameter();
+
+        Tuple<TUser, String> GenerateGetEntitiesAccessibleByUserParameters();
+
+        Tuple<TGroup, String> GenerateGetEntitiesAccessibleByGroupParameters();
     }
 }
