@@ -15,11 +15,12 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ApplicationAccess.TestHarness
 {
+    /// <summary>
+    /// Default implementation of <see cref="IOperationParameterGenerator{TUser, TGroup, TComponent, TAccess}"/>.
+    /// </summary>
     public class DefaultOperationParameterGenerator<TUser, TGroup, TComponent, TAccess> : IOperationParameterGenerator<TUser, TGroup, TComponent, TAccess>
     {
         protected Random randomGenerator;
@@ -31,6 +32,16 @@ namespace ApplicationAccess.TestHarness
         protected INewEntityGenerator newEntityGenerator;
         protected INewEntityTypeGenerator newEntityTypeGenerator;
 
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.TestHarness.DefaultOperationParameterGenerator class.
+        /// </summary>
+        /// <param name="dataElementStorer"></param>
+        /// <param name="newUserGenerator">Generator for new users.</param>
+        /// <param name="newGroupGenerator">Generator for new groups.</param>
+        /// <param name="newApplicationComponentGenerator">Generator for new application components.</param>
+        /// <param name="newwAccessLevelGenerator">Generator for new access levels.</param>
+        /// <param name="newEntityGenerator">Generator for new entities.</param>
+        /// <param name="newEntityTypeGenerator">Generator for new entity types.</param>
         public DefaultOperationParameterGenerator
         (
             DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
@@ -98,167 +109,226 @@ namespace ApplicationAccess.TestHarness
 
         public Tuple<TUser, TGroup> GenerateAddUserToGroupMappingParameters()
         {
-            throw new NotImplementedException();
+            TUser user = dataElementStorer.GetRandomUser();
+            TGroup group = dataElementStorer.GetRandomGroup();
+
+            return new Tuple<TUser, TGroup>(user, group);
         }
 
         public TUser GenerateGetUserToGroupMappingsParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomUser();
         }
 
         public Tuple<TUser, TGroup> GenerateRemoveUserToGroupMappingParameters()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomUserToGroupMapping();
         }
 
         public Tuple<TGroup, TGroup> GenerateAddGroupToGroupMappingParameters()
         {
-            throw new NotImplementedException();
+            TGroup fromGroup = dataElementStorer.GetRandomGroup();
+            TGroup toGroup = dataElementStorer.GetRandomGroup();
+
+            return new Tuple<TGroup, TGroup>(fromGroup, toGroup);
         }
 
         public TGroup GenerateGetGroupToGroupMappingsParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomGroup();
         }
 
         public Tuple<TGroup, TGroup> GenerateRemoveGroupToGroupMappingParameters()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomGroupToGroupMapping();
         }
 
         public Tuple<TUser, TComponent, TAccess> GenerateAddUserToApplicationComponentAndAccessLevelMappingParameters()
         {
-            throw new NotImplementedException();
+            TUser user = dataElementStorer.GetRandomUser();
+            TComponent applicationComponent = newApplicationComponentGenerator.Generate();
+            TAccess accessLevel = newwAccessLevelGenerator.Generate();
+
+            return new Tuple<TUser, TComponent, TAccess>(user, applicationComponent, accessLevel);
         }
 
         public TUser GenerateGetUserToApplicationComponentAndAccessLevelMappingsParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomUser();
         }
 
         public Tuple<TUser, TComponent, TAccess> GenerateRemoveUserToApplicationComponentAndAccessLevelMappingParameters()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomUserToApplicationComponentAndAccessLevelMapping();
         }
 
         public Tuple<TGroup, TComponent, TAccess> GenerateAddGroupToApplicationComponentAndAccessLevelMappingParameters()
         {
-            throw new NotImplementedException();
+            TGroup group = dataElementStorer.GetRandomGroup();
+            TComponent applicationComponent = newApplicationComponentGenerator.Generate();
+            TAccess accessLevel = newwAccessLevelGenerator.Generate();
+
+            return new Tuple<TGroup, TComponent, TAccess>(group, applicationComponent, accessLevel);
         }
 
         public TGroup GenerateGetGroupToApplicationComponentAndAccessLevelMappingsParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomGroup();
         }
 
         public Tuple<TGroup, TComponent, TAccess> GenerateRemoveGroupToApplicationComponentAndAccessLevelMappingParameters()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomGroupToApplicationComponentAndAccessLevelMapping();
         }
 
         public String GenerateAddEntityTypeParameter()
         {
-            throw new NotImplementedException();
+            return newEntityTypeGenerator.Generate();
         }
 
         public String GenerateContainsEntityTypeParameter()
         {
-            throw new NotImplementedException();
+            if (randomGenerator.Next(2) == 0)
+            {
+                return newEntityTypeGenerator.Generate();
+            }
+            else
+            {
+                return dataElementStorer.GetRandomEntityType();
+            }
         }
 
         public String GenerateRemoveEntityTypeParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomEntityType();
         }
 
         public Tuple<String, String> GenerateAddEntityParameters()
         {
-            throw new NotImplementedException();
+            String entityType = dataElementStorer.GetRandomEntityType();
+            String entity = newEntityGenerator.Generate();
+
+            return new Tuple<String, String>(entityType, entity);
         }
 
         public String GenerateGetEntitiesParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomEntityType();
         }
 
-        public Tuple<String, String> GenerateContainsKeyParameters()
+        public Tuple<String, String> GenerateContainsEntityParameters()
         {
-            throw new NotImplementedException();
+            if (randomGenerator.Next(2) == 0)
+            {
+                String entityType = newEntityTypeGenerator.Generate();
+                String entity = newEntityGenerator.Generate();
+
+                return new Tuple<String, String>(entityType, entity);
+            }
+            else
+            {
+                return dataElementStorer.GetRandomEntity();
+            }
         }
 
         public Tuple<String, String> GenerateRemoveEntityParameters()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomEntity();
         }
 
         public Tuple<TUser, String, String> GenerateAddUserToEntityMappingParameters()
         {
-            throw new NotImplementedException();
+            TUser user = dataElementStorer.GetRandomUser();
+            Tuple<String, String> entity = dataElementStorer.GetRandomEntity();
+
+            return new Tuple<TUser, String, String>(user, entity.Item1, entity.Item2);
         }
 
         public TUser GenerateGetUserToEntityMappingsParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomUser();
         }
 
         public Tuple<TUser, String> GenerateGetUserToEntityMappingsEntityTypeOverloadParameters()
         {
-            throw new NotImplementedException();
+            TUser user = dataElementStorer.GetRandomUser();
+            String entityType = dataElementStorer.GetRandomEntityType();
+
+            return new Tuple<TUser, String>(user, entityType);
         }
 
         public Tuple<TUser, String, String> GenerateRemoveUserToEntityMappingParameters()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomUserToEntityMapping();
         }
 
         public Tuple<TGroup, String, String> GenerateAddGroupToEntityMappingParameters()
         {
-            throw new NotImplementedException();
+            TGroup group = dataElementStorer.GetRandomGroup();
+            Tuple<String, String> entity = dataElementStorer.GetRandomEntity();
+
+            return new Tuple<TGroup, String, String>(group, entity.Item1, entity.Item2);
         }
 
         public TGroup GenerateGetGroupToEntityMappingsParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomGroup();
         }
 
         public Tuple<TGroup, String> GenerateGetGroupToEntityMappingsEntityTypeOverloadParameters()
         {
-            throw new NotImplementedException();
+            TGroup group = dataElementStorer.GetRandomGroup();
+            String entityType = dataElementStorer.GetRandomEntityType();
+
+            return new Tuple<TGroup, String>(group, entityType);
         }
 
         public Tuple<TGroup, String, String> GenerateRemoveGroupToEntityMappingParameters()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomGroupToEntityMapping();
         }
 
         public Tuple<TUser, TComponent, TAccess> GenerateHasAccessToApplicationComponentParameters()
         {
-            throw new NotImplementedException();
+            TUser user = dataElementStorer.GetRandomUser();
+            TComponent applicationComponent = newApplicationComponentGenerator.Generate();
+            TAccess accessLevel = newwAccessLevelGenerator.Generate();
+
+            return new Tuple<TUser, TComponent, TAccess>(user, applicationComponent, accessLevel);
         }
 
         public Tuple<TUser, String, String> GenerateHasAccessToEntityParameters()
         {
-            throw new NotImplementedException();
+            TUser user = dataElementStorer.GetRandomUser();
+            Tuple<String, String> entity = dataElementStorer.GetRandomEntity();
+
+            return new Tuple<TUser, String, String>(user, entity.Item1, entity.Item2);
         }
 
         public TUser GenerateGetApplicationComponentsAccessibleByUserParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomUser();
         }
 
         public TGroup GenerateGetApplicationComponentsAccessibleByGroupParameter()
         {
-            throw new NotImplementedException();
+            return dataElementStorer.GetRandomGroup();
         }
 
         public Tuple<TUser, String> GenerateGetEntitiesAccessibleByUserParameters()
         {
-            throw new NotImplementedException();
+            TUser user =  dataElementStorer.GetRandomUser();
+            String entityType = dataElementStorer.GetRandomEntityType();
+
+            return new Tuple<TUser, String>(user, entityType);
         }
 
         public Tuple<TGroup, String> GenerateGetEntitiesAccessibleByGroupParameters()
         {
-            throw new NotImplementedException();
+            TGroup group = dataElementStorer.GetRandomGroup();
+            String entityType = dataElementStorer.GetRandomEntityType();
+
+            return new Tuple<TGroup, String>(group, entityType);
         }
     }
 }

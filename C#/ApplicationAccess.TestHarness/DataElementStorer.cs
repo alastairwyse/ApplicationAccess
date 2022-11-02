@@ -320,7 +320,7 @@ namespace ApplicationAccess.TestHarness
             }));
         }
 
-        public Tuple<TUser, TGroup> GetRandomUserToGroupMapping(TUser user, TGroup group)
+        public Tuple<TUser, TGroup> GetRandomUserToGroupMapping()
         {
             TUser returnUser = default;
             TGroup returnGroup = default;
@@ -366,7 +366,7 @@ namespace ApplicationAccess.TestHarness
             }));
         }
 
-        public Tuple<TGroup, TGroup> GetRandomGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
+        public Tuple<TGroup, TGroup> GetRandomGroupToGroupMapping()
         {
             TGroup returnfromGroup = default;
             TGroup returnToGroup = default;

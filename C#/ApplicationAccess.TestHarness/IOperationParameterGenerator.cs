@@ -69,7 +69,7 @@ namespace ApplicationAccess.TestHarness
 
         String GenerateGetEntitiesParameter();
 
-        Tuple<String, String> GenerateContainsKeyParameters();
+        Tuple<String, String> GenerateContainsEntityParameters();
 
         Tuple<String, String> GenerateRemoveEntityParameters();
 

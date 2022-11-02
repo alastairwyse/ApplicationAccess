@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -61,6 +62,26 @@ namespace ApplicationAccess.TestHarness
             Console.WriteLine($"EntityCount: {testDataElementStorer.EntityCount}"); // 0
             Console.WriteLine($"UserToEntityMappingCount: {testDataElementStorer.UserToEntityMappingCount}"); // 0
 
+            Console.WriteLine("Testing DefaultOperationTriggerer...");
+            Boolean stopRequestRecieved = false;
+            var stopSignalThread = new Thread(new ThreadStart(new Action(() =>
+            {
+                Console.ReadLine();
+                stopRequestRecieved = true;
+            })));
+            stopSignalThread.Start();
+            using (var testOperationTriggerer = new DefaultOperationTriggerer(4, 100))
+            {
+                testOperationTriggerer.Start();
+                while (stopRequestRecieved == false)
+                {
+                    testOperationTriggerer.WaitForNextTrigger();
+                    Console.WriteLine($"Got triggered at {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}");
+                    testOperationTriggerer.NotifyOperationInitiated();
+                }
+                testOperationTriggerer.Stop();
+            }
+            Console.WriteLine("DONE!");
         }
 
         protected enum Screen
