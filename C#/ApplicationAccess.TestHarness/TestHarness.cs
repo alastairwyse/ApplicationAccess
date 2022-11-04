@@ -77,7 +77,6 @@ namespace ApplicationAccess.TestHarness
             if (previousExceptionOccurenceTimeWindowSize < 2)
                 throw new ArgumentOutOfRangeException(nameof(previousExceptionOccurenceTimeWindowSize), $"Parameter '{nameof(previousExceptionOccurenceTimeWindowSize)}' with value {previousExceptionOccurenceTimeWindowSize} cannot be less than 0.");
 
-
             this.testAccessManager = testAccessManager;
             this.workerThreadCount = workerThreadCount;
             dataElementStorer = new DataElementStorer<TUser, TGroup, TComponent, TAccess>();
@@ -141,7 +140,7 @@ namespace ApplicationAccess.TestHarness
             Console.WriteLine($"Starting test worker thread with name '{Thread.CurrentThread.Name}' and id {Thread.CurrentThread.ManagedThreadId}");
 
             operationTriggerer.Start();
-            var operationExecutor = new OperationExecutionPreparer<TUser, TGroup, TComponent, TAccess>(parameterGenerator, testAccessManager);
+            var operationExecutor = new OperationExecutionPreparer<TUser, TGroup, TComponent, TAccess>(parameterGenerator, testAccessManager, dataElementStorer);
             var exceptionHandler = new ExceptionHandler(exceptionsPerSecondThreshold, previousExceptionOccurenceTimeWindowSize, exceptionLogger);
 
             while (stopMethodCalled == false)
@@ -149,11 +148,12 @@ namespace ApplicationAccess.TestHarness
                 // TODO: Doing this here rather than after the WaitForNextTrigger() call means there's a gap, and risk the state of the access manager changed between preparing the operation and executing it
                 //   Will need to see if this causes issues
                 AccessManagerOperation nextOperation = operationGenerator.Generate();
-                Action operationAction = operationExecutor.PrepareExecution(nextOperation);
+                PrepareExecutionReturnActions actions = operationExecutor.PrepareExecution(nextOperation);
                 operationTriggerer.WaitForNextTrigger();
                 try
                 {
-                    operationAction.Invoke();
+                    actions.ExecutionAction.Invoke();
+                    actions.PostExecutionAction.Invoke();
                 }
                 catch (Exception e)
                 {
@@ -167,9 +167,6 @@ namespace ApplicationAccess.TestHarness
                         throw new Exception($"Exception occurred on worker thread with name '{Thread.CurrentThread.Name}' and id {Thread.CurrentThread.ManagedThreadId}", e);
                     }
                 }
-
-                // TODO: Need to update the dataElementStorer
-                //   Create a PostExecutionHandler... pass in the operation 
             }
 
             Console.WriteLine($"Stopping test worker thread with name '{Thread.CurrentThread.Name}' and id {Thread.CurrentThread.ManagedThreadId}");
