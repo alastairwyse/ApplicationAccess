@@ -6,11 +6,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ApplicationLogging" Version="2.0.0" />
+    <PackageReference Include="ApplicationLogging.Adapters.Log4Net" Version="2.0.0" />
+    <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="MoreComplexDataStructures" Version="1.9.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting\ApplicationAccess.Hosting.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
     <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

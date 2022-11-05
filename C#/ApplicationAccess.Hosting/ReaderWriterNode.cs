@@ -32,14 +32,14 @@ namespace ApplicationAccess.Hosting
     /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     /// <remarks>Note that as per remarks for <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> interval metrics are not logged for <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> methods that return <see cref="IEnumerable{T}"/>, or perform simple dictionary and set lookups (e.g. <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}.ContainsUser(TUser)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="IEnumerable{T}"/> the metric logging must wrap the code that enumerates the result.</remarks>
-    public class ReaderWriterNode<TUser, TGroup, TComponent, TAccess> : IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>
+    public class ReaderWriterNode<TUser, TGroup, TComponent, TAccess> : IAccessManager<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
         /// <summary>AccessManager instance used to store all permissions and to back the event validator.</summary>
         protected MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> concurrentAccessManager;
         /// <summary>Validates events created by calls to <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}"/> methods.</summary>
         protected IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator;
         /// <summary>Buffers events events created by calls to <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}"/> methods.</summary>
-        protected IAccessManagerEventBuffer<TUser, TGroup, TComponent, TAccess> eventBuffer;
+        protected AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess> eventBuffer;
         /// <summary>Flush strategy for the event buffer.</summary>
         protected IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy;
         /// <summary>Used to load the complete state of the AccessManager instance.</summary>
@@ -48,6 +48,8 @@ namespace ApplicationAccess.Hosting
         protected IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
+        /// <summary>Indicates whether the object has been disposed.</summary>
+        protected Boolean disposed;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNode class.
@@ -69,6 +71,7 @@ namespace ApplicationAccess.Hosting
             concurrentAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
             eventValidator = new ConcurrentAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>(concurrentAccessManager);
             eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister);
+            disposed = false;
         }
 
         /// <summary>
@@ -373,5 +376,48 @@ namespace ApplicationAccess.Hosting
         {
             eventBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
         }
+
+        #region Finalize / Dispose Methods
+
+        /// <summary>
+        /// Releases the unmanaged resources used by the ReaderWriterNode.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #pragma warning disable 1591
+
+        ~ReaderWriterNode()
+        {
+            Dispose(false);
+        }
+
+        #pragma warning restore 1591
+
+        /// <summary>
+        /// Provides a method to free unmanaged resources used by this class.
+        /// </summary>
+        /// <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // Free other state (managed objects).
+                    eventBuffer.Dispose();
+                }
+                // Free your own state (unmanaged objects).
+
+                // Set large fields to null.
+
+                disposed = true;
+            }
+        }
+
+        #endregion
     }
 }

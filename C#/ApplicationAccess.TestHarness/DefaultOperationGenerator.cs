@@ -416,6 +416,7 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.GetEntitiesAccessibleByGroup
             });
             // Add reversed despendencies to 'operationToStorageStructureDependencyMap'
+            operationToStorageStructureDependencyMap = new Dictionary<AccessManagerOperation, HashSet<StorageStructure>>();
             foreach (KeyValuePair<StorageStructure, HashSet<AccessManagerOperation>> currentMapping in storageStructureToOperationDependencyMap)
             {
                 foreach (AccessManagerOperation currentOperation in currentMapping.Value)
