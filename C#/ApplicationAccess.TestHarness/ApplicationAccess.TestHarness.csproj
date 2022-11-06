@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="ApplicationLogging" Version="2.0.0" />
     <PackageReference Include="ApplicationLogging.Adapters.Log4Net" Version="2.0.0" />
+    <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="1.0.0" />
     <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="MoreComplexDataStructures" Version="1.9.1" />
   </ItemGroup>

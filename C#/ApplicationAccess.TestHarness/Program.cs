@@ -23,6 +23,8 @@ using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.SqlServer;
 using ApplicationLogging;
 using ApplicationLogging.Adapters;
+using ApplicationMetrics.MetricLoggers;
+using ApplicationMetrics.MetricLoggers.SqlServer;
 using log4net;
 using log4net.Config;
 
@@ -42,13 +44,19 @@ namespace ApplicationAccess.TestHarness
             ILog log4netTestHarnessExceptionLogger = LogManager.GetLogger(typeof(TestHarness<String, String, TestApplicationComponent, TestAccessLevel>));
             var testHarnessExceptionLogger = new ApplicationLoggingLog4NetAdapter(log4netTestHarnessExceptionLogger);
 
-            // Setup the SQL Server persister
-            Int32 writerBufferFlushStrategyFlushInterval = 60000;
-            String sqlServerConnectionString = "";
+            // Setup the metric logger
+            const String metricLoggerCategory = "ApplicationAccessTestHarness";
+            const String sqlServerMetricsConnectionString = "";
             Int32 sqlServerRetryCount = 10;
             Int32 sqlServerRetryInterval = 10;
-
-            using (var writerBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(writerBufferFlushStrategyFlushInterval))
+            Int32 metricLoggerBufferSizeLimit = 100;
+            var metricLoggerBufferProcessingStrategy = new SizeLimitedBufferProcessor(metricLoggerBufferSizeLimit);
+            
+            // Setup the SQL Server persister
+            Int32 persisterBufferFlushStrategyFlushInterval = 60000;
+            String sqlServerConnectionString = "";
+            using (var metricLogger = new SqlServerMetricLogger(metricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, metricLoggerBufferProcessingStrategy, false))
+            using (var persisterBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(persisterBufferFlushStrategyFlushInterval, metricLogger))
             {
                 var persister = new SqlServerAccessManagerTemporalPersister<String, String, TestApplicationComponent, TestAccessLevel>
                 (
@@ -59,17 +67,19 @@ namespace ApplicationAccess.TestHarness
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<TestApplicationComponent>(),
                     new EnumUniqueStringifier<TestAccessLevel>(),
-                    persisterLogger
+                    persisterLogger, 
+                    metricLogger
                 );
 
                 // Setup the test AccessManager
-                using 
+                using
                 (
                     var testAccessManager = new ReaderWriterNode<String, String, TestApplicationComponent, TestAccessLevel>
                     (
-                        writerBufferFlushStrategy,
+                        persisterBufferFlushStrategy,
                         persister,
-                        persister
+                        persister,
+                        metricLogger
                     )
                 )
                 {
@@ -124,19 +134,25 @@ namespace ApplicationAccess.TestHarness
                         previousExceptionOccurenceTimeWindowSize
                     ))
                     {
-                        writerBufferFlushStrategy.Start();
+                        metricLogger.Start();
+                        persisterBufferFlushStrategy.Start();
                         operationTriggerer.Start();
-                        
+
                         try
                         {
+                            // TODO:
                             // Need a way to stop things from the console
                             //   Some sort of stop signal
+                            // Try different types of buffer processing strategies (for 'persisterBufferFlushStrategy' and 'metricLoggerBufferProcessingStrategy')
+                            // Ability to load existing state into DataElementStorer
+                            // Should the threads in TestHarness be foreground rather than background
 
                         }
                         finally
                         {
-                            operationTriggerer.Stop();
-                            writerBufferFlushStrategy.Stop();
+                            // Don't need to call operationTriggerer.Stop(), as it's called from the TestHarness.Stop() method
+                            persisterBufferFlushStrategy.Stop();
+                            metricLogger.Stop();
                         }
                     }
                 }
