@@ -102,7 +102,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="user">The user to add.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the user but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddUser(TUser user, Action<TUser> postProcessingAction)
+        public virtual void AddUser(TUser user, Action<TUser> postProcessingAction)
         {
 
             Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
@@ -128,7 +128,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="user">The user to remove.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the user but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveUser(TUser user, Action<TUser> postProcessingAction)
+        public virtual void RemoveUser(TUser user, Action<TUser> postProcessingAction)
         {
             Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
             {
@@ -153,7 +153,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="group">The group to add.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the group but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddGroup(TGroup group, Action<TGroup> postProcessingAction)
+        public virtual void AddGroup(TGroup group, Action<TGroup> postProcessingAction)
         {
             Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
             {
@@ -178,7 +178,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="group">The group to remove.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the group but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveGroup(TGroup group, Action<TGroup> postProcessingAction)
+        public virtual void RemoveGroup(TGroup group, Action<TGroup> postProcessingAction)
         {
             Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
             {
@@ -204,7 +204,7 @@ namespace ApplicationAccess
         /// <param name="user">The user in the mapping.</param>
         /// <param name="group">The group in the mapping.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
+        public virtual void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
         {
             Action<TUser, TGroup, Action> wrappingAction = (actionUser, actionGroup, baseAction) =>
             {
@@ -230,7 +230,7 @@ namespace ApplicationAccess
         /// <param name="user">The user in the mapping.</param>
         /// <param name="group">The group in the mapping.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
+        public virtual void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
         {
             Action<TUser, TGroup, Action> wrappingAction = (actionUser, actionGroup, baseAction) =>
             {
@@ -256,7 +256,7 @@ namespace ApplicationAccess
         /// <param name="fromGroup">The 'from' group in the mapping.</param>
         /// <param name="toGroup">The 'to' group in the mapping.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
+        public virtual void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
         {
             Action<TGroup, TGroup, Action> wrappingAction = (actionFromGroup, actionToGroup, baseAction) =>
             {
@@ -282,7 +282,7 @@ namespace ApplicationAccess
         /// <param name="fromGroup">The 'from' group in the mapping.</param>
         /// <param name="toGroup">The 'to' group in the mapping.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
+        public virtual void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
         {
             Action<TGroup, TGroup, Action> wrappingAction = (actionFromGroup, actionToGroup, baseAction) =>
             {
@@ -309,7 +309,7 @@ namespace ApplicationAccess
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
+        public virtual void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
@@ -336,7 +336,7 @@ namespace ApplicationAccess
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
+        public virtual void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
         {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
@@ -363,7 +363,7 @@ namespace ApplicationAccess
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
+        public virtual void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
@@ -390,7 +390,7 @@ namespace ApplicationAccess
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
+        public virtual void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
         {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
@@ -415,7 +415,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="entityType">The entity type to add.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the entity type but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddEntityType(String entityType, Action<String> postProcessingAction)
+        public virtual void AddEntityType(String entityType, Action<String> postProcessingAction)
         {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
             {
@@ -440,7 +440,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="entityType">The entity type to remove.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the entity type but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveEntityType(String entityType, Action<String> postProcessingAction)
+        public virtual void RemoveEntityType(String entityType, Action<String> postProcessingAction)
         {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
             {
@@ -466,7 +466,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity to add.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the entity but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddEntity(String entityType, String entity, Action<String, String> postProcessingAction)
+        public virtual void AddEntity(String entityType, String entity, Action<String, String> postProcessingAction)
         {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
             {
@@ -492,7 +492,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity to remove.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the entity but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveEntity(String entityType, String entity, Action<String, String> postProcessingAction)
+        public virtual void RemoveEntity(String entityType, String entity, Action<String, String> postProcessingAction)
         {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
             {
@@ -519,7 +519,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
+        public virtual void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
         {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
@@ -546,7 +546,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
+        public virtual void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
         {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
@@ -573,7 +573,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
+        public virtual void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
         {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {
@@ -600,7 +600,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
+        public virtual void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
         {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {

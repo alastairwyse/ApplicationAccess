@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.IO;
+using Microsoft.Data.SqlClient;
 using ApplicationAccess.Hosting;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.SqlServer;
@@ -32,8 +33,28 @@ namespace ApplicationAccess.TestHarness
 {
     class Program
     {
+        protected static ManualResetEvent stopNotifySignal;
+
         static void Main(string[] args)
         {
+            stopNotifySignal = new ManualResetEvent(false);
+
+            // Setup SQL Server connection strings
+            var persisterConnectionStringBuilder = new SqlConnectionStringBuilder();
+            persisterConnectionStringBuilder.DataSource = "";
+            persisterConnectionStringBuilder.InitialCatalog = "ApplicationAccess";
+            persisterConnectionStringBuilder.Encrypt = false;
+            persisterConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
+            persisterConnectionStringBuilder.UserID = "";
+            persisterConnectionStringBuilder.Password = "";
+            var metricsConnectionStringBuilder = new SqlConnectionStringBuilder();
+            metricsConnectionStringBuilder.DataSource = "";
+            metricsConnectionStringBuilder.InitialCatalog = "ApplicationMetrics";
+            metricsConnectionStringBuilder.Encrypt = false;
+            metricsConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
+            metricsConnectionStringBuilder.UserID = "";
+            metricsConnectionStringBuilder.Password = "";
+
             // Setup the log4net logger for the SQL Server persister
             const String log4netConfigFileName = "log4net.config";
             XmlConfigurator.Configure(new FileInfo(log4netConfigFileName));
@@ -46,7 +67,7 @@ namespace ApplicationAccess.TestHarness
 
             // Setup the metric logger
             const String metricLoggerCategory = "ApplicationAccessTestHarness";
-            const String sqlServerMetricsConnectionString = "";
+            String sqlServerMetricsConnectionString = metricsConnectionStringBuilder.ConnectionString;
             Int32 sqlServerRetryCount = 10;
             Int32 sqlServerRetryInterval = 10;
             Int32 metricLoggerBufferSizeLimit = 100;
@@ -54,7 +75,7 @@ namespace ApplicationAccess.TestHarness
             
             // Setup the SQL Server persister
             Int32 persisterBufferFlushStrategyFlushInterval = 60000;
-            String sqlServerConnectionString = "";
+            String sqlServerConnectionString = persisterConnectionStringBuilder.ConnectionString;
             using (var metricLogger = new SqlServerMetricLogger(metricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, metricLoggerBufferProcessingStrategy, false))
             using (var persisterBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(persisterBufferFlushStrategyFlushInterval, metricLogger))
             {
@@ -103,7 +124,7 @@ namespace ApplicationAccess.TestHarness
                     (
                         dataElementStorer,
                         targetStorateStructureCounts,
-                        4.0
+                        2.0
                     );
                     var parameterGenerator = new DefaultOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>
                     (
@@ -126,6 +147,7 @@ namespace ApplicationAccess.TestHarness
                     (
                         testAccessManager,
                         workerThreadCount,
+                        dataElementStorer, 
                         new IOperationGenerator[] { operationGenerator },
                         new IOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>[] { parameterGenerator },
                         new IOperationTriggerer[] { operationTriggerer },
@@ -140,19 +162,28 @@ namespace ApplicationAccess.TestHarness
 
                         try
                         {
+                            var stopSignalThread = new Thread(StopThreadTask);
+                            stopSignalThread.Start();
+                            testHarness.Start();
+                            stopNotifySignal.WaitOne();
+                            testHarness.Stop();
+
                             // TODO:
-                            // Need a way to stop things from the console
-                            //   Some sort of stop signal
                             // Try different types of buffer processing strategies (for 'persisterBufferFlushStrategy' and 'metricLoggerBufferProcessingStrategy')
                             // Ability to load existing state into DataElementStorer
                             // Should the threads in TestHarness be foreground rather than background
-
+                            // Implementation of ParameterizedOperationSerializer 
+                            // Check for and remove any Console.Writeline()
                         }
                         finally
                         {
                             // Don't need to call operationTriggerer.Stop(), as it's called from the TestHarness.Stop() method
+                            Console.WriteLine("Stopping 'persisterBufferFlushStrategy'...");
                             persisterBufferFlushStrategy.Stop();
+                            Console.WriteLine("Stopping 'metricLogger'...");
                             metricLogger.Stop();
+                            Console.WriteLine("Disposing 'stopNotifySignal'...");
+                            stopNotifySignal.Dispose();
                         }
                     }
                 }
@@ -239,6 +270,12 @@ namespace ApplicationAccess.TestHarness
             Console.WriteLine("DONE!");
 
             */
+        }
+
+        protected static void StopThreadTask()
+        {
+            Console.ReadLine();
+            stopNotifySignal.Set();
         }
 
         protected enum Screen

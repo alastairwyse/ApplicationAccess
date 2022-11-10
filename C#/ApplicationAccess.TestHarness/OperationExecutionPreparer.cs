@@ -54,19 +54,19 @@ namespace ApplicationAccess.TestHarness
                 case AccessManagerOperation.UsersPropertyGet:
                     return WrapActionWithEmptyPostExecutionAction
                     (
-                        new Action(() => { TUser last = accessManager.Users.Last(); })
+                        new Action(() => { TUser last = accessManager.Users.LastOrDefault(); })
                     );
 
                 case AccessManagerOperation.GroupsPropertyGet:
                     return WrapActionWithEmptyPostExecutionAction
                     (
-                        new Action(() => { TGroup last = accessManager.Groups.Last(); })
+                        new Action(() => { TGroup last = accessManager.Groups.LastOrDefault(); })
                     );
 
                 case AccessManagerOperation.EntityTypesPropertyGet:
                     return WrapActionWithEmptyPostExecutionAction
                     (
-                        new Action(() => { String last = accessManager.EntityTypes.Last(); })
+                        new Action(() => { String last = accessManager.EntityTypes.LastOrDefault(); })
                     );
 
                 case AccessManagerOperation.AddUser:
@@ -78,7 +78,10 @@ namespace ApplicationAccess.TestHarness
                         return new PrepareExecutionReturnActions
                         (
                             new Action(() => { accessManager.AddUser(parameter); }),
-                            new Action(() => { dataElementStorer.AddUser(parameter); })
+                            new Action(() => 
+                            {
+                                dataElementStorer.AddUser(parameter);
+                            })
                         );
                     }
                     catch (Exception)
@@ -180,7 +183,7 @@ namespace ApplicationAccess.TestHarness
                         TUser parameter = parameterGenerator.GenerateGetUserToGroupMappingsParameter();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { TGroup last = accessManager.GetUserToGroupMappings(parameter).Last(); })
+                            new Action(() => { TGroup last = accessManager.GetUserToGroupMappings(parameter).LastOrDefault(); })
                         );
                     }
                     catch (Exception)
@@ -224,7 +227,7 @@ namespace ApplicationAccess.TestHarness
                         TGroup parameter = parameterGenerator.GenerateGetGroupToGroupMappingsParameter();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { TGroup last = accessManager.GetGroupToGroupMappings(parameter).Last(); })
+                            new Action(() => { TGroup last = accessManager.GetGroupToGroupMappings(parameter).LastOrDefault(); })
                         );
                     }
                     catch (Exception)
@@ -268,7 +271,7 @@ namespace ApplicationAccess.TestHarness
                         TUser parameter = parameterGenerator.GenerateGetUserToApplicationComponentAndAccessLevelMappingsParameter();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { Tuple<TComponent, TAccess> last = accessManager.GetUserToApplicationComponentAndAccessLevelMappings(parameter).Last(); })
+                            new Action(() => { Tuple<TComponent, TAccess> last = accessManager.GetUserToApplicationComponentAndAccessLevelMappings(parameter).LastOrDefault(); })
                         );
                     }
                     catch (Exception)
@@ -312,7 +315,7 @@ namespace ApplicationAccess.TestHarness
                         TGroup parameter = parameterGenerator.GenerateGetGroupToApplicationComponentAndAccessLevelMappingsParameter();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { Tuple<TComponent, TAccess> last = accessManager.GetGroupToApplicationComponentAndAccessLevelMappings(parameter).Last(); })
+                            new Action(() => { Tuple<TComponent, TAccess> last = accessManager.GetGroupToApplicationComponentAndAccessLevelMappings(parameter).LastOrDefault(); })
                         );
                     }
                     catch (Exception)
@@ -400,7 +403,7 @@ namespace ApplicationAccess.TestHarness
                         String parameter = parameterGenerator.GenerateGetEntitiesParameter();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { String last = accessManager.GetEntities(parameter).Last(); })
+                            new Action(() => { String last = accessManager.GetEntities(parameter).LastOrDefault(); })
                         );
                     }
                     catch (Exception)
@@ -458,7 +461,7 @@ namespace ApplicationAccess.TestHarness
                         TUser parameter = parameterGenerator.GenerateGetUserToEntityMappingsParameter();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { Tuple<String, String> last = accessManager.GetUserToEntityMappings(parameter).Last(); })
+                            new Action(() => { Tuple<String, String> last = accessManager.GetUserToEntityMappings(parameter).LastOrDefault(); })
                         );
                     }
                     catch (Exception)
@@ -472,7 +475,7 @@ namespace ApplicationAccess.TestHarness
                         Tuple<TUser, String> parameters = parameterGenerator.GenerateGetUserToEntityMappingsEntityTypeOverloadParameters();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { String last = accessManager.GetUserToEntityMappings(parameters.Item1, parameters.Item2).Last(); })
+                            new Action(() => { String last = accessManager.GetUserToEntityMappings(parameters.Item1, parameters.Item2).LastOrDefault(); })
                         );
                     }
                     catch (Exception)
@@ -516,7 +519,7 @@ namespace ApplicationAccess.TestHarness
                         TGroup parameter = parameterGenerator.GenerateGetGroupToEntityMappingsParameter();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { Tuple<String, String> last = accessManager.GetGroupToEntityMappings(parameter).Last(); })
+                            new Action(() => { Tuple<String, String> last = accessManager.GetGroupToEntityMappings(parameter).LastOrDefault(); })
                         );
                     }
                     catch (Exception)
@@ -530,7 +533,7 @@ namespace ApplicationAccess.TestHarness
                         Tuple<TGroup, String> parameters = parameterGenerator.GenerateGetGroupToEntityMappingsEntityTypeOverloadParameters();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { String last = accessManager.GetGroupToEntityMappings(parameters.Item1, parameters.Item2).Last(); })
+                            new Action(() => { String last = accessManager.GetGroupToEntityMappings(parameters.Item1, parameters.Item2).LastOrDefault(); })
                         );
                     }
                     catch (Exception)

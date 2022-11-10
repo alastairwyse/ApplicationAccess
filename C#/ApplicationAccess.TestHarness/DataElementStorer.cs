@@ -293,7 +293,7 @@ namespace ApplicationAccess.TestHarness
             {
                 AddUserIfNotExists(user);
                 AddGroupIfNotExists(group);
-                if (userToGroupMap[user].Contains(group) == false)
+                if (userToGroupMap.ContainsKey(user) == true && userToGroupMap[user].Contains(group) == false)
                 {
                     userToGroupMap[user].Add(group);
                 }
@@ -339,7 +339,7 @@ namespace ApplicationAccess.TestHarness
             {
                 AddGroupIfNotExists(fromGroup);
                 AddGroupIfNotExists(toGroup);
-                if (groupToGroupMap[fromGroup].Contains(toGroup) == false)
+                if (groupToGroupMap.ContainsKey(fromGroup) == true && groupToGroupMap[fromGroup].Contains(toGroup) == false)
                 {
                     groupToGroupMap[fromGroup].Add(toGroup);
                 }

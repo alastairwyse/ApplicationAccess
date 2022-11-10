@@ -44,6 +44,7 @@ namespace ApplicationAccess.TestHarness
         /// </summary>
         /// <param name="testAccessManager">The access manager to test.</param>
         /// <param name="workerThreadCount">The number of worker threads to use to generate operations.</param>
+        /// <param name="dataElementStorer">Stores the data elements in the AccessManager instance under test.</param>
         /// <param name="operationGenerators">The operation generators to use for each worker thread.</param>
         /// <param name="parameterGenerators">The parameter generators to use for each worker thread.</param>
         /// <param name="operationTriggerers">The operation triggerers to use for each worker thread.</param>
@@ -53,7 +54,8 @@ namespace ApplicationAccess.TestHarness
         public TestHarness
         (
             IAccessManager<TUser, TGroup, TComponent, TAccess> testAccessManager, 
-            Int32 workerThreadCount, 
+            Int32 workerThreadCount,
+            DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, 
             IList<IOperationGenerator> operationGenerators, 
             IList<IOperationParameterGenerator<TUser, TGroup, TComponent, TAccess>> parameterGenerators, 
             IList<IOperationTriggerer> operationTriggerers,
@@ -79,7 +81,7 @@ namespace ApplicationAccess.TestHarness
 
             this.testAccessManager = testAccessManager;
             this.workerThreadCount = workerThreadCount;
-            dataElementStorer = new DataElementStorer<TUser, TGroup, TComponent, TAccess>();
+            this.dataElementStorer = dataElementStorer;
             this.operationGenerators = operationGenerators;
             this.parameterGenerators = parameterGenerators;
             this.operationTriggerers = operationTriggerers;
@@ -100,7 +102,7 @@ namespace ApplicationAccess.TestHarness
             {
                 var currentThread = new Thread(() => { WorkerThreadRoutine(operationGenerators[i], parameterGenerators[i], operationTriggerers[i], exceptionLoggers[i]); });
                 currentThread.Name = $"ApplicationAccess.TestHarness.TestHarness worker thread {i}.";
-                currentThread.IsBackground = true;
+                currentThread.IsBackground = false;
                 workerThreads.Add(currentThread);
                 currentThread.Start();
             }
@@ -148,6 +150,9 @@ namespace ApplicationAccess.TestHarness
                 // TODO: Doing this here rather than after the WaitForNextTrigger() call means there's a gap, and risk the state of the access manager changed between preparing the operation and executing it
                 //   Will need to see if this causes issues
                 AccessManagerOperation nextOperation = operationGenerator.Generate();
+
+                Console.WriteLine($"Next operation: {nextOperation}");
+
                 PrepareExecutionReturnActions actions = operationExecutor.PrepareExecution(nextOperation);
                 operationTriggerer.WaitForNextTrigger();
                 try
@@ -167,6 +172,7 @@ namespace ApplicationAccess.TestHarness
                         throw new Exception($"Exception occurred on worker thread with name '{Thread.CurrentThread.Name}' and id {Thread.CurrentThread.ManagedThreadId}", e);
                     }
                 }
+                operationTriggerer.NotifyOperationInitiated();
             }
 
             Console.WriteLine($"Stopping test worker thread with name '{Thread.CurrentThread.Name}' and id {Thread.CurrentThread.ManagedThreadId}");

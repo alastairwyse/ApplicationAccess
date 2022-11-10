@@ -47,7 +47,7 @@ namespace ApplicationAccess.Metrics
         protected FrequencyTable<TUser> userToEntityMappingCountPerUser;
         /// <summary>The number of group tp entity mappings stored.</summary>
         protected Int32 groupToEntityMappingCount;
-        /// <summary>The number of group to entity mappings stored for each user.</summary>
+        /// <summary>The number of group to entity mappings stored for each group.</summary>
         protected FrequencyTable<TGroup> groupToEntityMappingCountPerGroup;
 
         /// <summary>The logger for metrics.</summary>
@@ -108,9 +108,16 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddUser(TUser user)
         {
+            AddUser(user, (postProcessingActionUser) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddUser(TUser user, Action<TUser> postProcessingAction)
+        {
             Action<TUser, Action<TUser, Action>> addUserAction = (actionUser, baseAction) =>
             {
                 base.AddUser(user, baseAction);
+                postProcessingAction.Invoke(user);
             };
             CallBaseClassEventProcessingMethodWithMetricLogging<TUser, UserAddTime, UserAdded>(user, addUserAction);
         }
@@ -124,6 +131,12 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveUser(TUser user)
         {
+            RemoveUser(user, (postProcessingActionUser) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveUser(TUser user, Action<TUser> postProcessingAction)
+        {
             Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
             {
                 Int32 newUserToApplicationComponentAndAccessLevelMappingCount = userToApplicationComponentAndAccessLevelMappingCount;
@@ -135,6 +148,7 @@ namespace ApplicationAccess.Metrics
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(user);
                 }
                 catch
                 {
@@ -155,9 +169,16 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddGroup(TGroup group)
         {
+            AddGroup(group, (postProcessingActionGroup) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddGroup(TGroup group, Action<TGroup> postProcessingAction)
+        {
             Action<TGroup, Action<TGroup, Action>> addGroupAction = (actionGroup, baseAction) =>
             {
                 base.AddGroup(group, baseAction);
+                postProcessingAction.Invoke(group);
             };
             CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, GroupAddTime, GroupAdded>(group, addGroupAction);
         }
@@ -171,6 +192,12 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveGroup(TGroup group)
         {
+            RemoveGroup(group, (postProcessingActionGroup) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveGroup(TGroup group, Action<TGroup> postProcessingAction)
+        {
             Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
             {
                 Int32 newGroupToApplicationComponentAndAccessLevelMappingCount = groupToApplicationComponentAndAccessLevelMappingCount;
@@ -182,6 +209,7 @@ namespace ApplicationAccess.Metrics
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(group);
                 }
                 catch
                 {
@@ -202,9 +230,16 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddUserToGroupMapping(TUser user, TGroup group)
         {
+            AddUserToGroupMapping(user, group, (postProcessingActionUser, postProcessingActionGroup) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
+        {
             Action<TUser, TGroup, Action<TUser, TGroup, Action>> addUserToGroupMappingAction = (actionUser, actionGroup, baseAction) =>
             {
                 base.AddUserToGroupMapping(user, group, baseAction);
+                postProcessingAction.Invoke(user, group);
             };
             CallBaseClassEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingAddTime, UserToGroupMappingAdded>(user, group, addUserToGroupMappingAction);
         }
@@ -218,9 +253,16 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
+            RemoveUserToGroupMapping(user, group, (postProcessingActionUser, postProcessingActionGroup) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
+        {
             Action<TUser, TGroup, Action<TUser, TGroup, Action>> removeUserToGroupMappingAction = (actionUser, actionGroup, baseAction) =>
             {
                 base.RemoveUserToGroupMapping(user, group, baseAction);
+                postProcessingAction.Invoke(user, group);
             };
             CallBaseClassEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingRemoveTime, UserToGroupMappingRemoved>(user, group, removeUserToGroupMappingAction);
         }
@@ -228,9 +270,16 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
+            AddGroupToGroupMapping(fromGroup, toGroup, (postProcessingActionFromGroup, postProcessingActionToGroup) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
+        {
             Action<TGroup, TGroup, Action<TGroup, TGroup, Action>> addGroupToGroupMappingAction = (actionFromGroup, actionToGroup, baseAction) =>
             {
                 base.AddGroupToGroupMapping(fromGroup, toGroup, baseAction);
+                postProcessingAction.Invoke(fromGroup, toGroup);
             };
             CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingAddTime, GroupToGroupMappingAdded>(fromGroup, toGroup, addGroupToGroupMappingAction);
         }
@@ -244,9 +293,16 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
+            RemoveGroupToGroupMapping(fromGroup, toGroup, (postProcessingActionFromGroup, postProcessingActionToGroup) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
+        {
             Action<TGroup, TGroup, Action<TGroup, TGroup, Action>> removeGroupToGroupMappingAction = (actionFromGroup, actionToGroup, baseAction) =>
             {
                 base.RemoveGroupToGroupMapping(fromGroup, toGroup, baseAction);
+                postProcessingAction.Invoke(fromGroup, toGroup);
             };
             CallBaseClassEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingRemoveTime, GroupToGroupMappingRemoved>(fromGroup, toGroup, removeGroupToGroupMappingAction);
         }
@@ -254,12 +310,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
+            AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, (postProcessingActionUser, postProcessingActionApplicationComponent, postProcessingActionAccessLevel) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
+        {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(user, applicationComponent, accessLevel);
                 }
                 catch
                 {
@@ -286,12 +349,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
+            RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, (postProcessingActionUser, postProcessingActionApplicationComponent, postProcessingActionAccessLevel) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
+        {
             Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(user, applicationComponent, accessLevel);
                 }
                 catch
                 {
@@ -309,12 +379,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
+            AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, (postProcessingActionGroup, postProcessingActionApplicationComponent, postProcessingActionAccessLevel) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
+        {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(group, applicationComponent, accessLevel);
                 }
                 catch
                 {
@@ -341,12 +418,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
+            RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, (postProcessingActionGroup, postProcessingActionApplicationComponent, postProcessingActionAccessLevel) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
+        {
             Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(group, applicationComponent, accessLevel);
                 }
                 catch
                 {
@@ -364,12 +448,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddEntityType(String entityType)
         {
+            AddEntityType(entityType, (postProcessingActionEntityType) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddEntityType(String entityType, Action<String> postProcessingAction)
+        {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(entityType);
                 }
                 catch
                 {
@@ -391,6 +482,12 @@ namespace ApplicationAccess.Metrics
 
         /// <inheritdoc/>
         public override void RemoveEntityType(String entityType)
+        {
+            RemoveEntityType(entityType, (postProcessingActionEntityType) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveEntityType(String entityType, Action<String> postProcessingAction)
         {
             Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
             {
@@ -414,6 +511,7 @@ namespace ApplicationAccess.Metrics
                 try
                 {
                     base.RemoveEntityType(entityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
+                    postProcessingAction.Invoke(entityType);
                 }
                 catch
                 {
@@ -434,12 +532,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddEntity(String entityType, String entity)
         {
+            AddEntity(entityType, entity, (postProcessingActionEntityType, postProcessingActionEntity) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddEntity(String entityType, String entity, Action<String, String> postProcessingAction)
+        {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityAddTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(entityType, entity);
                 }
                 catch
                 {
@@ -469,6 +574,12 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveEntity(String entityType, String entity)
         {
+            RemoveEntity(entityType, entity, (postProcessingActionEntityType, postProcessingActionEntity) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveEntity(String entityType, String entity, Action<String, String> postProcessingAction)
+        {
             Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
             {
                 Action<TUser, String, String> userToEntityMappingPostRemovalAction = (postRemovalActionUser, postRemovalActionEntityType, postRemovalActionEntity) =>
@@ -486,6 +597,7 @@ namespace ApplicationAccess.Metrics
                 try
                 {
                     base.RemoveEntity(entityType, entity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
+                    postProcessingAction.Invoke(entityType, entity);
                 }
                 catch
                 {
@@ -505,12 +617,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
+            AddUserToEntityMapping(user, entityType, entity, (postProcessingActionUser, postProcessingActionEntityType, postProcessingActionEntity) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
+        {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(user, entityType, entity);
                 }
                 catch
                 {
@@ -547,12 +666,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
+            RemoveUserToEntityMapping(user, entityType, entity, (postProcessingActionUser, postProcessingActionEntityType, postProcessingActionEntity) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
+        {
             Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(user, entityType, entity);
                 }
                 catch
                 {
@@ -571,12 +697,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
+            AddGroupToEntityMapping(group, entityType, entity, (postProcessingActionGroup, postProcessingActionEntityType, postProcessingActionEntity) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
+        {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(group, entityType, entity);
                 }
                 catch
                 {
@@ -613,12 +746,19 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
+            RemoveGroupToEntityMapping(group, entityType, entity, (postProcessingActionGroup, postProcessingActionEntityType, postProcessingActionEntity) => { });
+        }
+
+        /// <inheritdoc/>
+        public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
+        {
             Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
                 try
                 {
                     baseAction.Invoke();
+                    postProcessingAction.Invoke(group, entityType, entity);
                 }
                 catch
                 {
