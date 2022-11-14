@@ -980,9 +980,9 @@ namespace ApplicationAccess.Persistence
         /// <param name="validationResult">The validation result to check.</param>
         protected void ThrowExceptionIfValidationFails(ValidationResult validationResult)
         {
-            if (validationResult.Successful == false && validationResult.ValidationException != null)
+            if (validationResult.Successful == false && validationResult.ValidationExceptionDispatchInfo != null)
             {
-                throw validationResult.ValidationException;
+                validationResult.ValidationExceptionDispatchInfo.Throw();
             }
         }
 

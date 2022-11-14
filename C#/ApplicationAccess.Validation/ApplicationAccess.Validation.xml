@@ -370,8 +370,8 @@
         <member name="F:ApplicationAccess.Validation.ValidationResult.message">
             <summary>Describes the reason for failure in the case the validation operation was not successful.</summary>
         </member>
-        <member name="F:ApplicationAccess.Validation.ValidationResult.validationException">
-            <summary>An optional exception, providing further detail for the reason for failure in the case the validation operation was not successful.  Null if not set.</summary>
+        <member name="F:ApplicationAccess.Validation.ValidationResult.validationExceptionDispatchInfo">
+            <summary>An optional set of exception and state/context information, providing further detail for the reason for failure in the case the validation operation was not successful (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if not set.</summary>
         </member>
         <member name="P:ApplicationAccess.Validation.ValidationResult.Successful">
             <summary>
@@ -383,9 +383,9 @@
             Describes the reason for failure in the case the validation operation was not successful.
             </summary>
         </member>
-        <member name="P:ApplicationAccess.Validation.ValidationResult.ValidationException">
+        <member name="P:ApplicationAccess.Validation.ValidationResult.ValidationExceptionDispatchInfo">
             <summary>
-            An optional exception, providing further detail for the reason for failure in the case the validation operation was not successful.
+            An optional set of exception and state/context information, providing further detail for the reason for failure in the case the validation operation was not successful (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).
             </summary>
         </member>
         <member name="M:ApplicationAccess.Validation.ValidationResult.#ctor(System.Boolean)">

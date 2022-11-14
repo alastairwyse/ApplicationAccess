@@ -562,9 +562,12 @@ namespace ApplicationAccess.TestHarness
                             Interlocked.Decrement(ref userToEntityMappingCount);
                         }
                     }
-                    if (currentKvp.Value[entityType].Count == 0)
+                    if (currentKvp.Value.ContainsKey(entityType))
                     {
-                        currentKvp.Value.Remove(entityType);
+                        if (currentKvp.Value[entityType].Count == 0)
+                        {
+                            currentKvp.Value.Remove(entityType);
+                        }
                     }
                     if (currentKvp.Value.Count == 0)
                     {
@@ -755,7 +758,6 @@ namespace ApplicationAccess.TestHarness
                 groups.Add(group);
             }
         }
-
 
         protected void AddEntityTypeIfNotExists(String entityType)
         {

@@ -16,6 +16,7 @@
 
 using System;
 using System.Threading;
+using System.Runtime.ExceptionServices;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
 
@@ -51,8 +52,8 @@ namespace ApplicationAccess.Persistence
         protected IMetricLogger metricLogger;
         /// <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
         private Thread bufferFlushingWorkerThread;
-        /// <summary>Set with any exception which occurrs on the worker thread when flushing the buffers.  Null if no exception has occurred.</summary>
-        private Exception flushingException;
+        /// <summary>Set with any exception and state/context information which occurrs on the worker thread when flushing the buffers (including stack trace and context info provided by the <see cref="ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
+        private ExceptionDispatchInfo flushingExceptionDispatchInfo;
         /// <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
         protected volatile Boolean stopMethodCalled;
         /// <summary>Signal that is set after the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
@@ -61,11 +62,11 @@ namespace ApplicationAccess.Persistence
         protected bool disposed;
 
         /// <summary>
-        /// Contains an exception which occurred on the worker thread during buffer flushing.  Null if no exception has occurred.
+        /// Contains an exception and state/context information which occurred on the worker thread during buffer flushing (including stack trace and context info provided by the <see cref="ExceptionDispatchInfo"/> class).  Null if no exception has occurred.
         /// </summary>
-        protected Exception FlushingException
+        protected ExceptionDispatchInfo FlushingExceptionDispatchInfo
         {
-            get { return flushingException; }
+            get { return flushingExceptionDispatchInfo; }
         }
 
         /// <inheritdoc/>
@@ -218,7 +219,7 @@ namespace ApplicationAccess.Persistence
             groupToEntityMappingEventsBuffered = 0;
 
             metricLogger = new NullMetricLogger();
-            flushingException = null;
+            flushingExceptionDispatchInfo = null;
             stopMethodCalled = false;
             workerThreadCompleteSignal = null;
             disposed = false;
@@ -283,10 +284,10 @@ namespace ApplicationAccess.Persistence
                     catch (Exception e)
                     {
                         var wrappedException = new BufferFlushingException($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
-                        Interlocked.Exchange(ref flushingException, wrappedException);
+                        Interlocked.Exchange(ref flushingExceptionDispatchInfo, ExceptionDispatchInfo.Capture(wrappedException));
                     }
                     // If no exception has occurred, flush any remaining buffered events
-                    if (flushingException == null && TotalEventsBuffered > 0)
+                    if (flushingExceptionDispatchInfo == null && TotalEventsBuffered > 0)
                     {
                         metricLogger.Add(new EventsBufferedAfterFlushStrategyStop(), TotalEventsBuffered);
                         try
@@ -296,7 +297,7 @@ namespace ApplicationAccess.Persistence
                         catch (Exception e)
                         {
                             var wrappedException = new BufferFlushingException($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
-                            Interlocked.Exchange(ref flushingException, wrappedException);
+                            Interlocked.Exchange(ref flushingExceptionDispatchInfo, ExceptionDispatchInfo.Capture(wrappedException));
                         }
                     }
                     if (workerThreadCompleteSignal != null)
@@ -323,9 +324,9 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         protected void CheckAndThrowFlushingException()
         {
-            if (flushingException != null)
+            if (flushingExceptionDispatchInfo != null)
             {
-                throw flushingException;
+                flushingExceptionDispatchInfo.Throw();
             }
         }
 

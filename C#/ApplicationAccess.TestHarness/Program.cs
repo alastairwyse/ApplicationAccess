@@ -71,11 +71,11 @@ namespace ApplicationAccess.TestHarness
             Int32 sqlServerRetryCount = 10;
             Int32 sqlServerRetryInterval = 10;
             Int32 metricLoggerBufferSizeLimit = 100;
-            var metricLoggerBufferProcessingStrategy = new SizeLimitedBufferProcessor(metricLoggerBufferSizeLimit);
-            
+
             // Setup the SQL Server persister
             Int32 persisterBufferFlushStrategyFlushInterval = 60000;
             String sqlServerConnectionString = persisterConnectionStringBuilder.ConnectionString;
+            using (var metricLoggerBufferProcessingStrategy = new SizeLimitedBufferProcessor(metricLoggerBufferSizeLimit))
             using (var metricLogger = new SqlServerMetricLogger(metricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, metricLoggerBufferProcessingStrategy, false))
             using (var persisterBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(persisterBufferFlushStrategyFlushInterval, metricLogger))
             {
@@ -88,7 +88,7 @@ namespace ApplicationAccess.TestHarness
                     new StringUniqueStringifier(),
                     new EnumUniqueStringifier<TestApplicationComponent>(),
                     new EnumUniqueStringifier<TestAccessLevel>(),
-                    persisterLogger, 
+                    persisterLogger,
                     metricLogger
                 );
 
@@ -106,6 +106,7 @@ namespace ApplicationAccess.TestHarness
                 {
                     // Setup the test harness
                     Int32 workerThreadCount = 1;
+                    Boolean loadExistingData = true;
                     var targetStorateStructureCounts = new Dictionary<StorageStructure, Int32>()
                     {
                         { StorageStructure.Users, 100 },
@@ -120,6 +121,12 @@ namespace ApplicationAccess.TestHarness
                         { StorageStructure.GroupToEntityMap, 180 }
                     };
                     var dataElementStorer = new DataElementStorer<String, String, TestApplicationComponent, TestAccessLevel>();
+                    if (loadExistingData == true)
+                    {
+                        var dataElementStorerLoader = new DataElementStorerLoader<String, String, TestApplicationComponent, TestAccessLevel>();
+                        dataElementStorerLoader.Load(persister, dataElementStorer);
+                        testAccessManager.Load();
+                    }
                     var operationGenerator = new DefaultOperationGenerator<String, String, TestApplicationComponent, TestAccessLevel>
                     (
                         dataElementStorer,
@@ -142,18 +149,20 @@ namespace ApplicationAccess.TestHarness
 
                     Double exceptionsPerSecondThreshold = 0.5;
                     Int32 previousExceptionOccurenceTimeWindowSize = 5;
+                    Boolean ignoreKnownAccessManagerExceptions = false;
                     using (var operationTriggerer = new DefaultOperationTriggerer(targetOperationsPerSecond, previousInitiationTimeWindowSize))
                     using (var testHarness = new TestHarness<String, String, TestApplicationComponent, TestAccessLevel>
                     (
                         testAccessManager,
                         workerThreadCount,
-                        dataElementStorer, 
+                        dataElementStorer,
                         new IOperationGenerator[] { operationGenerator },
                         new IOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>[] { parameterGenerator },
                         new IOperationTriggerer[] { operationTriggerer },
                         new IApplicationLogger[] { testHarnessExceptionLogger },
                         exceptionsPerSecondThreshold,
-                        previousExceptionOccurenceTimeWindowSize
+                        previousExceptionOccurenceTimeWindowSize,
+                        ignoreKnownAccessManagerExceptions
                     ))
                     {
                         metricLogger.Start();
@@ -184,6 +193,8 @@ namespace ApplicationAccess.TestHarness
                             metricLogger.Stop();
                             Console.WriteLine("Disposing 'stopNotifySignal'...");
                             stopNotifySignal.Dispose();
+                            Console.WriteLine("Flushing log4net logs...");
+                            LogManager.Flush(10000);
                         }
                     }
                 }

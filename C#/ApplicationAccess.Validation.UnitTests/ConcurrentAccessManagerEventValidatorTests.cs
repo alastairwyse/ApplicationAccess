@@ -73,7 +73,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"User '{testUser}' already exists."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"User '{testUser}' already exists."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"User '{testUser}' already exists."));
             Assert.IsFalse(assertionsWereChecked);
             Assert.IsTrue(testConcurrentAccessManager.ContainsUser(testUser));
         }
@@ -114,7 +114,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"User '{testUser}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"User '{testUser}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"User '{testUser}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
             Assert.IsFalse(testConcurrentAccessManager.ContainsUser(testUser));
         }
@@ -155,7 +155,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Group '{testGroup}' already exists."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Group '{testGroup}' already exists."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Group '{testGroup}' already exists."));
             Assert.IsFalse(assertionsWereChecked);
             Assert.IsTrue(testConcurrentAccessManager.ContainsGroup(testGroup));
         }
@@ -196,7 +196,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
             Assert.IsFalse(testConcurrentAccessManager.ContainsGroup(testGroup));
         }
@@ -242,7 +242,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"User '{testUser}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"User '{testUser}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"User '{testUser}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -288,7 +288,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"User '{testUser}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"User '{testUser}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"User '{testUser}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -333,7 +333,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Group '{testFromGroup}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Group '{testFromGroup}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Group '{testFromGroup}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -379,7 +379,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Group '{testFromGroup}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Group '{testFromGroup}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Group '{testFromGroup}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -423,7 +423,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"User '{testUser}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"User '{testUser}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"User '{testUser}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -468,7 +468,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"User '{testUser}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"User '{testUser}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"User '{testUser}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -512,7 +512,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -557,7 +557,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -597,7 +597,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Entity type '{testEntityType}' already exists."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Entity type '{testEntityType}' already exists."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Entity type '{testEntityType}' already exists."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -637,7 +637,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Entity type '{testEntityType}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Entity type '{testEntityType}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Entity type '{testEntityType}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -681,7 +681,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Entity type '{testEntityType}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Entity type '{testEntityType}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Entity type '{testEntityType}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -728,7 +728,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -778,7 +778,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"User '{testUser}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"User '{testUser}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"User '{testUser}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -831,7 +831,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -881,7 +881,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Group '{testGroup}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
 
@@ -934,7 +934,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsFalse(result.Successful);
             Assert.That(result.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
-            Assert.That(result.ValidationException.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
+            Assert.That(result.ValidationExceptionDispatchInfo.SourceException.Message, Does.StartWith($"Entity '{testEntity}' does not exist."));
             Assert.IsFalse(assertionsWereChecked);
         }
     }

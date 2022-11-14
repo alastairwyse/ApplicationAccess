@@ -31,16 +31,26 @@ namespace ApplicationAccess.TestHarness
         protected Dictionary<StorageStructure, Int32> targetStorageStructureCounts;
         /// <summary>The ratio of query operations (get) to event operations (add/remove).</summary>
         protected Double queryToEventOperationRatio;
-        /// <summary>Stores mappings of the storage structures in an AccessManager, to the operations that depend on them being populated.</summary>
-        protected Dictionary<StorageStructure, HashSet<AccessManagerOperation>> storageStructureToOperationDependencyMap;
-        /// <summary>Stores mappings of the operations in an AccessManager, to the storage structures that they depend on being populated.</summary>
-        protected Dictionary<AccessManagerOperation, HashSet<StorageStructure>> operationToStorageStructureDependencyMap;
-        /// <summary>All operations which retrieve data elements from an AccessManager.</summary>
-        protected HashSet<AccessManagerOperation> getOperations;
-        /// <summary>All operations which add data elements to an AccessManager.</summary>
-        protected HashSet<AccessManagerOperation> addOperations;
-        /// <summary>All operations which remove data elements from an AccessManager.</summary>
+        /// <summary>Maps AccessManager operations to the primary storage structure which holds elements for that operation.</summary>
+        protected Dictionary<AccessManagerOperation, StorageStructure> operationToPrimaryStorageStructureMap;
+        /// <summary>Maps AccessManager operations to the primary storage structures which have a secondary dependence for the operation (e.g. as the <see cref="StorageStructure.Users"/> structure is for <see cref="AccessManagerOperation.AddUserToEntityMapping"/>).</summary>
+        protected Dictionary<AccessManagerOperation, HashSet<StorageStructure>> operationToSecondaryStorageStructureMap;
+        /// <summary>Maps AccessManager query operations to storage structures which must be populated in order to perform the query operation.</summary>
+        protected Dictionary<AccessManagerOperation, HashSet<StorageStructure>> queryOperationToDependentStorageStructureMap;
+        /// <summary>AccessManager query operations which are either object property 'gets' or Contains*() methods.</summary>
+        protected HashSet<AccessManagerOperation> propertyAndContainsQueryOperations;
+        /// <summary>AccessManager Add*() operations which add fundamental elements with no dependencies.</summary>
+        protected HashSet<AccessManagerOperation> primaryAddOperations;
+        /// <summary>AccessManager Add*() operations which add secondary elements with dependencies on other add operations having to be performed before these can be performed.</summary>
+        protected HashSet<AccessManagerOperation> secondaryAddOperations;
+        /// <summary>AccessManager event operations, and their inverse/opposite operation.</summary>
+        protected Dictionary<AccessManagerOperation, AccessManagerOperation> inverseEventOperationMap;
+        /// <summary>AccessManager Remove*() operations.</summary>
         protected HashSet<AccessManagerOperation> removeOperations;
+        /// <summary>AccessManager Get*() and Has*() operations.</summary>
+        protected HashSet<AccessManagerOperation> getAndHasOperations;
+        /// <summary>AccessManager query operations.</summary>
+        protected HashSet<AccessManagerOperation> queryOperations;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.TestHarness.DefaultOperationGenerator class.
@@ -122,73 +132,77 @@ namespace ApplicationAccess.TestHarness
         {
             var returnDictionary = new Dictionary<AccessManagerOperation, Double>();
 
-            // Set the probability for 'remove' operations
-            foreach (AccessManagerOperation currentRemoveOperation in removeOperations)
+            foreach (AccessManagerOperation currentOperation in propertyAndContainsQueryOperations)
             {
-                Boolean dependentStorageStructureIsEmpty = false;
-                Double currentOperationProbability = 0.0;
-                // Average out the probability for each of the dependent structures
-                foreach (StorageStructure currentDependentStorageStructure in operationToStorageStructureDependencyMap[currentRemoveOperation])
+                // These operations (e.g. 'Users' property and ContainsEntity() method) can be called at any time (incorrect params in the case of methods should just return false)
+                //   Hence just set all probabilities to 0.5
+                returnDictionary.Add(currentOperation, 0.5);
+            }
+
+            foreach (AccessManagerOperation currentOperation in primaryAddOperations)
+            {
+                // These operations (e.g. AddUser() method) can be called at any time based on probability derived from comparing to the target count for their underlying storage structure
+                Double currentCount = Convert.ToDouble(storageStructureCounts[operationToPrimaryStorageStructureMap[currentOperation]]);
+                Double targetCount = Convert.ToDouble(targetStorageStructureCounts[operationToPrimaryStorageStructureMap[currentOperation]]);
+                Double baseProbability = 1.0 - (currentCount / (2.0 * targetCount));
+                if (baseProbability != 0.0)
                 {
-                    if (storageStructureCounts[currentDependentStorageStructure] == 0)
-                    {
-                        // If any one of the dependent structures has 0 elements, set the probability to 0
-                        dependentStorageStructureIsEmpty = true;
-                        break;
-                    }
-                    else
-                    {
-                        // Probability is (current count) / (2 * target count)
-                        currentOperationProbability += Convert.ToDouble(storageStructureCounts[currentDependentStorageStructure]) / (2.0 * Convert.ToDouble(targetStorageStructureCounts[currentDependentStorageStructure]));
-                    }
-                }
-                if (dependentStorageStructureIsEmpty == true)
-                {
-                    returnDictionary[currentRemoveOperation] = 0.0;
-                }
-                else
-                {
-                    returnDictionary[currentRemoveOperation] = currentOperationProbability / Convert.ToDouble(operationToStorageStructureDependencyMap[currentRemoveOperation].Count);
+                    returnDictionary.Add(currentOperation, baseProbability);
                 }
             }
 
-            // Set the proability for 'add' and 'get' operations (inverse of the equivalent 'remove' operation)
-            foreach (IEnumerable<AccessManagerOperation> currentOperationCollection in new HashSet<AccessManagerOperation>[] { addOperations, getOperations })
+            foreach (AccessManagerOperation currentOperation in secondaryAddOperations)
             {
-                foreach (AccessManagerOperation currentOperation in currentOperationCollection)
+                // These operations (e.g. AddUserToGroupMapping() method) should be set to 0 if any of their dependent storage structures are empty
+                //   If not, they should be set to the lowest amongst the ratio of current to target storage structure counts, for each of their dependent storage structures
+                //   Idea is that if one of the dependent structure has a very low count, there'll be a similarly low probability of calling an operation which depends on the contents of that structure
+                Boolean dependentStorageStructureEmpty = false;
+                Double lowestActualToTargetCountRatio = Double.MaxValue;
+                foreach (StorageStructure currentStorageStructure in operationToSecondaryStorageStructureMap[currentOperation])
                 {
-                    if (operationToStorageStructureDependencyMap.ContainsKey(currentOperation) == false)
+                    if (storageStructureCounts[currentStorageStructure] == 0)
                     {
-                        // Some Add* operations don't have any dependencies, so set their probability to 1
-                        returnDictionary[currentOperation] = 1.0;
+                        dependentStorageStructureEmpty = true;
+                        break;
                     }
-                    else
+                    Double currentCount = Convert.ToDouble(storageStructureCounts[currentStorageStructure]);
+                    Double targetCount = Convert.ToDouble(targetStorageStructureCounts[currentStorageStructure]);
+                    Double currentActualToTargetCountRatio = currentCount / (2.0 * targetCount);
+                    lowestActualToTargetCountRatio = Math.Min(lowestActualToTargetCountRatio, currentActualToTargetCountRatio);
+                }
+                if (dependentStorageStructureEmpty == false)
+                {
+                    returnDictionary.Add(currentOperation, lowestActualToTargetCountRatio);
+                }
+            }
+
+            foreach (AccessManagerOperation currentOperation in removeOperations)
+            {
+                // These operations (e.g. RemoveUser() method) can be called at any time based on probability derived from comparing to the target count for their underlying storage structure
+                Double currentCount = Convert.ToDouble(storageStructureCounts[operationToPrimaryStorageStructureMap[currentOperation]]);
+                Double targetCount = Convert.ToDouble(targetStorageStructureCounts[operationToPrimaryStorageStructureMap[currentOperation]]);
+                Double baseProbability = currentCount / (2.0 * targetCount);
+                if (baseProbability != 0.0)
+                {
+                    returnDictionary.Add(currentOperation, baseProbability);
+                }
+            }
+
+            foreach (AccessManagerOperation currentOperation in getAndHasOperations)
+            {
+                // These operations (e.g. GetEntities() method) get a probability of 0.5 if all the storage structures corresponding to their parameters are populated, and 0 if not
+                Boolean dependentStorageStructureEmpty = false;
+                foreach (StorageStructure currentStorageStructure in queryOperationToDependentStorageStructureMap[currentOperation])
+                {
+                    if (storageStructureCounts[currentStorageStructure] == 0)
                     {
-                        Boolean dependentStorageStructureIsEmpty = false;
-                        Double currentOperationProbability = 0.0;
-                        // Average out the probability for each of the dependent structures
-                        foreach (StorageStructure currentDependentStorageStructure in operationToStorageStructureDependencyMap[currentOperation])
-                        {
-                            if (storageStructureCounts[currentDependentStorageStructure] == 0)
-                            {
-                                // If any one of the dependent structures has 0 elements, set the probability to 1
-                                dependentStorageStructureIsEmpty = true;
-                                break;
-                            }
-                            else
-                            {
-                                currentOperationProbability += Convert.ToDouble(storageStructureCounts[currentDependentStorageStructure]) / (2.0 * Convert.ToDouble(targetStorageStructureCounts[currentDependentStorageStructure]));
-                            }
-                        }
-                        if (dependentStorageStructureIsEmpty == true)
-                        {
-                            returnDictionary[currentOperation] = 0.0;
-                        }
-                        else
-                        {
-                            returnDictionary[currentOperation] = 1.0 - (currentOperationProbability / Convert.ToDouble(operationToStorageStructureDependencyMap[currentOperation].Count));
-                        }
+                        dependentStorageStructureEmpty = true;
+                        break;
                     }
+                }
+                if (dependentStorageStructureEmpty == false)
+                {
+                    returnDictionary.Add(currentOperation, 0.5);
                 }
             }
 
@@ -212,7 +226,7 @@ namespace ApplicationAccess.TestHarness
             Double eventOperationsTotalProbabililty = 0.0;
             foreach (KeyValuePair<AccessManagerOperation, Double> currentKvp in operationProbabilities)
             {
-                if (getOperations.Contains(currentKvp.Key) == true)
+                if (queryOperations.Contains(currentKvp.Key) == true)
                 {
                     queryOperationsTotalProbabililty += currentKvp.Value;
                 }
@@ -226,7 +240,7 @@ namespace ApplicationAccess.TestHarness
             {
                 Double currentQueryToEventOperationRatio = queryOperationsTotalProbabililty / eventOperationsTotalProbabililty;
                 Double requiredScaleFactor = queryToEventOperationRatio / currentQueryToEventOperationRatio;
-                foreach (AccessManagerOperation currentQueryOperation in getOperations)
+                foreach (AccessManagerOperation currentQueryOperation in queryOperations)
                 {
                     if (operationProbabilities.ContainsKey(currentQueryOperation) == true)
                     {
@@ -288,155 +302,218 @@ namespace ApplicationAccess.TestHarness
         #region Storage Structure Initialization Methods
 
         /// <summary>
-        /// Initializes the '*DependencyMap' members.
+        /// Initializes the operation dependency map members.
         /// </summary>
         protected void InitializeDependencyMaps()
         {
-            // TODO: There are some 'partial' dependencies which are not included below.  E.g. AccessManagerOperation.HasAccessToApplicationComponent needs StorageStructure.UserToGroupMap and StorageStructure.Groups to exercise full functionality (i.e. traverse to groups in the user to group map)
-            //   but doesn't require these group structures to be populated to call the methods.  As the intended use of this map is to decide which method to call, these partial depnedencies will be omitted.
+            operationToPrimaryStorageStructureMap = new Dictionary<AccessManagerOperation, StorageStructure>()
+            {
+                { AccessManagerOperation.AddUser, StorageStructure.Users },
+                { AccessManagerOperation.AddGroup, StorageStructure.Groups },
+                { AccessManagerOperation.AddEntityType, StorageStructure.EntityTypes },
+                { AccessManagerOperation.AddEntity, StorageStructure.Entities },
+                { AccessManagerOperation.AddGroupToApplicationComponentAndAccessLevelMapping, StorageStructure.GroupToComponentMap },
+                { AccessManagerOperation.AddGroupToEntityMapping, StorageStructure.GroupToEntityMap },
+                { AccessManagerOperation.AddGroupToGroupMapping, StorageStructure.GroupToGroupMap },
+                { AccessManagerOperation.AddUserToApplicationComponentAndAccessLevelMapping, StorageStructure.UserToComponentMap },
+                { AccessManagerOperation.AddUserToEntityMapping, StorageStructure.UserToEntityMap },
+                { AccessManagerOperation.AddUserToGroupMapping, StorageStructure.UserToGroupMap },
+                { AccessManagerOperation.RemoveUser, StorageStructure.Users },
+                { AccessManagerOperation.RemoveGroup, StorageStructure.Groups },
+                { AccessManagerOperation.RemoveEntityType, StorageStructure.EntityTypes },
+                { AccessManagerOperation.RemoveEntity, StorageStructure.Entities },
+                { AccessManagerOperation.RemoveGroupToApplicationComponentAndAccessLevelMapping, StorageStructure.GroupToComponentMap },
+                { AccessManagerOperation.RemoveGroupToEntityMapping, StorageStructure.GroupToEntityMap },
+                { AccessManagerOperation.RemoveGroupToGroupMapping, StorageStructure.GroupToGroupMap },
+                { AccessManagerOperation.RemoveUserToApplicationComponentAndAccessLevelMapping, StorageStructure.UserToComponentMap },
+                { AccessManagerOperation.RemoveUserToEntityMapping, StorageStructure.UserToEntityMap },
+                { AccessManagerOperation.RemoveUserToGroupMapping, StorageStructure.UserToGroupMap }
+            };
 
-            storageStructureToOperationDependencyMap = new Dictionary<StorageStructure, HashSet<AccessManagerOperation>>();
-            // Add the storage structures
-            storageStructureToOperationDependencyMap.Add(StorageStructure.Users, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.Groups, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.UserToGroupMap, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.GroupToGroupMap, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.UserToComponentMap, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.GroupToComponentMap, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.EntityTypes, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.Entities, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.UserToEntityMap, new HashSet<AccessManagerOperation>());
-            storageStructureToOperationDependencyMap.Add(StorageStructure.GroupToEntityMap, new HashSet<AccessManagerOperation>());
-            // Add the dependencies
-            storageStructureToOperationDependencyMap[StorageStructure.Users].UnionWith(new AccessManagerOperation[]
+            operationToSecondaryStorageStructureMap = new Dictionary<AccessManagerOperation, HashSet<StorageStructure>>()
             {
-                AccessManagerOperation.UsersPropertyGet,
-                AccessManagerOperation.ContainsUser,
-                AccessManagerOperation.RemoveUser,
-                AccessManagerOperation.AddUserToGroupMapping,
-                AccessManagerOperation.GetUserToGroupMappings,
-                AccessManagerOperation.RemoveUserToGroupMapping,
-                AccessManagerOperation.AddUserToApplicationComponentAndAccessLevelMapping,
-                AccessManagerOperation.GetUserToApplicationComponentAndAccessLevelMappings,
-                AccessManagerOperation.RemoveUserToApplicationComponentAndAccessLevelMapping,
-                AccessManagerOperation.AddUserToEntityMapping,
-                AccessManagerOperation.GetUserToEntityMappings,
-                AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.RemoveUserToEntityMapping,
-                AccessManagerOperation.HasAccessToApplicationComponent,
-                AccessManagerOperation.HasAccessToEntity,
-                AccessManagerOperation.GetApplicationComponentsAccessibleByUser,
-                AccessManagerOperation.GetEntitiesAccessibleByUser
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.Groups].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.GroupsPropertyGet,
-                AccessManagerOperation.ContainsGroup,
-                AccessManagerOperation.RemoveGroup,
-                AccessManagerOperation.AddUserToGroupMapping,
-                AccessManagerOperation.GetUserToGroupMappings,
-                AccessManagerOperation.RemoveUserToGroupMapping,
-                AccessManagerOperation.AddGroupToGroupMapping,
-                AccessManagerOperation.GetGroupToGroupMappings,
-                AccessManagerOperation.RemoveGroupToGroupMapping,
-                AccessManagerOperation.AddGroupToApplicationComponentAndAccessLevelMapping,
-                AccessManagerOperation.GetGroupToApplicationComponentAndAccessLevelMappings,
-                AccessManagerOperation.RemoveGroupToApplicationComponentAndAccessLevelMapping,
-                AccessManagerOperation.AddGroupToEntityMapping,
-                AccessManagerOperation.GetGroupToEntityMappings,
-                AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.RemoveGroupToEntityMapping,
-                AccessManagerOperation.GetApplicationComponentsAccessibleByGroup,
-                AccessManagerOperation.GetEntitiesAccessibleByGroup
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.UserToGroupMap].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.GetUserToGroupMappings,
-                AccessManagerOperation.RemoveUserToGroupMapping
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.GroupToGroupMap].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.GetGroupToGroupMappings,
-                AccessManagerOperation.RemoveGroupToGroupMapping
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.UserToComponentMap].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.GetUserToApplicationComponentAndAccessLevelMappings,
-                AccessManagerOperation.RemoveUserToApplicationComponentAndAccessLevelMapping,
-                AccessManagerOperation.HasAccessToApplicationComponent,
-                AccessManagerOperation.GetApplicationComponentsAccessibleByUser
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.GroupToComponentMap].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.GetGroupToApplicationComponentAndAccessLevelMappings,
-                AccessManagerOperation.RemoveGroupToApplicationComponentAndAccessLevelMapping,
-                AccessManagerOperation.GetApplicationComponentsAccessibleByGroup
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.EntityTypes].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.EntityTypesPropertyGet,
-                AccessManagerOperation.ContainsEntityType,
-                AccessManagerOperation.RemoveEntityType,
-                AccessManagerOperation.AddEntity,
-                AccessManagerOperation.GetEntities,
-                AccessManagerOperation.ContainsEntity,
-                AccessManagerOperation.RemoveEntity,
-                AccessManagerOperation.AddUserToEntityMapping,
-                AccessManagerOperation.GetUserToEntityMappings,
-                AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.RemoveUserToEntityMapping,
-                AccessManagerOperation.AddGroupToEntityMapping,
-                AccessManagerOperation.GetGroupToEntityMappings,
-                AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.RemoveGroupToEntityMapping,
-                AccessManagerOperation.HasAccessToEntity,
-                AccessManagerOperation.GetEntitiesAccessibleByUser,
-                AccessManagerOperation.GetEntitiesAccessibleByGroup
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.Entities].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.GetEntities,
-                AccessManagerOperation.ContainsEntity,
-                AccessManagerOperation.RemoveEntity,
-                AccessManagerOperation.AddUserToEntityMapping,
-                AccessManagerOperation.GetUserToEntityMappings,
-                AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.RemoveUserToEntityMapping,
-                AccessManagerOperation.AddGroupToEntityMapping,
-                AccessManagerOperation.GetGroupToEntityMappings,
-                AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.RemoveGroupToEntityMapping,
-                AccessManagerOperation.HasAccessToEntity,
-                AccessManagerOperation.GetEntitiesAccessibleByUser,
-                AccessManagerOperation.GetEntitiesAccessibleByGroup
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.UserToEntityMap].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.GetUserToEntityMappings,
-                AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.RemoveUserToEntityMapping,
-                AccessManagerOperation.GetEntitiesAccessibleByUser, 
-                AccessManagerOperation.HasAccessToEntity
-            });
-            storageStructureToOperationDependencyMap[StorageStructure.GroupToEntityMap].UnionWith(new AccessManagerOperation[]
-            {
-                AccessManagerOperation.GetGroupToEntityMappings,
-                AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.RemoveGroupToEntityMapping,
-                AccessManagerOperation.GetEntitiesAccessibleByGroup
-            });
-            // Add reversed despendencies to 'operationToStorageStructureDependencyMap'
-            operationToStorageStructureDependencyMap = new Dictionary<AccessManagerOperation, HashSet<StorageStructure>>();
-            foreach (KeyValuePair<StorageStructure, HashSet<AccessManagerOperation>> currentMapping in storageStructureToOperationDependencyMap)
-            {
-                foreach (AccessManagerOperation currentOperation in currentMapping.Value)
-                {
-                    if (operationToStorageStructureDependencyMap.ContainsKey(currentOperation) == false)
+                { 
+                    AccessManagerOperation.AddUserToGroupMapping, 
+                    new HashSet<StorageStructure>()
                     {
-                        operationToStorageStructureDependencyMap.Add(currentOperation, new HashSet<StorageStructure>());
+                        StorageStructure.Users, StorageStructure.Groups
                     }
-                    operationToStorageStructureDependencyMap[currentOperation].Add(currentMapping.Key);
+                },
+                {
+                    AccessManagerOperation.AddGroupToGroupMapping,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups
+                    }
+                },
+                {
+                    AccessManagerOperation.AddUserToApplicationComponentAndAccessLevelMapping,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.AddGroupToApplicationComponentAndAccessLevelMapping,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups
+                    }
+                },
+                {
+                    AccessManagerOperation.AddEntity,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.EntityTypes
+                    }
+                },
+                {
+                    AccessManagerOperation.AddUserToEntityMapping,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users, StorageStructure.EntityTypes, StorageStructure.Entities
+                    }
+                },
+                {
+                    AccessManagerOperation.AddGroupToEntityMapping,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups, StorageStructure.EntityTypes, StorageStructure.Entities
+                    }
+                },
+            };
+
+            queryOperationToDependentStorageStructureMap = new Dictionary<AccessManagerOperation, HashSet<StorageStructure>>()
+            {
+                {
+                    AccessManagerOperation.GetApplicationComponentsAccessibleByGroup,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups
+                    }
+                },
+                {
+                    AccessManagerOperation.GetApplicationComponentsAccessibleByUser,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.GetEntities,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.EntityTypes
+                    }
+                },
+                {
+                    AccessManagerOperation.GetEntitiesAccessibleByGroup,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups, StorageStructure.EntityTypes
+                    }
+                },
+                {
+                    AccessManagerOperation.GetEntitiesAccessibleByUser,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users, StorageStructure.EntityTypes
+                    }
+                },
+                {
+                    AccessManagerOperation.GetGroupToApplicationComponentAndAccessLevelMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups
+                    }
+                },
+                {
+                    AccessManagerOperation.GetGroupToEntityMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups
+                    }
+                },
+                {
+                    AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups, StorageStructure.EntityTypes
+                    }
+                },
+                {
+                    AccessManagerOperation.GetGroupToGroupMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups
+                    }
+                },
+                {
+                    AccessManagerOperation.GetUserToApplicationComponentAndAccessLevelMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.GetUserToEntityMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users, StorageStructure.EntityTypes
+                    }
+                },
+                {
+                    AccessManagerOperation.GetUserToGroupMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.HasAccessToApplicationComponent,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.HasAccessToEntity,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users, StorageStructure.EntityTypes, StorageStructure.Entities
+                    }
                 }
+            };
+
+            inverseEventOperationMap = new Dictionary<AccessManagerOperation, AccessManagerOperation>()
+            {
+                { AccessManagerOperation.AddUser, AccessManagerOperation.RemoveUser },
+                { AccessManagerOperation.AddGroup, AccessManagerOperation.RemoveGroup },
+                { AccessManagerOperation.AddUserToGroupMapping, AccessManagerOperation.RemoveUserToGroupMapping },
+                { AccessManagerOperation.AddGroupToGroupMapping, AccessManagerOperation.RemoveGroupToGroupMapping },
+                { AccessManagerOperation.AddUserToApplicationComponentAndAccessLevelMapping, AccessManagerOperation.RemoveUserToApplicationComponentAndAccessLevelMapping },
+                { AccessManagerOperation.AddGroupToApplicationComponentAndAccessLevelMapping, AccessManagerOperation.RemoveGroupToApplicationComponentAndAccessLevelMapping },
+                { AccessManagerOperation.AddEntityType, AccessManagerOperation.RemoveEntityType },
+                { AccessManagerOperation.AddEntity, AccessManagerOperation.RemoveEntity },
+                { AccessManagerOperation.AddUserToEntityMapping, AccessManagerOperation.RemoveUserToEntityMapping },
+                { AccessManagerOperation.AddGroupToEntityMapping, AccessManagerOperation.RemoveGroupToEntityMapping },
+            };
+            // Add the inverse/opposite mappings
+            var inversedEventOperations = new Dictionary<AccessManagerOperation, AccessManagerOperation>();
+            foreach (KeyValuePair<AccessManagerOperation, AccessManagerOperation> currKvp in inverseEventOperationMap)
+            {
+                inversedEventOperations.Add(currKvp.Value, currKvp.Key);
+            }
+            foreach (KeyValuePair<AccessManagerOperation, AccessManagerOperation> currKvp in inversedEventOperations)
+            {
+                inverseEventOperationMap.Add(currKvp.Value, currKvp.Key);
             }
         }
 
@@ -445,48 +522,40 @@ namespace ApplicationAccess.TestHarness
         /// </summary>
         protected void InitializeOperationClassificationSets()
         {
-            getOperations = new HashSet<AccessManagerOperation>();
-            addOperations = new HashSet<AccessManagerOperation>();
+            propertyAndContainsQueryOperations = new HashSet<AccessManagerOperation>();
+            primaryAddOperations = new HashSet<AccessManagerOperation>();
+            secondaryAddOperations = new HashSet<AccessManagerOperation>();
             removeOperations = new HashSet<AccessManagerOperation>();
+            getAndHasOperations = new HashSet<AccessManagerOperation>();
+            queryOperations = new HashSet<AccessManagerOperation>();
 
-            getOperations.UnionWith(new AccessManagerOperation[]
+            propertyAndContainsQueryOperations.UnionWith(new AccessManagerOperation[]
             {
-                AccessManagerOperation.UsersPropertyGet, 
-                AccessManagerOperation.GroupsPropertyGet,
-                AccessManagerOperation.EntityTypesPropertyGet,
-                AccessManagerOperation.ContainsUser,
-                AccessManagerOperation.ContainsGroup,
-                AccessManagerOperation.GetUserToGroupMappings,
-                AccessManagerOperation.GetGroupToGroupMappings,
-                AccessManagerOperation.GetUserToApplicationComponentAndAccessLevelMappings,
-                AccessManagerOperation.GetGroupToApplicationComponentAndAccessLevelMappings,
-                AccessManagerOperation.ContainsEntityType,
-                AccessManagerOperation.GetEntities,
-                AccessManagerOperation.ContainsEntity,
-                AccessManagerOperation.GetUserToEntityMappings,
-                AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.GetGroupToEntityMappings,
-                AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
-                AccessManagerOperation.HasAccessToApplicationComponent,
-                AccessManagerOperation.HasAccessToEntity,
-                AccessManagerOperation.GetApplicationComponentsAccessibleByUser,
-                AccessManagerOperation.GetApplicationComponentsAccessibleByGroup,
-                AccessManagerOperation.GetEntitiesAccessibleByUser,
-                AccessManagerOperation.GetEntitiesAccessibleByGroup
+                AccessManagerOperation.UsersPropertyGet,  
+                AccessManagerOperation.GroupsPropertyGet, 
+                AccessManagerOperation.EntityTypesPropertyGet, 
+                AccessManagerOperation.ContainsEntity, 
+                AccessManagerOperation.ContainsEntityType, 
+                AccessManagerOperation.ContainsGroup, 
+                AccessManagerOperation.ContainsUser
             });
 
-            addOperations.UnionWith(new AccessManagerOperation[]
+            primaryAddOperations.UnionWith(new AccessManagerOperation[]
             {
-                AccessManagerOperation.AddUser,
+                AccessManagerOperation.AddUser, 
                 AccessManagerOperation.AddGroup,
-                AccessManagerOperation.AddUserToGroupMapping,
-                AccessManagerOperation.AddGroupToGroupMapping,
-                AccessManagerOperation.AddUserToApplicationComponentAndAccessLevelMapping,
-                AccessManagerOperation.AddGroupToApplicationComponentAndAccessLevelMapping,
-                AccessManagerOperation.AddEntityType,
-                AccessManagerOperation.AddEntity,
-                AccessManagerOperation.AddUserToEntityMapping,
-                AccessManagerOperation.AddGroupToEntityMapping,
+                AccessManagerOperation.AddEntityType
+            });
+
+            secondaryAddOperations.UnionWith(new AccessManagerOperation[]
+            {
+                AccessManagerOperation.AddEntity, 
+                AccessManagerOperation.AddGroupToApplicationComponentAndAccessLevelMapping, 
+                AccessManagerOperation.AddGroupToEntityMapping, 
+                AccessManagerOperation.AddGroupToGroupMapping, 
+                AccessManagerOperation.AddUserToApplicationComponentAndAccessLevelMapping, 
+                AccessManagerOperation.AddUserToEntityMapping, 
+                AccessManagerOperation.AddUserToGroupMapping
             });
 
             removeOperations.UnionWith(new AccessManagerOperation[]
@@ -502,6 +571,28 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.RemoveUserToEntityMapping,
                 AccessManagerOperation.RemoveGroupToEntityMapping
             });
+
+            getAndHasOperations.UnionWith(new AccessManagerOperation[]
+            {
+                AccessManagerOperation.GetUserToGroupMappings,
+                AccessManagerOperation.GetGroupToGroupMappings,
+                AccessManagerOperation.GetUserToApplicationComponentAndAccessLevelMappings,
+                AccessManagerOperation.GetGroupToApplicationComponentAndAccessLevelMappings,
+                AccessManagerOperation.GetEntities,
+                AccessManagerOperation.GetUserToEntityMappings,
+                AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
+                AccessManagerOperation.GetGroupToEntityMappings,
+                AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
+                AccessManagerOperation.HasAccessToApplicationComponent,
+                AccessManagerOperation.HasAccessToEntity,
+                AccessManagerOperation.GetApplicationComponentsAccessibleByUser,
+                AccessManagerOperation.GetApplicationComponentsAccessibleByGroup,
+                AccessManagerOperation.GetEntitiesAccessibleByUser,
+                AccessManagerOperation.GetEntitiesAccessibleByGroup
+            });
+
+            queryOperations.UnionWith(propertyAndContainsQueryOperations);
+            queryOperations.UnionWith(getAndHasOperations);
         }
 
         #endregion

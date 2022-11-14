@@ -1701,8 +1701,8 @@
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.bufferFlushingWorkerThread">
             <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.flushingException">
-            <summary>Set with any exception which occurrs on the worker thread when flushing the buffers.  Null if no exception has occurred.</summary>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.flushingExceptionDispatchInfo">
+            <summary>Set with any exception and state/context information which occurrs on the worker thread when flushing the buffers (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.stopMethodCalled">
             <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
@@ -1713,9 +1713,9 @@
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.FlushingException">
+        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.FlushingExceptionDispatchInfo">
             <summary>
-            Contains an exception which occurred on the worker thread during buffer flushing.  Null if no exception has occurred.
+            Contains an exception and state/context information which occurred on the worker thread during buffer flushing (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if no exception has occurred.
             </summary>
         </member>
         <member name="E:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.BufferFlushed">

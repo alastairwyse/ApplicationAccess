@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Runtime.ExceptionServices;
 
 namespace ApplicationAccess.Validation
 {
@@ -27,8 +28,8 @@ namespace ApplicationAccess.Validation
         protected Boolean successful;
         /// <summary>Describes the reason for failure in the case the validation operation was not successful.</summary>
         protected String message;
-        /// <summary>An optional exception, providing further detail for the reason for failure in the case the validation operation was not successful.  Null if not set.</summary>
-        protected Exception validationException;
+        /// <summary>An optional set of exception and state/context information, providing further detail for the reason for failure in the case the validation operation was not successful (including stack trace and context info provided by the <see cref="ExceptionDispatchInfo"/> class).  Null if not set.</summary>
+        protected ExceptionDispatchInfo validationExceptionDispatchInfo;
 
         /// <summary>
         /// Whether or not the validation operation resulted in success.
@@ -47,11 +48,11 @@ namespace ApplicationAccess.Validation
         }
 
         /// <summary>
-        /// An optional exception, providing further detail for the reason for failure in the case the validation operation was not successful.
+        /// An optional set of exception and state/context information, providing further detail for the reason for failure in the case the validation operation was not successful (including stack trace and context info provided by the <see cref="ExceptionDispatchInfo"/> class).
         /// </summary>
-        public Exception ValidationException
+        public ExceptionDispatchInfo ValidationExceptionDispatchInfo
         {
-            get { return validationException; }
+            get { return validationExceptionDispatchInfo; }
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace ApplicationAccess.Validation
 
             this.successful = successful;
             message = "";
-            validationException = null;
+            validationExceptionDispatchInfo = null;
         }
 
         /// <summary>
@@ -81,7 +82,7 @@ namespace ApplicationAccess.Validation
 
             this.successful = successful;
             this.message = message;
-            validationException = null;
+            validationExceptionDispatchInfo = null;
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace ApplicationAccess.Validation
 
             this.successful = successful;
             this.message = message;
-            this.validationException = validationException;
+            this.validationExceptionDispatchInfo = ExceptionDispatchInfo.Capture(validationException);
         }
 
         #pragma warning disable 1591

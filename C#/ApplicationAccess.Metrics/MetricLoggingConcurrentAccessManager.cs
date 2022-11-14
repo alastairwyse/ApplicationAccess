@@ -160,7 +160,10 @@ namespace ApplicationAccess.Metrics
                 userToApplicationComponentAndAccessLevelMappingCount = newUserToApplicationComponentAndAccessLevelMappingCount;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
                 userToEntityMappingCount -= userToEntityMappingCountPerUser.GetFrequency(user);
-                userToEntityMappingCountPerUser.DecrementBy(user, userToEntityMappingCountPerUser.GetFrequency(user));
+                if (userToEntityMappingCountPerUser.GetFrequency(user) > 0)
+                {
+                    userToEntityMappingCountPerUser.DecrementBy(user, userToEntityMappingCountPerUser.GetFrequency(user));
+                }
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
             };
             this.RemoveUser(user, wrappingAction);
@@ -221,7 +224,10 @@ namespace ApplicationAccess.Metrics
                 groupToApplicationComponentAndAccessLevelMappingCount = newGroupToApplicationComponentAndAccessLevelMappingCount;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
                 groupToEntityMappingCount -= groupToEntityMappingCountPerGroup.GetFrequency(group);
-                groupToEntityMappingCountPerGroup.DecrementBy(group, groupToEntityMappingCountPerGroup.GetFrequency(group));
+                if (groupToEntityMappingCountPerGroup.GetFrequency(group) > 0)
+                {
+                    groupToEntityMappingCountPerGroup.DecrementBy(group, groupToEntityMappingCountPerGroup.GetFrequency(group));
+                }
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
             this.RemoveGroup(group, wrappingAction);
@@ -493,13 +499,19 @@ namespace ApplicationAccess.Metrics
             {
                 Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction = (preRemovalActionUser, preRemovalActionEntityType, preRemovalActionEntities, preRemovalActionCount) =>
                 {
-                    userToEntityMappingCount -= preRemovalActionCount;
-                    userToEntityMappingCountPerUser.DecrementBy(preRemovalActionUser, preRemovalActionCount);
+                    if (preRemovalActionCount > 0)
+                    {
+                        userToEntityMappingCount -= preRemovalActionCount;
+                        userToEntityMappingCountPerUser.DecrementBy(preRemovalActionUser, preRemovalActionCount);
+                    }
                 };
                 Action<TGroup, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction = (preRemovalActionGroup, preRemovalActionEntityType, preRemovalActionEntities, preRemovalActionCount) =>
                 {
-                    groupToEntityMappingCount -= preRemovalActionCount;
-                    groupToEntityMappingCountPerGroup.DecrementBy(preRemovalActionGroup, preRemovalActionCount);
+                    if (preRemovalActionCount > 0)
+                    {
+                        groupToEntityMappingCount -= preRemovalActionCount;
+                        groupToEntityMappingCountPerGroup.DecrementBy(preRemovalActionGroup, preRemovalActionCount);
+                    }
                 };
 
                 Int32 newEntityCount = entityCount;
