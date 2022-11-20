@@ -131,6 +131,8 @@ namespace ApplicationAccess.TestHarness
                     (
                         dataElementStorer,
                         targetStorateStructureCounts,
+                        new EnumAvailableDataElementCounter<TestApplicationComponent>(),
+                        new EnumAvailableDataElementCounter<TestAccessLevel>(),
                         2.0
                     );
                     var parameterGenerator = new DefaultOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>

@@ -29,8 +29,14 @@ namespace ApplicationAccess.TestHarness
         protected DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
         /// <summary>The target elements counts for each storage structure.</summary>
         protected Dictionary<StorageStructure, Int32> targetStorageStructureCounts;
+        /// <summary>The available data element counter for application componenets.</summary>
+        protected IAvailableDataElementCounter<TComponent> componentAvailableDataElementCounter;
+        /// <summary>The available data element counter for access levels.</summary>
+        protected IAvailableDataElementCounter<TAccess> accessLeveAvailableDataElementCounter;
         /// <summary>The ratio of query operations (get) to event operations (add/remove).</summary>
         protected Double queryToEventOperationRatio;
+        /// <summary>Used to calculate the base probabilities for 'secondary' event operations (e.g. AddUserToGroupMapping())</summary>
+        protected ISecondaryEventOperationBaseProbabilityCalculator secondaryEventOperationBaseProbabilityCalculator;
         /// <summary>Maps AccessManager operations to the primary storage structure which holds elements for that operation.</summary>
         protected Dictionary<AccessManagerOperation, StorageStructure> operationToPrimaryStorageStructureMap;
         /// <summary>Maps AccessManager operations to the primary storage structures which have a secondary dependence for the operation (e.g. as the <see cref="StorageStructure.Users"/> structure is for <see cref="AccessManagerOperation.AddUserToEntityMapping"/>).</summary>
@@ -57,8 +63,16 @@ namespace ApplicationAccess.TestHarness
         /// </summary>
         /// <param name="dataElementStorer">The data elements stored in the AccessManager instance under test.</param>
         /// <param name="targetStorageStructureCounts">The target elements counts for each storage structure.</param>
+        /// <param name="componentAvailableDataElementCounter">The available data element counter for application componenets.</param>
+        /// <param name="accessLeveAvailableDataElementCounter">The available data element counter for access levels.</param>
         /// <param name="queryToEventOperationRatio">The ratio of query operations (get) to event operations (add/remove).  E.g. a value of 2.0 would make query operations twice as likely as event operations.</param>
-        public DefaultOperationGenerator(DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, Dictionary<StorageStructure, Int32> targetStorageStructureCounts, Double queryToEventOperationRatio)
+        public DefaultOperationGenerator
+        (
+            DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, 
+            Dictionary<StorageStructure, Int32> targetStorageStructureCounts,
+            IAvailableDataElementCounter<TComponent> componentAvailableDataElementCounter,
+            IAvailableDataElementCounter<TAccess> accessLeveAvailableDataElementCounter, 
+            Double queryToEventOperationRatio)
         {
             if (queryToEventOperationRatio <= 0.0)
                 throw new ArgumentOutOfRangeException(nameof(queryToEventOperationRatio), $"Parameter '{nameof(queryToEventOperationRatio)}' must be greater than 0.");
@@ -66,9 +80,19 @@ namespace ApplicationAccess.TestHarness
             ValidateTargetStorageStructureCounts(targetStorageStructureCounts);
             this.dataElementStorer = dataElementStorer;
             this.targetStorageStructureCounts = targetStorageStructureCounts;
+            this.componentAvailableDataElementCounter = componentAvailableDataElementCounter;
+            this.accessLeveAvailableDataElementCounter = accessLeveAvailableDataElementCounter;
             this.queryToEventOperationRatio = queryToEventOperationRatio;
             InitializeDependencyMaps();
             InitializeOperationClassificationSets();
+            secondaryEventOperationBaseProbabilityCalculator = new PrimaryDataStructureRatioBaseProbabilityCalculator
+            (
+                secondaryAddOperations, 
+                this.targetStorageStructureCounts, 
+                operationToPrimaryStorageStructureMap, 
+                operationToSecondaryStorageStructureMap, 
+                inverseEventOperationMap
+            );
         }
 
         /// <summary>
@@ -99,6 +123,8 @@ namespace ApplicationAccess.TestHarness
                 new Tuple<StorageStructure, Func<Int32>>(StorageStructure.Groups, () => { return dataElementStorer.GroupCount; }),
                 new Tuple<StorageStructure, Func<Int32>>(StorageStructure.UserToGroupMap, () => { return dataElementStorer.UserToGroupMappingCount; }),
                 new Tuple<StorageStructure, Func<Int32>>(StorageStructure.GroupToGroupMap, () => { return dataElementStorer.GroupToGroupMappingCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.ApplicationComponent, () => { return componentAvailableDataElementCounter.GetAvailableElements(); }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.AccessLevel, () => { return accessLeveAvailableDataElementCounter.GetAvailableElements(); }),
                 new Tuple<StorageStructure, Func<Int32>>(StorageStructure.UserToComponentMap, () => { return dataElementStorer.UserToComponentMappingCount; }),
                 new Tuple<StorageStructure, Func<Int32>>(StorageStructure.GroupToComponentMap, () => { return dataElementStorer.GroupToComponentMappingCount; }),
                 new Tuple<StorageStructure, Func<Int32>>(StorageStructure.EntityTypes,() => { return dataElementStorer.EntityTypeCount; }),
@@ -112,7 +138,7 @@ namespace ApplicationAccess.TestHarness
                 returnDictionary.Add(currentCountProperty.Item1, currentCountProperty.Item2.Invoke());
             }
 
-            Console.WriteLine(":: Structure Counts ::");
+            Console.WriteLine($":: Structure Counts at {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff")} ::");
             foreach (KeyValuePair<StorageStructure, Int32> currKvp in returnDictionary)
             {
                 Console.WriteLine($"{currKvp.Key}: {currKvp.Value}");
@@ -149,43 +175,19 @@ namespace ApplicationAccess.TestHarness
                 {
                     returnDictionary.Add(currentOperation, baseProbability);
                 }
-            }
-
-            foreach (AccessManagerOperation currentOperation in secondaryAddOperations)
-            {
-                // These operations (e.g. AddUserToGroupMapping() method) should be set to 0 if any of their dependent storage structures are empty
-                //   If not, they should be set to the lowest amongst the ratio of current to target storage structure counts, for each of their dependent storage structures
-                //   Idea is that if one of the dependent structure has a very low count, there'll be a similarly low probability of calling an operation which depends on the contents of that structure
-                Boolean dependentStorageStructureEmpty = false;
-                Double lowestActualToTargetCountRatio = Double.MaxValue;
-                foreach (StorageStructure currentStorageStructure in operationToSecondaryStorageStructureMap[currentOperation])
+                // Add the inverse probability for the inverse operation (e.g. RemoveUser() method)
+                //   TODO: Probably easier to do Remove*() first... don't have to do '1.0 - ' twice
+                AccessManagerOperation inverseOperation = inverseEventOperationMap[currentOperation];
+                if (baseProbability != 1.0)
                 {
-                    if (storageStructureCounts[currentStorageStructure] == 0)
-                    {
-                        dependentStorageStructureEmpty = true;
-                        break;
-                    }
-                    Double currentCount = Convert.ToDouble(storageStructureCounts[currentStorageStructure]);
-                    Double targetCount = Convert.ToDouble(targetStorageStructureCounts[currentStorageStructure]);
-                    Double currentActualToTargetCountRatio = currentCount / (2.0 * targetCount);
-                    lowestActualToTargetCountRatio = Math.Min(lowestActualToTargetCountRatio, currentActualToTargetCountRatio);
-                }
-                if (dependentStorageStructureEmpty == false)
-                {
-                    returnDictionary.Add(currentOperation, lowestActualToTargetCountRatio);
+                    returnDictionary.Add(inverseOperation, 1.0 - baseProbability);
                 }
             }
 
-            foreach (AccessManagerOperation currentOperation in removeOperations)
+            Dictionary<AccessManagerOperation, Double> secondaryEventOperationBaseProbabilities = secondaryEventOperationBaseProbabilityCalculator.CalculateBaseProbabilities(storageStructureCounts);
+            foreach (KeyValuePair<AccessManagerOperation, Double> currentProbability in secondaryEventOperationBaseProbabilities)
             {
-                // These operations (e.g. RemoveUser() method) can be called at any time based on probability derived from comparing to the target count for their underlying storage structure
-                Double currentCount = Convert.ToDouble(storageStructureCounts[operationToPrimaryStorageStructureMap[currentOperation]]);
-                Double targetCount = Convert.ToDouble(targetStorageStructureCounts[operationToPrimaryStorageStructureMap[currentOperation]]);
-                Double baseProbability = currentCount / (2.0 * targetCount);
-                if (baseProbability != 0.0)
-                {
-                    returnDictionary.Add(currentOperation, baseProbability);
-                }
+                returnDictionary.Add(currentProbability.Key, currentProbability.Value);
             }
 
             foreach (AccessManagerOperation currentOperation in getAndHasOperations)
@@ -350,14 +352,14 @@ namespace ApplicationAccess.TestHarness
                     AccessManagerOperation.AddUserToApplicationComponentAndAccessLevelMapping,
                     new HashSet<StorageStructure>()
                     {
-                        StorageStructure.Users
+                        StorageStructure.Users, StorageStructure.ApplicationComponent, StorageStructure.AccessLevel
                     }
                 },
                 {
                     AccessManagerOperation.AddGroupToApplicationComponentAndAccessLevelMapping,
                     new HashSet<StorageStructure>()
                     {
-                        StorageStructure.Groups
+                        StorageStructure.Groups, StorageStructure.ApplicationComponent, StorageStructure.AccessLevel
                     }
                 },
                 {
@@ -371,14 +373,14 @@ namespace ApplicationAccess.TestHarness
                     AccessManagerOperation.AddUserToEntityMapping,
                     new HashSet<StorageStructure>()
                     {
-                        StorageStructure.Users, StorageStructure.EntityTypes, StorageStructure.Entities
+                        StorageStructure.Users, StorageStructure.Entities
                     }
                 },
                 {
                     AccessManagerOperation.AddGroupToEntityMapping,
                     new HashSet<StorageStructure>()
                     {
-                        StorageStructure.Groups, StorageStructure.EntityTypes, StorageStructure.Entities
+                        StorageStructure.Groups, StorageStructure.Entities
                     }
                 },
             };
@@ -513,7 +515,7 @@ namespace ApplicationAccess.TestHarness
             }
             foreach (KeyValuePair<AccessManagerOperation, AccessManagerOperation> currKvp in inversedEventOperations)
             {
-                inverseEventOperationMap.Add(currKvp.Value, currKvp.Key);
+                inverseEventOperationMap.Add(currKvp.Key, currKvp.Value);
             }
         }
 
@@ -596,6 +598,113 @@ namespace ApplicationAccess.TestHarness
         }
 
         #endregion
+
+        #endregion
+
+        #region Nested Classes
+
+        /// <summary>
+        /// Defines a method which calculates base probabilities for secondary event operations (like AddUserToGropuMapping()).
+        /// </summary>
+        protected interface ISecondaryEventOperationBaseProbabilityCalculator
+        {
+            /// <summary>
+            /// Calculates base probabilities for event operations.
+            /// </summary>
+            /// <param name="storageStructureCounts">The counts of items in each <see cref="StorageStructure"/>.</param>
+            /// <returns>The base probabilities.</returns>
+            Dictionary<AccessManagerOperation, Double> CalculateBaseProbabilities(Dictionary<StorageStructure, Int32> storageStructureCounts);
+        }
+
+        /// <summary>
+        /// Implementation of <see cref="ISecondaryEventOperationBaseProbabilityCalculator"/> which calculates the probability based on the actual vs target element counts of the primary data storage structure.
+        /// </summary>
+        protected class PrimaryDataStructureRatioBaseProbabilityCalculator : ISecondaryEventOperationBaseProbabilityCalculator
+        {
+            protected HashSet<AccessManagerOperation> secondaryAddOperations;
+            protected Dictionary<StorageStructure, Int32> targetStorageStructureCounts;
+            protected Dictionary<AccessManagerOperation, StorageStructure> operationToPrimaryStorageStructureMap;
+            protected Dictionary<AccessManagerOperation, HashSet<StorageStructure>> operationToSecondaryStorageStructureMap;
+            protected Dictionary<AccessManagerOperation, AccessManagerOperation> inverseEventOperationMap;
+
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.TestHarness.DefaultOperationGenerator+PrimaryDataRatioBaseProbabilityCalculator class.
+            /// </summary>
+            /// <param name="secondaryAddOperations">AccessManager secondary event Add*() operations (like AddUserToGroupMapping()).</param>
+            /// <param name="targetStorageStructureCounts">The target elements counts for each storage structure.</param>
+            /// <param name="operationToPrimaryStorageStructureMap">Maps AccessManager operations to the primary storage structure which holds elements for that operation.</param>
+            /// <param name="operationToSecondaryStorageStructureMap">Maps AccessManager operations to the primary storage structures which have a secondary dependence for the operation (e.g. as the <see cref="StorageStructure.Users"/> structure is for <see cref="AccessManagerOperation.AddUserToEntityMapping"/>).</param>
+            /// <param name="inverseEventOperationMap">AccessManager event operations, and their inverse/opposite operation.</param>
+            public PrimaryDataStructureRatioBaseProbabilityCalculator
+            (
+                HashSet<AccessManagerOperation> secondaryAddOperations, 
+                Dictionary<StorageStructure, Int32> targetStorageStructureCounts, 
+                Dictionary<AccessManagerOperation, StorageStructure> operationToPrimaryStorageStructureMap, 
+                Dictionary<AccessManagerOperation, HashSet<StorageStructure>> operationToSecondaryStorageStructureMap,
+                Dictionary<AccessManagerOperation, AccessManagerOperation> inverseEventOperationMap
+            )
+            {
+                this.secondaryAddOperations = secondaryAddOperations;
+                this.targetStorageStructureCounts = targetStorageStructureCounts;
+                this.operationToPrimaryStorageStructureMap = operationToPrimaryStorageStructureMap;
+                this.operationToSecondaryStorageStructureMap = operationToSecondaryStorageStructureMap;
+                this.inverseEventOperationMap = inverseEventOperationMap;
+            }
+
+            /// <inheritdoc/>
+            public Dictionary<AccessManagerOperation, Double> CalculateBaseProbabilities(Dictionary<StorageStructure, Int32> storageStructureCounts)
+            {
+                var returnDictionary = new Dictionary<AccessManagerOperation, Double>();
+
+                foreach (AccessManagerOperation currentAddOperation in secondaryAddOperations)
+                {
+                    // Check to see whether any of the secondary dependency storage structures (like 'users' storage structure in the case of the AddUserToGroupMapping() operation) are empty, and if so, set the proability for the operation to be 0
+                    Boolean dependentStorageStructureIsEmpty = false;
+                    Int32 maxPossibleItems = 1;
+                    foreach (StorageStructure currentDependentStorageStructure in operationToSecondaryStorageStructureMap[currentAddOperation])
+                    {
+                        // TODO: Add StorageStructure and dependencies for components and access levels...
+                        //   So this check can be done properly for the operations which depend on this
+
+                        maxPossibleItems *= storageStructureCounts[currentDependentStorageStructure];
+                        if (storageStructureCounts[currentDependentStorageStructure] == 0)
+                        {
+                            dependentStorageStructureIsEmpty = true;
+                        }
+                    }
+                    if (dependentStorageStructureIsEmpty == true)
+                    {
+                        // Do nothing... probabilty should be 0, so just don't add
+                        //   Probability for inverse RemoveX() operation should also be 0
+                    }
+                    else
+                    {
+                        Double currentCount = Convert.ToDouble(storageStructureCounts[operationToPrimaryStorageStructureMap[currentAddOperation]]);
+                        Double targetCount = Convert.ToDouble(targetStorageStructureCounts[operationToPrimaryStorageStructureMap[currentAddOperation]]);
+                        Double baseProbability = 1.0 - (currentCount / (2.0 * targetCount));
+                        // If the current actual count is not equal to the maximum possible (i.e. product of the counts of all secondary dependent structures) include the AddX() probability
+                        if (maxPossibleItems != storageStructureCounts[operationToPrimaryStorageStructureMap[currentAddOperation]] || currentAddOperation == AccessManagerOperation.AddEntity)
+                        {
+                            // Ignore the above check for entities
+                            //   Entities are a special case since they only have one dependent storage structure... without this exception, the 'maxPossibleItems' calculation would limit them having the same count as entity types 
+                            if (baseProbability != 0.0)
+                            {
+                                returnDictionary.Add(currentAddOperation, baseProbability);
+                            }
+                        }
+                        // Add the equivalent/inverse RemoveX() probability
+                        Double removeProbability = 1.0 - baseProbability;
+                        if (removeProbability != 0.0)
+                        {
+                            AccessManagerOperation removeOperation = inverseEventOperationMap[currentAddOperation];
+                            returnDictionary.Add(removeOperation, removeProbability);
+                        }
+                    }
+                }
+
+                return returnDictionary;
+            }
+        }
 
         #endregion
     }

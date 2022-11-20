@@ -252,7 +252,7 @@ namespace ApplicationAccess.TestHarness
                     if (currentKvp.Value.Contains(group) == true)
                     {
                         currentKvp.Value.Remove(group);
-                        Interlocked.Increment(ref groupToGroupMappingCount);
+                        Interlocked.Decrement(ref groupToGroupMappingCount);
                     }
                 }
                 if (groupToGroupMap.ContainsKey(group) == true)
@@ -266,7 +266,7 @@ namespace ApplicationAccess.TestHarness
                     if (currentKvp.Value.Contains(group) == true)
                     {
                         currentKvp.Value.Remove(group);
-                        Interlocked.Increment(ref userToGroupMappingCount);
+                        Interlocked.Decrement(ref userToGroupMappingCount);
                     }
                 }
                 if (groups.Contains(group) == true)
@@ -518,6 +518,27 @@ namespace ApplicationAccess.TestHarness
                     userToEntityMap.Remove(currentUser);
                     Interlocked.CompareExchange(ref userToEntityMappingCount, newUserToEntityMappingCount, userToEntityMappingCount);
                 }
+
+                var groupsToRemove = new List<TGroup>();
+                Int32 newGroupToEntityMappingCount = groupToEntityMappingCount;
+                foreach (KeyValuePair<TGroup, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> currentKvp in groupToEntityMap)
+                {
+                    if (currentKvp.Value.ContainsKey(entityType))
+                    {
+                        newGroupToEntityMappingCount -= currentKvp.Value[entityType].Count;
+                        currentKvp.Value.Remove(entityType);
+                    }
+                    if (currentKvp.Value.Count == 0)
+                    {
+                        groupsToRemove.Add(currentKvp.Key);
+                    }
+                }
+                foreach (TGroup currentGroup in groupsToRemove)
+                {
+                    groupToEntityMap.Remove(currentGroup);
+                    Interlocked.CompareExchange(ref groupToEntityMappingCount, newGroupToEntityMappingCount, groupToEntityMappingCount);
+                }
+
                 if (entities.ContainsKey(entityType) == true)
                 {
                     Int32 newEntityCount = entityCount - entities[entityType].Count;
@@ -578,6 +599,35 @@ namespace ApplicationAccess.TestHarness
                 {
                     userToEntityMap.Remove(currentUser);
                 }
+
+                var groupsToRemove = new List<TGroup>();
+                foreach (KeyValuePair<TGroup, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> currentKvp in groupToEntityMap)
+                {
+                    if (currentKvp.Value.ContainsKey(entityType))
+                    {
+                        if (currentKvp.Value[entityType].Contains(entity) == true)
+                        {
+                            currentKvp.Value[entityType].Remove(entity);
+                            Interlocked.Decrement(ref groupToEntityMappingCount);
+                        }
+                    }
+                    if (currentKvp.Value.ContainsKey(entityType))
+                    {
+                        if (currentKvp.Value[entityType].Count == 0)
+                        {
+                            currentKvp.Value.Remove(entityType);
+                        }
+                    }
+                    if (currentKvp.Value.Count == 0)
+                    {
+                        groupsToRemove.Add(currentKvp.Key);
+                    }
+                }
+                foreach (TGroup currentGroup in groupsToRemove)
+                {
+                    groupToEntityMap.Remove(currentGroup);
+                }
+
                 if (entities.ContainsKey(entityType) == true && entities[entityType].Contains(entity) == true)
                 {
                     entities[entityType].Remove(entity);

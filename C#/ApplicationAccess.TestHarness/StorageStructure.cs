@@ -26,7 +26,10 @@ namespace ApplicationAccess.TestHarness
         Users, 
         Groups, 
         UserToGroupMap, 
-        GroupToGroupMap, 
+        GroupToGroupMap,
+        // Application components and access levels aren't actually stored in lookup structures in an AccessManager, but they're included here to facilitate proability calculations for operations which depend on them.
+        ApplicationComponent, 
+        AccessLevel, 
         UserToComponentMap, 
         GroupToComponentMap, 
         // Entity types and entities are actually stored in a single Dictionary, but will keep them as separate enums so that (for example) counts can be kept separately for each.
