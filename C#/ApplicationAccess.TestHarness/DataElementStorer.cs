@@ -293,11 +293,15 @@ namespace ApplicationAccess.TestHarness
             {
                 AddUserIfNotExists(user);
                 AddGroupIfNotExists(group);
-                if (userToGroupMap.ContainsKey(user) == true && userToGroupMap[user].Contains(group) == false)
+                if (userToGroupMap.ContainsKey(user) == false)
+                {
+                    userToGroupMap.Add(user, new RandomlyAccessibleSet<TGroup>());
+                }
+                if (userToGroupMap[user].Contains(group) == false)
                 {
                     userToGroupMap[user].Add(group);
+                    Interlocked.Increment(ref userToGroupMappingCount);
                 }
-                Interlocked.Increment(ref userToGroupMappingCount);
             }));
         }
 
@@ -339,11 +343,15 @@ namespace ApplicationAccess.TestHarness
             {
                 AddGroupIfNotExists(fromGroup);
                 AddGroupIfNotExists(toGroup);
-                if (groupToGroupMap.ContainsKey(fromGroup) == true && groupToGroupMap[fromGroup].Contains(toGroup) == false)
+                if (groupToGroupMap.ContainsKey(fromGroup) == false)
+                {
+                    groupToGroupMap.Add(fromGroup, new RandomlyAccessibleSet<TGroup>());
+                }
+                if (groupToGroupMap[fromGroup].Contains(toGroup) == false)
                 {
                     groupToGroupMap[fromGroup].Add(toGroup);
+                    Interlocked.Increment(ref groupToGroupMappingCount);
                 }
-                Interlocked.Increment(ref groupToGroupMappingCount);
             }));
         }
 

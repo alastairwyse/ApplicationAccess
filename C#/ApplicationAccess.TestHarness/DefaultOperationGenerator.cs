@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using MoreComplexDataStructures;
+using MathNet.Numerics.Distributions;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -184,6 +185,20 @@ namespace ApplicationAccess.TestHarness
                 }
             }
 
+            // Calculate the probabilities for AddEntityType and RemoveEntityType
+            Int32 actualEntityTypeCount = storageStructureCounts[operationToPrimaryStorageStructureMap[AccessManagerOperation.AddEntityType]];
+            Int32 targetEntityTypeCount = targetStorageStructureCounts[operationToPrimaryStorageStructureMap[AccessManagerOperation.AddEntityType]];
+            Double addEntityTypeBaseProbability = CalculateBetaScaledBaseRemoveProbability(2 * targetEntityTypeCount - actualEntityTypeCount, targetEntityTypeCount, 1.0, 4.0);
+            if (addEntityTypeBaseProbability > 0.0)
+            {
+                returnDictionary.Add(AccessManagerOperation.AddEntityType, addEntityTypeBaseProbability);
+            }
+            Double removeEntityTypeBaseProbability = CalculateBetaScaledBaseRemoveProbability(actualEntityTypeCount, targetEntityTypeCount, 1.0, 4.0);
+            if (removeEntityTypeBaseProbability > 0.0)
+            {
+                returnDictionary.Add(AccessManagerOperation.RemoveEntityType, removeEntityTypeBaseProbability);
+            }
+
             Dictionary<AccessManagerOperation, Double> secondaryEventOperationBaseProbabilities = secondaryEventOperationBaseProbabilityCalculator.CalculateBaseProbabilities(storageStructureCounts);
             foreach (KeyValuePair<AccessManagerOperation, Double> currentProbability in secondaryEventOperationBaseProbabilities)
             {
@@ -258,13 +273,19 @@ namespace ApplicationAccess.TestHarness
         /// <param name="targetStorageStructureCounts">The target elements counts to validate.</param>
         protected void ValidateTargetStorageStructureCounts(Dictionary<StorageStructure, Int32> targetStorageStructureCounts)
         {
+            // Don't check for counts for application components nor access levels, as they're enums in the TestHarness
+            var applicationComponentIntegerValue = (Int32)StorageStructure.ApplicationComponent;
+            var accessLevelIntegerValue = (Int32)StorageStructure.AccessLevel;
             foreach (Int32 currentStorageStructureValue in Enum.GetValues(typeof(StorageStructure)))
             {
-                if (targetStorageStructureCounts.ContainsKey((StorageStructure)currentStorageStructureValue) == false)
-                    throw new ArgumentException($"Parameter '{nameof(targetStorageStructureCounts)}' does not contain a target storage structure count for '{(StorageStructure)currentStorageStructureValue}'.", nameof(targetStorageStructureCounts));
+                if (currentStorageStructureValue != applicationComponentIntegerValue && currentStorageStructureValue != accessLevelIntegerValue)
+                {
+                    if (targetStorageStructureCounts.ContainsKey((StorageStructure)currentStorageStructureValue) == false)
+                        throw new ArgumentException($"Parameter '{nameof(targetStorageStructureCounts)}' does not contain a target storage structure count for '{(StorageStructure)currentStorageStructureValue}'.", nameof(targetStorageStructureCounts));
 
-                if (targetStorageStructureCounts[(StorageStructure)currentStorageStructureValue] < 1)
-                    throw new ArgumentOutOfRangeException(nameof(targetStorageStructureCounts), $"Parameter '{nameof(targetStorageStructureCounts)}' with count {targetStorageStructureCounts[(StorageStructure)currentStorageStructureValue]} for storage structure '{(StorageStructure)currentStorageStructureValue}' cannot be less than 1.");
+                    if (targetStorageStructureCounts[(StorageStructure)currentStorageStructureValue] < 1)
+                        throw new ArgumentOutOfRangeException(nameof(targetStorageStructureCounts), $"Parameter '{nameof(targetStorageStructureCounts)}' with count {targetStorageStructureCounts[(StorageStructure)currentStorageStructureValue]} for storage structure '{(StorageStructure)currentStorageStructureValue}' cannot be less than 1.");
+                }
             }
         }
 
@@ -299,6 +320,37 @@ namespace ApplicationAccess.TestHarness
             randomGenerator.SetWeightings(weightings);
 
             return randomGenerator.Generate();
+        }
+
+        /// <summary>
+        /// Calculates base probablility for a remove operation, using the cumulative distribution beta function to scale the probability lower, as the current item count nears the target item count.
+        /// </summary>
+        /// <param name="currentItemCount">The current number of items.</param>
+        /// <param name="targetItemCount">The target number of items.</param>
+        /// <param name="betaCurveAlphaParameter">The alpha shape parameter of the beta distribution.</param>
+        /// <param name="betaCurveBetaParameter">The beta shape parameter of the beta distribution.</param>
+        /// <returns>The base probability.</returns>
+        public Double CalculateBetaScaledBaseRemoveProbability(Int32 currentItemCount, Int32 targetItemCount, Double betaCurveAlphaParameter, Double betaCurveBetaParameter)
+        {
+            var betaScaler = new Beta(betaCurveAlphaParameter, betaCurveBetaParameter);
+            Double betaScaleFactor;
+            if (currentItemCount >= targetItemCount)
+            {
+                Double betaInput = (Convert.ToDouble(currentItemCount) / Convert.ToDouble(targetItemCount)) - 1.0;
+                betaScaleFactor = betaScaler.CumulativeDistribution(betaInput);
+
+            }
+            else
+            {
+                Double betaInput = Convert.ToDouble(currentItemCount) / Convert.ToDouble(targetItemCount);
+                betaScaleFactor = betaScaler.CumulativeDistribution(1.0 - betaInput);
+            }
+            // Scale the scale factor between 0.1 and 1.0
+            betaScaleFactor *= 0.9;
+            betaScaleFactor += 0.1;
+            Double baseProbabililty = Convert.ToDouble(currentItemCount) / (2.0 * Convert.ToDouble(targetItemCount));
+            
+            return betaScaleFactor * baseProbabililty;
         }
 
         #region Storage Structure Initialization Methods
@@ -545,8 +597,7 @@ namespace ApplicationAccess.TestHarness
             primaryAddOperations.UnionWith(new AccessManagerOperation[]
             {
                 AccessManagerOperation.AddUser, 
-                AccessManagerOperation.AddGroup,
-                AccessManagerOperation.AddEntityType
+                AccessManagerOperation.AddGroup
             });
 
             secondaryAddOperations.UnionWith(new AccessManagerOperation[]
@@ -663,9 +714,6 @@ namespace ApplicationAccess.TestHarness
                     Int32 maxPossibleItems = 1;
                     foreach (StorageStructure currentDependentStorageStructure in operationToSecondaryStorageStructureMap[currentAddOperation])
                     {
-                        // TODO: Add StorageStructure and dependencies for components and access levels...
-                        //   So this check can be done properly for the operations which depend on this
-
                         maxPossibleItems *= storageStructureCounts[currentDependentStorageStructure];
                         if (storageStructureCounts[currentDependentStorageStructure] == 0)
                         {

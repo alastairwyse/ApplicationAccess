@@ -37,6 +37,35 @@ namespace ApplicationAccess.TestHarness
 
         static void Main(string[] args)
         {
+            /*
+            var targetStorateStructureCountsTemp = new Dictionary<StorageStructure, Int32>()
+                    {
+                        { StorageStructure.Users, 100 },
+                        { StorageStructure.Groups, 30 },
+                        { StorageStructure.UserToGroupMap, 500 },
+                        { StorageStructure.GroupToGroupMap, 12 },
+                        { StorageStructure.UserToComponentMap, 800 },
+                        { StorageStructure.GroupToComponentMap, 240 },
+                        { StorageStructure.EntityTypes, 5 },
+                        { StorageStructure.Entities, 80 },
+                        { StorageStructure.UserToEntityMap, 500 },
+                        { StorageStructure.GroupToEntityMap, 180 }
+                    };
+            var opGen = new DefaultOperationGenerator<String, String, TestApplicationComponent, TestAccessLevel>(null, targetStorateStructureCountsTemp, null, null, 1.0);
+            foreach (Int32 currentCount in System.Linq.Enumerable.Range(0, 11))
+            {
+                Double orig = Convert.ToDouble(currentCount / 10.0);
+                Double prob = opGen.CalculateBetaScaledBaseRemoveProbability(currentCount, 5, 1.0, 4.0);
+                Console.WriteLine($"Remove for current count {currentCount}, original was {orig}... remove prob would be {prob}");
+                Double addOrig = 1.0 - orig;
+                Double addProb = opGen.CalculateBetaScaledBaseRemoveProbability(10 - currentCount, 5, 1.0, 4.0);
+                Console.WriteLine($"Add for current count {currentCount}, original was {addOrig}... add prob would be {addProb}");
+            }
+
+            return;
+
+            */
+
             stopNotifySignal = new ManualResetEvent(false);
 
             // Setup SQL Server connection strings
