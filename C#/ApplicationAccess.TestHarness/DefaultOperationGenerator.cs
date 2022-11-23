@@ -58,6 +58,10 @@ namespace ApplicationAccess.TestHarness
         protected HashSet<AccessManagerOperation> getAndHasOperations;
         /// <summary>AccessManager query operations.</summary>
         protected HashSet<AccessManagerOperation> queryOperations;
+        /// <summary>The number of calls to the Generate() method.</summary>
+        protected Int64 generationCounter;
+        /// <summary>How often counts of items in the 'dataElementStorer' member should be printed to the console (e.g. a value of 1000 would print once every 1000 calls to the Generate() method).</summary>
+        protected Int32 dataElementStorerCountPrintFrequency;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.TestHarness.DefaultOperationGenerator class.
@@ -67,16 +71,21 @@ namespace ApplicationAccess.TestHarness
         /// <param name="componentAvailableDataElementCounter">The available data element counter for application componenets.</param>
         /// <param name="accessLeveAvailableDataElementCounter">The available data element counter for access levels.</param>
         /// <param name="queryToEventOperationRatio">The ratio of query operations (get) to event operations (add/remove).  E.g. a value of 2.0 would make query operations twice as likely as event operations.</param>
+        /// <param name="dataElementStorerCountPrintFrequency">>How often counts of items in the 'dataElementStorer' member should be printed to the console (e.g. a value of 1000 would print once every 1000 calls to the Generate() method).</param>
         public DefaultOperationGenerator
         (
             DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, 
             Dictionary<StorageStructure, Int32> targetStorageStructureCounts,
             IAvailableDataElementCounter<TComponent> componentAvailableDataElementCounter,
             IAvailableDataElementCounter<TAccess> accessLeveAvailableDataElementCounter, 
-            Double queryToEventOperationRatio)
+            Double queryToEventOperationRatio,
+            Int32 dataElementStorerCountPrintFrequency
+        )
         {
             if (queryToEventOperationRatio <= 0.0)
                 throw new ArgumentOutOfRangeException(nameof(queryToEventOperationRatio), $"Parameter '{nameof(queryToEventOperationRatio)}' must be greater than 0.");
+            if (dataElementStorerCountPrintFrequency < 0)
+                throw new ArgumentOutOfRangeException(nameof(dataElementStorerCountPrintFrequency), $"Parameter '{nameof(dataElementStorerCountPrintFrequency)}' must be greater than 0.");
 
             ValidateTargetStorageStructureCounts(targetStorageStructureCounts);
             this.dataElementStorer = dataElementStorer;
@@ -84,6 +93,8 @@ namespace ApplicationAccess.TestHarness
             this.componentAvailableDataElementCounter = componentAvailableDataElementCounter;
             this.accessLeveAvailableDataElementCounter = accessLeveAvailableDataElementCounter;
             this.queryToEventOperationRatio = queryToEventOperationRatio;
+            generationCounter = 0;
+            this.dataElementStorerCountPrintFrequency = dataElementStorerCountPrintFrequency;
             InitializeDependencyMaps();
             InitializeOperationClassificationSets();
             secondaryEventOperationBaseProbabilityCalculator = new PrimaryDataStructureRatioBaseProbabilityCalculator
@@ -106,6 +117,12 @@ namespace ApplicationAccess.TestHarness
             Dictionary<AccessManagerOperation, Double> baseProbabilities = CalculateBaseOperationProbabilities(storageStructureCounts);
             ApplyQueryToEventOperationRatio(baseProbabilities);
             AccessManagerOperation returnOperation = ChooseOperation(baseProbabilities);
+            generationCounter++;
+            if (dataElementStorerCountPrintFrequency > 0 && generationCounter % dataElementStorerCountPrintFrequency == 0)
+            {
+                PrintDataElementStorerCounts(dataElementStorer);
+            }
+            Console.WriteLine($"Generated '{returnOperation}' operation");
 
             return returnOperation;
         }
@@ -138,13 +155,6 @@ namespace ApplicationAccess.TestHarness
             {
                 returnDictionary.Add(currentCountProperty.Item1, currentCountProperty.Item2.Invoke());
             }
-
-            Console.WriteLine($":: Structure Counts at {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff")} ::");
-            foreach (KeyValuePair<StorageStructure, Int32> currKvp in returnDictionary)
-            {
-                Console.WriteLine($"{currKvp.Key}: {currKvp.Value}");
-            }
-            Console.WriteLine();
 
             return returnDictionary;
         }
@@ -223,11 +233,13 @@ namespace ApplicationAccess.TestHarness
                 }
             }
 
+            /*
             Console.WriteLine("-- Base Probabilities --");
             foreach (KeyValuePair<AccessManagerOperation, Double> currKvp in returnDictionary)
             {
                 Console.WriteLine($"{currKvp.Key}: {currKvp.Value}");
             }
+            */
 
             return returnDictionary;
         }
@@ -351,6 +363,29 @@ namespace ApplicationAccess.TestHarness
             Double baseProbabililty = Convert.ToDouble(currentItemCount) / (2.0 * Convert.ToDouble(targetItemCount));
             
             return betaScaleFactor * baseProbabililty;
+        }
+
+        protected void PrintDataElementStorerCounts(DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer)
+        {
+            var dataElementStorerCountProperties = new List<Tuple<StorageStructure, Func<Int32>>>()
+            {
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.Users, () => { return dataElementStorer.UserCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.Groups, () => { return dataElementStorer.GroupCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.UserToGroupMap, () => { return dataElementStorer.UserToGroupMappingCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.GroupToGroupMap, () => { return dataElementStorer.GroupToGroupMappingCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.UserToComponentMap, () => { return dataElementStorer.UserToComponentMappingCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.GroupToComponentMap, () => { return dataElementStorer.GroupToComponentMappingCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.EntityTypes,() => { return dataElementStorer.EntityTypeCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.Entities,() => { return dataElementStorer.EntityCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.UserToEntityMap, () => { return dataElementStorer.UserToEntityMappingCount; }),
+                new Tuple<StorageStructure, Func<Int32>>(StorageStructure.GroupToEntityMap, () => { return dataElementStorer.GroupToEntityMappingCount; })
+            };
+            Console.WriteLine($":: DataElementStorer Counts at {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff")} ::");
+            foreach (Tuple<StorageStructure, Func<Int32>> currentCount in dataElementStorerCountProperties)
+            {
+                Console.WriteLine($"{currentCount.Item1}: {currentCount.Item2.Invoke()}");
+            }
+            Console.WriteLine();
         }
 
         #region Storage Structure Initialization Methods

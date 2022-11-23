@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ApplicationAccess.TestHarness": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Temp\\AppAccess Config\\TestConfig.json\""
+    }
+  }
+}
