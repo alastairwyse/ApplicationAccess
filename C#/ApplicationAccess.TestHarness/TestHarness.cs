@@ -117,9 +117,11 @@ namespace ApplicationAccess.TestHarness
         /// </summary>
         public void Stop()
         {
+            Console.WriteLine($"{this.GetType().Name}: Setting 'stopMethodCalled' = true");
             stopMethodCalled = true;
             foreach (IOperationTriggerer currentOperationTriggerer in operationTriggerers)
             {
+                Console.WriteLine($"{this.GetType().Name}: Stopping IOperationTriggerer '{currentOperationTriggerer.ToString()}'");
                 currentOperationTriggerer.Stop();
             }
             foreach (Thread currentWorkerThread in workerThreads)
@@ -128,6 +130,7 @@ namespace ApplicationAccess.TestHarness
                 //   Prevents a thread joining itself if Stop() was called from one of the worker threads, rather than the client thread
                 if (Thread.CurrentThread != currentWorkerThread)
                 {
+                    Console.WriteLine($"{this.GetType().Name}: Joining thread '{currentWorkerThread.Name}'");
                     currentWorkerThread.Join();
                 }
             }
@@ -155,7 +158,7 @@ namespace ApplicationAccess.TestHarness
                 //   Will need to see if this causes issues
                 AccessManagerOperation nextOperation = operationGenerator.Generate();
 
-                Console.WriteLine($"Next operation: {nextOperation}");
+                //Console.WriteLine($"Next operation: {nextOperation}");
 
                 PrepareExecutionReturnActions actions = operationExecutor.PrepareExecution(nextOperation);
                 operationTriggerer.WaitForNextTrigger();

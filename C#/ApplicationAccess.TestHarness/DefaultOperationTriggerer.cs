@@ -84,7 +84,8 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc/>
         public void Stop()
         {
-            stopMethodCalled = true;
+            stopMethodCalled = true; 
+            triggerSignal.Set();
             operationInitiatedSignal.Set();
             // TODO: Need to make sure the in the worked thread loop, above statements will allow it to step out of the loop without locking up
             operationTriggeringWorkerThread.Join();

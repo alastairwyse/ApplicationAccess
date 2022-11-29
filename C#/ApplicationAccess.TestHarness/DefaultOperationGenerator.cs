@@ -48,6 +48,10 @@ namespace ApplicationAccess.TestHarness
         protected HashSet<AccessManagerOperation> propertyAndContainsQueryOperations;
         /// <summary>AccessManager Add*() operations which add fundamental elements with no dependencies.</summary>
         protected HashSet<AccessManagerOperation> primaryAddOperations;
+        /// <summary>AccessManager Add*() operations which add fundamental elements with no dependencies and are scaled by a beta function.</summary>
+        protected HashSet<AccessManagerOperation> betaScaledAddOperations;
+        /// <summary>Beta scaling parameters for AccessManager Add*() operations which are scaled by a beta function.</summary>
+        protected Dictionary<AccessManagerOperation, BetaScalingParameters> betaScaledAddOperationParameters;
         /// <summary>AccessManager Add*() operations which add secondary elements with dependencies on other add operations having to be performed before these can be performed.</summary>
         protected HashSet<AccessManagerOperation> secondaryAddOperations;
         /// <summary>AccessManager event operations, and their inverse/opposite operation.</summary>
@@ -122,7 +126,6 @@ namespace ApplicationAccess.TestHarness
             {
                 PrintDataElementStorerCounts(dataElementStorer);
             }
-            Console.WriteLine($"Generated '{returnOperation}' operation");
 
             return returnOperation;
         }
@@ -195,18 +198,24 @@ namespace ApplicationAccess.TestHarness
                 }
             }
 
-            // Calculate the probabilities for AddEntityType and RemoveEntityType
-            Int32 actualEntityTypeCount = storageStructureCounts[operationToPrimaryStorageStructureMap[AccessManagerOperation.AddEntityType]];
-            Int32 targetEntityTypeCount = targetStorageStructureCounts[operationToPrimaryStorageStructureMap[AccessManagerOperation.AddEntityType]];
-            Double addEntityTypeBaseProbability = CalculateBetaScaledBaseRemoveProbability(2 * targetEntityTypeCount - actualEntityTypeCount, targetEntityTypeCount, 1.0, 4.0);
-            if (addEntityTypeBaseProbability > 0.0)
+            // Calculate the probabilities for beta scaled operations
+            foreach (AccessManagerOperation currentOperation in betaScaledAddOperations)
             {
-                returnDictionary.Add(AccessManagerOperation.AddEntityType, addEntityTypeBaseProbability);
-            }
-            Double removeEntityTypeBaseProbability = CalculateBetaScaledBaseRemoveProbability(actualEntityTypeCount, targetEntityTypeCount, 1.0, 4.0);
-            if (removeEntityTypeBaseProbability > 0.0)
-            {
-                returnDictionary.Add(AccessManagerOperation.RemoveEntityType, removeEntityTypeBaseProbability);
+                Int32 actualElementCount = storageStructureCounts[operationToPrimaryStorageStructureMap[currentOperation]];
+                Int32 targetElementCount = targetStorageStructureCounts[operationToPrimaryStorageStructureMap[currentOperation]];
+                Double betaCurveParameter = betaScaledAddOperationParameters[currentOperation].BetaCurveParameter;
+                Double minimumValue = betaScaledAddOperationParameters[currentOperation].MinimumValue;
+                Double addBaseProbability = CalculateBetaScaledBaseRemoveProbability(2 * targetElementCount - actualElementCount, targetElementCount, 1.0, betaCurveParameter, minimumValue);
+                if (addBaseProbability > 0.0)
+                {
+                    returnDictionary.Add(currentOperation, addBaseProbability);
+                }
+                AccessManagerOperation removeOperation = inverseEventOperationMap[currentOperation];
+                Double removeBaseProbability = CalculateBetaScaledBaseRemoveProbability(actualElementCount, targetElementCount, 1.0, betaCurveParameter, minimumValue);
+                if (removeBaseProbability > 0.0)
+                {
+                    returnDictionary.Add(removeOperation, removeBaseProbability);
+                }
             }
 
             Dictionary<AccessManagerOperation, Double> secondaryEventOperationBaseProbabilities = secondaryEventOperationBaseProbabilityCalculator.CalculateBaseProbabilities(storageStructureCounts);
@@ -234,6 +243,7 @@ namespace ApplicationAccess.TestHarness
             }
 
             /*
+            PrintDataElementStorerCounts(dataElementStorer);
             Console.WriteLine("-- Base Probabilities --");
             foreach (KeyValuePair<AccessManagerOperation, Double> currKvp in returnDictionary)
             {
@@ -341,8 +351,9 @@ namespace ApplicationAccess.TestHarness
         /// <param name="targetItemCount">The target number of items.</param>
         /// <param name="betaCurveAlphaParameter">The alpha shape parameter of the beta distribution.</param>
         /// <param name="betaCurveBetaParameter">The beta shape parameter of the beta distribution.</param>
+        /// <param name="minimumValue">The minimum value which should be allowed when the current item count matches the target.</param>  
         /// <returns>The base probability.</returns>
-        public Double CalculateBetaScaledBaseRemoveProbability(Int32 currentItemCount, Int32 targetItemCount, Double betaCurveAlphaParameter, Double betaCurveBetaParameter)
+        public Double CalculateBetaScaledBaseRemoveProbability(Int32 currentItemCount, Int32 targetItemCount, Double betaCurveAlphaParameter, Double betaCurveBetaParameter, Double minimumValue)
         {
             var betaScaler = new Beta(betaCurveAlphaParameter, betaCurveBetaParameter);
             Double betaScaleFactor;
@@ -358,8 +369,8 @@ namespace ApplicationAccess.TestHarness
                 betaScaleFactor = betaScaler.CumulativeDistribution(1.0 - betaInput);
             }
             // Scale the scale factor between 0.1 and 1.0
-            betaScaleFactor *= 0.9;
-            betaScaleFactor += 0.1;
+            betaScaleFactor *= (1.0 - minimumValue);
+            betaScaleFactor += minimumValue;
             Double baseProbabililty = Convert.ToDouble(currentItemCount) / (2.0 * Convert.ToDouble(targetItemCount));
             
             return betaScaleFactor * baseProbabililty;
@@ -613,6 +624,7 @@ namespace ApplicationAccess.TestHarness
         {
             propertyAndContainsQueryOperations = new HashSet<AccessManagerOperation>();
             primaryAddOperations = new HashSet<AccessManagerOperation>();
+            betaScaledAddOperations = new HashSet<AccessManagerOperation>();
             secondaryAddOperations = new HashSet<AccessManagerOperation>();
             removeOperations = new HashSet<AccessManagerOperation>();
             getAndHasOperations = new HashSet<AccessManagerOperation>();
@@ -631,9 +643,20 @@ namespace ApplicationAccess.TestHarness
 
             primaryAddOperations.UnionWith(new AccessManagerOperation[]
             {
-                AccessManagerOperation.AddUser, 
+                AccessManagerOperation.AddUser 
+            });
+
+            betaScaledAddOperations.UnionWith(new AccessManagerOperation[]
+            {
+                AccessManagerOperation.AddEntityType, 
                 AccessManagerOperation.AddGroup
             });
+
+            betaScaledAddOperationParameters = new Dictionary<AccessManagerOperation, BetaScalingParameters>()
+            {
+                { AccessManagerOperation.AddEntityType, new BetaScalingParameters(2.0, 0.05) }, 
+                { AccessManagerOperation.AddGroup, new BetaScalingParameters(2.0, 0.05) }
+            };
 
             secondaryAddOperations.UnionWith(new AccessManagerOperation[]
             {
@@ -688,6 +711,25 @@ namespace ApplicationAccess.TestHarness
         #endregion
 
         #region Nested Classes
+
+        protected class BetaScalingParameters
+        {
+            public Double BetaCurveParameter
+            {
+                get;
+            }
+
+            public Double MinimumValue
+            {
+                get;
+            }
+
+            public BetaScalingParameters(Double betaCurveParameter, Double minimumValue)
+            {
+                this.BetaCurveParameter = betaCurveParameter;
+                this.MinimumValue = minimumValue;
+            }
+        }
 
         /// <summary>
         /// Defines a method which calculates base probabilities for secondary event operations (like AddUserToGropuMapping()).

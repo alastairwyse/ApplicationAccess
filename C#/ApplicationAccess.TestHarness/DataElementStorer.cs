@@ -524,8 +524,8 @@ namespace ApplicationAccess.TestHarness
                 foreach (TUser currentUser in usersToRemove)
                 {
                     userToEntityMap.Remove(currentUser);
-                    Interlocked.CompareExchange(ref userToEntityMappingCount, newUserToEntityMappingCount, userToEntityMappingCount);
                 }
+                Interlocked.CompareExchange(ref userToEntityMappingCount, newUserToEntityMappingCount, userToEntityMappingCount);
 
                 var groupsToRemove = new List<TGroup>();
                 Int32 newGroupToEntityMappingCount = groupToEntityMappingCount;
@@ -544,8 +544,8 @@ namespace ApplicationAccess.TestHarness
                 foreach (TGroup currentGroup in groupsToRemove)
                 {
                     groupToEntityMap.Remove(currentGroup);
-                    Interlocked.CompareExchange(ref groupToEntityMappingCount, newGroupToEntityMappingCount, groupToEntityMappingCount);
                 }
+                Interlocked.CompareExchange(ref groupToEntityMappingCount, newGroupToEntityMappingCount, groupToEntityMappingCount);
 
                 if (entities.ContainsKey(entityType) == true)
                 {

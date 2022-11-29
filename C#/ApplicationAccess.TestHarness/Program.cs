@@ -179,42 +179,57 @@ namespace ApplicationAccess.TestHarness
                                     dataElementStorerLoader.Load(persister, dataElementStorer);
                                     testAccessManager.Load();
                                 }
-                                var operationGenerator = new DefaultOperationGenerator<String, String, TestApplicationComponent, TestAccessLevel>
-                                (
-                                    dataElementStorer,
-                                    targetStorateStructureCounts,
-                                    new EnumAvailableDataElementCounter<TestApplicationComponent>(),
-                                    new EnumAvailableDataElementCounter<TestAccessLevel>(),
-                                    operationGeneratorConfiguration.QueryToEventOperationRatio,
-                                    operationGeneratorConfiguration.DataElementStorerCountPrintFrequency
-                                );
-                                var parameterGenerator = new DefaultOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>
-                                (
-                                    dataElementStorer,
-                                    new StringifiedGuidGenerator(),
-                                    new StringifiedGuidGenerator(),
-                                    new NewTestApplicationComponentGenerator(),
-                                    new NewTestAccessLevelGenerator(),
-                                    new StringifiedGuidGenerator(),
-                                    new StringifiedGuidGenerator()
-                                );
 
+                                // Setup TestHarness array parameters
                                 Double targetOperationsPerSecond = testHarnessConfiguration.TargetOperationsPerSecond;
                                 Int32 previousInitiationTimeWindowSize = testHarnessConfiguration.PreviousOperationInitiationTimeWindowSize;
+                                var operationGenerators = new List<IOperationGenerator>();
+                                var parameterGenerators = new List<IOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>>();
+                                var operationTriggerers = new List<IOperationTriggerer>();
+                                var exceptionLoggers = new List<IApplicationLogger>();
+                                for (Int32 i = 0; i < workerThreadCount; i++)
+                                {
+                                    var operationGenerator = new DefaultOperationGenerator<String, String, TestApplicationComponent, TestAccessLevel>
+                                    (
+                                        dataElementStorer,
+                                        targetStorateStructureCounts,
+                                        new EnumAvailableDataElementCounter<TestApplicationComponent>(),
+                                        new EnumAvailableDataElementCounter<TestAccessLevel>(),
+                                        operationGeneratorConfiguration.QueryToEventOperationRatio,
+                                        operationGeneratorConfiguration.DataElementStorerCountPrintFrequency
+                                    );
+                                    operationGenerators.Add(operationGenerator);
+
+                                    var parameterGenerator = new DefaultOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>
+                                    (
+                                        dataElementStorer,
+                                        new StringifiedGuidGenerator(),
+                                        new StringifiedGuidGenerator(),
+                                        new NewTestApplicationComponentGenerator(),
+                                        new NewTestAccessLevelGenerator(),
+                                        new StringifiedGuidGenerator(),
+                                        new StringifiedGuidGenerator()
+                                    );
+                                    parameterGenerators.Add(parameterGenerator);
+
+                                    var operationTriggerer = new DefaultOperationTriggerer(targetOperationsPerSecond, previousInitiationTimeWindowSize);
+                                    operationTriggerers.Add(operationTriggerer);
+
+                                    exceptionLoggers.Add(testHarnessExceptionLogger);
+                                }
 
                                 Double exceptionsPerSecondThreshold = testHarnessConfiguration.ExceptionsPerSecondThreshold;
                                 Int32 previousExceptionOccurenceTimeWindowSize = testHarnessConfiguration.PreviousExceptionOccurenceTimeWindowSize;
                                 Boolean ignoreKnownAccessManagerExceptions = testHarnessConfiguration.IgnoreKnownAccessManagerExceptions;
-                                using (var operationTriggerer = new DefaultOperationTriggerer(targetOperationsPerSecond, previousInitiationTimeWindowSize))
                                 using (var testHarness = new TestHarness<String, String, TestApplicationComponent, TestAccessLevel>
                                 (
                                     testAccessManager,
                                     workerThreadCount,
                                     dataElementStorer,
-                                    new IOperationGenerator[] { operationGenerator },
-                                    new IOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>[] { parameterGenerator },
-                                    new IOperationTriggerer[] { operationTriggerer },
-                                    new IApplicationLogger[] { testHarnessExceptionLogger },
+                                    operationGenerators,
+                                    parameterGenerators,
+                                    operationTriggerers,
+                                    exceptionLoggers,
                                     exceptionsPerSecondThreshold,
                                     previousExceptionOccurenceTimeWindowSize,
                                     ignoreKnownAccessManagerExceptions
@@ -222,7 +237,10 @@ namespace ApplicationAccess.TestHarness
                                 {
                                     metricLogger.Start();
                                     accessManagerEventBufferFlushStrategyAndActions.StartAction.Invoke();
-                                    operationTriggerer.Start();
+                                    foreach (IOperationTriggerer currentOperationTriggerer in operationTriggerers)
+                                    {
+                                        currentOperationTriggerer.Start();
+                                    }
 
                                     try
                                     {
@@ -231,11 +249,6 @@ namespace ApplicationAccess.TestHarness
                                         testHarness.Start();
                                         stopNotifySignal.WaitOne();
                                         testHarness.Stop();
-
-                                        // TODO:
-                                        // Try different types of buffer processing strategies (for 'persisterBufferFlushStrategy' and 'metricLoggerBufferProcessingStrategy')
-                                        // Implementation of ParameterizedOperationSerializer 
-                                        // Check for and remove any Console.Writeline()
                                     }
                                     finally
                                     {
@@ -248,6 +261,11 @@ namespace ApplicationAccess.TestHarness
                                         stopNotifySignal.Dispose();
                                         Console.WriteLine("Flushing log4net logs...");
                                         LogManager.Flush(10000);
+                                        foreach (IOperationTriggerer currentOperationTriggerer in operationTriggerers)
+                                        {
+                                            currentOperationTriggerer.Stop();
+                                            currentOperationTriggerer.Dispose();
+                                        }
                                     }
                                 }
                             }
