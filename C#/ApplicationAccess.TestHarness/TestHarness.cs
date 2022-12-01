@@ -133,6 +133,10 @@ namespace ApplicationAccess.TestHarness
                     Console.WriteLine($"{this.GetType().Name}: Joining thread '{currentWorkerThread.Name}'");
                     currentWorkerThread.Join();
                 }
+                else
+                {
+                    Console.WriteLine($"{this.GetType().Name}: Not joining thread '{currentWorkerThread.Name}' as it is the current thread");
+                }
             }
         }
 

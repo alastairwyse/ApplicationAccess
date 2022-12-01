@@ -391,7 +391,7 @@ namespace ApplicationAccess.TestHarness
                 new Tuple<StorageStructure, Func<Int32>>(StorageStructure.UserToEntityMap, () => { return dataElementStorer.UserToEntityMappingCount; }),
                 new Tuple<StorageStructure, Func<Int32>>(StorageStructure.GroupToEntityMap, () => { return dataElementStorer.GroupToEntityMappingCount; })
             };
-            Console.WriteLine($":: DataElementStorer Counts at {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff")} ::");
+            Console.WriteLine($":: DataElementStorer Counts at {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffff")} ({System.Threading.Thread.CurrentThread.Name}) ::");
             foreach (Tuple<StorageStructure, Func<Int32>> currentCount in dataElementStorerCountProperties)
             {
                 Console.WriteLine($"{currentCount.Item1}: {currentCount.Item2.Invoke()}");

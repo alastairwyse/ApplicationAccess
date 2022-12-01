@@ -96,6 +96,8 @@ namespace ApplicationAccess.Persistence
         protected Object userToEntityMappingEventBufferLock;
         /// <summary>Lock object for the group to entity mapping event queue.</summary>
         protected Object groupToEntityMappingEventBufferLock;
+        /// <summary>Lock object for the 'lastEventSequenceNumber' and 'dateTimeProvider' members, to ensure that their sequence orders are maintained between queuing of different events.</summary>
+        protected Object eventSequenceNumberLock;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
@@ -143,6 +145,7 @@ namespace ApplicationAccess.Persistence
             entityEventBufferLock = new Object();
             userToEntityMappingEventBufferLock = new Object();
             groupToEntityMappingEventBufferLock = new Object();
+            eventSequenceNumberLock = new Object();
         }
 
         /// <summary>
@@ -191,8 +194,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser> postValidationAction = (actionUser) =>
             {
-                var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, nextSequenceNumberAndTimestamp.Item1);
                 userEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
                 metricLogger.Increment(new AddUserEventBuffered());
@@ -210,8 +214,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser> postValidationAction = (actionUser) =>
             {
-                var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, nextSequenceNumberAndTimestamp.Item1);
                 userEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
                 metricLogger.Increment(new RemoveUserEventBuffered());
@@ -229,8 +234,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup> postValidationAction = (actionGroup) =>
             {
-                var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, nextSequenceNumberAndTimestamp.Item1);
                 groupEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
                 metricLogger.Increment(new AddGroupEventBuffered());
@@ -248,8 +254,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup> postValidationAction = (actionGroup) =>
             {
-                var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, nextSequenceNumberAndTimestamp.Item1);
                 groupEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
                 metricLogger.Increment(new RemoveGroupEventBuffered());
@@ -267,8 +274,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
             {
-                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Add, user, group, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Add, user, group, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 userToGroupMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
                 metricLogger.Increment(new AddUserToGroupMappingEventBuffered());
@@ -286,8 +294,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
             {
-                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Remove, user, group, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Remove, user, group, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 userToGroupMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveUserToGroupMappingEventBuffered());
@@ -305,8 +314,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
             {
-                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, fromGroup, toGroup, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 groupToGroupMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
                 metricLogger.Increment(new AddGroupToGroupMappingEventBuffered());
@@ -324,8 +334,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
             {
-                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, fromGroup, toGroup, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 groupToGroupMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveGroupToGroupMappingEventBuffered());
@@ -343,8 +354,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
             {
-                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, user, applicationComponent, accessLevel, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
                 metricLogger.Increment(new AddUserToApplicationComponentAndAccessLevelMappingEventBuffered());
@@ -362,8 +374,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
             {
-                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, user, applicationComponent, accessLevel, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered());
@@ -381,8 +394,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
             {
-                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, group, applicationComponent, accessLevel, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
                 metricLogger.Increment(new AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
@@ -400,8 +414,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
             {
-                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, group, applicationComponent, accessLevel, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
@@ -419,8 +434,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<string> postValidationAction = (actionEntityType) =>
             {
-                var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, nextSequenceNumberAndTimestamp.Item1);
                 entityTypeEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
                 metricLogger.Increment(new AddEntityTypeEventBuffered());
@@ -438,8 +454,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<string> postValidationAction = (actionEntityType) =>
             {
-                var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, nextSequenceNumberAndTimestamp.Item1);
                 entityTypeEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
                 metricLogger.Increment(new RemoveEntityTypeEventBuffered());
@@ -457,8 +474,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
             {
-                var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, entity, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, nextSequenceNumberAndTimestamp.Item1);
                 entityEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
                 metricLogger.Increment(new AddEntityEventBuffered());
@@ -476,8 +494,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
             {
-                var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, entity, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, nextSequenceNumberAndTimestamp.Item1);
                 entityEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
                 metricLogger.Increment(new RemoveEntityEventBuffered());
@@ -495,8 +514,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
             {
-                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, entityType, entity, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 userToEntityMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
                 metricLogger.Increment(new AddUserToEntityMappingEventBuffered());
@@ -514,8 +534,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
             {
-                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, entityType, entity, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 userToEntityMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveUserToEntityMappingEventBuffered());
@@ -533,8 +554,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
             {
-                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, entityType, entity, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 groupToEntityMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
                 metricLogger.Increment(new AddGroupToEntityMappingEventBuffered());
@@ -552,8 +574,9 @@ namespace ApplicationAccess.Persistence
         {
             Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
             {
-                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, entityType, entity, dateTimeProvider.UtcNow());
-                var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, Interlocked.Increment(ref lastEventSequenceNumber));
+                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                 groupToEntityMappingEventBuffer.AddLast(bufferItem);
                 bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
                 metricLogger.Increment(new RemoveGroupToEntityMappingEventBuffered());
@@ -983,6 +1006,19 @@ namespace ApplicationAccess.Persistence
             if (validationResult.Successful == false && validationResult.ValidationExceptionDispatchInfo != null)
             {
                 validationResult.ValidationExceptionDispatchInfo.Throw();
+            }
+        }
+
+        /// <summary>
+        /// Returns the next event sequence number and the current timestamp.
+        /// </summary>
+        /// <returns>A tuple containing: the next event sequence number, and the current timestamp.</returns>
+        protected Tuple<Int64, DateTime> GetNextEventSequenceNumberAndTimestamp()
+        {
+            lock(eventSequenceNumberLock)
+            {
+                // ++ returns the incremented value
+                return new Tuple<Int64, DateTime>(++lastEventSequenceNumber, dateTimeProvider.UtcNow());
             }
         }
 

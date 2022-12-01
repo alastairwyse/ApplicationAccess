@@ -34,7 +34,8 @@ namespace ApplicationAccess.Persistence.UnitTests
     public class AccessManagerTemporalEventPersisterBufferTests
     {
         private AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testAccessManagerTemporalEventPersisterBuffer;
-        private IMethodCallInterceptor methodCallInterceptor;
+        private IMethodCallInterceptor dateTimeProviderMethodCallInterceptor;
+        private IMethodCallInterceptor eventValidatorMethodCallInterceptor;
         private IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel> mockEventValidator;
         private IAccessManagerEventBufferFlushStrategy mockBufferFlushStrategy;
         private IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
@@ -45,13 +46,15 @@ namespace ApplicationAccess.Persistence.UnitTests
         protected void SetUp()
         {
             mockBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
-            methodCallInterceptor = Substitute.For<IMethodCallInterceptor>();
+            dateTimeProviderMethodCallInterceptor = Substitute.For<IMethodCallInterceptor>();
+            eventValidatorMethodCallInterceptor = Substitute.For<IMethodCallInterceptor>();
             mockEventValidator = Substitute.For<IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockGuidProvider = Substitute.For<IGuidProvider>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
-            var methodInterceptingValidator = new MethodInterceptingAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(methodCallInterceptor, new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>());
-            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(methodInterceptingValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, mockDateTimeProvider);
+            var methodInterceptingDateTimeProvider = new MethodInterceptingDateTimeProvider(dateTimeProviderMethodCallInterceptor, mockDateTimeProvider);
+            var methodInterceptingValidator = new MethodInterceptingAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(eventValidatorMethodCallInterceptor, new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>());
+            testAccessManagerTemporalEventPersisterBuffer = new AccessManagerTemporalEventPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(methodInterceptingValidator, mockBufferFlushStrategy, mockEventPersister, mockGuidProvider, methodInterceptingDateTimeProvider);
         }
 
         [Test]
@@ -60,13 +63,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:55");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddUser(user);
@@ -79,7 +88,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(user, bufferedEvent.User);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -106,13 +116,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:56");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveUser(user);
@@ -125,7 +141,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(user, bufferedEvent.User);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -152,13 +169,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:57");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddGroup(group);
@@ -171,7 +194,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(group, bufferedEvent.Group);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -198,13 +222,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:58");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveGroup(group);
@@ -217,7 +247,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(group, bufferedEvent.Group);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -245,13 +276,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:59");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddUserToGroupMapping(user, group);
@@ -265,7 +302,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(group, bufferedEvent.Group);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -294,13 +332,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:00");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveUserToGroupMapping(user, group);
@@ -314,7 +358,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(group, bufferedEvent.Group);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -343,13 +388,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:01");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
@@ -363,7 +414,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(toGroup, bufferedEvent.ToGroup);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -392,13 +444,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:02");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToGroupMapping(fromGroup, toGroup);
@@ -412,7 +470,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(toGroup, bufferedEvent.ToGroup);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -440,13 +499,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:03");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
@@ -461,7 +526,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(AccessLevel.View, bufferedEvent.AccessLevel);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -488,13 +554,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:04");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
@@ -509,7 +581,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(AccessLevel.View, bufferedEvent.AccessLevel);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -536,13 +609,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:05");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
@@ -557,7 +636,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(AccessLevel.Create, bufferedEvent.AccessLevel);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -584,13 +664,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:06");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Order, AccessLevel.Create);
@@ -605,7 +691,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(AccessLevel.Create, bufferedEvent.AccessLevel);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -632,13 +719,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String entityType = "ClientAccount";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:07");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddEntityType(entityType);
@@ -651,7 +744,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entityType, bufferedEvent.EntityType);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -678,13 +772,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String entityType = "ClientAccount";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:08");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveEntityType(entityType);
@@ -697,7 +797,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entityType, bufferedEvent.EntityType);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.EntityTypeEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -725,13 +826,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:09");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EntityEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddEntity(entityType, entity);
@@ -745,7 +852,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entity, bufferedEvent.Entity);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -774,13 +882,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:10");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EntityEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveEntity(entityType, entity);
@@ -794,7 +908,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entity, bufferedEvent.Entity);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.EntityEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -824,13 +939,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:11");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddUserToEntityMapping(user, entityType, entity);
@@ -845,7 +966,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entity, bufferedEvent.Entity);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -876,13 +998,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:12");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveUserToEntityMapping(user, entityType, entity);
@@ -897,7 +1025,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entity, bufferedEvent.Entity);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -928,13 +1057,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:13");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.AddGroupToEntityMapping(group, entityType, entity);
@@ -949,7 +1084,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entity, bufferedEvent.Entity);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -980,13 +1116,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:14");
-            Boolean assertionsWereChecked = false;
+            Boolean dateTimeProviderAssertionsWereChecked = false;
+            Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
-            methodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.EventSequenceNumberLock));
+                dateTimeProviderAssertionsWereChecked = true;
+            });
+
+            eventValidatorMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBufferLock));
-                assertionsWereChecked = true;
+                validatorAssertionsWereChecked = true;
             });
 
             testAccessManagerTemporalEventPersisterBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
@@ -1001,7 +1144,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entity, bufferedEvent.Entity);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
             Assert.AreEqual(0, testAccessManagerTemporalEventPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.Item2);
-            Assert.IsTrue(assertionsWereChecked);
+            Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
+            Assert.IsTrue(validatorAssertionsWereChecked);
         }
 
         [Test]
@@ -2239,6 +2383,12 @@ namespace ApplicationAccess.Persistence.UnitTests
                 get { return groupToEntityMappingEventBufferLock; }
             }
 
+            /// <summary>Lock object for the 'lastEventSequenceNumber' and 'dateTimeProvider' members, to ensure that their sequence orders are maintained between queuing of different events.</summary>
+            public Object EventSequenceNumberLock
+            {
+                get { return eventSequenceNumberLock; }
+            }
+
             /// <summary>
             ///  Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.AccessManagerTemporalEventPersisterBuffer+AccessManagerTemporalEventPersisterBufferWithProtectedMembers class.
             /// </summary>
@@ -2261,7 +2411,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         /// <summary>
-        /// An implementation of IAccessManagerEventValidator which allows interception of method calls via a call to IMethodCallInterceptor.Intercept(), and subsequently calls the equivalent method in an instance of NullAccessManagerEventValidator.
+        /// An implementation of <see cref="IAccessManagerEventValidator{TUser, TGroup, TComponent, TAccess}"/> which allows interception of method calls via a call to <see cref="IMethodCallInterceptor.Intercept">IMethodCallInterceptor.Intercept()</see>, and subsequently calls the equivalent method in an instance of <see cref="NullAccessManagerEventValidator{TUser, TGroup, TComponent, TAccess}"/>.
         /// </summary>
         /// <typeparam name="TUser">The type of users in the AccessManager implementation.</typeparam>
         /// <typeparam name="TGroup">The type of groups in the AccessManager implementation.</typeparam>
@@ -2403,6 +2553,40 @@ namespace ApplicationAccess.Persistence.UnitTests
             {
                 interceptor.Intercept();
                 return nullAccessManagerEventValidator.ValidateRemoveGroupToEntityMapping(group, entityType, entity, postValidationAction);
+            }
+        }
+
+        /// <summary>
+        /// An implementation of <see cref="IDateTimeProvider"/> which allows interception of method calls via a call to <see cref="IMethodCallInterceptor.Intercept">IMethodCallInterceptor.Intercept()</see>, and subsequently calls the equivalent method on another instance of <see cref="IDateTimeProvider"/>.
+        /// </summary>
+        private class MethodInterceptingDateTimeProvider : IDateTimeProvider
+        {
+            /// <summary>A mock of IMethodCallInterceptor (for intercepting method calls).</summary>
+            protected IMethodCallInterceptor interceptor;
+            /// <summary>An instance of IDateTimeProvider to perform the actual functionality.</summary>
+            protected IDateTimeProvider dateTimeProvider;
+
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.Persistence.UnitTests.AccessManagerTemporalEventPersisterBuffer+MethodInterceptingDateTimeProvider class.
+            /// </summary>
+            /// <param name="interceptor">A mock of IMethodCallInterceptor (for intercepting method calls).</param>
+            /// <param name="dateTimeProvider">An instance of IDateTimeProvider to perform the actual functionality.</param>
+            public MethodInterceptingDateTimeProvider(IMethodCallInterceptor interceptor, IDateTimeProvider dateTimeProvider)
+            {
+                this.interceptor = interceptor;
+                this.dateTimeProvider = dateTimeProvider;
+            }
+
+            public DateTime Now()
+            {
+                interceptor.Intercept();
+                return dateTimeProvider.Now();
+            }
+
+            public DateTime UtcNow()
+            {
+                interceptor.Intercept();
+                return dateTimeProvider.UtcNow();
             }
         }
     }

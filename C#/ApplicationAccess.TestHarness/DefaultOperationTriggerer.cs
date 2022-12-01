@@ -85,9 +85,9 @@ namespace ApplicationAccess.TestHarness
         public void Stop()
         {
             stopMethodCalled = true; 
-            triggerSignal.Set();
             operationInitiatedSignal.Set();
             // TODO: Need to make sure the in the worked thread loop, above statements will allow it to step out of the loop without locking up
+            Console.WriteLine($"{this.GetType().Name}: Joining worker thread");
             operationTriggeringWorkerThread.Join();
             stopwatch.Stop();
         }
@@ -127,7 +127,10 @@ namespace ApplicationAccess.TestHarness
                 // Trigger the next operation
                 triggerSignal.Set();
                 // Wait for the main thread to signal that it's initiated the operation
-                operationInitiatedSignal.WaitOne();
+                if (stopMethodCalled == false)
+                {
+                    operationInitiatedSignal.WaitOne();
+                }
             }
         }
 

@@ -317,6 +317,9 @@
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.groupToEntityMappingEventBufferLock">
             <summary>Lock object for the group to entity mapping event queue.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.eventSequenceNumberLock">
+            <summary>Lock object for the 'lastEventSequenceNumber' and 'dateTimeProvider' members, to ensure that their sequence orders are maintained between queuing of different events.</summary>
+        </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer class.
@@ -434,6 +437,12 @@
             Re-throws the exception which caused validation failure, if the exception exists.
             </summary>
             <param name="validationResult">The validation result to check.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.GetNextEventSequenceNumberAndTimestamp">
+            <summary>
+            Returns the next event sequence number and the current timestamp.
+            </summary>
+            <returns>A tuple containing: the next event sequence number, and the current timestamp.</returns>
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4.MoveEventsToTemporaryQueues(System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.UserEventBufferItem{`0},System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.GroupEventBufferItem{`1},System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.UserToGroupMappingEventBufferItem{`0,`1},System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.GroupToGroupMappingEventBufferItem{`1},System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.UserToApplicationComponentAndAccessLevelMappingEventBufferItem{`0,`2,`3},System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.GroupToApplicationComponentAndAccessLevelMappingEventBufferItem{`1,`2,`3},System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.EntityTypeEventBufferItem,System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.EntityEventBufferItem,System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.UserToEntityMappingEventBufferItem{`0},System.Int64}}@,System.Collections.Generic.LinkedList{System.Tuple{ApplicationAccess.Persistence.GroupToEntityMappingEventBufferItem{`1},System.Int64}}@)">
             <summary>
