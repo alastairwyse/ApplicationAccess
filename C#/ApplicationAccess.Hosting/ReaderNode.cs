@@ -135,18 +135,18 @@ namespace ApplicationAccess.Hosting
 
         /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
-        public IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
+        public HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
             refreshStrategy.NotifyQueryMethodCalled();
-            return accessManager.GetUserToGroupMappings(user);
+            return accessManager.GetUserToGroupMappings(user, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
-        public IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
+        public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
             refreshStrategy.NotifyQueryMethodCalled();
-            return accessManager.GetGroupToGroupMappings(group);
+            return accessManager.GetGroupToGroupMappings(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -255,10 +255,26 @@ namespace ApplicationAccess.Hosting
 
         /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return accessManager.GetEntitiesAccessibleByUser(user);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             refreshStrategy.NotifyQueryMethodCalled();
             return accessManager.GetEntitiesAccessibleByUser(user, entityType);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return accessManager.GetEntitiesAccessibleByGroup(group);
         }
 
         /// <inheritdoc/>

@@ -218,11 +218,58 @@ namespace ApplicationAccess.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManager.GetUserToGroupMappings("user1").FirstOrDefault();
+                testAccessManager.GetUserToGroupMappings("user1", false).FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+        }
+
+        [Test]
+        public void GetUserToGroupMappings()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddUser("user3");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddGroup("group5");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddUserToGroupMapping("user3", "group3");
+            testAccessManager.AddGroupToGroupMapping("group1", "group2");
+            testAccessManager.AddGroupToGroupMapping("group1", "group3");
+            testAccessManager.AddGroupToGroupMapping("group1", "group5");
+            testAccessManager.AddGroupToGroupMapping("group3", "group4");
+
+            HashSet<String> mappings = testAccessManager.GetUserToGroupMappings("user1", false);
+            Assert.AreEqual(0, mappings.Count);
+
+
+            mappings = testAccessManager.GetUserToGroupMappings("user2", false);
+            Assert.AreEqual(1, mappings.Count);
+            Assert.IsTrue(mappings.Contains("group2"));
+
+
+            mappings = testAccessManager.GetUserToGroupMappings("user3", false);
+            Assert.AreEqual(1, mappings.Count);
+            Assert.IsTrue(mappings.Contains("group3"));
+
+
+            mappings = testAccessManager.GetUserToGroupMappings("user1", true);
+            Assert.AreEqual(0, mappings.Count);
+
+
+            mappings = testAccessManager.GetUserToGroupMappings("user2", true);
+            Assert.AreEqual(1, mappings.Count);
+            Assert.IsTrue(mappings.Contains("group2"));
+
+
+            mappings = testAccessManager.GetUserToGroupMappings("user3", true);
+            Assert.AreEqual(2, mappings.Count);
+            Assert.IsTrue(mappings.Contains("group3"));
+            Assert.IsTrue(mappings.Contains("group4"));
         }
 
         [Test]
@@ -352,11 +399,51 @@ namespace ApplicationAccess.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testAccessManager.GetGroupToGroupMappings("group11").FirstOrDefault();
+                testAccessManager.GetGroupToGroupMappings("group11", false).FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group11' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+        }
+
+        [Test]
+        public void GetGroupToGroupMappings()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddGroup("group5");
+            testAccessManager.AddGroup("group6");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddGroupToGroupMapping("group3", "group4");
+            testAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testAccessManager.AddGroupToGroupMapping("group4", "group5");
+            testAccessManager.AddGroupToGroupMapping("group6", "group1");
+            testAccessManager.AddGroupToGroupMapping("group6", "group3");
+
+            HashSet<String> mappings = testAccessManager.GetGroupToGroupMappings("group1", false);
+            Assert.AreEqual(0, mappings.Count);
+
+
+            mappings = testAccessManager.GetGroupToGroupMappings("group2", false);
+            Assert.AreEqual(1, mappings.Count);
+            Assert.IsTrue(mappings.Contains("group3"));
+
+
+            mappings = testAccessManager.GetGroupToGroupMappings("group1", true);
+            Assert.AreEqual(0, mappings.Count);
+
+
+            mappings = testAccessManager.GetGroupToGroupMappings("group2", true);
+            Assert.AreEqual(3, mappings.Count);
+            Assert.IsTrue(mappings.Contains("group3"));
+            Assert.IsTrue(mappings.Contains("group4"));
+            Assert.IsTrue(mappings.Contains("group5"));
         }
 
         [Test]
@@ -1600,7 +1687,72 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetEntitiesAccessibleByUser_UserDoesntExist()
+        public void GetEntitiesAccessibleByUserUserOverload_UserDoesntExist()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testAccessManager.GetEntitiesAccessibleByUser("user1").Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
+            Assert.AreEqual("user", e.ParamName);
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByUserUserOverload()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddUser("user3");
+            testAccessManager.AddUser("user4");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddUserToGroupMapping("user3", "group2");
+            testAccessManager.AddUserToGroupMapping("user4", "group4");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddEntityType("ClientAccount");
+            testAccessManager.AddEntityType("BusinessUnit");
+            testAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testAccessManager.AddEntity("BusinessUnit", "Sales");
+            testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyD");
+            testAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
+            testAccessManager.AddGroupToEntityMapping("group1", "BusinessUnit", "Sales");
+
+            HashSet<Tuple<String, String>> result = testAccessManager.GetEntitiesAccessibleByUser("user4");
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetEntitiesAccessibleByUser("user1");
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyD")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Sales")));
+
+
+            result = testAccessManager.GetEntitiesAccessibleByUser("user2");
+
+            Assert.AreEqual(4, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyA")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyB")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyC")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Marketing")));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByUserUserAndEntityTypeOverload_UserDoesntExist()
         {
             testAccessManager.AddEntityType("ClientAccount");
 
@@ -1614,7 +1766,7 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetEntitiesAccessibleByUser_EntityTypeDoesntExist()
+        public void GetEntitiesAccessibleByUserUserAndEntityTypeOverload_EntityTypeDoesntExist()
         {
             testAccessManager.AddUser("user1");
             testAccessManager.AddEntityType("ClientAccount");
@@ -1629,7 +1781,7 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetEntitiesAccessibleByUser()
+        public void GetEntitiesAccessibleByUserUserAndEntityTypeOverload()
         {
             testAccessManager.AddUser("user1");
             testAccessManager.AddUser("user2");
@@ -1664,7 +1816,83 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetEntitiesAccessibleByGroup_GroupDoesntExist()
+        public void GetEntitiesAccessibleByGroupGroupOverload_GroupDoesntExist()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testAccessManager.GetEntitiesAccessibleByGroup("group1").Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
+            Assert.AreEqual("group", e.ParamName);
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupGroupOverload()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddUser("user3");
+            testAccessManager.AddUser("user4");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddGroup("group5");
+            testAccessManager.AddGroup("group6");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddUserToGroupMapping("user3", "group2");
+            testAccessManager.AddUserToGroupMapping("user4", "group4");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testAccessManager.AddGroupToGroupMapping("group5", "group6");
+            testAccessManager.AddEntityType("ClientAccount");
+            testAccessManager.AddEntityType("BusinessUnit");
+            testAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testAccessManager.AddEntity("ClientAccount", "CompanyE");
+            testAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testAccessManager.AddEntity("BusinessUnit", "Sales");
+            testAccessManager.AddEntity("BusinessUnit", "Accounting");
+            testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyD");
+            testAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group1", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
+            testAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("group5", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group5", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Accounting");
+
+            HashSet<Tuple<String, String>> result = testAccessManager.GetEntitiesAccessibleByGroup("group4");
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetEntitiesAccessibleByGroup("group1");
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Sales")));
+
+
+            result = testAccessManager.GetEntitiesAccessibleByGroup("group2");
+
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Marketing")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyC")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyB")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Sales")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Accounting")));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupGroupAndEntityTypeOverload_GroupDoesntExist()
         {
             testAccessManager.AddEntityType("ClientAccount");
 
@@ -1678,7 +1906,7 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetEntitiesAccessibleByGroup_EntityTypeDoesntExist()
+        public void GetEntitiesAccessibleByGroupGroupAndEntityTypeOverload_EntityTypeDoesntExist()
         {
             testAccessManager.AddGroup("group1");
             testAccessManager.AddEntityType("ClientAccount");
@@ -1693,7 +1921,7 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void GetEntitiesAccessibleByGroup()
+        public void GetEntitiesAccessibleByGroupGroupAndEntityTypeOverload()
         {
             testAccessManager.AddUser("user1");
             testAccessManager.AddUser("user2");

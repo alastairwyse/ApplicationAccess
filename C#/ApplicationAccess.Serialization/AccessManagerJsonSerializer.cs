@@ -562,14 +562,14 @@ namespace ApplicationAccess.Serialization
             }
             foreach (TUser currentUser in accessManager.Users)
             {
-                foreach (TGroup currentGroup in accessManager.GetUserToGroupMappings(currentUser))
+                foreach (TGroup currentGroup in accessManager.GetUserToGroupMappings(currentUser, false))
                 {
                     returnGraph.AddLeafToNonLeafEdge(currentUser, currentGroup);
                 }
             }
             foreach (TGroup currentFromGroup in accessManager.Groups)
             {
-                foreach (TGroup currentToGroup in accessManager.GetGroupToGroupMappings(currentFromGroup))
+                foreach (TGroup currentToGroup in accessManager.GetGroupToGroupMappings(currentFromGroup, false))
                 {
                     returnGraph.AddNonLeafToNonLeafEdge(currentFromGroup, currentToGroup);
                 }

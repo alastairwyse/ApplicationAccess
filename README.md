@@ -216,17 +216,17 @@ accessManager.HasAccessToEntity("Frankie.Koch@printweave.biz", "Products", "Weav
 accessManager.HasAccessToEntity("Arjan.Hartman@printweave.biz", "Products", "WeavingMachines");  // returns false
 ```
 
-The GetUserToEntityMappings() and GetGroupToEntityMappings() can be used to retrieve all the entities mapped to a specified user or group.  This is useful for filtering lists and drop-down menus in a UI, to show only items available to the current user.  For example, the ClientInteractions screen could be filtered to only show the clients returned below (assuming Kishan Buchanan had accessed the screen)...
+The GetEntitiesAccessibleByUser() and GetEntitiesAccessibleByGroup() can be used to retrieve all the entities mapped to a specified user or group.  This is useful for filtering lists and drop-down menus in a UI, to show only items available to the current user.  For example, the ClientInteractions screen could be filtered to only show the clients returned below (assuming Kishan Buchanan had accessed the screen)...
 
 ```c#
-var viewableClients = new HashSet<String>(accessManager.GetUserToEntityMappings("Kishan.Buchanan@printweave.biz", "Clients"));
+var viewableClients = new HashSet<String>(accessManager.GetEntitiesAccessibleByUser("Kishan.Buchanan@printweave.biz", "Clients"));
 // 'viewableClients' contains...
 //   "CompanyA"
 //   "CompanyB"
 //   "CompanyC"
 ```
 
-It's assumed the above calls to the 'HasAccess' and 'GetEntityMappings' methods would occur towards the start of a method implementing either access to a UI component, or an API endpoint (e.g. Controller class in an ASP.NET application).
+It's assumed the above calls to the 'HasAccessTo*' and 'GetEntitiesAccessibleBy*' methods would occur towards the start of a method implementing either access to a UI component, or an API endpoint (e.g. Controller class in an ASP.NET application).
 
 ### Serialization
 

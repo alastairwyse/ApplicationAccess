@@ -89,6 +89,7 @@ namespace ApplicationAccess.TestHarness
             // TODO: Need to make sure the in the worked thread loop, above statements will allow it to step out of the loop without locking up
             Console.WriteLine($"{this.GetType().Name}: Joining worker thread");
             operationTriggeringWorkerThread.Join();
+            Console.WriteLine($"{this.GetType().Name}: Stopping stopwatch");
             stopwatch.Stop();
         }
 

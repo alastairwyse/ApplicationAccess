@@ -37,13 +37,13 @@ namespace ApplicationAccess.TestHarness
 
         Tuple<TUser, TGroup> GenerateAddUserToGroupMappingParameters();
 
-        TUser GenerateGetUserToGroupMappingsParameter();
+        Tuple<TUser, Boolean> GenerateGetUserToGroupMappingsParameters();
 
         Tuple<TUser, TGroup> GenerateRemoveUserToGroupMappingParameters();
         
         Tuple<TGroup, TGroup> GenerateAddGroupToGroupMappingParameters();
 
-        TGroup GenerateGetGroupToGroupMappingsParameter();
+        Tuple<TGroup, Boolean> GenerateGetGroupToGroupMappingsParameters();
 
         Tuple<TGroup, TGroup> GenerateRemoveGroupToGroupMappingParameters();
 
@@ -97,8 +97,12 @@ namespace ApplicationAccess.TestHarness
 
         TGroup GenerateGetApplicationComponentsAccessibleByGroupParameter();
 
-        Tuple<TUser, String> GenerateGetEntitiesAccessibleByUserParameters();
+        TUser GenerateGetEntitiesAccessibleByUserParameter();
 
-        Tuple<TGroup, String> GenerateGetEntitiesAccessibleByGroupParameters();
+        Tuple<TUser, String> GenerateGetEntitiesAccessibleByUserEntityTypeOverloadParameters();
+
+        TGroup GenerateGetEntitiesAccessibleByGroupParameter();
+
+        Tuple<TGroup, String> GenerateGetEntitiesAccessibleByGroupEntityTypeOverloadParameters();
     }
 }

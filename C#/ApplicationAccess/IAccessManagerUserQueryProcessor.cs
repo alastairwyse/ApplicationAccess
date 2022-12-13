@@ -44,12 +44,12 @@ namespace ApplicationAccess
         Boolean ContainsUser(TUser user);
 
         /// <summary>
-        /// Gets the groups that the specified user is directly mapped to (i.e. is a member of).
+        /// Gets the groups that the specified user is mapped to (i.e. is a member of).
         /// </summary>
         /// <param name="user">The user to retrieve the groups for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those that occur via group to group mappings).</param>
         /// <returns>A collection of groups the specified user is a member of.</returns>
-        /// <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified user are returned.</remarks>
-        IEnumerable<TGroup> GetUserToGroupMappings(TUser user);
+        HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings);
 
         /// <summary>
         /// Gets the application component and access level pairs that the specified user is mapped to.
@@ -97,6 +97,13 @@ namespace ApplicationAccess
         /// <param name="user">The user to retrieve the application components and levels of access for.</param>
         /// <returns>The application components and levels of access to those application components that the user has.</returns>
         HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user);
+
+        /// <summary>
+        /// Gets all entities that the specified user (or a group that the user is a member of) has access to.
+        /// </summary>
+        /// <param name="user">The user to retrieve the entities for.</param>
+        /// <returns>A collection of Tuples containing the entity type and entity that the user has access to.</returns>
+        HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user);
 
         /// <summary>
         /// Gets all entities of a given type that the specified user (or a group that the user is a member of) has access to.

@@ -72,6 +72,13 @@ namespace ApplicationAccess
         HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group);
 
         /// <summary>
+        /// Gets all entities that the specified group (or group that the specified group is mapped to) has access to.
+        /// </summary>
+        /// <param name="group">The group to retrieve the entities for.</param>
+        /// <returns>A collection of Tuples containing the entity type and entity that the group has access to.</returns>
+        HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group);
+
+        /// <summary>
         /// Gets all entities of a given type that the specified group (or group that the specified group is mapped to) has access to.
         /// </summary>
         /// <param name="group">The group to retrieve the entities for.</param>

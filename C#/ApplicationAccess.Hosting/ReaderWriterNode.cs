@@ -156,15 +156,15 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
-        public IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
+        public HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
-            return concurrentAccessManager.GetUserToGroupMappings(user);
+            return concurrentAccessManager.GetUserToGroupMappings(user, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
+        public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
-            return concurrentAccessManager.GetGroupToGroupMappings(group);
+            return concurrentAccessManager.GetGroupToGroupMappings(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -246,9 +246,21 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
+        {
+            return concurrentAccessManager.GetEntitiesAccessibleByUser(user);
+        }
+
+        /// <inheritdoc/>
         public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             return concurrentAccessManager.GetEntitiesAccessibleByUser(user, entityType);
+        }
+
+        /// <inheritdoc/>
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
+        {
+            return concurrentAccessManager.GetEntitiesAccessibleByGroup(group);
         }
 
         /// <inheritdoc/>

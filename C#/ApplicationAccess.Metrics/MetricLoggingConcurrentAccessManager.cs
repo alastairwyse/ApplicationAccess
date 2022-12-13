@@ -251,9 +251,41 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
+        public override HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetUserToGroupMappingsQuery>(() => { return base.GetUserToGroupMappings(user); });
+            HashSet<TGroup> result;
+            if (includeIndirectMappings == false)
+            {
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetUserToGroupMappingsQueryTime());
+                try
+                {
+                    result = base.GetUserToGroupMappings(user, includeIndirectMappings);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetUserToGroupMappingsQueryTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetUserToGroupMappingsQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetUserToGroupMappingsQuery());
+            }
+            else
+            {
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetUserToGroupMappingsWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = base.GetUserToGroupMappings(user, includeIndirectMappings);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetUserToGroupMappingsWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetUserToGroupMappingsWithIndirectMappingsQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetUserToGroupMappingsWithIndirectMappingsQuery());
+            }
+
+            return result;
         }
 
         /// <inheritdoc/>
@@ -291,9 +323,41 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
+        public override HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
-            return CallBaseClassQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetGroupToGroupMappingsQuery>(() => { return base.GetGroupToGroupMappings(group); });
+            HashSet<TGroup> result;
+            if (includeIndirectMappings == false)
+            {
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsQueryTime());
+                try
+                {
+                    result = base.GetGroupToGroupMappings(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsQueryTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupMappingsQuery());
+            }
+            else
+            {
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = base.GetGroupToGroupMappings(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupMappingsWithIndirectMappingsQuery());
+            }
+
+            return result;
         }
 
         /// <inheritdoc/>
@@ -867,6 +931,26 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public override HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
+        {
+            HashSet<Tuple<String, String>> result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQueryTime());
+            try
+            {
+                result = base.GetEntitiesAccessibleByUser(user);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByUserQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByUserQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQuery());
+
+            return result;
+        }
+
+        /// <inheritdoc/>
         public override HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             HashSet<String> result;
@@ -882,6 +966,26 @@ namespace ApplicationAccess.Metrics
             }
             EndIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByUserQueryTime());
             IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQuery());
+
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public override HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
+        {
+            HashSet<Tuple<String, String>> result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQueryTime());
+            try
+            {
+                result = base.GetEntitiesAccessibleByGroup(group);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQuery());
 
             return result;
         }

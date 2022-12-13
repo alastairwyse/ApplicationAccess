@@ -89,15 +89,15 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
-        public IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
+        public HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
-            return queryProcessorMetricLogger.GetUserToGroupMappings(user);
+            return queryProcessorMetricLogger.GetUserToGroupMappings(user, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
+        public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
-            return queryProcessorMetricLogger.GetGroupToGroupMappings(group);
+            return queryProcessorMetricLogger.GetGroupToGroupMappings(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -180,9 +180,21 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
+        {
+            return queryProcessorMetricLogger.GetEntitiesAccessibleByUser(user);
+        }
+
+        /// <inheritdoc/>
         public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             return queryProcessorMetricLogger.GetEntitiesAccessibleByUser(user, entityType);
+        }
+
+        /// <inheritdoc/>
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
+        {
+            return queryProcessorMetricLogger.GetEntitiesAccessibleByGroup(group);
         }
 
         /// <inheritdoc/>

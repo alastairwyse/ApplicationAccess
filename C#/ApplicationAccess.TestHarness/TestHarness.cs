@@ -21,6 +21,8 @@ using ApplicationLogging;
 
 namespace ApplicationAccess.TestHarness
 {
+    #pragma warning disable 8032
+
     /// <summary>
     /// Test harness for <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> instances.
     /// </summary>
@@ -237,4 +239,6 @@ namespace ApplicationAccess.TestHarness
 
         #endregion
     }
+
+    #pragma warning restore 8032
 }

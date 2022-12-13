@@ -61,7 +61,9 @@ namespace ApplicationAccess.TestHarness
         HasAccessToEntity, 
         GetApplicationComponentsAccessibleByUser, 
         GetApplicationComponentsAccessibleByGroup, 
-        GetEntitiesAccessibleByUser, 
-        GetEntitiesAccessibleByGroup    
+        GetEntitiesAccessibleByUser,
+        GetEntitiesAccessibleByUserEntityTypeOverload,
+        GetEntitiesAccessibleByGroup,
+        GetEntitiesAccessibleByGroupEntityTypeOverload
     }
 }

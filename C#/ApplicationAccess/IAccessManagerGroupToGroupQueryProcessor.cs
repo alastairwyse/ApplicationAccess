@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+using System;
 using System.Collections.Generic;
 
 namespace ApplicationAccess
@@ -25,11 +26,11 @@ namespace ApplicationAccess
     public interface IAccessManagerGroupToGroupQueryProcessor<TGroup>
     {
         /// <summary>
-        /// Gets the groups that the specified group is directly mapped to.
+        /// Gets the groups that the specified group is mapped to.
         /// </summary>
         /// <param name="group">The group to retrieve the mapped groups for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
         /// <returns>A collection of groups the specified group is mapped to.</returns>
-        /// <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified group are returned.</remarks>
-        IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group);
+        HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings);
     }
 }

@@ -54,14 +54,14 @@ namespace ApplicationAccess.TestHarness
             }
             foreach (TUser currentUser in intermediateAccessManager.Users)
             {
-                foreach (TGroup currentGroup in intermediateAccessManager.GetUserToGroupMappings(currentUser))
+                foreach (TGroup currentGroup in intermediateAccessManager.GetUserToGroupMappings(currentUser, false))
                 {
                     dataElementStorer.AddUserToGroupMapping(currentUser, currentGroup);
                 }
             }
             foreach (TGroup currentFromGroup in intermediateAccessManager.Groups)
             {
-                foreach (TGroup currentToGroup in intermediateAccessManager.GetGroupToGroupMappings(currentFromGroup))
+                foreach (TGroup currentToGroup in intermediateAccessManager.GetGroupToGroupMappings(currentFromGroup, false))
                 {
                     dataElementStorer.AddGroupToGroupMapping(currentFromGroup, currentToGroup);
                 }

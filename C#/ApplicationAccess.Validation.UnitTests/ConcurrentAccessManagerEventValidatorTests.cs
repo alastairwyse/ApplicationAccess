@@ -221,7 +221,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsTrue(result.Successful);
             Assert.IsTrue(assertionsWereChecked);
-            Assert.IsTrue(testConcurrentAccessManager.GetUserToGroupMappings(testUser).Contains(testGroup));
+            Assert.IsTrue(testConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
         }
 
         [Test]
@@ -267,7 +267,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsTrue(result.Successful);
             Assert.IsTrue(assertionsWereChecked);
-            Assert.IsFalse(testConcurrentAccessManager.GetUserToGroupMappings(testUser).Contains(testGroup));
+            Assert.IsFalse(testConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
         }
 
         [Test]
@@ -312,7 +312,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsTrue(result.Successful);
             Assert.IsTrue(assertionsWereChecked);
-            Assert.IsTrue(testConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup).Contains(testToGroup));
+            Assert.IsTrue(testConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
         }
 
         [Test]
@@ -358,7 +358,7 @@ namespace ApplicationAccess.Validation.UnitTests
 
             Assert.IsTrue(result.Successful);
             Assert.IsTrue(assertionsWereChecked);
-            Assert.IsFalse(testConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup).Contains(testToGroup));
+            Assert.IsFalse(testConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
         }
 
         [Test]

@@ -180,10 +180,10 @@ namespace ApplicationAccess.TestHarness
                 case AccessManagerOperation.GetUserToGroupMappings:
                     try
                     {
-                        TUser parameter = parameterGenerator.GenerateGetUserToGroupMappingsParameter();
+                        Tuple<TUser, Boolean> parameters = parameterGenerator.GenerateGetUserToGroupMappingsParameters();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { TGroup last = accessManager.GetUserToGroupMappings(parameter).LastOrDefault(); })
+                            new Action(() => { HashSet<TGroup> result = accessManager.GetUserToGroupMappings(parameters.Item1, parameters.Item2); })
                         );
                     }
                     catch (Exception)
@@ -224,10 +224,10 @@ namespace ApplicationAccess.TestHarness
                 case AccessManagerOperation.GetGroupToGroupMappings:
                     try
                     {
-                        TGroup parameter = parameterGenerator.GenerateGetGroupToGroupMappingsParameter();
+                        Tuple<TGroup, Boolean> parameters = parameterGenerator.GenerateGetGroupToGroupMappingsParameters();
                         return WrapActionWithEmptyPostExecutionAction
                         (
-                            new Action(() => { TGroup last = accessManager.GetGroupToGroupMappings(parameter).LastOrDefault(); })
+                            new Action(() => { HashSet<TGroup> result = accessManager.GetGroupToGroupMappings(parameters.Item1, parameters.Item2); })
                         );
                     }
                     catch (Exception)
@@ -615,7 +615,21 @@ namespace ApplicationAccess.TestHarness
                 case AccessManagerOperation.GetEntitiesAccessibleByUser:
                     try
                     {
-                        Tuple<TUser, String> parameters = parameterGenerator.GenerateGetEntitiesAccessibleByUserParameters();
+                        TUser parameter = parameterGenerator.GenerateGetEntitiesAccessibleByUserParameter();
+                        return WrapActionWithEmptyPostExecutionAction
+                        (
+                            new Action(() => { HashSet<Tuple<String, String>> result = accessManager.GetEntitiesAccessibleByUser(parameter); })
+                        );
+                    }
+                    catch (Exception)
+                    {
+                        return GenerateEmptyReturnActions();
+                    }
+
+                case AccessManagerOperation.GetEntitiesAccessibleByUserEntityTypeOverload:
+                    try
+                    {
+                        Tuple<TUser, String> parameters = parameterGenerator.GenerateGetEntitiesAccessibleByUserEntityTypeOverloadParameters();
                         return WrapActionWithEmptyPostExecutionAction
                         (
                             new Action(() => { HashSet<String> result = accessManager.GetEntitiesAccessibleByUser(parameters.Item1, parameters.Item2); })
@@ -629,7 +643,21 @@ namespace ApplicationAccess.TestHarness
                 case AccessManagerOperation.GetEntitiesAccessibleByGroup:
                     try
                     {
-                        Tuple<TGroup, String> parameters = parameterGenerator.GenerateGetEntitiesAccessibleByGroupParameters();
+                        TGroup parameter = parameterGenerator.GenerateGetEntitiesAccessibleByGroupParameter();
+                        return WrapActionWithEmptyPostExecutionAction
+                        (
+                            new Action(() => { HashSet<Tuple<String, String>> result = accessManager.GetEntitiesAccessibleByGroup(parameter); })
+                        );
+                    }
+                    catch (Exception)
+                    {
+                        return GenerateEmptyReturnActions();
+                    }
+
+                case AccessManagerOperation.GetEntitiesAccessibleByGroupEntityTypeOverload:
+                    try
+                    {
+                        Tuple<TGroup, String> parameters = parameterGenerator.GenerateGetEntitiesAccessibleByGroupEntityTypeOverloadParameters();
                         return WrapActionWithEmptyPostExecutionAction
                         (
                             new Action(() => { HashSet<String> result = accessManager.GetEntitiesAccessibleByGroup(parameters.Item1, parameters.Item2); })

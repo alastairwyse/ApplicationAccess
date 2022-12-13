@@ -93,7 +93,7 @@
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddUserToGroupMapping(`0,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToGroupMappings(`0)">
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToGroupMappings(`0,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveUserToGroupMapping(`0,`1)">
@@ -102,7 +102,7 @@
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroupToGroupMapping(`1,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToGroupMappings(`1)">
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToGroupMappings(`1,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveGroupToGroupMapping(`1,`1)">
@@ -183,7 +183,13 @@
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetApplicationComponentsAccessibleByGroup(`1)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByUser(`0)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByUser(`0,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByGroup(`1)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByGroup(`1,System.String)">
@@ -1332,6 +1338,13 @@
             <param name="group">The group to retrieve the application components and levels of access for.</param>
             <returns>The application components and levels of access to those application components that the group has.</returns>
         </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetEntitiesAccessibleByGroup(`0)">
+            <summary>
+            Gets all entities that the specified group (or group that the specified group is mapped to) has access to.
+            </summary>
+            <param name="group">The group to retrieve the entities for.</param>
+            <returns>A collection of Tuples containing the entity type and entity that the group has access to.</returns>
+        </member>
         <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetEntitiesAccessibleByGroup(`0,System.String)">
             <summary>
             Gets all entities of a given type that the specified group (or group that the specified group is mapped to) has access to.
@@ -1366,13 +1379,13 @@
             </summary>
             <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerGroupToGroupQueryProcessor`1.GetGroupToGroupMappings(`0)">
+        <member name="M:ApplicationAccess.IAccessManagerGroupToGroupQueryProcessor`1.GetGroupToGroupMappings(`0,System.Boolean)">
             <summary>
-            Gets the groups that the specified group is directly mapped to.
+            Gets the groups that the specified group is mapped to.
             </summary>
             <param name="group">The group to retrieve the mapped groups for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
             <returns>A collection of groups the specified group is mapped to.</returns>
-            <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified group are returned.</remarks>
         </member>
         <member name="T:ApplicationAccess.IAccessManagerQueryProcessor`4">
             <summary>
@@ -1471,13 +1484,13 @@
             <param name="user">The user to check for.</param>
             <returns>True if the user exists.  False otherwise.</returns>
         </member>
-        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToGroupMappings(`0)">
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToGroupMappings(`0,System.Boolean)">
             <summary>
-            Gets the groups that the specified user is directly mapped to (i.e. is a member of).
+            Gets the groups that the specified user is mapped to (i.e. is a member of).
             </summary>
             <param name="user">The user to retrieve the groups for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those that occur via group to group mappings).</param>
             <returns>A collection of groups the specified user is a member of.</returns>
-            <remarks>This method does not traverse the graph which holds group to group mappings, hence only groups mapped directly to the specified user are returned.</remarks>
         </member>
         <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
             <summary>
@@ -1525,6 +1538,13 @@
             </summary>
             <param name="user">The user to retrieve the application components and levels of access for.</param>
             <returns>The application components and levels of access to those application components that the user has.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetEntitiesAccessibleByUser(`0)">
+            <summary>
+            Gets all entities that the specified user (or a group that the user is a member of) has access to.
+            </summary>
+            <param name="user">The user to retrieve the entities for.</param>
+            <returns>A collection of Tuples containing the entity type and entity that the user has access to.</returns>
         </member>
         <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetEntitiesAccessibleByUser(`0,System.String)">
             <summary>

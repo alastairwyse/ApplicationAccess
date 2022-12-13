@@ -790,6 +790,21 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
+    /// Count metric which records a call to the GetUserToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetUserToGroupMappingsWithIndirectMappingsQuery : CountMetric
+    {
+        protected static String staticName = "GetUserToGroupMappingsWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetUserToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetUserToGroupMappingsWithIndirectMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Interval metric which records the time taken to execute the GetUserToGroupMappings() method.
     /// </summary>
     public class GetUserToGroupMappingsQueryTime : IntervalMetric
@@ -798,6 +813,21 @@ namespace ApplicationAccess.Metrics
         protected static String staticDescription = "The time taken to execute the GetUserToGroupMappings() method";
 
         public GetUserToGroupMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetUserToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetUserToGroupMappingsWithIndirectMappingsQueryTime : IntervalMetric
+    {
+        protected static String staticName = "GetUserToGroupMappingsWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetUserToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetUserToGroupMappingsWithIndirectMappingsQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -820,6 +850,21 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
+    /// Count metric which records a call to the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetGroupToGroupMappingsWithIndirectMappingsQuery : CountMetric
+    {
+        protected static String staticName = "GetGroupToGroupMappingsWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetGroupToGroupMappingsWithIndirectMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method.
     /// </summary>
     public class GetGroupToGroupMappingsQueryTime : IntervalMetric
@@ -828,6 +873,21 @@ namespace ApplicationAccess.Metrics
         protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method";
 
         public GetGroupToGroupMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetGroupToGroupMappingsWithIndirectMappingsQueryTime : IntervalMetric
+    {
+        protected static String staticName = "GetGroupToGroupMappingsWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetGroupToGroupMappingsWithIndirectMappingsQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;

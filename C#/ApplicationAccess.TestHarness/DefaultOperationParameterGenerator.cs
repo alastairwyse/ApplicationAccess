@@ -115,9 +115,12 @@ namespace ApplicationAccess.TestHarness
             return new Tuple<TUser, TGroup>(user, group);
         }
 
-        public TUser GenerateGetUserToGroupMappingsParameter()
+        public Tuple<TUser, Boolean> GenerateGetUserToGroupMappingsParameters()
         {
-            return dataElementStorer.GetRandomUser();
+            TUser user = dataElementStorer.GetRandomUser();
+            Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
+
+            return new Tuple<TUser, Boolean>(user, includeIndirectMappings);
         }
 
         public Tuple<TUser, TGroup> GenerateRemoveUserToGroupMappingParameters()
@@ -133,9 +136,12 @@ namespace ApplicationAccess.TestHarness
             return new Tuple<TGroup, TGroup>(fromGroup, toGroup);
         }
 
-        public TGroup GenerateGetGroupToGroupMappingsParameter()
+        public Tuple<TGroup, Boolean> GenerateGetGroupToGroupMappingsParameters()
         {
-            return dataElementStorer.GetRandomGroup();
+            TGroup group = dataElementStorer.GetRandomGroup();
+            Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
+
+            return new Tuple<TGroup, Boolean>(group, includeIndirectMappings);
         }
 
         public Tuple<TGroup, TGroup> GenerateRemoveGroupToGroupMappingParameters()
@@ -315,7 +321,12 @@ namespace ApplicationAccess.TestHarness
             return dataElementStorer.GetRandomGroup();
         }
 
-        public Tuple<TUser, String> GenerateGetEntitiesAccessibleByUserParameters()
+        public TUser GenerateGetEntitiesAccessibleByUserParameter()
+        {
+            return dataElementStorer.GetRandomUser();
+        }
+
+        public Tuple<TUser, String> GenerateGetEntitiesAccessibleByUserEntityTypeOverloadParameters()
         {
             TUser user =  dataElementStorer.GetRandomUser();
             String entityType = dataElementStorer.GetRandomEntityType();
@@ -323,7 +334,12 @@ namespace ApplicationAccess.TestHarness
             return new Tuple<TUser, String>(user, entityType);
         }
 
-        public Tuple<TGroup, String> GenerateGetEntitiesAccessibleByGroupParameters()
+        public TGroup GenerateGetEntitiesAccessibleByGroupParameter()
+        {
+            return dataElementStorer.GetRandomGroup();
+        }
+
+        public Tuple<TGroup, String> GenerateGetEntitiesAccessibleByGroupEntityTypeOverloadParameters()
         {
             TGroup group = dataElementStorer.GetRandomGroup();
             String entityType = dataElementStorer.GetRandomEntityType();

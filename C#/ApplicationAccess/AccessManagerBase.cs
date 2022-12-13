@@ -204,18 +204,32 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        public virtual IEnumerable<TGroup> GetUserToGroupMappings(TUser user)
+        public virtual HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
+            var returnGroups = new HashSet<TGroup>();
             try
             {
-                return userToGroupMap.GetLeafEdges(user);
+                returnGroups.UnionWith(userToGroupMap.GetLeafEdges(user));
             }
             catch (LeafVertexNotFoundException<TUser> e)
             {
                 ThrowUserDoesntExistException(user, nameof(user), e);
-
-                return Enumerable.Empty<TGroup>();
             }
+            if (includeIndirectMappings == true)
+            {
+                Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
+                {
+                    if (returnGroups.Contains(currentGroup) == false)
+                    {
+                        returnGroups.Add(currentGroup);
+                    }
+
+                    return true;
+                };
+                userToGroupMap.TraverseFromLeaf(user, vertexAction);
+            }
+
+            return returnGroups;
         }
 
         /// <inheritdoc/>
@@ -264,18 +278,27 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        public virtual IEnumerable<TGroup> GetGroupToGroupMappings(TGroup group)
+        public virtual HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
-            try
-            {
-                return userToGroupMap.GetNonLeafEdges(group);
-            }
-            catch (NonLeafVertexNotFoundException<TGroup> e)
-            {
-                ThrowGroupDoesntExistException(group, nameof(group), e);
+            if (userToGroupMap.ContainsNonLeafVertex(group) == false)
+                ThrowGroupDoesntExistException(group, nameof(group));
 
-                return Enumerable.Empty<TGroup>();
+            var returnGroups = new HashSet<TGroup>(userToGroupMap.GetNonLeafEdges(group));
+            if (includeIndirectMappings == true)
+            {
+                Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
+                {
+                    if ((returnGroups.Contains(currentGroup) == false) && (currentGroup.Equals(group) == false))
+                    {
+                        returnGroups.Add(currentGroup);
+                    }
+
+                    return true;
+                };
+                userToGroupMap.TraverseFromNonLeaf(group, vertexAction);
             }
+
+            return returnGroups;
         }
 
         /// <inheritdoc/>
@@ -757,6 +780,31 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        public virtual HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
+        {
+            if (userToGroupMap.ContainsLeafVertex(user) == false)
+                ThrowUserDoesntExistException(user, nameof(user));
+
+            var returnEntities = new HashSet<Tuple<String, String>>();
+            foreach (Tuple<String, String> currentEntity in GetUserToEntityMappings(user))
+            {
+                returnEntities.Add(currentEntity);
+            }
+            Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
+            {
+                if (groupToEntityMap.ContainsKey(currentGroup) == true)
+                {
+                    returnEntities.UnionWith(GetGroupToEntityMappings(currentGroup));
+                }
+
+                return true;
+            };
+            userToGroupMap.TraverseFromLeaf(user, vertexAction);
+
+            return returnEntities;
+        }
+
+        /// <inheritdoc/>
         public virtual HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -779,6 +827,27 @@ namespace ApplicationAccess
                 return true;
             };
             userToGroupMap.TraverseFromLeaf(user, vertexAction);
+
+            return returnEntities;
+        }
+
+        /// <inheritdoc/>
+        public virtual HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
+        {
+            if (userToGroupMap.ContainsNonLeafVertex(group) == false)
+                ThrowGroupDoesntExistException(group, nameof(group));
+
+            var returnEntities = new HashSet<Tuple<String, String>>();
+            Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
+            {
+                if (groupToEntityMap.ContainsKey(currentGroup) == true)
+                {
+                    returnEntities.UnionWith(GetGroupToEntityMappings(currentGroup));
+                }
+
+                return true;
+            };
+            userToGroupMap.TraverseFromNonLeaf(group, vertexAction);
 
             return returnEntities;
         }

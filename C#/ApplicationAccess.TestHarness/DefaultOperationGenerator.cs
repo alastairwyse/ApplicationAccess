@@ -510,11 +510,25 @@ namespace ApplicationAccess.TestHarness
                     AccessManagerOperation.GetEntitiesAccessibleByGroup,
                     new HashSet<StorageStructure>()
                     {
+                        StorageStructure.Groups
+                    }
+                },
+                {
+                    AccessManagerOperation.GetEntitiesAccessibleByGroupEntityTypeOverload,
+                    new HashSet<StorageStructure>()
+                    {
                         StorageStructure.Groups, StorageStructure.EntityTypes
                     }
                 },
                 {
                     AccessManagerOperation.GetEntitiesAccessibleByUser,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.GetEntitiesAccessibleByUserEntityTypeOverload,
                     new HashSet<StorageStructure>()
                     {
                         StorageStructure.Users, StorageStructure.EntityTypes
@@ -699,7 +713,9 @@ namespace ApplicationAccess.TestHarness
                 AccessManagerOperation.GetApplicationComponentsAccessibleByUser,
                 AccessManagerOperation.GetApplicationComponentsAccessibleByGroup,
                 AccessManagerOperation.GetEntitiesAccessibleByUser,
-                AccessManagerOperation.GetEntitiesAccessibleByGroup
+                AccessManagerOperation.GetEntitiesAccessibleByUserEntityTypeOverload,
+                AccessManagerOperation.GetEntitiesAccessibleByGroup, 
+                AccessManagerOperation.GetEntitiesAccessibleByGroupEntityTypeOverload
             });
 
             queryOperations.UnionWith(propertyAndContainsQueryOperations);

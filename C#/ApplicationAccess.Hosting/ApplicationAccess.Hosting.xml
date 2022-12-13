@@ -327,11 +327,11 @@
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToGroupMappings(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToGroupMappings(`0,System.Boolean)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToGroupMappings(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToGroupMappings(`1,System.Boolean)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
@@ -387,7 +387,15 @@
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByUser(`0)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByUser(`0,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByGroup(`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
@@ -506,10 +514,10 @@
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsGroup(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToGroupMappings(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToGroupMappings(`0,System.Boolean)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToGroupMappings(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToGroupMappings(`1,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
@@ -551,7 +559,13 @@
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetApplicationComponentsAccessibleByGroup(`1)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByUser(`0)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByUser(`0,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByGroup(`1)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByGroup(`1,System.String)">
