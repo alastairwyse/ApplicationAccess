@@ -131,6 +131,9 @@ namespace ApplicationAccess.TestHarness
                     {
                         IAccessManagerEventBufferFlushStrategy persisterBufferFlushStrategy = accessManagerEventBufferFlushStrategyAndActions.BufferFlushStrategy;
                         {
+                            // Setup the test AccessManager
+                            //   Can comment-swap between the two versions of 'persister' to specify either serialized or bulk persistence to SQL server
+                            
                             var persister = new SqlServerAccessManagerTemporalPersister<String, String, TestApplicationComponent, TestAccessLevel>
                             (
                                 sqlServerConnectionString,
@@ -143,8 +146,23 @@ namespace ApplicationAccess.TestHarness
                                 persisterLogger,
                                 metricLogger
                             );
-
-                            // Setup the test AccessManager
+                            /*
+                            using
+                            (
+                                var persister = new SqlServerAccessManagerTemporalBulkPersister<String, String, TestApplicationComponent, TestAccessLevel>
+                                (
+                                    sqlServerConnectionString,
+                                    sqlServerRetryCount,
+                                    sqlServerRetryInterval,
+                                    new StringUniqueStringifier(),
+                                    new StringUniqueStringifier(),
+                                    new EnumUniqueStringifier<TestApplicationComponent>(),
+                                    new EnumUniqueStringifier<TestAccessLevel>(),
+                                    persisterLogger,
+                                    metricLogger
+                                )
+                            )
+                            */
                             using
                             (
                                 var testAccessManager = new ReaderWriterNode<String, String, TestApplicationComponent, TestAccessLevel>

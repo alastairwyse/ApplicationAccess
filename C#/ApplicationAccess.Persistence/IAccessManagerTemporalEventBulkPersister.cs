@@ -16,25 +16,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Caches events written to an <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/> or <see cref="IAccessManagerTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/>, and defines methods to return the events in order of occurrence.
+    /// Defines methods to write events which change the structure of an AccessManager class to persistent storage in a bulk/consolidated operation.  
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public interface IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>
+    public interface IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>
-        /// Retrieves all events which occurred since the event with the specified id.
+        /// Writes a series of events to persistent storage.
         /// </summary>
-        /// <param name="eventId">The id of the event to retrieve all events since.</param>
-        /// <returns>An ordered list of events which occurred since the specified event, and not including the specified event.  Returned in order from least recent to most recent.</returns>
-        /// <exception cref="EventNotCachedException">The event with the specified id was not found in the cache.</exception>
-        IList<TemporalEventBufferItemBase> GetAllEventsSince(Guid eventId);
+        /// <param name="events">The events to write.</param>
+        void PersistEvents(IList<TemporalEventBufferItemBase> events);
     }
 }

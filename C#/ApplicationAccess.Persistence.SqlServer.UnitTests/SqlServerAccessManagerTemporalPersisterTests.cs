@@ -19,7 +19,6 @@ using System.Text;
 using System.Globalization;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using ApplicationLogging;
 
 namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 {
@@ -460,32 +459,6 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
             Assert.AreEqual("entity", e.ParamName);
         }
 
-        [Test]
-        public void LoadStateTimeOverload_ParameterStateDateNotUtc()
-        {
-            DateTime testStateTime = DateTime.ParseExact("2022-08-20 19:48:01", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-
-            var e = Assert.Throws<ArgumentException>(delegate
-            {
-                testSqlServerAccessManagerTemporalPersister.Load(DateTime.Now, new AccessManager<String, String, String, String>());
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' must be expressed as UTC."));
-            Assert.AreEqual("stateTime", e.ParamName);
-        }
-
-        [Test]
-        public void LoadStateTimeOverload_ParameterStateDateInTheFuture()
-        {
-            var e = Assert.Throws<ArgumentException>(delegate
-            {
-                testSqlServerAccessManagerTemporalPersister.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>());
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' will value '{DateTime.MaxValue.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff")}' is greater than the current time '"));
-            Assert.AreEqual("stateTime", e.ParamName);
-        }
-
         /// <summary>
         /// Generates a string of the specified length.
         /// </summary>
@@ -516,47 +489,5 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             return stringBuilder.ToString();
         }
-
-        #region Inner Classes
-
-        /// <summary>
-        /// Implementation of IApplicationLogger which does not log.
-        /// </summary>
-        private class NullLogger : IApplicationLogger
-        {
-            public void Log(LogLevel level, string text)
-            {
-            }
-
-            public void Log(object source, LogLevel level, string text)
-            {
-            }
-
-            public void Log(int eventIdentifier, LogLevel level, string text)
-            {
-            }
-
-            public void Log(object source, int eventIdentifier, LogLevel level, string text)
-            {
-            }
-
-            public void Log(LogLevel level, string text, Exception sourceException)
-            {
-            }
-
-            public void Log(object source, LogLevel level, string text, Exception sourceException)
-            {
-            }
-
-            public void Log(int eventIdentifier, LogLevel level, string text, Exception sourceException)
-            {
-            }
-
-            public void Log(object source, int eventIdentifier, LogLevel level, string text, Exception sourceException)
-            {
-            }
-        }
-
-        #endregion
     }
 }

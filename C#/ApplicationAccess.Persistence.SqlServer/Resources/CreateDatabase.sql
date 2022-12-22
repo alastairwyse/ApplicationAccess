@@ -182,6 +182,29 @@ CREATE TABLE ApplicationAccess.dbo.SchemaVersions
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+-- Create User-defined Types
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+USE ApplicationAccess
+GO 
+
+CREATE TYPE dbo.EventTableType 
+AS TABLE
+(
+    Id            bigint             NOT NULL PRIMARY KEY, 
+    EventType     nvarchar(max), 
+    EventId       uniqueidentifier, 
+    EventAction   nvarchar(max), 
+    OccurredTime  datetime2, 
+    EventData1    nvarchar(max), 
+    EventData2    nvarchar(max), 
+    EventData3    nvarchar(max) 
+);
+GO
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Create Functions / Stored Procedures
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1948,6 +1971,211 @@ BEGIN
     END CATCH
 
     COMMIT TRANSACTION
+
+END
+GO
+
+--------------------------------------------------------------------------------
+-- dbo.ProcessEvents
+
+CREATE PROCEDURE dbo.ProcessEvents
+(
+    @Events  EventTableType  READONLY
+)
+AS
+BEGIN
+
+    DECLARE @UserEventTypeValue nvarchar(max) = 'user';
+    DECLARE @GroupEventTypeValue nvarchar(max) = 'group';
+    DECLARE @UserToGroupMappingEventTypeValue nvarchar(max) = 'userToGroupMapping';
+    DECLARE @GroupToGroupMappingEventTypeValue nvarchar(max) = 'groupToGroupMapping';
+    DECLARE @UserToApplicationComponentAndAccessLevelMappingEventTypeValue nvarchar(max) = 'userToApplicationComponentAndAccessLevelMapping';
+    DECLARE @GroupToApplicationComponentAndAccessLevelMappingEventTypeValue nvarchar(max) = 'groupToApplicationComponentAndAccessLevelMapping';
+    DECLARE @EntityTypeEventTypeValue nvarchar(max) = 'entityType';
+    DECLARE @EntityEventTypeValue nvarchar(max) = 'entity';
+    DECLARE @UserToEntityMappingEventTypeValue nvarchar(max) = 'userToEntityMapping';
+    DECLARE @GroupToEntityMappingEventTypeValue nvarchar(max) = 'groupToEntityMapping';
+    DECLARE @AddEventActionValue nvarchar(max) = 'add';
+    DECLARE @RemoveEventActionValue nvarchar(max) = 'remove';
+
+    DECLARE @ErrorMessage  nvarchar(max);
+
+    DECLARE @CurrentEventType     nvarchar(max);
+    DECLARE @CurrentEventId       uniqueidentifier;
+    DECLARE @CurrentEventAction   nvarchar(max);
+    DECLARE @CurrentOccurredTime  datetime2;
+    DECLARE @CurrentEventData1    nvarchar(max);
+    DECLARE @CurrentEventData2    nvarchar(max);
+    DECLARE @CurrentEventData3    nvarchar(max);
+
+    DECLARE InputTableCursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT  EventType, 
+            EventId, 
+            EventAction, 
+            OccurredTime, 
+            EventData1, 
+            EventData2,
+            EventData3
+    FROM    @Events
+    ORDER   BY Id;
+
+    OPEN InputTableCursor;
+    FETCH NEXT 
+    FROM        InputTableCursor
+    INTO        @CurrentEventType, 
+                @CurrentEventId, 
+                @CurrentEventAction, 
+                @CurrentOccurredTime, 
+                @CurrentEventData1, 
+                @CurrentEventData2, 
+                @CurrentEventData3;
+
+    WHILE (@@FETCH_STATUS) = 0
+        BEGIN
+
+            IF (NOT(@CurrentEventAction = @AddEventActionValue OR @CurrentEventAction = @RemoveEventActionValue))
+            BEGIN
+                SET @ErrorMessage = N'Input table column ''EventAction'' should contain ''' + @AddEventActionValue +  ''' or ''' + @RemoveEventActionValue + ''' but contained ''' + @CurrentEventAction + '''.';
+                THROW 50001, @ErrorMessage, 1;
+            END
+
+            BEGIN TRY
+
+                -- Handle 'user' event
+                IF (@CurrentEventType = @UserEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddUser @CurrentEventData1, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveUser @CurrentEventData1, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'group' event
+                ELSE IF (@CurrentEventType = @GroupEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddGroup @CurrentEventData1, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveGroup @CurrentEventData1, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'user to group mapping' event
+                ELSE IF (@CurrentEventType = @UserToGroupMappingEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddUserToGroupMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveUserToGroupMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'group to group mapping' event
+                ELSE IF (@CurrentEventType = @GroupToGroupMappingEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddGroupToGroupMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveGroupToGroupMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'user to application component and acccess level mapping' event
+                ELSE IF (@CurrentEventType = @UserToApplicationComponentAndAccessLevelMappingEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddUserToApplicationComponentAndAccessLevelMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventData3, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveUserToApplicationComponentAndAccessLevelMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventData3, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'group to application component and acccess level mapping' event
+                ELSE IF (@CurrentEventType = @GroupToApplicationComponentAndAccessLevelMappingEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddGroupToApplicationComponentAndAccessLevelMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventData3, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveGroupToApplicationComponentAndAccessLevelMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventData3, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'entity type' event
+                ELSE IF (@CurrentEventType = @EntityTypeEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddEntityType @CurrentEventData1, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveEntityType @CurrentEventData1, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'entity' event
+                ELSE IF (@CurrentEventType = @EntityEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddEntity @CurrentEventData1, @CurrentEventData2, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveEntity @CurrentEventData1 ,@CurrentEventData2, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'user to entity mapping' event
+                ELSE IF (@CurrentEventType = @UserToEntityMappingEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddUserToEntityMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventData3, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveUserToEntityMapping @CurrentEventData1 ,@CurrentEventData2, @CurrentEventData3, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                -- Handle 'group to entity mapping' event
+                ELSE IF (@CurrentEventType = @GroupToEntityMappingEventTypeValue)
+                    IF (@CurrentEventAction = @AddEventActionValue)
+                        BEGIN
+                            EXEC AddGroupToEntityMapping @CurrentEventData1, @CurrentEventData2, @CurrentEventData3, @CurrentEventId, @CurrentOccurredTime;
+                        END
+                    ELSE
+                        BEGIN
+                            EXEC RemoveGroupToEntityMapping @CurrentEventData1 ,@CurrentEventData2, @CurrentEventData3, @CurrentEventId, @CurrentOccurredTime;
+                        END
+
+                ELSE
+                    BEGIN
+                        SET @ErrorMessage = N'Input table column ''EventType'' contained unhandled event type ''' + @CurrentEventType + '''.';
+                        THROW 50001, @ErrorMessage, 1;
+                    END
+
+            END TRY
+            BEGIN CATCH
+                SET @ErrorMessage = N'Error occurred processing events; ' + ERROR_MESSAGE();
+                THROW 50001, @ErrorMessage, 1;
+            END CATCH
+
+            FETCH NEXT 
+            FROM        InputTableCursor
+            INTO        @CurrentEventType, 
+                        @CurrentEventId, 
+                        @CurrentEventAction, 
+                        @CurrentOccurredTime, 
+                        @CurrentEventData1, 
+                        @CurrentEventData2, 
+                        @CurrentEventData3;
+        END;
+
+    CLOSE InputTableCursor;
+    DEALLOCATE InputTableCursor;
 
 END
 GO

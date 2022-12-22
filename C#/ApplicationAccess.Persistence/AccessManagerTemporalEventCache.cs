@@ -350,6 +350,24 @@ namespace ApplicationAccess.Persistence
             CacheEvent(newEvent);
         }
 
+        /// <summary>
+        /// Adds a sequence of events which subclass <see cref="TemporalEventBufferItemBase"/> to the cache.
+        /// </summary>
+        /// <param name="events">The events to cache.</param>
+        public void PersistEvents(IList<TemporalEventBufferItemBase> events)
+        {
+            lock (cachedEvents)
+            {
+                foreach (TemporalEventBufferItemBase currentEvent in events)
+                {
+                    cachedEvents.AddLast(currentEvent);
+                    cachedEventsGuidIndex.Add(currentEvent.EventId, cachedEvents.Last);
+                    TrimCachedEvents();
+                    metricLogger.Increment(new EventCached());
+                }
+            }
+        }
+
         /// <inheritdoc/>
         public IList<TemporalEventBufferItemBase> GetAllEventsSince(Guid eventId)
         {

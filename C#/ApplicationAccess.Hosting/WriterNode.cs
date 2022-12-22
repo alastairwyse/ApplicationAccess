@@ -38,15 +38,11 @@ namespace ApplicationAccess.Hosting
         /// <summary>Validates events passed to the event buffer.</summary>
         protected IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator;
         /// <summary>Buffers events which change the AccessManager, writing them to the <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/> instance and the event cache.</summary>
-        protected AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess> eventBuffer;
+        protected AccessManagerTemporalEventPersisterBufferBase<TUser, TGroup, TComponent, TAccess> eventBuffer;
         /// <summary>Flush strategy for the event buffer.</summary>
         protected IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy;
         /// <summary>Used to load the complete state of the AccessManager instance.</summary>
         protected IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader;
-        /// <summary>Distributes buffered events to both the <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/> instance and the event cache.</summary>
-        protected AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess> eventDistributor;
-        /// <summary>Persists changes to the AccessManager.</summary>
-        protected IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister;
         /// <summary>Caches recent events which changed the AccessManager, so the can be accessed quickly by <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}">ReaderNodes</see></summary>
         protected IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache;        
         /// <summary>The logger for metrics.</summary>
@@ -69,19 +65,37 @@ namespace ApplicationAccess.Hosting
             IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache
         )
         {
-            this.eventBufferFlushStrategy = eventBufferFlushStrategy;
-            this.persistentReader = persistentReader;
-            this.eventPersister = eventPersister;
-            this.eventCache = eventCache;
             metricLogger = new NullMetricLogger();
-            concurrentAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
-            eventValidator = new ConcurrentAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>(concurrentAccessManager);
-            eventDistributor = new AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess>
+            Initialize(eventBufferFlushStrategy, persistentReader, eventCache);
+            var eventDistributor = new AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess>
             (
                 new List<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>>(){ eventPersister, eventCache }
             );
             eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
-            disposed = false;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
+        /// </summary>
+        /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
+        /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+        /// <param name="eventCache">Cache for events which changed the AccessManager.</param>
+        public WriterNode
+        (
+            IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
+            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
+            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
+            IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache
+        )
+        {
+            metricLogger = new NullMetricLogger();
+            Initialize(eventBufferFlushStrategy, persistentReader, eventCache);
+            var eventDistributor = new AccessManagerTemporalEventBulkPersisterDistributor<TUser, TGroup, TComponent, TAccess>
+            (
+                new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
+            );
+            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
         }
 
         /// <summary>
@@ -100,13 +114,40 @@ namespace ApplicationAccess.Hosting
             IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache,
             IMetricLogger metricLogger
         )
-            : this(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache)
         {
             this.metricLogger = metricLogger;
-            concurrentAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
-            eventValidator = new ConcurrentAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>(concurrentAccessManager);
-            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor, metricLogger);
-            disposed = false;
+            Initialize(eventBufferFlushStrategy, persistentReader, eventCache);
+            var eventDistributor = new AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess>
+            (
+                new List<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
+            );
+            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
+        /// </summary>
+        /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
+        /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+        /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+        /// <param name="eventCache">Cache for events which changed the AccessManager.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public WriterNode
+        (
+            IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
+            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
+            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
+            IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache,
+            IMetricLogger metricLogger
+        )
+        {
+            this.metricLogger = metricLogger;
+            Initialize(eventBufferFlushStrategy, persistentReader, eventCache);
+            var eventDistributor = new AccessManagerTemporalEventBulkPersisterDistributor<TUser, TGroup, TComponent, TAccess>
+            (
+                new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
+            );
+            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
         }
 
         /// <summary>
@@ -245,6 +286,31 @@ namespace ApplicationAccess.Hosting
         {
             eventBuffer.RemoveGroupToEntityMapping(group, entityType, entity);
         }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Initializes members which are common between all constructors.
+        /// </summary>
+        /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
+        /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+        /// <param name="eventCache">Cache for events which changed the AccessManager.</param>
+        public void Initialize
+        (
+            IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy, 
+            IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, 
+            IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache
+        )
+        {
+            this.eventBufferFlushStrategy = eventBufferFlushStrategy;
+            this.persistentReader = persistentReader;
+            this.eventCache = eventCache;
+            concurrentAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
+            eventValidator = new ConcurrentAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess>(concurrentAccessManager);
+            disposed = false;
+        }
+
+        #endregion
 
         #region Finalize / Dispose Methods
 

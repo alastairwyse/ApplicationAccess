@@ -179,7 +179,6 @@ namespace ApplicationAccess.Hosting
         {
             Guid eventId = guidProvider.NewGuid();
             DateTime occurredTime = dateTimeProvider.UtcNow();
-            foreach (var currentEventPersister in eventPersisters)
             AddEntity(entityType, entity, eventId, occurredTime);
         }
 
@@ -196,7 +195,6 @@ namespace ApplicationAccess.Hosting
         {
             Guid eventId = guidProvider.NewGuid();
             DateTime occurredTime = dateTimeProvider.UtcNow();
-            foreach (var currentEventPersister in eventPersisters)
             AddUserToEntityMapping(user, entityType, entity, eventId, occurredTime);
         }
 
@@ -205,7 +203,6 @@ namespace ApplicationAccess.Hosting
         {
             Guid eventId = guidProvider.NewGuid();
             DateTime occurredTime = dateTimeProvider.UtcNow();
-            foreach (var currentEventPersister in eventPersisters)
             RemoveUserToEntityMapping(user, entityType, entity, eventId, occurredTime);
         }
 
@@ -214,7 +211,6 @@ namespace ApplicationAccess.Hosting
         {
             Guid eventId = guidProvider.NewGuid();
             DateTime occurredTime = dateTimeProvider.UtcNow();
-            foreach (var currentEventPersister in eventPersisters)
             AddGroupToEntityMapping(group, entityType, entity, eventId, occurredTime);
         }
 

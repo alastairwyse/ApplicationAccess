@@ -7,6 +7,7 @@
 USE ApplicationAccess
 GO 
 
+DROP PROCEDURE dbo.ProcessEvents;
 DROP PROCEDURE dbo.RemoveGroupToEntityMapping;
 DROP PROCEDURE dbo.AddGroupToEntityMapping;
 DROP PROCEDURE dbo.RemoveUserToEntityMapping;
@@ -30,6 +31,15 @@ DROP PROCEDURE dbo.AddUser;
 DROP PROCEDURE dbo.CreateEvent;
 DROP FUNCTION dbo.SubtractTemporalMinimumTimeUnit;
 DROP FUNCTION dbo.GetTemporalMaxDate;
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Drop User-defined Types
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+DROP TYPE dbo.EventTableType;
 
 
 --------------------------------------------------------------------------------
