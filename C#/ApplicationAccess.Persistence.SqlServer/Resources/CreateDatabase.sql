@@ -262,7 +262,7 @@ BEGIN
 
     IF (@TransactionTime < @LastTransactionTime)
     BEGIN
-        SET @ErrorMessage = N'Parameter ''TransactionTime'' with value ' + CONVERT(nvarchar, @TransactionTime, 126) + ' must be greater than or equal to last transaction time ' + CONVERT(nvarchar, @LastTransactionTime, 126) + '.';
+        SET @ErrorMessage = N'Parameter ''TransactionTime'' with value ''' + CONVERT(nvarchar, @TransactionTime, 126) + ''' must be greater than or equal to last transaction time ''' + CONVERT(nvarchar, @LastTransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
 
@@ -2035,7 +2035,7 @@ BEGIN
 
             IF (NOT(@CurrentEventAction = @AddEventActionValue OR @CurrentEventAction = @RemoveEventActionValue))
             BEGIN
-                SET @ErrorMessage = N'Input table column ''EventAction'' should contain ''' + @AddEventActionValue +  ''' or ''' + @RemoveEventActionValue + ''' but contained ''' + @CurrentEventAction + '''.';
+                SET @ErrorMessage = N'Input table column ''EventAction'' should contain values ''' + @AddEventActionValue +  ''' or ''' + @RemoveEventActionValue + ''' but contained ''' + @CurrentEventAction + '''.';
                 THROW 50001, @ErrorMessage, 1;
             END
 

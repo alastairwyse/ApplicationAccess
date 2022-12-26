@@ -870,7 +870,11 @@ namespace ApplicationAccess.Persistence
             out LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>> tempGroupToEntityMappingEventBuffer
         )
         {
-            Int64 maxSequenceNumber = lastEventSequenceNumber;
+            Int64 maxSequenceNumber;
+            lock (eventSequenceNumberLock)
+            {
+                maxSequenceNumber = lastEventSequenceNumber;
+            }
             MoveEventsToTemporaryQueue<LinkedList<Tuple<UserEventBufferItem<TUser>, Int64>>, UserEventBufferItem<TUser>>
             (
                 ref userEventBuffer,

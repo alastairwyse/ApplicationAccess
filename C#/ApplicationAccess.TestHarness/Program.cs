@@ -104,6 +104,8 @@ namespace ApplicationAccess.TestHarness
             XmlConfigurator.Configure(new FileInfo(log4netConfigFileName));
             ILog log4netPersisterLogger = LogManager.GetLogger(typeof(SqlServerAccessManagerTemporalPersister<String, String, TestApplicationComponent, TestAccessLevel>));
             var persisterLogger = new ApplicationLoggingLog4NetAdapter(log4netPersisterLogger);
+            ILog log4netMetricLoggerLogger = LogManager.GetLogger(typeof(SqlServerMetricLogger));
+            var metricLoggerLogger = new ApplicationLoggingLog4NetAdapter(log4netMetricLoggerLogger);
 
             // Setup the log4net logger for the test harness
             ILog log4netTestHarnessExceptionLogger = LogManager.GetLogger(typeof(TestHarness<String, String, TestApplicationComponent, TestAccessLevel>));
@@ -124,7 +126,7 @@ namespace ApplicationAccess.TestHarness
             try
             {
                 IBufferProcessingStrategy metricLoggerBufferProcessingStrategy = metricLoggerBufferProcessingStrategyAndActions.BufferFlushStrategy;
-                using (var metricLogger = new SqlServerMetricLogger(metricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, metricLoggerBufferProcessingStrategy, false))
+                using (var metricLogger = new SqlServerMetricLogger(metricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, metricLoggerBufferProcessingStrategy, false, metricLoggerLogger))
                 {
                     var accessManagerEventBufferFlushStrategyAndActions = accessManagerEventBufferFlushStrategyFactory.MakeFlushStrategy(persisterBufferFlushStrategyConfiguration, metricLogger);
                     try
@@ -133,7 +135,7 @@ namespace ApplicationAccess.TestHarness
                         {
                             // Setup the test AccessManager
                             //   Can comment-swap between the two versions of 'persister' to specify either serialized or bulk persistence to SQL server
-                            
+                            /*
                             var persister = new SqlServerAccessManagerTemporalPersister<String, String, TestApplicationComponent, TestAccessLevel>
                             (
                                 sqlServerConnectionString,
@@ -146,7 +148,7 @@ namespace ApplicationAccess.TestHarness
                                 persisterLogger,
                                 metricLogger
                             );
-                            /*
+                            */
                             using
                             (
                                 var persister = new SqlServerAccessManagerTemporalBulkPersister<String, String, TestApplicationComponent, TestAccessLevel>
@@ -162,7 +164,7 @@ namespace ApplicationAccess.TestHarness
                                     metricLogger
                                 )
                             )
-                            */
+                            
                             using
                             (
                                 var testAccessManager = new ReaderWriterNode<String, String, TestApplicationComponent, TestAccessLevel>
