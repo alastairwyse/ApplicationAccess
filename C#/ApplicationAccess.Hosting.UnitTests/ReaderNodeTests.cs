@@ -47,18 +47,59 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
-        public void Load_CallToPersisterFails()
+        public void Load_ThrowExceptionIfStorageIsEmptySetFalseAndCallToPersistentReaderFails()
         {
             var mockException = new Exception("Failed to load.");
             mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testReaderNode.Load();
+                testReaderNode.Load(false);
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
             Assert.AreEqual(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void Load_ThrowExceptionIfStorageIsEmptySetTrueAndCallToPersistentReaderFails()
+        {
+            var mockException = new Exception("Failed to load.");
+            mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testReaderNode.Load(true);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
+            Assert.AreEqual(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void Load_ThrowExceptionIfStorageIsEmptySetTrueAndPersistentStorageEmpty()
+        {
+            var mockException = new PersistentStorageEmptyException("Persistent storage is empty.");
+            mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testReaderNode.Load(true);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
+            Assert.AreEqual(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void Load_ThrowExceptionIfStorageIsEmptySetFalseAndPersistentStorageEmpty()
+        {
+            var mockException = new PersistentStorageEmptyException("Persistent storage is empty.");
+            mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
+
+            testReaderNode.Load(false);
+
+            mockPersistentReader.Received(1).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
         }
 
         [Test]
@@ -70,7 +111,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUser(user);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.Users);
 
@@ -102,7 +143,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroup(group);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.Groups);
 
@@ -134,7 +175,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddEntityType(entityType);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.EntityTypes);
 
@@ -166,7 +207,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUser(user);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = testReaderNode.ContainsUser(user);
 
@@ -197,7 +238,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroup(group);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = testReaderNode.ContainsGroup(group);
 
@@ -234,7 +275,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroupToGroupMapping(group, indirectGroup);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.GetUserToGroupMappings(user, false));
 
@@ -291,7 +332,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroupToGroupMapping(toGroup, indirectGroup);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.GetGroupToGroupMappings(fromGroup, false));
 
@@ -342,7 +383,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.ManageProducts, AccessLevel.Delete);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<Tuple<ApplicationScreen, AccessLevel>>(testReaderNode.GetUserToApplicationComponentAndAccessLevelMappings(user));
 
@@ -376,7 +417,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.ManageProducts, AccessLevel.Modify);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<Tuple<ApplicationScreen, AccessLevel>>(testReaderNode.GetGroupToApplicationComponentAndAccessLevelMappings(group));
 
@@ -409,7 +450,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddEntityType(entityType);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = testReaderNode.ContainsEntityType(entityType);
 
@@ -442,7 +483,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddEntity(entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.GetEntities(entityType));
 
@@ -476,7 +517,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddEntity(entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = testReaderNode.ContainsEntity(entityType, entity);
 
@@ -512,7 +553,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUserToEntityMapping(user, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<Tuple<String, String>>(testReaderNode.GetUserToEntityMappings(user));
 
@@ -550,7 +591,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUserToEntityMapping(user, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.GetUserToEntityMappings(user, entityType));
 
@@ -587,7 +628,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroupToEntityMapping(group, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<Tuple<String, String>>(testReaderNode.GetGroupToEntityMappings(group));
 
@@ -625,7 +666,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroupToEntityMapping(group, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.GetGroupToEntityMappings(group, entityType));
 
@@ -658,7 +699,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Settings, AccessLevel.Modify);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = testReaderNode.HasAccessToApplicationComponent(user, ApplicationScreen.Settings, AccessLevel.Modify);
 
@@ -694,7 +735,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUserToEntityMapping(user, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = testReaderNode.HasAccessToEntity(user, entityType, entity);
 
@@ -726,7 +767,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.Summary, AccessLevel.View);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<Tuple<ApplicationScreen, AccessLevel>>(testReaderNode.GetApplicationComponentsAccessibleByUser(user));
 
@@ -760,7 +801,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Summary, AccessLevel.Modify);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<Tuple<ApplicationScreen, AccessLevel>>(testReaderNode.GetApplicationComponentsAccessibleByGroup(group));
 
@@ -798,7 +839,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUserToEntityMapping(user, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             HashSet<Tuple<String, String>> result = testReaderNode.GetEntitiesAccessibleByUser(user);
 
@@ -835,7 +876,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddUserToEntityMapping(user, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.GetEntitiesAccessibleByUser(user, entityType));
 
@@ -872,7 +913,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroupToEntityMapping(group, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             HashSet<Tuple<String, String>> result = testReaderNode.GetEntitiesAccessibleByGroup(group);
 
@@ -909,7 +950,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 accessManager.AddGroupToEntityMapping(group, entityType, entity);
             });
             mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var result = new List<String>(testReaderNode.GetEntitiesAccessibleByGroup(group, entityType));
 
@@ -947,7 +988,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             );
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw new EventNotCachedException("The specified event was not cached."));
             testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader); 
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var e = Assert.Throws<ReaderNodeRefreshException>(delegate
             {
@@ -970,7 +1011,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw new EventNotCachedException("The specified event was not cached."));
             testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
             const String user = "user1";
             var loadAction = new Action<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>((accessManager) =>
             {
@@ -998,7 +1039,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw mockException);
             testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             var e = Assert.Throws<ReaderNodeRefreshException>(delegate
             {
@@ -1030,7 +1071,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.GetAllEventsSince(returnedLoadState.Item1).Returns(testUpdateEvents);
             testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader);
-            testReaderNode.Load();
+            testReaderNode.Load(true);
 
             capturedSubscriberMethod.Invoke(mockRefreshStrategy, EventArgs.Empty);
 

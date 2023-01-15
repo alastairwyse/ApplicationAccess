@@ -424,10 +424,11 @@
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Load">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Load(System.Boolean)">
             <summary>
             Loads all permissions and authorizations from persistent storage.
             </summary>
+            <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Refresh">
             <summary>
@@ -529,10 +530,11 @@
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.Load">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.Load(System.Boolean)">
             <summary>
             Loads the latest state of the AccessManager from persistent storage.
             </summary>
+            <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
         </member>
         <member name="P:ApplicationAccess.Hosting.ReaderWriterNode`4.Users">
             <inheritdoc/>
@@ -755,10 +757,11 @@
             <param name="eventCache">Cache for events which changed the AccessManager.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Load">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Load(System.Boolean)">
             <summary>
             Loads the latest state of the AccessManager from persistent storage.
             </summary>
+            <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
         </member>
         <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUser(`0)">
             <inheritdoc/>

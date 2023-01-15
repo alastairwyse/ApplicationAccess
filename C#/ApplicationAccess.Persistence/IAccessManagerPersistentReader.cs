@@ -33,6 +33,7 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
         /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        /// <exception cref="PersistentStorageEmptyException">The persistent storage did not contain any existing events nor data.</exception>
         Tuple<Guid, DateTime> Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
     }
 }

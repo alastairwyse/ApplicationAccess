@@ -1080,6 +1080,7 @@
             </summary>
             <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
             <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+            <exception cref="T:ApplicationAccess.Persistence.PersistentStorageEmptyException">The persistent storage did not contain any existing events nor data.</exception>
         </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4">
             <summary>
@@ -1591,6 +1592,24 @@
             <summary>
             Amount metric which records the number of events read from the cache.
             </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.PersistentStorageEmptyException">
+            <summary>
+            The exception that is thrown when an attempt is made to load or read from persistent storage which is empty.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.PersistentStorageEmptyException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.PersistentStorageEmptyException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.PersistentStorageEmptyException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.PersistentStorageEmptyException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
         </member>
         <member name="T:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy">
             <summary>

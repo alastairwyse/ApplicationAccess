@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30104.148
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess", "ApplicationAccess\ApplicationAccess.csproj", "{37838636-5D60-4BBC-B75A-4E3E0433E13A}"
 EndProject
@@ -39,7 +39,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.UnitTests", "ApplicationAccess.Hosting.UnitTests\ApplicationAccess.Hosting.UnitTests.csproj", "{8F66CFE0-0EEE-4C8E-8DDC-BF25C80CC156}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.TestHarness", "ApplicationAccess.TestHarness\ApplicationAccess.TestHarness.csproj", "{0E08CD1F-48D3-45B0-ADFA-509967A51496}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.TestHarness", "ApplicationAccess.TestHarness\ApplicationAccess.TestHarness.csproj", "{0E08CD1F-48D3-45B0-ADFA-509967A51496}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.ReaderWriter", "ApplicationAccess.Hosting.Rest.ReaderWriter\ApplicationAccess.Hosting.Rest.ReaderWriter.csproj", "{5575EC67-3670-4979-9CF0-2E0A860D2CC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Models.Options", "ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj", "{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -123,6 +127,14 @@ Global
 		{0E08CD1F-48D3-45B0-ADFA-509967A51496}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E08CD1F-48D3-45B0-ADFA-509967A51496}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E08CD1F-48D3-45B0-ADFA-509967A51496}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5575EC67-3670-4979-9CF0-2E0A860D2CC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5575EC67-3670-4979-9CF0-2E0A860D2CC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5575EC67-3670-4979-9CF0-2E0A860D2CC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5575EC67-3670-4979-9CF0-2E0A860D2CC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

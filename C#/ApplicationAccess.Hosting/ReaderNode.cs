@@ -288,7 +288,8 @@ namespace ApplicationAccess.Hosting
         /// <summary>
         /// Loads all permissions and authorizations from persistent storage.
         /// </summary>
-        public void Load()
+        /// <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
+        public void Load(Boolean throwExceptionIfStorageIsEmpty)
         {
             MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> newAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
             newAccessManager.MetricLoggingEnabled = false;
@@ -297,6 +298,14 @@ namespace ApplicationAccess.Hosting
             {
                 Tuple<Guid, DateTime> state = persistentReader.Load(newAccessManager);
                 latestEventId = state.Item1;
+            }
+            catch (PersistentStorageEmptyException pse)
+            {
+                if (throwExceptionIfStorageIsEmpty == true)
+                {
+                    metricLogger.CancelBegin(beginId, new ReaderWriterNodeLoadTime());
+                    throw new Exception("Failed to load access manager state from persistent storage.", pse);
+                }
             }
             catch (Exception e)
             {
@@ -325,7 +334,12 @@ namespace ApplicationAccess.Hosting
                 metricLogger.Increment(new CacheMiss());
                 try
                 {
-                    Load();
+                    // TODO: Need to think about what this below Boolean parameter should be.
+                    //   It's realistic with a new deployment that a reader node refresh could occur before any events have been written...
+                    //   in those cases setting below true would result in exception even thought nothing had actually gone wrong.
+                    //   On the flipside, making false always could miss picking strange cases where no events are loaded in error
+                    //   Need to think about this...
+                    Load(false);
                 }
                 catch (Exception e)
                 {

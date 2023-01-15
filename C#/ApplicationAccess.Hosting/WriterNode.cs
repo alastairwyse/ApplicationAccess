@@ -153,7 +153,8 @@ namespace ApplicationAccess.Hosting
         /// <summary>
         /// Loads the latest state of the AccessManager from persistent storage.
         /// </summary>
-        public void Load()
+        /// <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
+        public void Load(Boolean throwExceptionIfStorageIsEmpty)
         {
             try
             {
@@ -161,7 +162,14 @@ namespace ApplicationAccess.Hosting
                 persistentReader.Load(concurrentAccessManager);
                 concurrentAccessManager.MetricLoggingEnabled = true;
             }
-            catch(Exception e)
+            catch (PersistentStorageEmptyException pse)
+            {
+                if (throwExceptionIfStorageIsEmpty == true)
+                {
+                    throw new Exception("Failed to load access manager state from persistent storage.", pse);
+                }
+            }
+            catch (Exception e)
             {
                 throw new Exception("Failed to load access manager state from persistent storage.", e);
             }

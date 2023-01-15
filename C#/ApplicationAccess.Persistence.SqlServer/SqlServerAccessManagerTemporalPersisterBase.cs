@@ -164,7 +164,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <inheritdoc/>
         public Tuple<Guid, DateTime> Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            return Load(DateTime.UtcNow, accessManagerToLoadTo);
+            return Load(DateTime.UtcNow, accessManagerToLoadTo, new PersistentStorageEmptyException("The database does not contain any existing events nor data."));
         }
 
         /// <inheritdoc/>
@@ -209,50 +209,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <inheritdoc/>
         public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            if (stateTime.Kind != DateTimeKind.Utc)
-                throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
-            DateTime now = DateTime.UtcNow;
-            if (stateTime > now)
-                throw new ArgumentException($"Parameter '{nameof(stateTime)}' will value '{stateTime.ToString(transactionSql126DateStyle)}' is greater than the current time '{now.ToString(transactionSql126DateStyle)}'.", nameof(stateTime));
-
-            // Get the event id and transaction time equal to or immediately before the specified state time
-            String query =
-            @$" 
-            SELECT  TOP(1)
-                    CONVERT(nvarchar(40), EventId) AS 'EventId',
-		            CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
-            FROM    EventIdToTransactionTimeMap
-            WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126)
-            ORDER   BY TransactionTime DESC;";
-
-            IEnumerable<Tuple<Guid, DateTime>> queryResults = ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "EventId",
-                "TransactionTime",
-                (String cellValue) => { return Guid.Parse(cellValue); },
-                (String cellValue) =>
-                {
-                    var stateTime = DateTime.ParseExact(cellValue, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
-                    stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
-
-                    return stateTime;
-                }
-            );
-            Guid eventId = default(Guid);
-            DateTime transactionTime = DateTime.MinValue;
-            foreach (Tuple<Guid, DateTime> currentResult in queryResults)
-            {
-                eventId = currentResult.Item1;
-                transactionTime = currentResult.Item2;
-                break;
-            }
-            if (transactionTime == DateTime.MinValue)
-                throw new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(transactionSql126DateStyle)}'.", nameof(stateTime));
-
-            LoadToAccessManager(stateTime, accessManagerToLoadTo);
-
-            return new Tuple<Guid, DateTime>(eventId, transactionTime);
+            return Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(transactionSql126DateStyle)}'.", nameof(stateTime)));
         }
 
         #region Private/Protected Methods
@@ -814,6 +771,61 @@ namespace ApplicationAccess.Persistence.SqlServer
             returnParameter.Value = parameterValue;
 
             return returnParameter;
+        }
+
+        /// <summary>
+        /// Loads the access manager with state corresponding to the specified timestamp from persistent storage.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
+        /// <param name="eventIdToTransactionTimeMapRowDoesntExistException">An exception to throw if no rows exist in the 'EventIdToTransactionTimeMap' table equal to or sequentially before the specified state time.</param>
+        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        protected Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo, Exception eventIdToTransactionTimeMapRowDoesntExistException)
+        {
+            if (stateTime.Kind != DateTimeKind.Utc)
+                throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
+            DateTime now = DateTime.UtcNow;
+            if (stateTime > now)
+                throw new ArgumentException($"Parameter '{nameof(stateTime)}' will value '{stateTime.ToString(transactionSql126DateStyle)}' is greater than the current time '{now.ToString(transactionSql126DateStyle)}'.", nameof(stateTime));
+
+            // Get the event id and transaction time equal to or immediately before the specified state time
+            String query =
+            @$" 
+            SELECT  TOP(1)
+                    CONVERT(nvarchar(40), EventId) AS 'EventId',
+		            CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            FROM    EventIdToTransactionTimeMap
+            WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126)
+            ORDER   BY TransactionTime DESC;";
+
+            IEnumerable<Tuple<Guid, DateTime>> queryResults = ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "EventId",
+                "TransactionTime",
+                (String cellValue) => { return Guid.Parse(cellValue); },
+                (String cellValue) =>
+                {
+                    var stateTime = DateTime.ParseExact(cellValue, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
+                    stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
+
+                    return stateTime;
+                }
+            );
+            Guid eventId = default(Guid);
+            DateTime transactionTime = DateTime.MinValue;
+            foreach (Tuple<Guid, DateTime> currentResult in queryResults)
+            {
+                eventId = currentResult.Item1;
+                transactionTime = currentResult.Item2;
+                break;
+            }
+            if (transactionTime == DateTime.MinValue)
+                throw eventIdToTransactionTimeMapRowDoesntExistException;
+
+            LoadToAccessManager(stateTime, accessManagerToLoadTo);
+
+            return new Tuple<Guid, DateTime>(eventId, transactionTime);
         }
 
         /// <summary>

@@ -169,7 +169,7 @@ CREATE TABLE ApplicationAccess.dbo.GroupToEntityMappings
     TransactionTo    datetime2  NOT NULL
 )
 
-CREATE INDEX GroupToEntityMappingsUserIndex ON ApplicationAccess.dbo.GroupToEntityMappings (GroupId, EntityTypeId, EntityId, TransactionTo);
+CREATE INDEX GroupToEntityMappingsGroupIndex ON ApplicationAccess.dbo.GroupToEntityMappings (GroupId, EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX GroupToEntityMappingsEntityIndex ON ApplicationAccess.dbo.GroupToEntityMappings (EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX GroupToEntityMappingsTransactionIndex ON ApplicationAccess.dbo.GroupToEntityMappings (TransactionFrom, TransactionTo);
 

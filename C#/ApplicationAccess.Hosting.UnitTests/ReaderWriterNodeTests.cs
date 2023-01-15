@@ -30,7 +30,7 @@ namespace ApplicationAccess.Hosting.UnitTests
         private IAccessManagerEventBufferFlushStrategy mockEventBufferFlushStrategy;
         private IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel> mockPersistentReader;
         private IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
-        private ReaderWriterNode<String, String, ApplicationScreen, AccessLevel> mockTesReadertWriterNode;
+        private ReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testReadertWriterNode;
 
         [SetUp]
         protected void SetUp()
@@ -38,22 +38,63 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockEventBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
-            mockTesReadertWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testReadertWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
         }
 
         [Test]
-        public void Load_CallToPersistentReaderFails()
+        public void Load_ThrowExceptionIfStorageIsEmptySetFalseAndCallToPersistentReaderFails()
         {
             var mockException = new Exception("Failed to load.");
             mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                mockTesReadertWriterNode.Load();
+                testReadertWriterNode.Load(false);
             });
 
             Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
             Assert.AreEqual(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void Load_ThrowExceptionIfStorageIsEmptySetTrueAndCallToPersistentReaderFails()
+        {
+            var mockException = new Exception("Failed to load.");
+            mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testReadertWriterNode.Load(true);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
+            Assert.AreEqual(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void Load_ThrowExceptionIfStorageIsEmptySetTrueAndPersistentStorageEmpty()
+        {
+            var mockException = new PersistentStorageEmptyException("Persistent storage is empty.");
+            mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testReadertWriterNode.Load(true);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
+            Assert.AreEqual(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void Load_ThrowExceptionIfStorageIsEmptySetFalseAndPersistentStorageEmpty()
+        {
+            var mockException = new PersistentStorageEmptyException("Persistent storage is empty.");
+            mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
+
+            testReadertWriterNode.Load(false);
+
+            mockPersistentReader.Received(1).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
         }
     }
 }

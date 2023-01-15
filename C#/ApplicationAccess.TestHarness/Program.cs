@@ -197,7 +197,7 @@ namespace ApplicationAccess.TestHarness
                                 {
                                     var dataElementStorerLoader = new DataElementStorerLoader<String, String, TestApplicationComponent, TestAccessLevel>();
                                     dataElementStorerLoader.Load(persister, dataElementStorer);
-                                    testAccessManager.Load();
+                                    testAccessManager.Load(true);
                                 }
 
                                 // Setup TestHarness array parameters
