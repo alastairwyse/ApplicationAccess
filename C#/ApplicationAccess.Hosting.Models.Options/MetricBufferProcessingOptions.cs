@@ -46,6 +46,6 @@ namespace ApplicationAccess.Hosting.Models.Options
         [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
         public Int32 DequeueOperationLoopInterval { get; set; }
 
-        #pragma warning restore 0649 { get; set; }
+        #pragma warning restore 0649
     }
 }

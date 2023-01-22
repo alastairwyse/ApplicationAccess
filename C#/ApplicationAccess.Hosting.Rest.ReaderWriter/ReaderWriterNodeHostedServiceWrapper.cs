@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
+using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.SqlServer;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
+using ApplicationLogging;
+using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 
@@ -24,12 +29,21 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     /// <summary>
     /// Wraps an instance of <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> and associated components and initializes them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
     /// </summary>
-    /// <remarks>StartAsync() calls methods like Start() and Load(), whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
+    /// <remarks>StartAsync() calls constructs a <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
     public class ReaderWriterNodeHostedServiceWrapper : IHostedService
     {
-        /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</summary>
+        // Members passed in via dependency injection
+        protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
+        protected EventBufferFlushingOptions eventBufferFlushingOptions;
+        protected MetricLoggingOptions metricLoggingOptions;
+        protected UserQueryProcessorHolder userQueryProcessorHolder;
+        protected UserEventProcessorHolder userEventProcessorHolder;
+        protected ILoggerFactory loggerFactory;
+        protected ILogger<ReaderWriterNodeHostedServiceWrapper> logger;
+
+        /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the ReaderWriterNode.</summary>
         protected SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy eventBufferFlushStrategy;
-        /// <summary>Used to persist changes and to load data to the AccessManager.</summary>
+        /// <summary>Used to persist changes load data to/from the AccessManager.</summary>
         protected SqlServerAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase? metricLoggerBufferProcessingStrategy;
@@ -37,35 +51,63 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         protected SqlServerMetricLogger? metricLogger;
         /// <summary>The <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
         protected ReaderWriterNode<String, String, String, String> readerWriterNode;
-        /// <summary>Logger for any actions which occur during start and stop.</summary>
-        protected ILogger<ReaderWriterNodeHostedServiceWrapper> logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ReaderWriter.ReaderWriterNodeHostedServiceWrapper class.
         /// </summary>
-        /// <param name="readerWriterNodeConstructorParameters">Container class holding the <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> constructor parameters.</param>
-        /// <param name="readerWriterNode">The <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/>.</param>
-        /// <param name="loggerFactory">Factory for logger objects.</param>
         public ReaderWriterNodeHostedServiceWrapper
         (
-            ReaderWriterNodeConstructorParameters readerWriterNodeConstructorParameters,
-            ReaderWriterNode<String, String, String, String> readerWriterNode,
-            ILoggerFactory loggerFactory
+            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
+            IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
+            IOptions<MetricLoggingOptions> metricLoggingOptions,
+            UserQueryProcessorHolder userQueryProcessorHolder,
+            UserEventProcessorHolder userEventProcessorHolder,
+            ILoggerFactory loggerFactory,
+            ILogger<ReaderWriterNodeHostedServiceWrapper> logger
         )
         {
-            this.eventBufferFlushStrategy = readerWriterNodeConstructorParameters.EventBufferFlushStrategy;
-            this.eventPersister = readerWriterNodeConstructorParameters.EventPersister;
-            this.metricLoggerBufferProcessingStrategy = readerWriterNodeConstructorParameters.MetricLoggerBufferProcessingStrategy;
-            this.metricLogger = readerWriterNodeConstructorParameters.MetricLogger;
-            this.readerWriterNode = readerWriterNode;
-            logger = loggerFactory.CreateLogger<ReaderWriterNodeHostedServiceWrapper>();
+            this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
+            this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
+            this.metricLoggingOptions = metricLoggingOptions.Value;
+            this.userQueryProcessorHolder = userQueryProcessorHolder; 
+            this.userEventProcessorHolder= userEventProcessorHolder;
+            this.loggerFactory = loggerFactory;
+            this.logger = logger;
         }
 
         /// <inheritdoc/>
         public Task StartAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation($"Starting {nameof(ReaderWriterNodeHostedServiceWrapper)}...");
-            // Start any buffer flushing/processing
+
+            logger.LogInformation($"Constructing ReaderWriterNode instance...");
+
+            // Initialize the ReaderWriterNode constructor parameter members from configuration
+            InitializeReaderWriterNodeConstructorParameters
+            (
+                accessManagerSqlServerConnectionOptions,
+                eventBufferFlushingOptions,
+                metricLoggingOptions,
+                loggerFactory
+            );
+
+            // Create the ReaderWriterNode
+            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            {
+                readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister);
+            }
+            else
+            {
+                readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, metricLogger);
+            }
+
+            // Set the ReaderWriterNode on the 'holder' classes
+            userQueryProcessorHolder.UserQueryProcessor = readerWriterNode;
+            userEventProcessorHolder.UserEventProcessor = readerWriterNode;
+
+            logger.LogInformation($"Completed constructing ReaderWriterNode instance.");
+
+            // Start buffer flushing/processing
             logger.LogInformation($"Starting {nameof(eventBufferFlushStrategy)}...");
             eventBufferFlushStrategy.Start();
             logger.LogInformation($"Completed starting {nameof(eventBufferFlushStrategy)}.");
@@ -80,6 +122,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Loading data into {nameof(readerWriterNode)}...");
             readerWriterNode.Load(false);
             logger.LogInformation($"Completed loading data into {nameof(readerWriterNode)}.");
+            
             logger.LogInformation($"Completed starting {nameof(ReaderWriterNodeHostedServiceWrapper)}.");
 
             return Task.CompletedTask;
@@ -89,6 +132,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         public Task StopAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation($"Stopping {nameof(ReaderWriterNodeHostedServiceWrapper)}...");
+
             // Stop and clear buffer flushing/processing
             logger.LogInformation($"Stopping {nameof(eventBufferFlushStrategy)}...");
             eventBufferFlushStrategy.Stop();
@@ -109,9 +153,95 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             }
             readerWriterNode.Dispose();
             logger.LogInformation($"Completed disposing objects.");
+
             logger.LogInformation($"Completed stopping {nameof(ReaderWriterNodeHostedServiceWrapper)}.");
 
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Initializes the 'readerWriterNode' member constructor parameter members based on the specified configuration/options objects.
+        /// </summary>
+        protected void InitializeReaderWriterNodeConstructorParameters
+        (
+            AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions,
+            EventBufferFlushingOptions eventBufferFlushingOptions,
+            MetricLoggingOptions metricLoggingOptions,
+            ILoggerFactory loggerFactory
+        )
+        {
+            const String sqlServerMetricLoggerCategoryName = "ApplicationAccessReaderWriterNode";
+
+            eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
+            (
+                eventBufferFlushingOptions.BufferSizeLimit,
+                eventBufferFlushingOptions.FlushLoopInterval
+            );
+
+            var connectionStringBuilder = new SqlConnectionStringBuilder();
+            connectionStringBuilder.DataSource = accessManagerSqlServerConnectionOptions.DataSource;
+            // TODO: Need to enable this once I find a way to inject cert details etc into
+            connectionStringBuilder.Encrypt = false;
+            connectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
+            connectionStringBuilder.InitialCatalog = accessManagerSqlServerConnectionOptions.InitialCatalog;
+            connectionStringBuilder.UserID = accessManagerSqlServerConnectionOptions.UserId;
+            connectionStringBuilder.Password = accessManagerSqlServerConnectionOptions.Password;
+            String connectionString = connectionStringBuilder.ConnectionString;
+            IApplicationLogger eventPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+            (
+                loggerFactory.CreateLogger<SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>>()
+            );
+            eventPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
+            (
+                connectionString,
+                accessManagerSqlServerConnectionOptions.RetryCount,
+                accessManagerSqlServerConnectionOptions.RetryInterval,
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                eventPersisterLogger
+            );
+
+            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            {
+                MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
+                switch (metricBufferProcessingOptions.BufferProcessingStrategy)
+                {
+                    case MetricBufferProcessingStrategyImplementation.SizeLimitedBufferProcessor:
+                        metricLoggerBufferProcessingStrategy = new SizeLimitedBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit);
+                        break;
+                    case MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor:
+                        metricLoggerBufferProcessingStrategy = new LoopingWorkerThreadBufferProcessor(metricBufferProcessingOptions.DequeueOperationLoopInterval);
+                        break;
+                    default:
+                        throw new Exception($"Encountered unhandled {nameof(MetricBufferProcessingStrategyImplementation)} '{metricBufferProcessingOptions.BufferProcessingStrategy}' while attempting to create {nameof(ReaderWriterNode<String, String, String, String>)} constructor parameters.");
+                }
+                MetricsSqlServerConnectionOptions metricsSqlServerConnectionOptions = metricLoggingOptions.MetricsSqlServerConnection;
+                connectionStringBuilder = new SqlConnectionStringBuilder();
+                connectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;
+                // TODO: Need to enable this once I find a way to inject cert details etc into
+                connectionStringBuilder.Encrypt = false;
+                connectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
+                connectionStringBuilder.InitialCatalog = metricsSqlServerConnectionOptions.InitialCatalog;
+                connectionStringBuilder.UserID = metricsSqlServerConnectionOptions.UserId;
+                connectionStringBuilder.Password = metricsSqlServerConnectionOptions.Password;
+                connectionString = connectionStringBuilder.ConnectionString;
+                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                (
+                    loggerFactory.CreateLogger<SqlServerMetricLogger>()
+                );
+                metricLogger = new SqlServerMetricLogger
+                (
+                    sqlServerMetricLoggerCategoryName,
+                    connectionString,
+                    metricsSqlServerConnectionOptions.RetryCount,
+                    metricsSqlServerConnectionOptions.RetryInterval,
+                    metricLoggerBufferProcessingStrategy,
+                    true,
+                    metricLoggerLogger
+                );
+            }
         }
     }
 }

@@ -4,7 +4,10 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <!-- 2022-12-11 - Adding below to suppress 'Microsoft.Extensions.FileSystemGlobbing 7.0.0 doesn't support netcoreapp3.1 and has not been tested with it.' build warnings. -->
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>    
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <Description>Classes which which test ApplicationAccess classes.</Description>
+    <Company />
+    <Authors>Alastair Wyse</Authors>    
   </PropertyGroup>
 
   <ItemGroup>

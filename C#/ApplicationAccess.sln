@@ -41,9 +41,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.U
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.TestHarness", "ApplicationAccess.TestHarness\ApplicationAccess.TestHarness.csproj", "{0E08CD1F-48D3-45B0-ADFA-509967A51496}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.ReaderWriter", "ApplicationAccess.Hosting.Rest.ReaderWriter\ApplicationAccess.Hosting.Rest.ReaderWriter.csproj", "{5575EC67-3670-4979-9CF0-2E0A860D2CC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.ReaderWriter", "ApplicationAccess.Hosting.Rest.ReaderWriter\ApplicationAccess.Hosting.Rest.ReaderWriter.csproj", "{5575EC67-3670-4979-9CF0-2E0A860D2CC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Models.Options", "ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj", "{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Models.Options", "ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj", "{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest", "ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj", "{6B44B371-8641-4E23-A96E-85510EADA411}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Models", "ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj", "{ECFB856A-1612-4CD6-8469-24A260893050}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Utilities", "ApplicationAccess.Hosting.Utilities\ApplicationAccess.Hosting.Utilities.csproj", "{A86A164F-C9F8-41E4-8DBB-972711F62F61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Utilities.UnitTests", "ApplicationAccess.Hosting.Utilities.UnitTests\ApplicationAccess.Hosting.Utilities.UnitTests.csproj", "{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,6 +143,22 @@ Global
 		{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B44B371-8641-4E23-A96E-85510EADA411}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B44B371-8641-4E23-A96E-85510EADA411}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B44B371-8641-4E23-A96E-85510EADA411}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B44B371-8641-4E23-A96E-85510EADA411}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECFB856A-1612-4CD6-8469-24A260893050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECFB856A-1612-4CD6-8469-24A260893050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECFB856A-1612-4CD6-8469-24A260893050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECFB856A-1612-4CD6-8469-24A260893050}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A86A164F-C9F8-41E4-8DBB-972711F62F61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A86A164F-C9F8-41E4-8DBB-972711F62F61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A86A164F-C9F8-41E4-8DBB-972711F62F61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A86A164F-C9F8-41E4-8DBB-972711F62F61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

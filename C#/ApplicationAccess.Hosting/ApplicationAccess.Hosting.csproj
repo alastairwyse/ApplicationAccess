@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Alastair Wyse</Authors>
-    <Company>Alastair Wyse</Company>
+    <Company />
     <Copyright>Copyright © Alastair Wyse 2022</Copyright>
     <Description>Classes which represent cohesive components within an ApplicationAccess hosting environment.</Description>
   </PropertyGroup>

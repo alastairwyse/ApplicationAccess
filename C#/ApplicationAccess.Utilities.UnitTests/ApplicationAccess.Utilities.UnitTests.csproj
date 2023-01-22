@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Description>Unit tests for classes in the ApplicationAccess.Utilities namespace.</Description>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
   </PropertyGroup>
 
   <ItemGroup>
