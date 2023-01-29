@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-namespace ApplicationAccess.Hosting.Rest
+using System;
+
+namespace ApplicationAccess.Hosting.Models
 {
     /// <summary>
-    /// Holds an instance of <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/>.
+    /// Container class holding an entity type, and an entity of that type.
     /// </summary>
-    public class UserEventProcessorHolder
+    public class EntityTypeAndEntity
     {
-        #pragma warning disable 0649
+        public String EntityType { get; }
 
-        public IAccessManagerUserEventProcessor<String, String, String, String> UserEventProcessor { get; set; }
+        public String Entity { get; }
 
-        #pragma warning restore 0649
+        public EntityTypeAndEntity(String entityType, String entity)
+        {
+            EntityType = entityType;
+            Entity = entity;
+        }
     }
 }

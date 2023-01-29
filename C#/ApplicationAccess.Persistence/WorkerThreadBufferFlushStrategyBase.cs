@@ -275,7 +275,7 @@ namespace ApplicationAccess.Persistence
             {
                 bufferFlushingWorkerThread = new Thread(() =>
                 {
-                    String exceptionMessagePrefix = "Exception occurred on buffer flushing worker thread at ";
+                    String exceptionMessagePrefix = "Exception occurred on buffer flushing worker thread at";
 
                     try
                     {

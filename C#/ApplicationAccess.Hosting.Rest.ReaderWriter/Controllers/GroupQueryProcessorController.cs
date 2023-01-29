@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-using System;
+using ApplicationAccess.Hosting.Rest.Controllers;
 
-namespace ApplicationAccess.Hosting.Models
+namespace ApplicationAccess.Hosting.Rest.ReaderWriter.Controllers
 {
     /// <summary>
-    /// Container class holding a user, an entity type, and an entity of that type.
+    /// Derives from abstract base controller class <see cref="GroupQueryProcessorControllerBase"/> to expose it as a controller.
     /// </summary>
-    public class UserAndEntity<TUser>
+    public class GroupQueryProcessorController : GroupQueryProcessorControllerBase
     {
-        public TUser User { get; }
-
-        public String EntityType { get; }
-
-        public String Entity { get; }
-
-        public UserAndEntity(TUser user, String entityType, String entity)
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ReaderWriter.Controllers.GroupQueryProcessorController class.
+        /// </summary>
+        public GroupQueryProcessorController(GroupQueryProcessorHolder groupQueryProcessorHolder, ILogger<GroupQueryProcessorController> logger)
+            : base(groupQueryProcessorHolder, logger)
         {
-            User = user;
-            EntityType = entityType;
-            Entity = entity;
         }
     }
 }

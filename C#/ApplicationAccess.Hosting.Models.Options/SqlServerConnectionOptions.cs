@@ -26,16 +26,6 @@ namespace ApplicationAccess.Hosting.Models.Options
     {
         #pragma warning disable 0649
 
-        public SqlServerConnectionOptions()
-        {
-            DataSource = "";
-            InitialCatalog = "";
-            UserId = "";
-            Password = "";
-            RetryCount = -1;
-            RetryInterval = -1;
-        }
-
         [Required(ErrorMessage = $"Configuration for '{nameof(DataSource)}' is required.")]
         public String DataSource { get; set; }
 
@@ -55,6 +45,16 @@ namespace ApplicationAccess.Hosting.Models.Options
         [Required(ErrorMessage = $"Configuration for '{nameof(RetryInterval)}' is required.")]
         [Range(0, 120, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
         public Int32 RetryInterval { get; set; }
+
+        public SqlServerConnectionOptions()
+        {
+            DataSource = "";
+            InitialCatalog = "";
+            UserId = "";
+            Password = "";
+            RetryCount = -1;
+            RetryInterval = -1;
+        }
 
         #pragma warning restore 0649
     }

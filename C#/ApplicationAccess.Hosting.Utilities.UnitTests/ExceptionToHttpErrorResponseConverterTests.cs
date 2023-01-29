@@ -37,6 +37,27 @@ namespace ApplicationAccess.Hosting.Utilities.UnitTests
         }
 
         [Test]
+        public void Constructor_InnerExceptionDepthLimitParameterLessThan0()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testExceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(-1);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Parameter 'innerExceptionDepthLimit' with value -1 cannot be less than 0."));
+            Assert.AreEqual("innerExceptionDepthLimit", e.ParamName);
+
+
+            e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testExceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(new List<Tuple<Type, Func<Exception, HttpErrorResponse>>>(), - 1);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Parameter 'innerExceptionDepthLimit' with value -1 cannot be less than 0."));
+            Assert.AreEqual("innerExceptionDepthLimit", e.ParamName);
+        }
+
+        [Test]
         public void AddConversionFunction_ExceptionTypeParameterNotException()
         {
             var e = Assert.Throws<ArgumentException>(delegate
@@ -470,6 +491,62 @@ namespace ApplicationAccess.Hosting.Utilities.UnitTests
             var attributes = new List<Tuple<String, String>>(result.Attributes);
             Assert.AreEqual("ResourceId", attributes[0].Item1);
             Assert.AreEqual("ABC", attributes[0].Item2);
+            Assert.IsNull(result.InnerError);
+        }
+
+        [Test]
+        public void Convert_InnerExceptionDepthLimitSet()
+        {
+            testExceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(1);
+            Exception testException = null;
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        throw new IndexOutOfRangeException("Test index out of range exception message.");
+                    }
+                    catch (Exception e)
+                    {
+                        throw new ArgumentException("Test argument exception message.", "testParameterName", e); ;
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Outermost exception.", e); ;
+                }
+            }
+            catch (Exception e)
+            {
+                testException = e;
+            }
+
+            HttpErrorResponse result = testExceptionToHttpErrorResponseConverter.Convert(testException);
+
+            Assert.AreEqual("Exception", result.Code);
+            Assert.AreEqual("Outermost exception.", result.Message);
+            Assert.AreEqual("Convert_InnerExceptionDepthLimitSet", result.Target);
+            Assert.AreEqual(0, result.Attributes.Count());
+            Assert.IsNotNull(result.InnerError);
+            Assert.AreEqual("ArgumentException", result.InnerError.Code);
+            Assert.AreEqual("Test argument exception message. (Parameter 'testParameterName')", result.InnerError.Message);
+            Assert.AreEqual("Convert_InnerExceptionDepthLimitSet", result.InnerError.Target);
+            Assert.AreEqual(1, result.InnerError.Attributes.Count());
+            var attributes = new List<Tuple<String, String>>(result.InnerError.Attributes);
+            Assert.AreEqual("ParameterName", attributes[0].Item1);
+            Assert.AreEqual("testParameterName", attributes[0].Item2);
+            Assert.IsNull(result.InnerError.InnerError);
+
+
+            testExceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(0);
+
+            result = testExceptionToHttpErrorResponseConverter.Convert(testException);
+
+            Assert.AreEqual("Exception", result.Code);
+            Assert.AreEqual("Outermost exception.", result.Message);
+            Assert.AreEqual("Convert_InnerExceptionDepthLimitSet", result.Target);
+            Assert.AreEqual(0, result.Attributes.Count());
             Assert.IsNull(result.InnerError);
         }
 

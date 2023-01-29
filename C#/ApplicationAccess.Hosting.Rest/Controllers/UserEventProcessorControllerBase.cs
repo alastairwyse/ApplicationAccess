@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-using ApplicationAccess.Hosting.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.IO.Pipes;
-using System.Net.Mime;
-using System.Text.RegularExpressions;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Controller which exposes methods on the <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/> interface as REST methods.
+    /// Base for controller which exposes methods on the <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/> interface as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
     [ApiExplorerSettings(GroupName = "v1")]
-    public class UserEventProcessorController : ControllerBase
+    public abstract class UserEventProcessorControllerBase : ControllerBase
     {
         private readonly IAccessManagerUserEventProcessor<String, String, String, String> _userEventProcessor;
-        private readonly ILogger<UserEventProcessorController> _logger;
+        private readonly ILogger<UserEventProcessorControllerBase> _logger;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.UserEventProcessorController class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.UserEventProcessorControllerBase class.
         /// </summary>
-        public UserEventProcessorController(UserEventProcessorHolder userEventProcessorHolder, ILogger<UserEventProcessorController> logger)
+        public UserEventProcessorControllerBase(UserEventProcessorHolder userEventProcessorHolder, ILogger<UserEventProcessorControllerBase> logger)
         {
             _userEventProcessor = userEventProcessorHolder.UserEventProcessor;
             _logger = logger;
@@ -52,7 +47,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("users/{user}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public virtual ActionResult AddUser(String user)
+        public ActionResult AddUser([FromRoute] String user)
         {
             _userEventProcessor.AddUser(user);
 
@@ -66,7 +61,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The user was removed.</response>
         [HttpDelete]
         [Route("users/{user}")]
-        public virtual void RemoveUser(String user)
+        public void RemoveUser([FromRoute] String user)
         {
             _userEventProcessor.RemoveUser(user);
         }
@@ -80,7 +75,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("userToGroupMappings/user/{user}/group/{group}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public virtual ActionResult AddUserToGroupMapping(String user, String group)
+        public ActionResult AddUserToGroupMapping([FromRoute] String user, [FromRoute] String group)
         {
             _userEventProcessor.AddUserToGroupMapping(user, group);
 
@@ -95,7 +90,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("userToGroupMappings/user/{user}/group/{group}")]
-        public virtual void RemoveUserToGroupMapping(String user, String group)
+        public void RemoveUserToGroupMapping([FromRoute] String user, [FromRoute] String group)
         {
             _userEventProcessor.RemoveUserToGroupMapping(user, group);
         }
@@ -110,7 +105,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public virtual ActionResult AddUserToApplicationComponentAndAccessLevelMapping(String user, String applicationComponent, String accessLevel)
+        public ActionResult AddUserToApplicationComponentAndAccessLevelMapping([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             _userEventProcessor.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
 
@@ -123,9 +118,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <param name="user">The user in the mapping.</param>
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
+        /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
-        public virtual void RemoveUserToApplicationComponentAndAccessLevelMapping(String user, String applicationComponent, String accessLevel)
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             _userEventProcessor.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
         }
@@ -140,7 +136,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}/entity/{entity}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public virtual ActionResult AddUserToEntityMapping(String user, String entityType, String entity)
+        public ActionResult AddUserToEntityMapping([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             _userEventProcessor.AddUserToEntityMapping(user, entityType, entity);
 
@@ -153,9 +149,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <param name="user">The user in the mapping.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
+        /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}/entity/{entity}")]
-        public virtual void RemoveUserToEntityMapping(String user, String entityType, String entity)
+        public void RemoveUserToEntityMapping([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             _userEventProcessor.RemoveUserToEntityMapping(user, entityType, entity);
         }

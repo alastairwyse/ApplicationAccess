@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-namespace ApplicationAccess.Hosting.Rest
+namespace ApplicationAccess.Hosting.Models
 {
     /// <summary>
-    /// Holds an instance of <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/>.
+    /// Container class holding a group, an application component, and level of access to that component.
     /// </summary>
-    public class UserEventProcessorHolder
+    public class GroupAndApplicationComponentAndAccessLevel<TGroup, TComponent, TAccess>
     {
-        #pragma warning disable 0649
+        public TGroup Group { get; }
 
-        public IAccessManagerUserEventProcessor<String, String, String, String> UserEventProcessor { get; set; }
+        public TComponent ApplicationComponent { get; }
 
-        #pragma warning restore 0649
+        public TAccess AccessLevel { get; }
+
+        public GroupAndApplicationComponentAndAccessLevel(TGroup group, TComponent applicationComponent, TAccess accessLevel)
+        {
+            Group = group;
+            ApplicationComponent = applicationComponent;
+            AccessLevel = accessLevel;
+        }
     }
 }

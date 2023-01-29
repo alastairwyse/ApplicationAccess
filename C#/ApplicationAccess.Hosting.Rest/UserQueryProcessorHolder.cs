@@ -22,6 +22,10 @@ namespace ApplicationAccess.Hosting.Rest
     /// <remarks>An instance of this class can be set on the ASP.NET services collection before the application is built, and then the 'UserQueryProcessor' property set after building (specifically during the IHostedService.StartAsync() method... when the value set on 'UserQueryProcessor' is actually instantiated).  Works around one of the 'chicken and egg'-type problems which often arise when trying to instantiate and populate the ASP.NET services collection.</remarks>
     public class UserQueryProcessorHolder
     {
+        #pragma warning disable 0649
+
         public IAccessManagerUserQueryProcessor<String, String, String, String> UserQueryProcessor { get; set; }
+
+        #pragma warning restore 0649
     }
 }

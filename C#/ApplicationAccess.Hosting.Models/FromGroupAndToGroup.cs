@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-namespace ApplicationAccess.Hosting.Rest
+using System;
+
+namespace ApplicationAccess.Hosting.Models
 {
     /// <summary>
-    /// Holds an instance of <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/>.
+    /// Container class holding a mapping between two groups.
     /// </summary>
-    public class UserEventProcessorHolder
+    public class FromGroupAndToGroup<TGroup>
     {
-        #pragma warning disable 0649
+        public TGroup FromGroup { get; }
 
-        public IAccessManagerUserEventProcessor<String, String, String, String> UserEventProcessor { get; set; }
+        public TGroup ToGroup { get; }
 
-        #pragma warning restore 0649
+        public FromGroupAndToGroup(TGroup fromGroup, TGroup toGroup)
+        {
+            FromGroup = fromGroup;
+            ToGroup = toGroup;
+        }
     }
 }

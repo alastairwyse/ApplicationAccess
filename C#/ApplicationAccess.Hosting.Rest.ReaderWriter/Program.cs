@@ -16,7 +16,6 @@
 
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Utilities;
-using ApplicationAccess.Hosting.Rest.Controllers;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Mime;
@@ -29,6 +28,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Builder;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
@@ -89,8 +89,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 });
 
                 // This adds swagger generation for controllers outside this project/assembly
-                //   TODO: This might not be necessary
-                AddSwaggerGenerationForTypesAssembly(swaggerGenOptions, typeof(UserQueryProcessorController));
+                AddSwaggerGenerationForTypesAssembly(swaggerGenOptions, typeof(ApplicationAccess.Hosting.Rest.Controllers.EntityQueryProcessorControllerBase));
             });
 
             // Validate and register top level configuration items
@@ -103,22 +102,26 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             builder.Services.AddOptions<MetricLoggingOptions>()
                 .Bind(builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName))
                 .ValidateDataAnnotations().ValidateOnStart();
+            builder.Services.AddOptions<MetricLoggingOptions>()
+                .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
+                .ValidateDataAnnotations().ValidateOnStart();
 
             // Validate secondary level coonfiguration items
             ValidateSecondaryConfiguration(builder);
 
             // Register 'holder' classes for the interfaces that comprise IAccessManager
             //   See notes in remarks of class UserQueryProcessorHolder for an explanation
-            builder.Services.AddSingleton<UserQueryProcessorHolder>();
+            builder.Services.AddSingleton<EntityEventProcessorHolder>();
+            builder.Services.AddSingleton<EntityQueryProcessorHolder>();
+            builder.Services.AddSingleton<GroupEventProcessorHolder>();
+            builder.Services.AddSingleton<GroupQueryProcessorHolder>();
+            builder.Services.AddSingleton<GroupToGroupEventProcessorHolder>();
+            builder.Services.AddSingleton<GroupToGroupQueryProcessorHolder>();
             builder.Services.AddSingleton<UserEventProcessorHolder>();
-
+            builder.Services.AddSingleton<UserQueryProcessorHolder>();
+            
             // Register the hosted service wrapper
             builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
-
-            // Add controllers from other assemblies which together comprise ReaderWriter functionality
-            var assembly = typeof(ApplicationAccess.Hosting.Rest.Controllers.UserQueryProcessorController).Assembly;
-            builder.Services.AddControllers()
-                .AddApplicationPart(assembly).AddControllersAsServices();
 
             var app = builder.Build();
 
@@ -134,12 +137,22 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 {
                     swaggerUIOptions.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"ApplicationAccess API {description.GroupName}");
                 }
-            }); 
+            });
 
             // Setup custom exception handler in the application's pipeline, so that any exceptions are caught and returned from the API as HttpErrorResponse objects
+            var errorHandlingOptions = new ErrorHandlingOptions();
+            app.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName).Bind(errorHandlingOptions);
             var exceptionToHttpStatusCodeConverter = new ExceptionToHttpStatusCodeConverter();
-            var exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter();
-            SetupExceptionHandler(app, exceptionToHttpStatusCodeConverter, exceptionToHttpErrorResponseConverter);
+            ExceptionToHttpErrorResponseConverter exceptionToHttpErrorResponseConverter = null;
+            if (errorHandlingOptions.IncludeInnerExceptions == true)
+            {
+                exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter();
+            }
+            else
+            {
+                exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(0);
+            }
+            SetupExceptionHandler(app, errorHandlingOptions, exceptionToHttpStatusCodeConverter, exceptionToHttpErrorResponseConverter);
 
             app.UseAuthorization();
 
@@ -179,12 +192,18 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// Sets up a custom exception handler in the application's pipeline.
         /// </summary>
         /// <param name="appBuilder">A class which allows configuration of the application's request pipeline.</param>
-        protected static void SetupExceptionHandler(IApplicationBuilder appBuilder, ExceptionToHttpStatusCodeConverter exceptionToHttpStatusCodeConverter, ExceptionToHttpErrorResponseConverter exceptionToHttpErrorResponseConverter)
+        protected static void SetupExceptionHandler
+        (
+            IApplicationBuilder appBuilder, 
+            ErrorHandlingOptions errorHandlingOptions, 
+            ExceptionToHttpStatusCodeConverter exceptionToHttpStatusCodeConverter, 
+            ExceptionToHttpErrorResponseConverter exceptionToHttpErrorResponseConverter
+        )
         {
             // As per https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?view=aspnetcore-5.0#exception-handler-lambda
             appBuilder.UseExceptionHandler((IApplicationBuilder appBuilder) => 
             {
-                appBuilder.Run(async context =>
+                appBuilder.Run(async (HttpContext context) =>
                 {
                     // Get the exception
                     var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
@@ -194,7 +213,15 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     {
                         context.Response.ContentType = MediaTypeNames.Application.Json;
                         context.Response.StatusCode = (Int32)exceptionToHttpStatusCodeConverter.Convert(exception);
-                        HttpErrorResponse httpErrorResponse = exceptionToHttpErrorResponseConverter.Convert(exception);
+                        HttpErrorResponse httpErrorResponse = null;
+                        if (context.Response.StatusCode == StatusCodes.Status500InternalServerError && errorHandlingOptions.OverrideInternalServerErrors == true)
+                        {
+                            httpErrorResponse = new HttpErrorResponse("InternalServerError", errorHandlingOptions.InternalServerErrorMessageOverride);
+                        }
+                        else
+                        {
+                            httpErrorResponse = exceptionToHttpErrorResponseConverter.Convert(exception);
+                        }
                         var serializer = new HttpErrorResponseJsonSerializer();
                         await context.Response.WriteAsync(serializer.Serialize(httpErrorResponse).ToString());
                     }

@@ -23,21 +23,21 @@ using System.Net.Mime;
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Controller which exposes methods on the <see cref="IAccessManagerUserQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> interface as REST methods.
+    /// Base for controller which exposes methods on the <see cref="IAccessManagerUserQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> interface as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
     [ApiExplorerSettings(GroupName = "v1")]
-    public class UserQueryProcessorController : ControllerBase
+    public abstract class UserQueryProcessorControllerBase : ControllerBase
     {
         private readonly IAccessManagerUserQueryProcessor<String, String, String, String> _userQueryProcessor;
-        private readonly ILogger<UserQueryProcessorController> _logger;
+        private readonly ILogger<UserQueryProcessorControllerBase> _logger;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.UserQueryProcessorController class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.UserQueryProcessorControllerBase class.
         /// </summary>
-        public UserQueryProcessorController(UserQueryProcessorHolder userQueryProcessorHolder, ILogger<UserQueryProcessorController> logger)
+        public UserQueryProcessorControllerBase(UserQueryProcessorHolder userQueryProcessorHolder, ILogger<UserQueryProcessorControllerBase> logger)
         {
             _userQueryProcessor = userQueryProcessorHolder.UserQueryProcessor;
             _logger = logger;
@@ -56,7 +56,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         }
 
         /// <summary>
-        /// Returns the specified user if they exist.
+        /// Returns the specified user if it exists.
         /// </summary>
         /// <param name="user">The id of the user.</param>
         /// <returns>The id of the user.</returns>
@@ -65,9 +65,9 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("users/{user}")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<String> ContainsUser(String user)
+        public ActionResult<String> ContainsUser([FromRoute] String user)
         {
-            if (_userQueryProcessor.ContainsUser(user))
+            if (_userQueryProcessor.ContainsUser(user) == true)
             {
                 return user;
             }
@@ -86,7 +86,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("userToGroupMappings/user/{user}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<UserAndGroup<String, String>> GetUserToGroupMappings(String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        public IEnumerable<UserAndGroup<String, String>> GetUserToGroupMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             foreach (String currentGroup in _userQueryProcessor.GetUserToGroupMappings(user, includeIndirectMappings))
             {
@@ -98,14 +98,14 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// Gets the application component and access level pairs that the specified user is mapped to.
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
-        /// <param name="includeIndirectMappings"></param>
-        /// <returns>A collection mappings between a user, and an application component and access level.</returns>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those that occur via group to group mappings).</param>
+        /// <returns>A collection of mappings between a user, and an application component and access level.</returns>
         [HttpGet]
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetUserToApplicationComponentAndAccessLevelMappings(String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        public IEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetUserToApplicationComponentAndAccessLevelMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            IEnumerable<Tuple<String, String>>? methodReturnValue = null;
+            IEnumerable<Tuple<String, String>> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
                 methodReturnValue = _userQueryProcessor.GetUserToApplicationComponentAndAccessLevelMappings(user);
@@ -124,13 +124,23 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// Gets the entities that the specified user is mapped to.
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those that occur via group to group mappings).</param>
         /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
         [HttpGet]
         [Route("userToEntityMappings/user/{user}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<UserAndEntity<String>> GetUserToEntityMappings(String user)
+        public IEnumerable<UserAndEntity<String>> GetUserToEntityMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (Tuple<String, String> currentTuple in _userQueryProcessor.GetUserToEntityMappings(user))
+            IEnumerable<Tuple<String, String>> methodReturnValue = null;
+            if (includeIndirectMappings == false)
+            {
+                methodReturnValue = _userQueryProcessor.GetUserToEntityMappings(user);
+            }
+            else
+            {
+                methodReturnValue = _userQueryProcessor.GetEntitiesAccessibleByUser(user);
+            }
+            foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
                 yield return new UserAndEntity<String>(user, currentTuple.Item1, currentTuple.Item2);
             }
@@ -141,13 +151,23 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
         /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those that occur via group to group mappings).</param>
         /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
         [HttpGet]
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<UserAndEntity<String>> GetUserToEntityMappings(String user, String entityType)
+        public IEnumerable<UserAndEntity<String>> GetUserToEntityMappings([FromRoute] String user, [FromRoute] String entityType, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentEntity in _userQueryProcessor.GetUserToEntityMappings(user, entityType))
+            IEnumerable<String> methodReturnValue = null;
+            if (includeIndirectMappings == false)
+            {
+                methodReturnValue = _userQueryProcessor.GetUserToEntityMappings(user, entityType);
+            }
+            else
+            {
+                methodReturnValue = _userQueryProcessor.GetEntitiesAccessibleByUser(user, entityType);
+            }
+            foreach (String currentEntity in methodReturnValue)
             {
                 yield return new UserAndEntity<String>(user, entityType, currentEntity);
             }
@@ -163,7 +183,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("dataElementAccess/applicationComponent/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public Boolean HasAccessToApplicationComponent(String user, String applicationComponent, String accessLevel)
+        public Boolean HasAccessToApplicationComponent([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             return _userQueryProcessor.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
         }
@@ -178,7 +198,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("dataElementAccess/entity/user/{user}/entityType/{entityType}/entity/{entity}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public Boolean HasAccessToEntity(String user, String entityType, String entity)
+        public Boolean HasAccessToEntity([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             return _userQueryProcessor.HasAccessToEntity(user, entityType, entity);
         }

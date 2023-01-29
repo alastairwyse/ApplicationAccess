@@ -28,13 +28,6 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String MetricLoggingOptionsName = "MetricLogging";
 
-        public MetricLoggingOptions()
-        {
-            MetricLoggingEnabled = false;
-            MetricBufferProcessing = null;
-            MetricsSqlServerConnection = null;
-        }
-
         [Required(ErrorMessage = $"Configuration for '{nameof(MetricLoggingEnabled)}' is required.")]
         public Boolean MetricLoggingEnabled { get; set; }
 
@@ -43,6 +36,13 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         [Required(ErrorMessage = $"Configuration for '{nameof(MetricsSqlServerConnection)}' is required.")]
         public MetricsSqlServerConnectionOptions? MetricsSqlServerConnection { get; set; }
+
+        public MetricLoggingOptions()
+        {
+            MetricLoggingEnabled = false;
+            MetricBufferProcessing = null;
+            MetricsSqlServerConnection = null;
+        }
 
         #pragma warning restore 0649
     }

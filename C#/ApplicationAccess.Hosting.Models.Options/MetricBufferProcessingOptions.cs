@@ -28,13 +28,6 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String MetricBufferProcessingOptionsName = "MetricBufferProcessing";
 
-        public MetricBufferProcessingOptions()
-        {
-            BufferProcessingStrategy = default(MetricBufferProcessingStrategyImplementation);
-            BufferSizeLimit = 0;
-            DequeueOperationLoopInterval = 0;
-        }
-
         [Required(ErrorMessage = $"Configuration for '{nameof(BufferProcessingStrategy)}' is required.")]
         public MetricBufferProcessingStrategyImplementation BufferProcessingStrategy { get; set; }
 
@@ -46,6 +39,13 @@ namespace ApplicationAccess.Hosting.Models.Options
         [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
         public Int32 DequeueOperationLoopInterval { get; set; }
 
-        #pragma warning restore 0649
+        public MetricBufferProcessingOptions()
+        {
+            BufferProcessingStrategy = default(MetricBufferProcessingStrategyImplementation);
+            BufferSizeLimit = 0;
+            DequeueOperationLoopInterval = 0;
+        }
+
+#pragma warning restore 0649
     }
 }

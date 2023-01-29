@@ -36,8 +36,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
         protected MetricLoggingOptions metricLoggingOptions;
-        protected UserQueryProcessorHolder userQueryProcessorHolder;
+        protected EntityEventProcessorHolder entityEventProcessorHolder;
+        protected EntityQueryProcessorHolder entityQueryProcessorHolder;
+        protected GroupEventProcessorHolder groupEventProcessorHolder;
+        protected GroupQueryProcessorHolder groupQueryProcessorHolder;
+        protected GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder;
+        protected GroupToGroupQueryProcessorHolder groupToGroupQueryProcessorHolder;
         protected UserEventProcessorHolder userEventProcessorHolder;
+        protected UserQueryProcessorHolder userQueryProcessorHolder;
         protected ILoggerFactory loggerFactory;
         protected ILogger<ReaderWriterNodeHostedServiceWrapper> logger;
 
@@ -46,9 +52,9 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// <summary>Used to persist changes load data to/from the AccessManager.</summary>
         protected SqlServerAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
         /// <summary>The buffer processing for the logger for metrics.</summary>
-        protected WorkerThreadBufferProcessorBase? metricLoggerBufferProcessingStrategy;
+        protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
         /// <summary>The logger for metrics.</summary>
-        protected SqlServerMetricLogger? metricLogger;
+        protected SqlServerMetricLogger metricLogger;
         /// <summary>The <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
         protected ReaderWriterNode<String, String, String, String> readerWriterNode;
 
@@ -60,8 +66,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
-            UserQueryProcessorHolder userQueryProcessorHolder,
+            EntityEventProcessorHolder entityEventProcessorHolder,
+            EntityQueryProcessorHolder entityQueryProcessorHolder,
+            GroupEventProcessorHolder groupEventProcessorHolder,
+            GroupQueryProcessorHolder groupQueryProcessorHolder,
+            GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder,
+            GroupToGroupQueryProcessorHolder groupToGroupQueryProcessorHolder,
             UserEventProcessorHolder userEventProcessorHolder,
+            UserQueryProcessorHolder userQueryProcessorHolder,
             ILoggerFactory loggerFactory,
             ILogger<ReaderWriterNodeHostedServiceWrapper> logger
         )
@@ -69,8 +81,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
+            this.entityEventProcessorHolder = entityEventProcessorHolder;
+            this.entityQueryProcessorHolder = entityQueryProcessorHolder;
+            this.groupEventProcessorHolder = groupEventProcessorHolder;
+            this.groupQueryProcessorHolder = groupQueryProcessorHolder;
+            this.groupToGroupEventProcessorHolder = groupToGroupEventProcessorHolder;
+            this.groupToGroupQueryProcessorHolder = groupToGroupQueryProcessorHolder;
+            this.userEventProcessorHolder = userEventProcessorHolder;
             this.userQueryProcessorHolder = userQueryProcessorHolder; 
-            this.userEventProcessorHolder= userEventProcessorHolder;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
         }
@@ -102,8 +120,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             }
 
             // Set the ReaderWriterNode on the 'holder' classes
-            userQueryProcessorHolder.UserQueryProcessor = readerWriterNode;
+            entityEventProcessorHolder.EntityEventProcessor = readerWriterNode;
+            entityQueryProcessorHolder.EntityQueryProcessor = readerWriterNode;
+            groupEventProcessorHolder.GroupEventProcessor = readerWriterNode;
+            groupQueryProcessorHolder.GroupQueryProcessor = readerWriterNode;
+            groupToGroupEventProcessorHolder.GroupToGroupEventProcessor = readerWriterNode;
+            groupToGroupQueryProcessorHolder.GroupToGroupQueryProcessor = readerWriterNode;
             userEventProcessorHolder.UserEventProcessor = readerWriterNode;
+            userQueryProcessorHolder.UserQueryProcessor = readerWriterNode;
 
             logger.LogInformation($"Completed constructing ReaderWriterNode instance.");
 

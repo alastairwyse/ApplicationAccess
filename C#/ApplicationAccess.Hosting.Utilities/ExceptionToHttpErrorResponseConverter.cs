@@ -26,6 +26,8 @@ namespace ApplicationAccess.Hosting.Utilities
     {
         /// <summary>Maps a type (assignable to Exception) to a conversion function which converts that type to an HttpErrorResponse.</summary>
         protected Dictionary<Type, Func<Exception, HttpErrorResponse>> typeToConversionFunctionMap;
+        /// <summary>The limit of the depth of inner exceptions to convert.</summary>
+        protected Int32 innerExceptionDepthLimit;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpErrorResponseConverter class.
@@ -34,6 +36,18 @@ namespace ApplicationAccess.Hosting.Utilities
         {
             typeToConversionFunctionMap = new Dictionary<Type, Func<Exception, HttpErrorResponse>>();
             InitialiseTypeToConversionFunctionMap(typeToConversionFunctionMap);
+            innerExceptionDepthLimit = Int32.MaxValue;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpErrorResponseConverter class.
+        /// </summary>
+        /// <param name="innerExceptionDepthLimit">The limit of the depth of inner exceptions to convert.  A value of 0 will convert only the top level exception and no inner exceptions.</param>
+        public ExceptionToHttpErrorResponseConverter(Int32 innerExceptionDepthLimit)
+            : this()
+        {
+            ThrowExceptionIfInnerExceptionDepthLimitParameterOutOfRange(nameof(innerExceptionDepthLimit), innerExceptionDepthLimit);
+            this.innerExceptionDepthLimit = innerExceptionDepthLimit;
         }
 
         /// <summary>
@@ -42,11 +56,26 @@ namespace ApplicationAccess.Hosting.Utilities
         /// <param name="typesAndConversionFunctions">A collection of tuples containing 2 values: A type (assignable to Exception) that the conversion function in the second component converts, and the conversion function which accepts an Exception object and returns a HttpErrorResponse.</param>
         /// <remarks>Note that the conversion functions should not handle the exception's 'InnerException' property, nor assign to the HttpErrorResponse's 'InnerError' property.</remarks>
         public ExceptionToHttpErrorResponseConverter(IEnumerable<Tuple<Type, Func<Exception, HttpErrorResponse>>> typesAndConversionFunctions)
-            : base()
+            : this()
         {
             foreach (Tuple<Type, Func<Exception, HttpErrorResponse>> currentTypeAndConversionFunction in typesAndConversionFunctions)
             {
                 AddConversionFunction(currentTypeAndConversionFunction.Item1, currentTypeAndConversionFunction.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpErrorResponseConverter class.
+        /// </summary>
+        /// <param name="typesAndConversionFunctions">A collection of tuples containing 2 values: A type (assignable to Exception) that the conversion function in the second component converts, and the conversion function which accepts an Exception object and returns a HttpErrorResponse.</param>
+        /// <param name="innerExceptionDepthLimit">The limit of the depth of inner exceptions to convert.  A value of 0 will convert only the top level exception and no inner exceptions.</param>
+        /// <remarks>Note that the conversion functions should not handle the exception's 'InnerException' property, nor assign to the HttpErrorResponse's 'InnerError' property.</remarks>
+        public ExceptionToHttpErrorResponseConverter(IEnumerable<Tuple<Type, Func<Exception, HttpErrorResponse>>> typesAndConversionFunctions, Int32 innerExceptionDepthLimit)
+            : this(typesAndConversionFunctions)
+        {
+            {
+                ThrowExceptionIfInnerExceptionDepthLimitParameterOutOfRange(nameof(innerExceptionDepthLimit), innerExceptionDepthLimit);
+                this.innerExceptionDepthLimit = innerExceptionDepthLimit;
             }
         }
 
@@ -75,7 +104,7 @@ namespace ApplicationAccess.Hosting.Utilities
         /// <returns>The exception converted to an HttpErrorResponse.</returns>
         public HttpErrorResponse Convert(Exception exception)
         {
-            return ConvertExceptionRecurse(exception);
+            return ConvertExceptionRecurse(exception, 0);
         }
 
         /// <summary>
@@ -226,14 +255,18 @@ namespace ApplicationAccess.Hosting.Utilities
         /// Converts the specified exception to an HttpErrorResponse, recursively converting any inner exceptions.
         /// </summary>
         /// <param name="exception">The exception to convert.</param>
+        /// <param name="currentInnerExceptionDepth">The current depth of inner exceptions.</param>
         /// <returns>The converted exception.</returns>
-        protected HttpErrorResponse ConvertExceptionRecurse(Exception exception)
+        protected HttpErrorResponse ConvertExceptionRecurse(Exception exception, Int32 currentInnerExceptionDepth)
         {
             // Recursively call for any inner exceptions
             HttpErrorResponse innerError = null;
-            if (exception.InnerException != null)
+            if (currentInnerExceptionDepth < innerExceptionDepthLimit)
             {
-                innerError = ConvertExceptionRecurse(exception.InnerException);
+                if (exception.InnerException != null)
+                {
+                    innerError = ConvertExceptionRecurse(exception.InnerException, currentInnerExceptionDepth + 1);
+                }
             }
 
             // Convert the exception using a matching function from the type to conversion function map
@@ -266,6 +299,12 @@ namespace ApplicationAccess.Hosting.Utilities
                 }
             }
             throw new Exception($"No valid conversion function defined for exception type '{exception.GetType().FullName}'.");
+        }
+
+        protected void ThrowExceptionIfInnerExceptionDepthLimitParameterOutOfRange(String parameterName, Int32 parameterValue)
+        {
+            if (parameterValue < 0)
+                throw new ArgumentOutOfRangeException(parameterName, $"Parameter '{parameterName}' with value {parameterValue} cannot be less than 0.");
         }
     }
 }

@@ -17,13 +17,14 @@
 namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
-    /// Holds an instance of <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/>.
+    /// Holds an instance of <see cref="IAccessManagerGroupToGroupQueryProcessor{TGroup}"/>.
     /// </summary>
-    public class UserEventProcessorHolder
+    /// <remarks>An instance of this class can be set on the ASP.NET services collection before the application is built, and then the 'GroupToGroupQueryProcessor' property set after building (specifically during the IHostedService.StartAsync() method... when the value set on 'GroupToGroupQueryProcessor' is actually instantiated).  Works around one of the 'chicken and egg'-type problems which often arise when trying to instantiate and populate the ASP.NET services collection.</remarks>
+    public class GroupToGroupQueryProcessorHolder
     {
         #pragma warning disable 0649
 
-        public IAccessManagerUserEventProcessor<String, String, String, String> UserEventProcessor { get; set; }
+        public IAccessManagerGroupToGroupQueryProcessor<String> GroupToGroupQueryProcessor { get; set; }
 
         #pragma warning restore 0649
     }
