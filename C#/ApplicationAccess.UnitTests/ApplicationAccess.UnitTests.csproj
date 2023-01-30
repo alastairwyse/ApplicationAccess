@@ -2,22 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
     <NoWin32Manifest>true</NoWin32Manifest>
-
     <Authors>Alastair Wyse</Authors>
-
     <Company></Company>
-
     <Description>Unit tests for classes in the ApplicationAccess namespace.</Description>
-
     <Copyright>Copyright © Alastair Wyse 2021</Copyright>
-
     <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
-
     <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <ItemGroup>

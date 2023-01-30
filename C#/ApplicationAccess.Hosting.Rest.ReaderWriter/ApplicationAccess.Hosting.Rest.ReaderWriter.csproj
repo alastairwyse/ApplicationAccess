@@ -24,7 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Utilities\ApplicationAccess.Hosting.Utilities.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting\ApplicationAccess.Hosting.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />

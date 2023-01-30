@@ -17,7 +17,7 @@
 using System;
 using Newtonsoft.Json.Linq;
 
-namespace ApplicationAccess.Hosting.Utilities
+namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
     /// Serializes <see cref="HttpErrorResponse"/> instances to JSON documents.

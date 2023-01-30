@@ -45,13 +45,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Models.Options", "ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj", "{F9DAEC2B-CB67-4BD2-AEA6-4039AC5E7448}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest", "ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj", "{6B44B371-8641-4E23-A96E-85510EADA411}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest", "ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj", "{6B44B371-8641-4E23-A96E-85510EADA411}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Models", "ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj", "{ECFB856A-1612-4CD6-8469-24A260893050}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Models", "ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj", "{ECFB856A-1612-4CD6-8469-24A260893050}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Utilities", "ApplicationAccess.Hosting.Utilities\ApplicationAccess.Hosting.Utilities.csproj", "{A86A164F-C9F8-41E4-8DBB-972711F62F61}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Utilities.UnitTests", "ApplicationAccess.Hosting.Utilities.UnitTests\ApplicationAccess.Hosting.Utilities.UnitTests.csproj", "{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.UnitTests", "ApplicationAccess.Hosting.Rest.UnitTests\ApplicationAccess.Hosting.Rest.UnitTests.csproj", "{FD649D14-428D-4202-8BB6-75F128F35344}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -151,14 +149,10 @@ Global
 		{ECFB856A-1612-4CD6-8469-24A260893050}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECFB856A-1612-4CD6-8469-24A260893050}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECFB856A-1612-4CD6-8469-24A260893050}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A86A164F-C9F8-41E4-8DBB-972711F62F61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A86A164F-C9F8-41E4-8DBB-972711F62F61}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A86A164F-C9F8-41E4-8DBB-972711F62F61}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A86A164F-C9F8-41E4-8DBB-972711F62F61}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4A81D145-06D9-4E2B-B561-74B0E6C4FE2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD649D14-428D-4202-8BB6-75F128F35344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD649D14-428D-4202-8BB6-75F128F35344}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD649D14-428D-4202-8BB6-75F128F35344}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD649D14-428D-4202-8BB6-75F128F35344}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

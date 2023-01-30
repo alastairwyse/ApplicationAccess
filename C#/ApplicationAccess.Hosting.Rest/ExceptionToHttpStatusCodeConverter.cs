@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 
-namespace ApplicationAccess.Hosting.Utilities
+namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
     /// Converts an Exception to an equivalent HttpStatusCode.
@@ -29,7 +29,7 @@ namespace ApplicationAccess.Hosting.Utilities
         protected Dictionary<Type, HttpStatusCode> typeToHttpStatusCodeMap;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpStatusCodeConverter class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ExceptionToHttpStatusCodeConverter class.
         /// </summary>
         public ExceptionToHttpStatusCodeConverter()
         {
@@ -38,7 +38,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpStatusCodeConverter class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ExceptionToHttpStatusCodeConverter class.
         /// </summary>
         /// <param name="typesAndStatusCodes">A collection of tuples containing 2 values: A type (assignable to Exception), and an HTTP status code to map the exception type to.</param>
         public ExceptionToHttpStatusCodeConverter(IEnumerable<Tuple<Type, HttpStatusCode>> typesAndStatusCodes)

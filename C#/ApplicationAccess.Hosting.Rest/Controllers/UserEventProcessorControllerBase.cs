@@ -47,11 +47,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("users/{user}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddUser([FromRoute] String user)
+        public StatusCodeResult AddUser([FromRoute] String user)
         {
             _userEventProcessor.AddUser(user);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>
@@ -75,11 +75,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("userToGroupMappings/user/{user}/group/{group}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddUserToGroupMapping([FromRoute] String user, [FromRoute] String group)
+        public StatusCodeResult AddUserToGroupMapping([FromRoute] String user, [FromRoute] String group)
         {
             _userEventProcessor.AddUserToGroupMapping(user, group);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>
@@ -105,11 +105,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddUserToApplicationComponentAndAccessLevelMapping([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
+        public StatusCodeResult AddUserToApplicationComponentAndAccessLevelMapping([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             _userEventProcessor.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>
@@ -136,11 +136,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}/entity/{entity}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddUserToEntityMapping([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
+        public StatusCodeResult AddUserToEntityMapping([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             _userEventProcessor.AddUserToEntityMapping(user, entityType, entity);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>

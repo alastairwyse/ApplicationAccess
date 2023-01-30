@@ -48,11 +48,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("groupToGroupMappings/fromGroup/{fromGroup}/toGroup/{toGroup}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddGroupToGroupMapping([FromRoute] String fromGroup, [FromRoute] String toGroup)
+        public StatusCodeResult AddGroupToGroupMapping([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
             _groupToGroupEventProcessor.AddGroupToGroupMapping(fromGroup, toGroup);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>

@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ApplicationAccess.Hosting.Utilities
+namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
     /// The exception that is thrown when a resource doesn't exist or could not be found.
@@ -40,7 +40,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.NotFoundException class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.NotFoundException class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
         /// <param name="resourceId">A unique identifier for the resource.</param>

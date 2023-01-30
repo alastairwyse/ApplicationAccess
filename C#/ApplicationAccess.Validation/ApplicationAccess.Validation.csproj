@@ -5,6 +5,7 @@
     <Description>Classes which provide validation routines for classes in the ApplicationAccess namespace.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

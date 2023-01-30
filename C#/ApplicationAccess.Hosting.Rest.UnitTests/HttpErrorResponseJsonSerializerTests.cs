@@ -20,10 +20,10 @@ using NUnit.Framework;
 using NUnit.Framework.Internal;
 using Newtonsoft.Json.Linq;
 
-namespace ApplicationAccess.Hosting.Utilities.UnitTests
+namespace ApplicationAccess.Hosting.Rest.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Utilities.HttpErrorResponseJsonSerializer class.
+    /// Unit tests for the ApplicationAccess.Hosting.Rest.HttpErrorResponseJsonSerializer class.
     /// </summary>
     public class HttpErrorResponseJsonSerializerTests
     {

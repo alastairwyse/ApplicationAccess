@@ -10,12 +10,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Utilities\ApplicationAccess.Hosting.Utilities.csproj" />
     <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
   </ItemGroup>
 

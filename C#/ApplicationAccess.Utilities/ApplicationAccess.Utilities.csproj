@@ -5,6 +5,7 @@
     <Description>Common utilities for classes in the ApplicationAccess and associated namespaces.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

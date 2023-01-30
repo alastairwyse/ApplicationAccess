@@ -5,6 +5,7 @@
     <Description>Provides metrics capture for classes in the ApplicationAccess.Persistence namespace.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <ItemGroup>

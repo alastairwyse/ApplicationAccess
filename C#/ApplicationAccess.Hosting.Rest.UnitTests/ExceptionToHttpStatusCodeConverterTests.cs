@@ -21,10 +21,10 @@ using System.IO;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
-namespace ApplicationAccess.Hosting.Utilities.UnitTests
+namespace ApplicationAccess.Hosting.Rest.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Utilities.ExceptionToHttpStatusCodeConverter class.
+    /// Unit tests for the ApplicationAccess.Hosting.Rest.ExceptionToHttpStatusCodeConverter class.
     /// </summary>
     public class ExceptionToHttpStatusCodeConverterTests
     {

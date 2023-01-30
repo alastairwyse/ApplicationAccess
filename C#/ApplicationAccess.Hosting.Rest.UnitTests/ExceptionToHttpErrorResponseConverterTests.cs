@@ -21,10 +21,10 @@ using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
-namespace ApplicationAccess.Hosting.Utilities.UnitTests
+namespace ApplicationAccess.Hosting.Rest.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Utilities.ExceptionToHttpErrorResponseConverter class.
+    /// Unit tests for the ApplicationAccess.Hosting.Rest.ExceptionToHttpErrorResponseConverter class.
     /// </summary>
     public class ExceptionToHttpErrorResponseConverterTests
     {

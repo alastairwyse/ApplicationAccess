@@ -47,11 +47,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("entityTypes/{entityType}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public virtual ActionResult AddEntityType([FromRoute] string entityType)
+        public StatusCodeResult AddEntityType([FromRoute] string entityType)
         {
             _entityEventProcessor.AddEntityType(entityType);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>
@@ -75,11 +75,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("entityTypes/{entityType}/entities/{entity}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddEntity([FromRoute] string entityType, [FromRoute] string entity)
+        public StatusCodeResult AddEntity([FromRoute] string entityType, [FromRoute] string entity)
         {
             _entityEventProcessor.AddEntity(entityType, entity);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>

@@ -6,6 +6,7 @@
     <Description>Unit tests for classes in the ApplicationAccess.Utilities namespace.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <ItemGroup>

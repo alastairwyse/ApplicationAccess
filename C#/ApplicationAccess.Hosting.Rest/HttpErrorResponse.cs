@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ApplicationAccess.Hosting.Utilities
+namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
     /// Container class holding the data returned from a REST API when an error occurs.
@@ -80,7 +80,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.HttpErrorResponse class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.HttpErrorResponse class.
         /// </summary>
         /// <param name="code">An internal code representing the error.</param>
         /// <param name="message">A description of the error.</param>
@@ -97,7 +97,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.HttpErrorResponse class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.HttpErrorResponse class.
         /// </summary>
         /// <param name="code">An internal code representing the error.</param>
         /// <param name="message">A description of the error.</param>
@@ -109,7 +109,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.HttpErrorResponse class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.HttpErrorResponse class.
         /// </summary>
         /// <param name="code">An internal code representing the error.</param>
         /// <param name="message">A description of the error.</param>
@@ -121,7 +121,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.HttpErrorResponse class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.HttpErrorResponse class.
         /// </summary>
         /// <param name="code">An internal code representing the error.</param>
         /// <param name="message">A description of the error.</param>
@@ -133,7 +133,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.HttpErrorResponse class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.HttpErrorResponse class.
         /// </summary>
         /// <param name="code">An internal code representing the error.</param>
         /// <param name="message">A description of the error.</param>
@@ -147,7 +147,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.HttpErrorResponse class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.HttpErrorResponse class.
         /// </summary>
         /// <param name="code">An internal code representing the error.</param>
         /// <param name="message">A description of the error.</param>
@@ -161,7 +161,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.HttpErrorResponse class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.HttpErrorResponse class.
         /// </summary>
         /// <param name="code">An internal code representing the error.</param>
         /// <param name="message">A description of the error.</param>
@@ -175,7 +175,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.HttpErrorResponse class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.HttpErrorResponse class.
         /// </summary>
         /// <param name="code">An internal code representing the error.</param>
         /// <param name="message">A description of the error.</param>

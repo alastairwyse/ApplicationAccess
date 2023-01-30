@@ -5,6 +5,7 @@
     <Description>Classes which write and read data associated with AccessManager classes to and from persistent storage.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

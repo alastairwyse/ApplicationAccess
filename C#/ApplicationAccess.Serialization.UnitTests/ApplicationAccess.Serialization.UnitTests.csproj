@@ -9,6 +9,7 @@
     <Copyright>Copyright © Alastair Wyse 2021</Copyright>
     <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <ItemGroup>

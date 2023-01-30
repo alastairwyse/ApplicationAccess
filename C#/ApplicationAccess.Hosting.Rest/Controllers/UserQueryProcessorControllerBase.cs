@@ -15,7 +15,6 @@
  */
 
 using ApplicationAccess.Hosting.Models;
-using ApplicationAccess.Hosting.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Net.Mime;
@@ -183,7 +182,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("dataElementAccess/applicationComponent/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public Boolean HasAccessToApplicationComponent([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
+        public ActionResult<Boolean> HasAccessToApplicationComponent([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             return _userQueryProcessor.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
         }
@@ -198,7 +197,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("dataElementAccess/entity/user/{user}/entityType/{entityType}/entity/{entity}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public Boolean HasAccessToEntity([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
+        public ActionResult<Boolean> HasAccessToEntity([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             return _userQueryProcessor.HasAccessToEntity(user, entityType, entity);
         }

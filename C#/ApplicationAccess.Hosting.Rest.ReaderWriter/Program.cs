@@ -15,7 +15,6 @@
  */
 
 using ApplicationAccess.Hosting.Models.Options;
-using ApplicationAccess.Hosting.Utilities;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Mime;
@@ -28,7 +27,6 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Newtonsoft.Json.Linq;
-using Microsoft.AspNetCore.Builder;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
@@ -124,7 +122,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
 
             var app = builder.Build();
-
+            
             // Configure the HTTP request pipeline.
             app.UseSwagger();
             IApiVersionDescriptionProvider apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();

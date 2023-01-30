@@ -47,11 +47,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("groups/{group}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddGroup([FromRoute] String group)
+        public StatusCodeResult AddGroup([FromRoute] String group)
         {
             _groupEventProcessor.AddGroup(group);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>
@@ -76,11 +76,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("groupToApplicationComponentAndAccessLevelMappings/group/{group}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddGroupToApplicationComponentAndAccessLevelMapping([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
+        public StatusCodeResult AddGroupToApplicationComponentAndAccessLevelMapping([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             _groupEventProcessor.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>
@@ -107,11 +107,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("groupToEntityMappings/group/{group}/entityType/{entityType}/entity/{entity}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public ActionResult AddGroupToEntityMapping([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
+        public StatusCodeResult AddGroupToEntityMapping([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
             _groupEventProcessor.AddGroupToEntityMapping(group, entityType, entity);
 
-            return StatusCode(StatusCodes.Status201Created);
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>

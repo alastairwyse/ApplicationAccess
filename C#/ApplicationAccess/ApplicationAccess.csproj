@@ -10,6 +10,7 @@
     <Description>Core and foundational classes which provide flexible and configurable user permission and authorization management for applications.</Description>
     <PackageReleaseNotes>First release.</PackageReleaseNotes>
     <PackageTags>application access authorization authorisation permission permissions user group users groups</PackageTags>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -15,7 +15,6 @@
  */
 
 using ApplicationAccess.Hosting.Models;
-using ApplicationAccess.Hosting.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Net.Mime;

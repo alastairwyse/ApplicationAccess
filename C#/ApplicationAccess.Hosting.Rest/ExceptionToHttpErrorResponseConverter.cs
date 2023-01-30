@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ApplicationAccess.Hosting.Utilities
+namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
     /// Converts an Exception (or object derived from Exception) to an <see cref="HttpErrorResponse"/> object.
@@ -30,7 +30,7 @@ namespace ApplicationAccess.Hosting.Utilities
         protected Int32 innerExceptionDepthLimit;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpErrorResponseConverter class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ExceptionToHttpErrorResponseConverter class.
         /// </summary>
         public ExceptionToHttpErrorResponseConverter()
         {
@@ -40,7 +40,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpErrorResponseConverter class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ExceptionToHttpErrorResponseConverter class.
         /// </summary>
         /// <param name="innerExceptionDepthLimit">The limit of the depth of inner exceptions to convert.  A value of 0 will convert only the top level exception and no inner exceptions.</param>
         public ExceptionToHttpErrorResponseConverter(Int32 innerExceptionDepthLimit)
@@ -51,7 +51,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpErrorResponseConverter class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ExceptionToHttpErrorResponseConverter class.
         /// </summary>
         /// <param name="typesAndConversionFunctions">A collection of tuples containing 2 values: A type (assignable to Exception) that the conversion function in the second component converts, and the conversion function which accepts an Exception object and returns a HttpErrorResponse.</param>
         /// <remarks>Note that the conversion functions should not handle the exception's 'InnerException' property, nor assign to the HttpErrorResponse's 'InnerError' property.</remarks>
@@ -65,7 +65,7 @@ namespace ApplicationAccess.Hosting.Utilities
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Utilities.ExceptionToHttpErrorResponseConverter class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ExceptionToHttpErrorResponseConverter class.
         /// </summary>
         /// <param name="typesAndConversionFunctions">A collection of tuples containing 2 values: A type (assignable to Exception) that the conversion function in the second component converts, and the conversion function which accepts an Exception object and returns a HttpErrorResponse.</param>
         /// <param name="innerExceptionDepthLimit">The limit of the depth of inner exceptions to convert.  A value of 0 will convert only the top level exception and no inner exceptions.</param>
