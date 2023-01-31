@@ -15,14 +15,12 @@
  */
 
 using System;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Rest.Controllers;
 using NUnit.Framework;
 using NSubstitute;
-using ApplicationAccess.Hosting.Models;
-using System.Collections.Generic;
 
 namespace ApplicationAccess.Hosting.Rest.UnitTests
 {

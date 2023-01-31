@@ -49,7 +49,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Models", "ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj", "{ECFB856A-1612-4CD6-8469-24A260893050}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.UnitTests", "ApplicationAccess.Hosting.Rest.UnitTests\ApplicationAccess.Hosting.Rest.UnitTests.csproj", "{FD649D14-428D-4202-8BB6-75F128F35344}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.UnitTests", "ApplicationAccess.Hosting.Rest.UnitTests\ApplicationAccess.Hosting.Rest.UnitTests.csproj", "{FD649D14-428D-4202-8BB6-75F128F35344}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests", "ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests.csproj", "{8FC48126-ABB8-42AA-8A1D-CBE49C2CB64C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +155,10 @@ Global
 		{FD649D14-428D-4202-8BB6-75F128F35344}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD649D14-428D-4202-8BB6-75F128F35344}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD649D14-428D-4202-8BB6-75F128F35344}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FC48126-ABB8-42AA-8A1D-CBE49C2CB64C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FC48126-ABB8-42AA-8A1D-CBE49C2CB64C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FC48126-ABB8-42AA-8A1D-CBE49C2CB64C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FC48126-ABB8-42AA-8A1D-CBE49C2CB64C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

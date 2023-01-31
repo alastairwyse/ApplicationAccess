@@ -5,6 +5,9 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <Description>Unit tests for classes in the ApplicationAccess.Hosting.Rest namespace.</Description>
   </PropertyGroup>
 
   <ItemGroup>

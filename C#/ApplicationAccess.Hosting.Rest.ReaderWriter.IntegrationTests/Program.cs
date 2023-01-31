@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ApplicationAccess.Hosting.Rest.UnitTests
+namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
 {
     public class Program
     {
@@ -12,10 +12,11 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             // Add services to the container.
 
             builder.Services.AddControllers();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
 
             app.UseAuthorization();
 

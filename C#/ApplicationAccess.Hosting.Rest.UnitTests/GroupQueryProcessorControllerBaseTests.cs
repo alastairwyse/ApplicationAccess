@@ -18,10 +18,10 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Rest.Controllers;
 using NUnit.Framework;
 using NSubstitute;
-using ApplicationAccess.Hosting.Models;
 
 namespace ApplicationAccess.Hosting.Rest.UnitTests
 {

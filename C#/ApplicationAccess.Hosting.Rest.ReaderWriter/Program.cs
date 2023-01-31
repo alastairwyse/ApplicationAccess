@@ -32,6 +32,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
     public class Program
     {
+        public static readonly String IntegrationTestingEnvironmentName = "IntegrationTesting";
+
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -119,8 +121,11 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             builder.Services.AddSingleton<UserQueryProcessorHolder>();
             
             // Register the hosted service wrapper
-            builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
-
+            if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
+            {
+                builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
+            }
+            
             var app = builder.Build();
             
             // Configure the HTTP request pipeline.
