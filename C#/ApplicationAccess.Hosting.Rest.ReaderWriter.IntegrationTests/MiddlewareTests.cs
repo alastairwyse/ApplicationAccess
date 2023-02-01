@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2020 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             {
                 requestMessage.Headers.Add("Accept", "text/html");
 
-                HttpResponseMessage response = client.SendAsync(requestMessage).Result;
+                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
+                {
 
-                String responseBody = response.Content.ReadAsStringAsync().Result;
-                Assert.IsEmpty(responseBody);
-                Assert.AreEqual(HttpStatusCode.NotAcceptable, response.StatusCode);
+                    String responseBody = response.Content.ReadAsStringAsync().Result;
+                    Assert.IsEmpty(responseBody);
+                    Assert.AreEqual(HttpStatusCode.NotAcceptable, response.StatusCode);
+                }
             }
         }
 
@@ -58,11 +60,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Patch, requestUrl))
             {
 
-                HttpResponseMessage response = client.SendAsync(requestMessage).Result;
+                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
+                {
 
-                String responseBody = response.Content.ReadAsStringAsync().Result;
-                Assert.IsEmpty(responseBody);
-                Assert.AreEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+                    String responseBody = response.Content.ReadAsStringAsync().Result;
+                    Assert.IsEmpty(responseBody);
+                    Assert.AreEqual(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+                }
             }
         }
 
@@ -77,12 +81,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             var mockException = new ArgumentException($"Entity type '{entityType}' does not exist.", "entityType");
             mockEntityQueryProcessor.When((processor) => processor.GetEntities(entityType)).Do((callInfo) => throw mockException);
 
-            HttpResponseMessage response = client.GetAsync(requestUrl).Result;
+            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            {
 
-            JObject jsonResponse = ConvertHttpContentToJson(response.Content);
-            AssertJsonIsHttpErrorResponse(jsonResponse, "ArgumentException", mockException.Message);
-            AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ParameterName", "entityType");
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, "ArgumentException", mockException.Message);
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ParameterName", "entityType");
+                Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+            }
         }
 
         /// <summary>
@@ -97,11 +103,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             var mockException = new Exception($"An internal error occurred reading from persistent storage");
             mockEntityQueryProcessor.When((processor) => processor.GetEntities(entityType)).Do((callInfo) => throw mockException);
 
-            HttpResponseMessage response = client.GetAsync(requestUrl).Result;
+            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            {
 
-            JObject jsonResponse = ConvertHttpContentToJson(response.Content);
-            AssertJsonIsHttpErrorResponse(jsonResponse, "InternalServerError", "An internal server error occurred");
-            Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, "InternalServerError", "An internal server error occurred");
+                Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
+            }
         }
 
         /// <summary>
@@ -114,13 +122,15 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             const String requestUrl = $"api/v1/entityTypes/{entityType}";
             mockEntityQueryProcessor.ContainsEntityType(entityType).Returns(false);
 
-            HttpResponseMessage response = client.GetAsync(requestUrl).Result;
+            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            {
 
-            mockEntityQueryProcessor.Received(1).ContainsEntityType(entityType);
-            JObject jsonResponse = ConvertHttpContentToJson(response.Content);
-            AssertJsonIsHttpErrorResponse(jsonResponse, "NotFoundException", $"Entity type '{entityType}' does not exist.");
-            AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ResourceId", entityType);
-            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+                mockEntityQueryProcessor.Received(1).ContainsEntityType(entityType);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, "NotFoundException", $"Entity type '{entityType}' does not exist.");
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ResourceId", entityType);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+            }
         }
 
         /// <summary>
@@ -131,13 +141,15 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         {
             const String requestUrl = "api/v1/userToGroupMappings/user/user1";
 
-            HttpResponseMessage response = client.GetAsync(requestUrl).Result;
+            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            {
 
-            JObject jsonResponse = ConvertHttpContentToJson(response.Content);
-            AssertJsonIsHttpErrorResponse(jsonResponse, HttpStatusCode.BadRequest.ToString(), new ValidationProblemDetails().Title);
-            AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Property", "includeIndirectMappings");
-            AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Error", "A value for the 'includeIndirectMappings' parameter or property was not provided.");
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, HttpStatusCode.BadRequest.ToString(), new ValidationProblemDetails().Title);
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Property", "includeIndirectMappings");
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Error", "A value for the 'includeIndirectMappings' parameter or property was not provided.");
+                Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+            }
         }
 
         /// <summary>
@@ -148,13 +160,15 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         {
             const String requestUrl = "api/v1/userToGroupMappings/user/user1?includeIndirectMappings=truu";
 
-            HttpResponseMessage response = client.GetAsync(requestUrl).Result;
+            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            {
 
-            JObject jsonResponse = ConvertHttpContentToJson(response.Content);
-            AssertJsonIsHttpErrorResponse(jsonResponse, HttpStatusCode.BadRequest.ToString(), new ValidationProblemDetails().Title);
-            AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Property", "includeIndirectMappings");
-            AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Error", "The value 'truu' is not valid.");
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, HttpStatusCode.BadRequest.ToString(), new ValidationProblemDetails().Title);
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Property", "includeIndirectMappings");
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Error", "The value 'truu' is not valid.");
+                Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+            }
         }
 
         /// <summary>
@@ -165,11 +179,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         {
             const String requestUrl = "api/v0/users";
 
-            HttpResponseMessage response = client.GetAsync(requestUrl).Result;
+            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            {
 
-            JObject jsonResponse = ConvertHttpContentToJson(response.Content);
-            AssertJsonIsHttpErrorResponse(jsonResponse, "UnsupportedApiVersion", "The HTTP resource that matches the request URI 'http://localhost/api/v0/users' does not support the API version '0'.");
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, "UnsupportedApiVersion", "The HTTP resource that matches the request URI 'http://localhost/api/v0/users' does not support the API version '0'.");
+                Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+            }
         }
     }
 }

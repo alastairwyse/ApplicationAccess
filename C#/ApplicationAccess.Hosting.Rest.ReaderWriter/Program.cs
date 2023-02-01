@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-using ApplicationAccess.Hosting.Models.Options;
-using System.ComponentModel.DataAnnotations;
-using System.Net;
-using System.Net.Mime;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerUI;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Newtonsoft.Json.Linq;
+using Swashbuckle.AspNetCore.SwaggerUI;
+using ApplicationAccess.Hosting.Models.Options;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
@@ -37,32 +30,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var middlewareUtilities = new MiddlewareUtilities();
 
             // Add services to the container.
             builder.Services.AddControllers()
-            .ConfigureApiBehaviorOptions((ApiBehaviorOptions behaviorOptions) =>
-            {
-                // This overrides the default model-binding failure behaviour, to return a HttpErrorResponse object rather than the standard ProblemDetails
-                behaviorOptions.InvalidModelStateResponseFactory = (ActionContext context) =>
-                {
-                    var errorResponse = ConvertModelStateDictionaryToHttpErrorResponse(context.ModelState);
-                    var serializer = new HttpErrorResponseJsonSerializer();
-                    JObject serializedErrorResponse = serializer.Serialize(errorResponse);
-
-                    var contentResult = new ContentResult();
-                    contentResult.Content = serializedErrorResponse.ToString();
-                    contentResult.ContentType = MediaTypeNames.Application.Json;
-                    contentResult.StatusCode = StatusCodes.Status400BadRequest;
-
-                    return contentResult;
-                };
-            })
-            // This configures the API to return a HTTP 406 (not acceptable) status if the 'Accept' request header does not contain '*/*' or 'application/json'
-            .AddMvcOptions(options =>
-            {
-                options.RespectBrowserAcceptHeader = true;
-                options.ReturnHttpNotAcceptable = true;
-            });
+            // Override the default model-binding failure behaviour, to return a HttpErrorResponse object rather than the standard ProblemDetails
+            .MapModelBindingFailureToHttpErrorResponse()
+            // Return HTTP 406 (not acceptable) statuses if the 'Accept' request header does not match the controller's 'ProducesResponseType' attribute (i.e. '*/*' or 'application/json')
+            .ReturnHttpNotAcceptableOnUnsupportedAcceptHeader();
 
             builder.Services.AddApiVersioning((ApiVersioningOptions versioningOptions) =>
             {
@@ -89,7 +64,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 });
 
                 // This adds swagger generation for controllers outside this project/assembly
-                AddSwaggerGenerationForTypesAssembly(swaggerGenOptions, typeof(ApplicationAccess.Hosting.Rest.Controllers.EntityQueryProcessorControllerBase));
+                middlewareUtilities.AddSwaggerGenerationForAssembly(swaggerGenOptions, typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly);
             });
 
             // Validate and register top level configuration items
@@ -155,7 +130,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             {
                 exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(0);
             }
-            SetupExceptionHandler(app, errorHandlingOptions, exceptionToHttpStatusCodeConverter, exceptionToHttpErrorResponseConverter);
+            middlewareUtilities.SetupExceptionHandler(app, errorHandlingOptions, exceptionToHttpStatusCodeConverter, exceptionToHttpErrorResponseConverter);
 
             app.UseAuthorization();
 
@@ -171,129 +146,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// <remarks>The IConfigurationSection ValidateDataAnnotations() extension method does not recursively validate child sections of the section being validated, hence this is performed explicitly in this method for relevant IOptions pattern objects.</remarks>
         protected static void ValidateSecondaryConfiguration(WebApplicationBuilder builder)
         {
-            // TODO: Likely some of this validation will be repeated in other REST hosting process, so these checks could be split up and put in their own 'Validation' project
-            var metricLoggingOptions = new MetricLoggingOptions();
-            ValidateConfigurationSection(builder, metricLoggingOptions, MetricLoggingOptions.MetricLoggingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricBufferProcessing, MetricBufferProcessingOptions.MetricBufferProcessingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricsSqlServerConnection, MetricsSqlServerConnectionOptions.MetricsSqlServerConnectionOptionsName);
-        }
-
-        /// <summary>
-        /// Validates a specific section of the application configuration.
-        /// </summary>
-        /// <param name="builder">The builder for the application.</param>
-        /// <param name="optionsInstance">An instance of the class holding the section of the configuration.</param>
-        /// <param name="optionsSectionName">The name of the section within the configuration (e.g. in 'appsettings.json').</param>
-        protected static void ValidateConfigurationSection(WebApplicationBuilder builder, Object optionsInstance, String optionsSectionName)
-        {
-            builder.Configuration.GetSection(optionsSectionName).Bind(optionsInstance);
-            var context = new ValidationContext(optionsInstance);
-            Validator.ValidateObject(optionsInstance, context, true);
-        }
-
-        /// <summary>
-        /// Sets up a custom exception handler in the application's pipeline.
-        /// </summary>
-        /// <param name="appBuilder">A class which allows configuration of the application's request pipeline.</param>
-        protected static void SetupExceptionHandler
-        (
-            IApplicationBuilder appBuilder, 
-            ErrorHandlingOptions errorHandlingOptions, 
-            ExceptionToHttpStatusCodeConverter exceptionToHttpStatusCodeConverter, 
-            ExceptionToHttpErrorResponseConverter exceptionToHttpErrorResponseConverter
-        )
-        {
-            // As per https://docs.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?view=aspnetcore-5.0#exception-handler-lambda
-            appBuilder.UseExceptionHandler((IApplicationBuilder appBuilder) => 
-            {
-                appBuilder.Run(async (HttpContext context) =>
-                {
-                    // Get the exception
-                    var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-                    Exception exception = exceptionHandlerPathFeature.Error;
-
-                    if (exception != null)
-                    {
-                        context.Response.ContentType = MediaTypeNames.Application.Json;
-                        context.Response.StatusCode = (Int32)exceptionToHttpStatusCodeConverter.Convert(exception);
-                        HttpErrorResponse httpErrorResponse = null;
-                        if (context.Response.StatusCode == StatusCodes.Status500InternalServerError && errorHandlingOptions.OverrideInternalServerErrors == true)
-                        {
-                            httpErrorResponse = new HttpErrorResponse("InternalServerError", errorHandlingOptions.InternalServerErrorMessageOverride);
-                        }
-                        else
-                        {
-                            httpErrorResponse = exceptionToHttpErrorResponseConverter.Convert(exception);
-                        }
-                        var serializer = new HttpErrorResponseJsonSerializer();
-                        await context.Response.WriteAsync(serializer.Serialize(httpErrorResponse).ToString());
-                    }
-                    else
-                    {
-                        // TODO: Not sure if this situation can arise, but will leave this handler in while testing
-                        throw new Exception("'exceptionHandlerPathFeature.Error' was null whilst handling exception.");
-                    }
-                });
-            });
-        }
-
-        /// <summary>
-        /// Converts a <see cref="ModelStateDictionary"/> in an invalid state to a <see cref="HttpErrorResponse"/>.
-        /// </summary>
-        /// <param name="modelStateDictionary">The ModelStateDictionary to convert.</param>
-        /// <returns>The ModelStateDictionary converted to an HttpErrorResponse.</returns>
-        protected static HttpErrorResponse ConvertModelStateDictionaryToHttpErrorResponse(ModelStateDictionary modelStateDictionary)
-        {
-            if (modelStateDictionary.IsValid == true)
-                throw new Exception($"Cannot convert a {nameof(ModelStateDictionary)} in a valid state.");
-
-            var errorAttributes = new List<Tuple<String, String>>();
-            foreach (KeyValuePair<String, ModelStateEntry> currentKvp in modelStateDictionary)
-            {
-                if (currentKvp.Value.ValidationState == ModelValidationState.Invalid)
-                {
-                    foreach (ModelError currentError in currentKvp.Value.Errors)
-                    {
-                        errorAttributes.Add(new Tuple<String, String>("Property", currentKvp.Key));
-                        errorAttributes.Add(new Tuple<String, String>("Error", currentError.ErrorMessage));
-                    }
-                }
-            }
-            var returnErrorResponse = new HttpErrorResponse(HttpStatusCode.BadRequest.ToString(), new ValidationProblemDetails().Title, errorAttributes);
-
-            return returnErrorResponse;
-        }
-
-        /// <summary>
-        /// Adds swagger documentation generation for the assembly containing the specified type to the specified <see cref="SwaggerGenOptions"/> instance.
-        /// </summary>
-        /// <param name="swaggerGenOptions">The swagger generation options to add the documentation to.</param>
-        /// <param name="type">A type within the assembly to add the documentation for.</param>
-        protected static void AddSwaggerGenerationForTypesAssembly(SwaggerGenOptions swaggerGenOptions, Type type)
-        {
-            var xmlFilename = $"{type.Assembly.GetName().Name}.xml";
-            swaggerGenOptions.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-        }
-
-        /// <summary>
-        /// Implementation of <see cref="IErrorResponseProvider"/> which returns a <see cref="HttpErrorResponse"/> indicating that an API version is not supported.
-        /// </summary>
-        protected class ApiVersioningErrorResponseProvider : IErrorResponseProvider
-        {
-            /// <inheritdoc/>
-            public IActionResult CreateResponse(ErrorResponseContext context)
-            {
-                var response = new HttpErrorResponse(context.ErrorCode, context.Message);
-                var serializer = new HttpErrorResponseJsonSerializer();
-                JObject serializedErrorResponse = serializer.Serialize(response);
-
-                var contentResult = new ContentResult();
-                contentResult.Content = serializedErrorResponse.ToString();
-                contentResult.ContentType = MediaTypeNames.Application.Json;
-                contentResult.StatusCode = StatusCodes.Status400BadRequest;
-
-                return contentResult;
-            }
+            var middlewareUtilities = new MiddlewareUtilities();
+            middlewareUtilities.ValidateMetricLoggingOptions(builder);
         }
     }
 }

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+using System;
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
@@ -61,7 +64,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The entity type was removed.</response>
         [HttpDelete]
         [Route("entityTypes/{entityType}")]
-        public void RemoveEntityType([FromRoute] string entityType)
+        public void RemoveEntityType([FromRoute] String entityType)
         {
             _entityEventProcessor.RemoveEntityType(entityType);
         }
@@ -75,7 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("entityTypes/{entityType}/entities/{entity}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public StatusCodeResult AddEntity([FromRoute] string entityType, [FromRoute] string entity)
+        public StatusCodeResult AddEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
             _entityEventProcessor.AddEntity(entityType, entity);
 
@@ -90,7 +93,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The entity was removed.</response>
         [HttpDelete]
         [Route("entityTypes/{entityType}/entities/{entity}")]
-        public void RemoveEntity([FromRoute] string entityType, [FromRoute] string entity)
+        public void RemoveEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
             _entityEventProcessor.RemoveEntity(entityType, entity);
         }

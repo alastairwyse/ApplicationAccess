@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2020 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,6 +92,27 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             }
 
             return returnJson;
+        }
+
+        /// <summary>
+        /// Attempts to convert the specified <see cref="HttpContent"/> to a JSON array.
+        /// </summary>
+        /// <param name="content">The content to convert.</param>
+        /// <returns>The content as a JSON array.</returns>
+        protected JArray ConvertHttpContentToJsonArray(HttpContent content)
+        {
+            String contentAsString = content.ReadAsStringAsync().Result;
+            JArray returnJArray = null;
+            try
+            {
+                returnJArray = JArray.Parse(contentAsString);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to convert HttpContent to JSON array.", e);
+            }
+
+            return returnJArray;
         }
 
         /// <summary>
