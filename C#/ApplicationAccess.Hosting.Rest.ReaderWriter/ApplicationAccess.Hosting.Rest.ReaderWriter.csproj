@@ -16,7 +16,6 @@
     <PackageReference Include="ApplicationMetrics" Version="5.1.0" />
     <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="1.2.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>

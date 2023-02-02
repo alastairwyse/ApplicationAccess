@@ -16,12 +16,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Mime;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Extensions.DependencyInjection;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using Newtonsoft.Json.Linq;
 
 namespace ApplicationAccess.Hosting.Rest
@@ -31,6 +36,29 @@ namespace ApplicationAccess.Hosting.Rest
     /// </summary>
     public static class MiddlewareUtilityExtensions
     {
+        /// <summary>
+        /// Sets up API versioning on the services collection.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to configure.</param>
+        /// <returns>The <see cref="IServiceCollection"/>.</returns>
+        public static IServiceCollection SetupApiVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning((ApiVersioningOptions versioningOptions) =>
+            {
+                versioningOptions.AssumeDefaultVersionWhenUnspecified = false;
+                versioningOptions.ReportApiVersions = true;
+                versioningOptions.ErrorResponses = new ApiVersioningErrorResponseProvider();
+            })
+            .AddVersionedApiExplorer(
+            options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
+
+            return services;
+        }
+
         /// <summary>
         /// Overrides the default model-binding failure behaviour, to return a <see cref="HttpErrorResponse"/> object rather than the standard <see cref="ProblemDetails"/>.
         /// </summary>
@@ -72,6 +100,36 @@ namespace ApplicationAccess.Hosting.Rest
             });
 
             return builder;
+        }
+
+        /// <summary>
+        /// Sets up customizations for the Swagger UI, including support for API versioning.
+        /// </summary>
+        /// <param name="app">The <see cref="WebApplication"/> to setup the customizations on.</param>
+        /// <param name="includeApiVersionDefinitions">Whether to configure a drop-down control in the UI for API versions.</param>
+        /// <returns>The <see cref="WebApplication"/>.</returns>
+        public static WebApplication SetupSwaggerUI(this WebApplication app, Boolean includeApiVersionDefinitions)
+        {
+            IApiVersionDescriptionProvider apiVersionDescriptionProvider = null;
+            if (includeApiVersionDefinitions == true)
+            {
+                apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+            }
+            app.UseSwaggerUI((SwaggerUIOptions swaggerUIOptions) =>
+            {
+                // Hide the 'schemas' section at the bottom of the swagger page as it contains strage definitions for mapping objects returned from controller methods (e.g. containing the generic parameter type in the name)
+                swaggerUIOptions.DefaultModelsExpandDepth(-1);
+                // Setup the 'definitions' drop-down on the swagger UI
+                if (includeApiVersionDefinitions == true)
+                { 
+                    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions.Reverse())
+                    {
+                        swaggerUIOptions.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"ApplicationAccess API {description.GroupName}");
+                    }
+                }
+            });
+
+            return app;
         }
 
         #region Private/Protected Methods

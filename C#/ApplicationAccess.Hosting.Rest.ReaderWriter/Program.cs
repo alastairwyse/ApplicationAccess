@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Swashbuckle.AspNetCore.SwaggerUI;
 using ApplicationAccess.Hosting.Models.Options;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
@@ -29,7 +26,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             var middlewareUtilities = new MiddlewareUtilities();
 
             // Add services to the container.
@@ -38,19 +35,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             .MapModelBindingFailureToHttpErrorResponse()
             // Return HTTP 406 (not acceptable) statuses if the 'Accept' request header does not match the controller's 'ProducesResponseType' attribute (i.e. '*/*' or 'application/json')
             .ReturnHttpNotAcceptableOnUnsupportedAcceptHeader();
-
-            builder.Services.AddApiVersioning((ApiVersioningOptions versioningOptions) =>
-            {
-                versioningOptions.AssumeDefaultVersionWhenUnspecified = false;
-                versioningOptions.ReportApiVersions = true;
-                versioningOptions.ErrorResponses = new ApiVersioningErrorResponseProvider();
-            });
-            builder.Services.AddVersionedApiExplorer(
-            options =>
-            {
-                options.GroupNameFormat = "'v'VVV";
-                options.SubstituteApiVersionInUrl = true;
-            });
+            // Allow APIs to be versioned
+            builder.Services.SetupApiVersioning();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -101,21 +87,12 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
             }
             
-            var app = builder.Build();
+            WebApplication app = builder.Build();
             
             // Configure the HTTP request pipeline.
             app.UseSwagger();
-            IApiVersionDescriptionProvider apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-            app.UseSwaggerUI((SwaggerUIOptions swaggerUIOptions) =>
-            {
-                // Hide the 'schemas' section at the bottom of the swagger page as it contains strage definitions for mapping objects returned from controller methods (e.g. containing the generic parameter type in the name)
-                swaggerUIOptions.DefaultModelsExpandDepth(-1);
-                // Setup the 'definitions' drop-down on the swagger UI
-                foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions.Reverse())
-                {
-                    swaggerUIOptions.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", $"ApplicationAccess API {description.GroupName}");
-                }
-            });
+            // Setup the Swagger UI
+            app.SetupSwaggerUI(true);
 
             // Setup custom exception handler in the application's pipeline, so that any exceptions are caught and returned from the API as HttpErrorResponse objects
             var errorHandlingOptions = new ErrorHandlingOptions();
