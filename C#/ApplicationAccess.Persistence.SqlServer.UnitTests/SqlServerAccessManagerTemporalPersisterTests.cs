@@ -17,6 +17,7 @@
 using System;
 using System.Text;
 using System.Globalization;
+using ApplicationAccess.Utilities;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 

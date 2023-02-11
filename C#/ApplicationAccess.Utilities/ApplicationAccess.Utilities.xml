@@ -285,6 +285,35 @@
             <param name="beginId">The id corresponding to the starting of the specified interval metric event (i.e. returned when the <see cref="M:ApplicationMetrics.IMetricLogger.Begin(ApplicationMetrics.IntervalMetric)"/> method was called).</param>
             <param name="intervalMetric">The interval metric that should be cancelled.</param>
         </member>
+        <member name="T:ApplicationAccess.Utilities.NullLogger">
+            <summary>
+            Implementation of IApplicationLogger which does not log.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.NullLogger.Log(ApplicationLogging.LogLevel,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.NullLogger.Log(System.Object,ApplicationLogging.LogLevel,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.NullLogger.Log(System.Int32,ApplicationLogging.LogLevel,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.NullLogger.Log(System.Object,System.Int32,ApplicationLogging.LogLevel,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.NullLogger.Log(ApplicationLogging.LogLevel,System.String,System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.NullLogger.Log(System.Object,ApplicationLogging.LogLevel,System.String,System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.NullLogger.Log(System.Int32,ApplicationLogging.LogLevel,System.String,System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.NullLogger.Log(System.Object,System.Int32,ApplicationLogging.LogLevel,System.String,System.Exception)">
+            <inheritdoc/>
+        </member>
         <member name="T:ApplicationAccess.Utilities.StopwatchDateTimeProvider">
             <summary>
             Returns the current date and time using an underlying Stopwatch class for increased accuracy over the DefaultDateTimeProvider class.

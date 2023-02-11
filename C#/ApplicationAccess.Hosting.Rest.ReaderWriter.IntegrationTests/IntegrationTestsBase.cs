@@ -42,7 +42,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         protected HttpClient client;
 
         [OneTimeSetUp]
-        protected void OneTimeSetUp()
+        protected virtual void OneTimeSetUp()
         {
             mockEntityEventProcessor = Substitute.For<IAccessManagerEntityEventProcessor>();
             mockEntityQueryProcessor = Substitute.For<IAccessManagerEntityQueryProcessor>();
@@ -65,7 +65,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         }
 
         [OneTimeTearDown]
-        protected void OneTimeTearDown()
+        protected virtual void OneTimeTearDown()
         {
             client.Dispose();
             testReaderWriter.Dispose();

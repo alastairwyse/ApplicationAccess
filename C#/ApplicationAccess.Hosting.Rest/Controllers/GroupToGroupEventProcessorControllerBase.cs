@@ -30,16 +30,16 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiExplorerSettings(GroupName = "v1")]
     public abstract class GroupToGroupEventProcessorControllerBase : ControllerBase
     {
-        private readonly IAccessManagerGroupToGroupEventProcessor<String> _groupToGroupEventProcessor;
-        private readonly ILogger<GroupToGroupEventProcessorControllerBase> _logger;
+        protected IAccessManagerGroupToGroupEventProcessor<String> groupToGroupEventProcessor;
+        protected ILogger<GroupToGroupEventProcessorControllerBase> logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.GroupToGroupEventProcessorControllerBase class.
         /// </summary>
         public GroupToGroupEventProcessorControllerBase(GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder, ILogger<GroupToGroupEventProcessorControllerBase> logger)
         {
-            _groupToGroupEventProcessor = groupToGroupEventProcessorHolder.GroupToGroupEventProcessor;
-            _logger = logger;
+            groupToGroupEventProcessor = groupToGroupEventProcessorHolder.GroupToGroupEventProcessor;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddGroupToGroupMapping([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
-            _groupToGroupEventProcessor.AddGroupToGroupMapping(fromGroup, toGroup);
+            groupToGroupEventProcessor.AddGroupToGroupMapping(fromGroup, toGroup);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -68,7 +68,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("groupToGroupMappings/fromGroup/{fromGroup}/toGroup/{toGroup}")]
         public void RemoveGroupToGroupMapping([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
-            _groupToGroupEventProcessor.RemoveGroupToGroupMapping(fromGroup, toGroup);
+            groupToGroupEventProcessor.RemoveGroupToGroupMapping(fromGroup, toGroup);
         }
 
     }

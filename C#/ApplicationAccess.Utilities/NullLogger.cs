@@ -17,41 +17,49 @@
 using System;
 using ApplicationLogging;
 
-namespace ApplicationAccess.Persistence.SqlServer.UnitTests
+namespace ApplicationAccess.Utilities
 {
     /// <summary>
     /// Implementation of IApplicationLogger which does not log.
     /// </summary>
-    class NullLogger : IApplicationLogger
+    public class NullLogger : IApplicationLogger
     {
+        /// <inheritdoc/>
         public void Log(LogLevel level, string text)
         {
         }
 
+        /// <inheritdoc/>
         public void Log(object source, LogLevel level, string text)
         {
         }
 
+        /// <inheritdoc/>
         public void Log(int eventIdentifier, LogLevel level, string text)
         {
         }
 
+        /// <inheritdoc/>
         public void Log(object source, int eventIdentifier, LogLevel level, string text)
         {
         }
 
+        /// <inheritdoc/>
         public void Log(LogLevel level, string text, Exception sourceException)
         {
         }
 
+        /// <inheritdoc/>
         public void Log(object source, LogLevel level, string text, Exception sourceException)
         {
         }
 
+        /// <inheritdoc/>
         public void Log(int eventIdentifier, LogLevel level, string text, Exception sourceException)
         {
         }
 
+        /// <inheritdoc/>
         public void Log(object source, int eventIdentifier, LogLevel level, string text, Exception sourceException)
         {
         }

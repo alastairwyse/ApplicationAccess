@@ -21,6 +21,7 @@ using System.Linq;
 using System.Globalization;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using NUnit.Framework;
 using NUnit.Framework.Internal;

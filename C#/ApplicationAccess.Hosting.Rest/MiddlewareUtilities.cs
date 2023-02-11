@@ -15,17 +15,19 @@
  */
 
 using System;
+using System.IO;
 using System.Net.Mime;
+using System.Reflection;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using ApplicationAccess.Hosting.Models.Options;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System.IO;
-using System.Reflection;
 using Microsoft.Extensions.Configuration;
-using System.ComponentModel.DataAnnotations;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest
 {

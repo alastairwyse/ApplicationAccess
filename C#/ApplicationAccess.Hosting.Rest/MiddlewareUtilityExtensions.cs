@@ -27,6 +27,8 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Rest.Utilities;
 using Newtonsoft.Json.Linq;
 
 namespace ApplicationAccess.Hosting.Rest
@@ -117,7 +119,7 @@ namespace ApplicationAccess.Hosting.Rest
             }
             app.UseSwaggerUI((SwaggerUIOptions swaggerUIOptions) =>
             {
-                // Hide the 'schemas' section at the bottom of the swagger page as it contains strage definitions for mapping objects returned from controller methods (e.g. containing the generic parameter type in the name)
+                // Hide the 'schemas' section at the bottom of the swagger page as it contains strange definitions for mapping objects returned from controller methods (e.g. containing the generic parameter type in the name)
                 swaggerUIOptions.DefaultModelsExpandDepth(-1);
                 // Setup the 'definitions' drop-down on the swagger UI
                 if (includeApiVersionDefinitions == true)

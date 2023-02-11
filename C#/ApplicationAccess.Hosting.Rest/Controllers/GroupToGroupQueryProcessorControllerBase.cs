@@ -20,7 +20,7 @@ using System.Net.Mime;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Models.DataTransferObjects;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
@@ -33,16 +33,16 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiExplorerSettings(GroupName = "v1")]
     public abstract class GroupToGroupQueryProcessorControllerBase : ControllerBase
     {
-        private readonly IAccessManagerGroupToGroupQueryProcessor<String> _groupToGroupQueryProcessor;
-        private readonly ILogger<GroupToGroupQueryProcessorControllerBase> _logger;
+        protected IAccessManagerGroupToGroupQueryProcessor<String> groupToGroupQueryProcessor;
+        protected ILogger<GroupToGroupQueryProcessorControllerBase> logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.GroupToGroupQueryProcessorControllerBase class.
         /// </summary>
         public GroupToGroupQueryProcessorControllerBase(GroupToGroupQueryProcessorHolder groupToGroupQueryProcessorHolder, ILogger<GroupToGroupQueryProcessorControllerBase> logger)
         {
-            _groupToGroupQueryProcessor = groupToGroupQueryProcessorHolder.GroupToGroupQueryProcessor;
-            _logger = logger;
+            groupToGroupQueryProcessor = groupToGroupQueryProcessorHolder.GroupToGroupQueryProcessor;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentGroup in _groupToGroupQueryProcessor.GetGroupToGroupMappings(group, includeIndirectMappings))
+            foreach (String currentGroup in groupToGroupQueryProcessor.GetGroupToGroupMappings(group, includeIndirectMappings))
             {
                 yield return new FromGroupAndToGroup<String>(group, currentGroup);
             }

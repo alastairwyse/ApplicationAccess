@@ -21,7 +21,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Http;
-using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Models.DataTransferObjects;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
@@ -34,16 +35,16 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiExplorerSettings(GroupName = "v1")]
     public abstract class GroupQueryProcessorControllerBase : ControllerBase
     {
-        private readonly IAccessManagerGroupQueryProcessor<String, String, String> _groupQueryProcessor;
-        private readonly ILogger<GroupQueryProcessorControllerBase> _logger;
+        protected IAccessManagerGroupQueryProcessor<String, String, String> groupQueryProcessor;
+        protected ILogger<GroupQueryProcessorControllerBase> logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.GroupQueryProcessorControllerBase class.
         /// </summary>
         public GroupQueryProcessorControllerBase(GroupQueryProcessorHolder groupQueryProcessorHolder, ILogger<GroupQueryProcessorControllerBase> logger)
         {
-            _groupQueryProcessor = groupQueryProcessorHolder.GroupQueryProcessor;
-            _logger = logger;
+            groupQueryProcessor = groupQueryProcessorHolder.GroupQueryProcessor;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<String> Groups()
         {
-            return _groupQueryProcessor.Groups;
+            return groupQueryProcessor.Groups;
         }
 
         /// <summary>
@@ -70,7 +71,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsGroup([FromRoute] String group)
         {
-            if (_groupQueryProcessor.ContainsGroup(group) == true)
+            if (groupQueryProcessor.ContainsGroup(group) == true)
             {
                 return group;
             }
@@ -94,11 +95,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = _groupQueryProcessor.GetGroupToApplicationComponentAndAccessLevelMappings(group);
+                methodReturnValue = groupQueryProcessor.GetGroupToApplicationComponentAndAccessLevelMappings(group);
             }
             else
             {
-                methodReturnValue = _groupQueryProcessor.GetApplicationComponentsAccessibleByGroup(group);
+                methodReturnValue = groupQueryProcessor.GetApplicationComponentsAccessibleByGroup(group);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
@@ -120,11 +121,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = _groupQueryProcessor.GetGroupToEntityMappings(group);
+                methodReturnValue = groupQueryProcessor.GetGroupToEntityMappings(group);
             }
             else
             {
-                methodReturnValue = _groupQueryProcessor.GetEntitiesAccessibleByGroup(group);
+                methodReturnValue = groupQueryProcessor.GetEntitiesAccessibleByGroup(group);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
@@ -147,11 +148,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<String> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = _groupQueryProcessor.GetGroupToEntityMappings(group, entityType);
+                methodReturnValue = groupQueryProcessor.GetGroupToEntityMappings(group, entityType);
             }
             else
             {
-                methodReturnValue = _groupQueryProcessor.GetEntitiesAccessibleByGroup(group, entityType);
+                methodReturnValue = groupQueryProcessor.GetEntitiesAccessibleByGroup(group, entityType);
             }
             foreach (String currentEntity in methodReturnValue)
             {

@@ -15,22 +15,22 @@
  */
 
 using System;
+using ApplicationMetrics;
 
-namespace ApplicationAccess.Hosting.Models
+namespace ApplicationAccess.Hosting.Rest.Client
 {
     /// <summary>
-    /// Container class holding a mapping between two groups.
+    /// Count metric which records sending of a HTTP request resulting in a transient error and being retried.
     /// </summary>
-    public class FromGroupAndToGroup<TGroup>
+    public class HttpRequestRetried : CountMetric
     {
-        public TGroup FromGroup { get; }
+        protected static String staticName = "HttpRequestRetried";
+        protected static String staticDescription = "Sending of a HTTP request resulting in a transient error and being retried.";
 
-        public TGroup ToGroup { get; }
-
-        public FromGroupAndToGroup(TGroup fromGroup, TGroup toGroup)
+        public HttpRequestRetried()
         {
-            FromGroup = fromGroup;
-            ToGroup = toGroup;
+            base.name = staticName;
+            base.description = staticDescription;
         }
     }
 }

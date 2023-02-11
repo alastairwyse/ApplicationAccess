@@ -15,8 +15,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using ApplicationMetrics;
 
 namespace ApplicationAccess.Persistence.SqlServer

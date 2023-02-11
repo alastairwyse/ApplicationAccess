@@ -19,7 +19,7 @@ using System.Text;
 using System.Globalization;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using ApplicationLogging;
+using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 {

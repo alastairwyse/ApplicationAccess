@@ -30,16 +30,16 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiExplorerSettings(GroupName = "v1")]
     public abstract class GroupEventProcessorControllerBase : ControllerBase
     {
-        private readonly IAccessManagerGroupEventProcessor<String, String, String> _groupEventProcessor;
-        private readonly ILogger<GroupEventProcessorControllerBase> _logger;
+        protected IAccessManagerGroupEventProcessor<String, String, String> groupEventProcessor;
+        protected ILogger<GroupEventProcessorControllerBase> logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.GroupEventProcessorControllerBase class.
         /// </summary>
         public GroupEventProcessorControllerBase(GroupEventProcessorHolder groupEventProcessorHolder, ILogger<GroupEventProcessorControllerBase> logger)
         {
-            _groupEventProcessor = groupEventProcessorHolder.GroupEventProcessor;
-            _logger = logger;
+            groupEventProcessor = groupEventProcessorHolder.GroupEventProcessor;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddGroup([FromRoute] String group)
         {
-            _groupEventProcessor.AddGroup(group);
+            groupEventProcessor.AddGroup(group);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -66,7 +66,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("groups/{group}")]
         public void RemoveGroup([FromRoute] String group)
         {
-            _groupEventProcessor.RemoveGroup(group);
+            groupEventProcessor.RemoveGroup(group);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddGroupToApplicationComponentAndAccessLevelMapping([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            _groupEventProcessor.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            groupEventProcessor.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -97,7 +97,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("groupToApplicationComponentAndAccessLevelMappings/group/{group}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            _groupEventProcessor.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            groupEventProcessor.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddGroupToEntityMapping([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            _groupEventProcessor.AddGroupToEntityMapping(group, entityType, entity);
+            groupEventProcessor.AddGroupToEntityMapping(group, entityType, entity);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -128,7 +128,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("groupToEntityMappings/group/{group}/entityType/{entityType}/entity/{entity}")]
         public void RemoveGroupToEntityMapping([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            _groupEventProcessor.RemoveGroupToEntityMapping(group, entityType, entity);
+            groupEventProcessor.RemoveGroupToEntityMapping(group, entityType, entity);
         }
     }
 }

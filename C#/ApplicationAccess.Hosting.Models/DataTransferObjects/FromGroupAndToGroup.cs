@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-namespace ApplicationAccess.Hosting.Models
+using System;
+
+namespace ApplicationAccess.Hosting.Models.DataTransferObjects
 {
     /// <summary>
-    /// Container class holding a user, an application component, and level of access to that component.
+    /// DTO container class holding a mapping between two groups.
     /// </summary>
-    public class UserAndApplicationComponentAndAccessLevel<TUser, TComponent, TAccess>
+    public class FromGroupAndToGroup<TGroup>
     {
-        public TUser User { get; }
+        public TGroup FromGroup { get; set; }
 
-        public TComponent ApplicationComponent { get; }
+        public TGroup ToGroup { get; set; }
 
-        public TAccess AccessLevel { get; }
-
-        public UserAndApplicationComponentAndAccessLevel(TUser user, TComponent applicationComponent, TAccess accessLevel)
+        public FromGroupAndToGroup(TGroup fromGroup, TGroup toGroup)
         {
-            User = user;
-            ApplicationComponent = applicationComponent;
-            AccessLevel = accessLevel;
+            FromGroup = fromGroup;
+            ToGroup = toGroup;
         }
     }
 }

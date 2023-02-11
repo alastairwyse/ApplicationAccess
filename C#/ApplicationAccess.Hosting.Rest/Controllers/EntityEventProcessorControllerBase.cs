@@ -30,16 +30,16 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiExplorerSettings(GroupName = "v1")]
     public abstract class EntityEventProcessorControllerBase : ControllerBase
     {
-        private readonly IAccessManagerEntityEventProcessor _entityEventProcessor;
-        private readonly ILogger<EntityEventProcessorControllerBase> _logger;
+        protected IAccessManagerEntityEventProcessor entityEventProcessor;
+        protected ILogger<EntityEventProcessorControllerBase> logger;
 
         /// <summary>
         ///  Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.EntityEventProcessorControllerBase class.
         /// </summary>
         public EntityEventProcessorControllerBase(EntityEventProcessorHolder entityEventProcessorHolder, ILogger<EntityEventProcessorControllerBase> logger)
         {
-            _entityEventProcessor = entityEventProcessorHolder.EntityEventProcessor;
-            _logger = logger;
+            entityEventProcessor = entityEventProcessorHolder.EntityEventProcessor;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddEntityType([FromRoute] string entityType)
         {
-            _entityEventProcessor.AddEntityType(entityType);
+            entityEventProcessor.AddEntityType(entityType);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -66,7 +66,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("entityTypes/{entityType}")]
         public void RemoveEntityType([FromRoute] String entityType)
         {
-            _entityEventProcessor.RemoveEntityType(entityType);
+            entityEventProcessor.RemoveEntityType(entityType);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
-            _entityEventProcessor.AddEntity(entityType, entity);
+            entityEventProcessor.AddEntity(entityType, entity);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -95,7 +95,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("entityTypes/{entityType}/entities/{entity}")]
         public void RemoveEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
-            _entityEventProcessor.RemoveEntity(entityType, entity);
+            entityEventProcessor.RemoveEntity(entityType, entity);
         }
     }
 }

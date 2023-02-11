@@ -21,7 +21,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Http;
-using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Models.DataTransferObjects;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
@@ -34,16 +35,16 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiExplorerSettings(GroupName = "v1")]
     public abstract class UserQueryProcessorControllerBase : ControllerBase
     {
-        private readonly IAccessManagerUserQueryProcessor<String, String, String, String> _userQueryProcessor;
-        private readonly ILogger<UserQueryProcessorControllerBase> _logger;
+        protected IAccessManagerUserQueryProcessor<String, String, String, String> userQueryProcessor;
+        protected ILogger<UserQueryProcessorControllerBase> logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.UserQueryProcessorControllerBase class.
         /// </summary>
         public UserQueryProcessorControllerBase(UserQueryProcessorHolder userQueryProcessorHolder, ILogger<UserQueryProcessorControllerBase> logger)
         {
-            _userQueryProcessor = userQueryProcessorHolder.UserQueryProcessor;
-            _logger = logger;
+            userQueryProcessor = userQueryProcessorHolder.UserQueryProcessor;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<String> Users()
         {
-            return _userQueryProcessor.Users;
+            return userQueryProcessor.Users;
         }
 
         /// <summary>
@@ -70,7 +71,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsUser([FromRoute] String user)
         {
-            if (_userQueryProcessor.ContainsUser(user) == true)
+            if (userQueryProcessor.ContainsUser(user) == true)
             {
                 return user;
             }
@@ -91,7 +92,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndGroup<String, String>> GetUserToGroupMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentGroup in _userQueryProcessor.GetUserToGroupMappings(user, includeIndirectMappings))
+            foreach (String currentGroup in userQueryProcessor.GetUserToGroupMappings(user, includeIndirectMappings))
             {
                 yield return new UserAndGroup<String, String>(user, currentGroup);
             }
@@ -111,11 +112,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = _userQueryProcessor.GetUserToApplicationComponentAndAccessLevelMappings(user);
+                methodReturnValue = userQueryProcessor.GetUserToApplicationComponentAndAccessLevelMappings(user);
             }
             else
             {
-                methodReturnValue = _userQueryProcessor.GetApplicationComponentsAccessibleByUser(user);
+                methodReturnValue = userQueryProcessor.GetApplicationComponentsAccessibleByUser(user);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
@@ -137,11 +138,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = _userQueryProcessor.GetUserToEntityMappings(user);
+                methodReturnValue = userQueryProcessor.GetUserToEntityMappings(user);
             }
             else
             {
-                methodReturnValue = _userQueryProcessor.GetEntitiesAccessibleByUser(user);
+                methodReturnValue = userQueryProcessor.GetEntitiesAccessibleByUser(user);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
@@ -164,11 +165,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<String> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = _userQueryProcessor.GetUserToEntityMappings(user, entityType);
+                methodReturnValue = userQueryProcessor.GetUserToEntityMappings(user, entityType);
             }
             else
             {
-                methodReturnValue = _userQueryProcessor.GetEntitiesAccessibleByUser(user, entityType);
+                methodReturnValue = userQueryProcessor.GetEntitiesAccessibleByUser(user, entityType);
             }
             foreach (String currentEntity in methodReturnValue)
             {
@@ -188,7 +189,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public ActionResult<Boolean> HasAccessToApplicationComponent([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            return _userQueryProcessor.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
+            return userQueryProcessor.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
         }
 
         /// <summary>
@@ -203,7 +204,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public ActionResult<Boolean> HasAccessToEntity([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            return _userQueryProcessor.HasAccessToEntity(user, entityType, entity);
+            return userQueryProcessor.HasAccessToEntity(user, entityType, entity);
         }
     }
 }

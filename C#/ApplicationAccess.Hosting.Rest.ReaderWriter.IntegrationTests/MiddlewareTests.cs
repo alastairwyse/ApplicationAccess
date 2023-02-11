@@ -94,7 +94,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// <summary>
         /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 500 status when an <see cref="Exception"/> is thrown.
         /// </summary>
-        /// <remarks>Note that this test is dependent on appsettings setting 'ErrorHandling.OverrideInternalServerErrors' neing set true.</remarks>
+        /// <remarks>Note that this test is dependent on appsettings setting 'ErrorHandling.OverrideInternalServerErrors' being set true.</remarks>
         [Test]
         public void ExceptionMappedToHttpErrorResponse()
         {

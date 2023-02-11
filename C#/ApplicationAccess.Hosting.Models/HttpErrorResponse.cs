@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ApplicationAccess.Hosting.Rest
+namespace ApplicationAccess.Hosting.Models
 {
     /// <summary>
     /// Container class holding the data returned from a REST API when an error occurs.

@@ -21,7 +21,7 @@ using System.IO;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
-namespace ApplicationAccess.Hosting.Rest.UnitTests
+namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
 {
     /// <summary>
     /// Unit tests for the ApplicationAccess.Hosting.Rest.ExceptionToHttpStatusCodeConverter class.

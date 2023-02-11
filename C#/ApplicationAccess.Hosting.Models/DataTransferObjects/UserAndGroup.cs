@@ -16,21 +16,21 @@
 
 using System;
 
-namespace ApplicationAccess.Hosting.Models
+namespace ApplicationAccess.Hosting.Models.DataTransferObjects
 {
     /// <summary>
-    /// Container class holding an entity type, and an entity of that type.
+    /// DTO container class holding a user and a group.
     /// </summary>
-    public class EntityTypeAndEntity
+    public class UserAndGroup<TUser, TGroup>
     {
-        public String EntityType { get; }
+        public TUser User { get; set; }
 
-        public String Entity { get; }
+        public TGroup Group { get; set; }
 
-        public EntityTypeAndEntity(String entityType, String entity)
+        public UserAndGroup(TUser user, TGroup group)
         {
-            EntityType = entityType;
-            Entity = entity;
+            User = user;
+            Group = group;
         }
     }
 }

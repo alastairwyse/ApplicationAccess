@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ApplicationLogging" Version="2.0.0" />
     <PackageReference Include="ApplicationMetrics" Version="5.1.0" />
   </ItemGroup>
 

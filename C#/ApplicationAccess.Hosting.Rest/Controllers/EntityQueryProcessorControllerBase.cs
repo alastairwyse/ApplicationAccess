@@ -20,7 +20,8 @@ using System.Net.Mime;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Models.DataTransferObjects;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
@@ -33,16 +34,16 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiExplorerSettings(GroupName = "v1")]
     public abstract class EntityQueryProcessorControllerBase : ControllerBase
     {
-        private readonly IAccessManagerEntityQueryProcessor _entityQueryProcessor;
-        private readonly ILogger<EntityQueryProcessorControllerBase> _logger;
+        protected IAccessManagerEntityQueryProcessor entityQueryProcessor;
+        protected ILogger<EntityQueryProcessorControllerBase> logger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.EntityQueryProcessorControllerBase class.
         /// </summary>
         public EntityQueryProcessorControllerBase(EntityQueryProcessorHolder entityQueryProcessorHolder, ILogger<EntityQueryProcessorControllerBase> logger)
         {
-            _entityQueryProcessor = entityQueryProcessorHolder.EntityQueryProcessor;
-            _logger = logger;
+            entityQueryProcessor = entityQueryProcessorHolder.EntityQueryProcessor;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<String> EntityTypes()
         {
-            return _entityQueryProcessor.EntityTypes;
+            return entityQueryProcessor.EntityTypes;
         }
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsEntityType([FromRoute] String entityType)
         {
-            if (_entityQueryProcessor.ContainsEntityType(entityType) == true)
+            if (entityQueryProcessor.ContainsEntityType(entityType) == true)
             {
                 return entityType;
             }
@@ -89,7 +90,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<EntityTypeAndEntity> GetEntities([FromRoute] String entityType)
         {
-            foreach (String currentEntity in _entityQueryProcessor.GetEntities(entityType))
+            foreach (String currentEntity in entityQueryProcessor.GetEntities(entityType))
             {
                 yield return new EntityTypeAndEntity(entityType, currentEntity);
             }
@@ -108,7 +109,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<EntityTypeAndEntity> ContainsEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
-            if (_entityQueryProcessor.ContainsEntity(entityType, entity) == true)
+            if (entityQueryProcessor.ContainsEntity(entityType, entity) == true)
             {
                 return new EntityTypeAndEntity(entityType, entity);
             }
