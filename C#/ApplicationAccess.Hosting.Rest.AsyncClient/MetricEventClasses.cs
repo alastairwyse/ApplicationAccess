@@ -17,13 +17,15 @@
 using System;
 using ApplicationMetrics;
 
-namespace ApplicationAccess.Hosting.Rest.Client
+namespace ApplicationAccess.Hosting.Rest.AsyncClient
 {
     /// <summary>
     /// Count metric which records sending of a HTTP request resulting in a transient error and being retried.
     /// </summary>
     public class HttpRequestRetried : CountMetric
     {
+        #pragma warning disable 1591
+
         protected static String staticName = "HttpRequestRetried";
         protected static String staticDescription = "Sending of a HTTP request resulting in a transient error and being retried.";
 
@@ -32,5 +34,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
             base.name = staticName;
             base.description = staticDescription;
         }
+
+        #pragma warning restore 1591
     }
 }

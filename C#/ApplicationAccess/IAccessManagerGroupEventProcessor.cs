@@ -52,8 +52,8 @@ namespace ApplicationAccess
         /// <param name="group">The group in the mapping.</param>
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
-        /// 
         void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel);
+
         /// <summary>
         /// Adds a mapping between the specified group, and entity.
         /// </summary>

@@ -1,24 +1,38 @@
-﻿using System;
+﻿/*
+ * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+using System;
+using System.Text;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationLogging;
 using ApplicationMetrics;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
-using ApplicationAccess.Hosting.Rest.Utilities;
-using Newtonsoft.Json.Linq;
-using System.Text;
-using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
-using System.Text.RegularExpressions;
 
 namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Rest.Client.AccessManagerClientBase class.
+    /// Unit tests for the ApplicationAccess.Hosting.Rest.Client.AccessManagerSyncClientBase class.
     /// </summary>
-    public class AccessManagerClientBaseTests
+    public class AccessManagerSyncClientBaseTests
     {
         private const Int32 retryCount = 5;
         private const Int32 retryInterval = 10;
@@ -257,7 +271,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         /// </summary>
         /// <param name="httpErrorResponse">The HttpErrorResponse to serialize and write.</param>
         /// <param name="stream">The Strem to write to.</param>
-        public void WriteSerializedHttpErrorResponseToStream(HttpErrorResponse httpErrorResponse, Stream stream)
+        private void WriteSerializedHttpErrorResponseToStream(HttpErrorResponse httpErrorResponse, Stream stream)
         {
             var serializer = new HttpErrorResponseJsonSerializer();
             JObject serializedErrorResponse = serializer.Serialize(httpErrorResponse);
@@ -273,9 +287,9 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         #region Nested Classes
 
         /// <summary>
-        /// Version of the <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> class where protected members are exposed as public so that they can be unit tested.
+        /// Version of the <see cref="AccessManagerSyncClientBase{TUser, TGroup, TComponent, TAccess}"/> class where protected members are exposed as public so that they can be unit tested.
         /// </summary>
-        private class TestAccessManagerClientWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManagerClientBase<TUser, TGroup, TComponent, TAccess>
+        private class TestAccessManagerClientWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManagerSyncClientBase<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.UnitTests.TestAccessManagerClientWithProtectedMembers class.

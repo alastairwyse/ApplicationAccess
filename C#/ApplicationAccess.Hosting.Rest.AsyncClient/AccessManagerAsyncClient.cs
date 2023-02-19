@@ -17,23 +17,24 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using ApplicationLogging;
 using ApplicationMetrics;
 using Polly;
 
-namespace ApplicationAccess.Hosting.Rest.Client
+namespace ApplicationAccess.Hosting.Rest.AsyncClient
 {
     /// <summary>
-    /// Client class which syncronously interfaces to an <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> instance hosted as a REST web API.
+    /// Client class which asyncronously interfaces to an <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> instance hosted as a REST web API.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class AccessManagerClient<TUser, TGroup, TComponent, TAccess> : AccessManagerSyncClientBase<TUser, TGroup, TComponent, TAccess>, IAccessManager<TUser, TGroup, TComponent, TAccess>
+    public class AccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess> : AccessManagerAsyncClientBase<TUser, TGroup, TComponent, TAccess>, IAccessManagerAsyncQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerAsyncEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClient class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
         /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
@@ -42,7 +43,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</param>
         /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
         /// <param name="retryInterval">The time in seconds between retries.</param>
-        public AccessManagerClient
+        public AccessManagerAsyncClient
         (
             Uri baseUrl,
             IUniqueStringifier<TUser> userStringifier,
@@ -57,7 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClient class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
         /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
@@ -68,7 +69,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         /// <param name="retryInterval">The time in seconds between retries.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public AccessManagerClient
+        public AccessManagerAsyncClient
         (
             Uri baseUrl,
             IUniqueStringifier<TUser> userStringifier,
@@ -85,7 +86,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClient class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
         /// <param name="httpClient">The client to use to connect.</param>
@@ -95,7 +96,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</param>
         /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
         /// <param name="retryInterval">The time in seconds between retries.</param>
-        public AccessManagerClient
+        public AccessManagerAsyncClient
         (
             Uri baseUrl,
             HttpClient httpClient,
@@ -111,7 +112,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClient class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
         /// <param name="httpClient">The client to use to connect.</param>
@@ -123,7 +124,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         /// <param name="retryInterval">The time in seconds between retries.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public AccessManagerClient
+        public AccessManagerAsyncClient
         (
             Uri baseUrl,
             HttpClient httpClient,
@@ -141,7 +142,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClient class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
         /// <param name="httpClient">The client to use to connect.</param>
@@ -152,8 +153,8 @@ namespace ApplicationAccess.Hosting.Rest.Client
         /// <param name="exceptionHandingPolicy">Exception handling policy for HttpClient calls.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>When setting parameter 'exceptionHandingPolicy', note that the web API only returns non-success HTTP status errors in the case of persistent, and non-transient errors (e.g. 400 in the case of bad/malformed requests, and 500 in the case of critical server-side errors).  Retrying the same request after receiving these error statuses will result in an identical response, and hence these statuses should not be included as part of a transient exception handling policy.</remarks>
-        public AccessManagerClient
+        /// <remarks>When setting parameter 'exceptionHandingPolicy', note that the web API only returns non-success HTTP status errors in the case of persistent, and non-transient errors (e.g. 400 in the case of bad/malformed requests, and 500 in the case of critical server-side errors).  Retrying the same request after receiving these error statuses will result in an identical response, and hence these statuses are not passed to Polly and will be ignored if included as part of a transient exception handling policy.  Exposing of this parameter is designed to allow overriding of the retry policy and actions when encountering <see cref="HttpRequestException">HttpRequestExceptions</see> caused by network errors, etc.</remarks>
+        public AccessManagerAsyncClient
         (
             Uri baseUrl,
             HttpClient httpClient,
@@ -161,285 +162,277 @@ namespace ApplicationAccess.Hosting.Rest.Client
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
-            Policy exceptionHandingPolicy,
+            AsyncPolicy exceptionHandingPolicy,
             IApplicationLogger logger,
             IMetricLogger metricLogger
         )
-            : base(baseUrl, httpClient, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, exceptionHandingPolicy, logger, metricLogger)
+            : this(baseUrl, httpClient, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, 1, 1, logger, metricLogger)
         {
+            this.exceptionHandingPolicy = exceptionHandingPolicy;
         }
 
         /// <inheritdoc/>
-        public IEnumerable<TUser> Users
+        public async Task<List<TUser>> GetUsersAsync()
         {
-            get
-            {
-                return base.UsersBase;
-            }
+            return await base.GetUsersBaseAsync();
         }
 
         /// <inheritdoc/>
-        public IEnumerable<TGroup> Groups
+        public async Task<List<TGroup>> GetGroupsAsync()
         {
-            get
-            {
-                return base.GroupsBase;
-            }
+            return await base.GetGroupsBaseAsync();
         }
 
         /// <inheritdoc/>
-        public IEnumerable<String> EntityTypes
+        public async Task<List<String>> GetEntityTypesAsync()
         {
-            get
-            {
-                return base.EntityTypesBase; ;
-            }
+            return await base.GetEntityTypesBaseAsync();
         }
 
         /// <inheritdoc/>
-        public void AddUser(TUser user)
+        public async Task AddUserAsync(TUser user)
         {
-            base.AddUserBase(user);
+            await base.AddUserBaseAsync(user);
         }
 
         /// <inheritdoc/>
-        public Boolean ContainsUser(TUser user)
+        public async Task<Boolean> ContainsUserAsync(TUser user)
         {
-            return base.ContainsUserBase(user);
+            return await base.ContainsUserBaseAsync(user);
         }
 
         /// <inheritdoc/>
-        public void RemoveUser(TUser user)
+        public async Task RemoveUserAsync(TUser user)
         {
-            base.RemoveUserBase(user);
+            await base.RemoveUserBaseAsync(user);
         }
 
         /// <inheritdoc/>
-        public void AddGroup(TGroup group)
+        public async Task AddGroupAsync(TGroup group)
         {
-            base.AddGroupBase(group);
+            await base.AddGroupBaseAsync(group);
         }
 
         /// <inheritdoc/>
-        public Boolean ContainsGroup(TGroup group)
+        public async Task<Boolean> ContainsGroupAsync(TGroup group)
         {
-            return base.ContainsGroupBase(group);
+            return await base.ContainsGroupBaseAsync(group);
         }
 
         /// <inheritdoc/>
-        public void RemoveGroup(TGroup group)
+        public async Task RemoveGroupAsync(TGroup group)
         {
-            base.RemoveGroupBase(group);
+            await base.RemoveGroupBaseAsync(group);
         }
 
         /// <inheritdoc/>
-        public void AddUserToGroupMapping(TUser user, TGroup group)
+        public async Task AddUserToGroupMappingAsync(TUser user, TGroup group)
         {
-            base.AddUserToGroupMappingBase(user, group);
+            await base.AddUserToGroupMappingBaseAsync(user, group);
         }
 
         /// <inheritdoc/>
-        public HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
+        public async Task<List<TGroup>> GetUserToGroupMappingsAsync(TUser user, Boolean includeIndirectMappings)
         {
-            return base.GetUserToGroupMappingsBase(user, includeIndirectMappings);
+            return await base.GetUserToGroupMappingsBaseAsync(user, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToGroupMapping(TUser user, TGroup group)
+        public async Task RemoveUserToGroupMappingAsync(TUser user, TGroup group)
         {
-            base.RemoveUserToGroupMappingBase(user, group);
+            await base.RemoveUserToGroupMappingBaseAsync(user, group);
         }
 
         /// <inheritdoc/>
-        public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
+        public async Task AddGroupToGroupMappingAsync(TGroup fromGroup, TGroup toGroup)
         {
-            base.AddGroupToGroupMappingBase(fromGroup, toGroup);
+            await base.AddGroupToGroupMappingBaseAsync(fromGroup, toGroup);
         }
 
         /// <inheritdoc/>
-        public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
+        public async Task<List<TGroup>> GetGroupToGroupMappingsAsync(TGroup group, Boolean includeIndirectMappings)
         {
-            return base.GetGroupToGroupMappingsBase(group, includeIndirectMappings);
+            return await base.GetGroupToGroupMappingsBaseAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
+        public async Task RemoveGroupToGroupMappingAsync(TGroup fromGroup, TGroup toGroup)
         {
-            base.RemoveGroupToGroupMappingBase(fromGroup, toGroup);
+            await base.RemoveGroupToGroupMappingBaseAsync(fromGroup, toGroup);
         }
 
         /// <inheritdoc/>
-        public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
+        public async Task AddUserToApplicationComponentAndAccessLevelMappingAsync(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            base.AddUserToApplicationComponentAndAccessLevelMappingBase(user, applicationComponent, accessLevel);
+            await base.AddUserToApplicationComponentAndAccessLevelMappingBaseAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
+        public async Task<List<Tuple<TComponent, TAccess>>> GetUserToApplicationComponentAndAccessLevelMappingsAsync(TUser user)
         {
-            return base.GetUserToApplicationComponentAndAccessLevelMappingsBase(user);
+            return await base.GetUserToApplicationComponentAndAccessLevelMappingsBaseAsync(user);
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
+        public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            base.RemoveUserToApplicationComponentAndAccessLevelMappingBase(user, applicationComponent, accessLevel);
+            await base.RemoveUserToApplicationComponentAndAccessLevelMappingBaseAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
-        public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
+        public async Task AddGroupToApplicationComponentAndAccessLevelMappingAsync(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            base.AddGroupToApplicationComponentAndAccessLevelMappingBase(group, applicationComponent, accessLevel);
+            await base.AddGroupToApplicationComponentAndAccessLevelMappingBaseAsync(group, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
+        public async Task<List<Tuple<TComponent, TAccess>>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync(TGroup group)
         {
-            return base.GetGroupToApplicationComponentAndAccessLevelMappingsBase(group);
+            return await base.GetGroupToApplicationComponentAndAccessLevelMappingsBaseAsync(group);
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
+        public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            base.RemoveGroupToApplicationComponentAndAccessLevelMappingBase(group, applicationComponent, accessLevel);
+            await base.RemoveGroupToApplicationComponentAndAccessLevelMappingBaseAsync(group, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
-        public void AddEntityType(String entityType)
+        public async Task AddEntityTypeAsync(String entityType)
         {
-            base.AddEntityTypeBase(entityType);
+            await base.AddEntityTypeBaseAsync(entityType);
         }
 
         /// <inheritdoc/>
-        public Boolean ContainsEntityType(String entityType)
+        public async Task<Boolean> ContainsEntityTypeAsync(String entityType)
         {
-            return base.ContainsEntityTypeBase(entityType);
+            return await base.ContainsEntityTypeBaseAsync(entityType);
         }
 
         /// <inheritdoc/>
-        public void RemoveEntityType(String entityType)
+        public async Task RemoveEntityTypeAsync(String entityType)
         {
-            base.RemoveEntityTypeBase(entityType);
+            await base.RemoveEntityTypeBaseAsync(entityType);
         }
 
         /// <inheritdoc/>
-        public void AddEntity(String entityType, String entity)
+        public async Task AddEntityAsync(String entityType, String entity)
         {
-            base.AddEntityBase(entityType, entity);
+            await base.AddEntityBaseAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<String> GetEntities(String entityType)
+        public async Task<List<String>> GetEntitiesAsync(String entityType)
         {
-            return base.GetEntitiesBase(entityType);
+            return await base.GetEntitiesBaseAsync(entityType);
         }
 
         /// <inheritdoc/>
-        public Boolean ContainsEntity(String entityType, String entity)
+        public async Task<Boolean> ContainsEntityAsync(String entityType, String entity)
         {
-            return base.ContainsEntityBase(entityType, entity);
+            return await base.ContainsEntityBaseAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
-        public void RemoveEntity(String entityType, String entity)
+        public async Task RemoveEntityAsync(String entityType, String entity)
         {
-            base.RemoveEntityBase(entityType, entity);
+            await base.RemoveEntityBaseAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
-        public void AddUserToEntityMapping(TUser user, String entityType, String entity)
+        public async Task AddUserToEntityMappingAsync(TUser user, String entityType, String entity)
         {
-            base.AddUserToEntityMappingBase(user, entityType, entity);
+            await base.AddUserToEntityMappingBaseAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
+        public async Task<List<Tuple<String, String>>> GetUserToEntityMappingsAsync(TUser user)
         {
-            return base.GetUserToEntityMappingsBase(user);
+            return await base.GetUserToEntityMappingsBaseAsync(user);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
+        public async Task<List<String>> GetUserToEntityMappingsAsync(TUser user, String entityType)
         {
-            return base.GetUserToEntityMappingsBase(user, entityType);
+            return await base.GetUserToEntityMappingsBaseAsync(user, entityType);
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
+        public async Task RemoveUserToEntityMappingAsync(TUser user, String entityType, String entity)
         {
-            base.RemoveUserToEntityMappingBase(user, entityType, entity);
+            await base.RemoveUserToEntityMappingBaseAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
-        public void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
+        public async Task AddGroupToEntityMappingAsync(TGroup group, String entityType, String entity)
         {
-            base.AddGroupToEntityMappingBase(group, entityType, entity);
+            await base.AddGroupToEntityMappingBaseAsync(group, entityType, entity);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
+        public async Task<List<Tuple<String, String>>> GetGroupToEntityMappingsAsync(TGroup group)
         {
-            return base.GetGroupToEntityMappingsBase(group);
+            return await base.GetGroupToEntityMappingsBaseAsync(group);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
+        public async Task<List<String>> GetGroupToEntityMappingsAsync(TGroup group, String entityType)
         {
-            return base.GetGroupToEntityMappingsBase(group, entityType);
+            return await base.GetGroupToEntityMappingsBaseAsync(group, entityType);
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
+        public async Task RemoveGroupToEntityMappingAsync(TGroup group, String entityType, String entity)
         {
-            base.RemoveGroupToEntityMappingBase(group, entityType, entity);
+            await base.RemoveGroupToEntityMappingBaseAsync(group, entityType, entity);
         }
 
         /// <inheritdoc/>
-        public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
+        public async Task<Boolean> HasAccessToApplicationComponentAsync(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            return base.HasAccessToApplicationComponentBase(user, applicationComponent, accessLevel);
+            return await base.HasAccessToApplicationComponentBaseAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
-        public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
+        public async Task<Boolean> HasAccessToEntityAsync(TUser user, String entityType, String entity)
         {
-            return base.HasAccessToEntityBase(user, entityType, entity);
+            return await base.HasAccessToEntityBaseAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
-        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
+        public async Task<List<Tuple<TComponent, TAccess>>> GetApplicationComponentsAccessibleByUserAsync(TUser user)
         {
-            return base.GetApplicationComponentsAccessibleByUserBase(user);
+            return await base.GetApplicationComponentsAccessibleByUserBaseAsync(user);
         }
 
         /// <inheritdoc/>
-        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
+        public async Task<List<Tuple<TComponent, TAccess>>> GetApplicationComponentsAccessibleByGroupAsync(TGroup group)
         {
-            return base.GetApplicationComponentsAccessibleByGroupBase(group);
+            return await base.GetApplicationComponentsAccessibleByGroupBaseAsync(group);
         }
 
         /// <inheritdoc/>
-        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
+        public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByUserAsync(TUser user)
         {
-            return base.GetEntitiesAccessibleByUserBase(user);
+            return await base.GetEntitiesAccessibleByUserBaseAsync(user);
         }
 
         /// <inheritdoc/>
-        public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
+        public async Task<List<String>> GetEntitiesAccessibleByUserAsync(TUser user, String entityType)
         {
-            return base.GetEntitiesAccessibleByUserBase(user, entityType);
+            return await base.GetEntitiesAccessibleByUserBaseAsync(user, entityType);
         }
 
         /// <inheritdoc/>
-        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
+        public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupAsync(TGroup group)
         {
-            return base.GetEntitiesAccessibleByGroupBase(group);
+            return await base.GetEntitiesAccessibleByGroupBaseAsync(group);
         }
 
         /// <inheritdoc/>
-        public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
+        public async Task<List<String>> GetEntitiesAccessibleByGroupAsync(TGroup group, String entityType)
         {
-            return base.GetEntitiesAccessibleByGroupBase(group, entityType);
+            return await base.GetEntitiesAccessibleByGroupBaseAsync(group, entityType);
         }
     }
 }

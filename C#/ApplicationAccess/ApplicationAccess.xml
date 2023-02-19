@@ -1271,7 +1271,6 @@
             <param name="group">The group in the mapping.</param>
             <param name="applicationComponent">The application component in the mapping.</param>
             <param name="accessLevel">The level of access to the component.</param>
-            
         </member>
         <member name="M:ApplicationAccess.IAccessManagerGroupEventProcessor`3.AddGroupToEntityMapping(`0,System.String,System.String)">
             <summary>

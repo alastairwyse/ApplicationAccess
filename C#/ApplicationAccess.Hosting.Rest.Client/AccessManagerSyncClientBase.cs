@@ -16,20 +16,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
-using System.Runtime.ExceptionServices;
-using ApplicationAccess.Utilities;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.DataTransferObjects;
-using ApplicationAccess.Hosting.Rest.Utilities;
+using ApplicationAccess.Hosting.Rest.AsyncClient;
 using ApplicationAccess.Serialization;
 using ApplicationLogging;
 using ApplicationMetrics;
-using ApplicationMetrics.MetricLoggers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Polly;
@@ -37,166 +32,81 @@ using Polly;
 namespace ApplicationAccess.Hosting.Rest.Client
 {
     /// <summary>
-    /// Base class for client classes which interface to <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> instances hosted as REST web APIs.
+    /// Base class for client classes which syncronously interface to <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> instances hosted as REST web APIs.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public abstract class AccessManagerClientBase<TUser, TGroup, TComponent, TAccess> : IDisposable
+    public class AccessManagerSyncClientBase<TUser, TGroup, TComponent, TAccess> : AccessManagerClientBase<TUser, TGroup, TComponent, TAccess>
     {
-        protected Encoding defaultEncoding = Encoding.UTF8;
-
-        /// <summary>The client to use to connect.</summary>
-        protected HttpClient httpClient;
         /// <summary>Exception handling policy for HttpClient calls.</summary>
-        protected AsyncPolicy exceptionHandingPolicy;
-        /// <summary>>The base URL for the hosted Web API.</summary>
-        protected Uri baseUrl;
-        /// <summary>Deserializer for HttpErrorResponse objects.</summary>
-        protected HttpErrorResponseJsonSerializer errorResponseDeserializer;
-        /// <summary>Maps a HTTP status code to an action which throws a matching Exception to the status code.  The action accepts 1 parameter: the exception message.</summary>
-        protected Dictionary<HttpStatusCode, Action<String>> statusCodeToExceptionThrowingActionMap;
-        /// <summary>A string converter for users.  Used to convert strings sent to and received from the web API from/to <see cref="TUser"/> instances.</summary>
-        protected IUniqueStringifier<TUser> userStringifier;
-        /// <summary>A string converter for groups.  Used to convert strings sent to and received from the web API from/to <see cref="TGroup"/> instances.</summary>
-        protected IUniqueStringifier<TGroup> groupStringifier;
-        /// <summary>A string converter for application components.  Used to convert strings sent to and received from the web API from/to <see cref="TComponent"/> instances.</summary>
-        protected IUniqueStringifier<TComponent> applicationComponentStringifier;
-        /// <summary>A string converter for access levels.  Used to convert strings sent to and received from the web API from/to <see cref="TAccess"/> instances.</summary>
-        protected IUniqueStringifier<TAccess> accessLevelStringifier;
-        /// <summary>The logger for general logging.</summary>
-        protected IApplicationLogger logger;
-        /// <summary>The logger for metrics.</summary>
-        protected IMetricLogger metricLogger;
-        /// <summary>Whether the HttpClient member was instantiated within the class constructor.</summary>
-        protected Boolean httpClientInstantiatedInConstructor;
-        /// <summary>Indicates whether the object has been disposed.</summary>
-        protected Boolean disposed;
+        protected Policy exceptionHandingPolicy;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClientBase class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerSyncClientBase class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
-        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to <see cref="TUser"/> instances.</param>
-        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to <see cref="TGroup"/> instances.</param>
-        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to <see cref="TComponent"/> instances.</param>
-        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to <see cref="TAccess"/> instances.</param>
+        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
+        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to TComponent instances.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</param>
         /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
         /// <param name="retryInterval">The time in seconds between retries.</param>
-        public AccessManagerClientBase
-        (
-            Uri baseUrl,
-            IUniqueStringifier<TUser> userStringifier,
-            IUniqueStringifier<TGroup> groupStringifier,
-            IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier, 
-            Int32 retryCount, 
-            Int32 retryInterval
-        )
-        {
-            SetBaseConstructorParameters
-            (
-                baseUrl,
-                userStringifier,
-                groupStringifier,
-                applicationComponentStringifier,
-                accessLevelStringifier,
-                retryCount,
-                retryInterval
-            );
-            httpClient = new HttpClient();
-            SetHttpClientAcceptHeader(httpClient);
-            httpClientInstantiatedInConstructor = true;
-            logger = new NullLogger();
-            metricLogger = new NullMetricLogger();
-
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClientBase class.
-        /// </summary>
-        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
-        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to <see cref="TUser"/> instances.</param>
-        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to <see cref="TGroup"/> instances.</param>
-        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to <see cref="TComponent"/> instances.</param>
-        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to <see cref="TAccess"/> instances.</param>
-        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
-        /// <param name="retryInterval">The time in seconds between retries.</param>
-        /// <param name="logger">The logger for general logging.</param>
-        /// <param name="metricLogger">The logger for metrics.</param>
-        public AccessManagerClientBase
+        public AccessManagerSyncClientBase
         (
             Uri baseUrl,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
-            Int32 retryCount, 
-            Int32 retryInterval, 
-            IApplicationLogger logger, 
+            Int32 retryCount,
+            Int32 retryInterval
+        )
+            : base(baseUrl, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, retryCount, retryInterval)
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerSyncClientBase class.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
+        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
+        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to TComponent instances.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</param>
+        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
+        /// <param name="retryInterval">The time in seconds between retries.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public AccessManagerSyncClientBase
+        (
+            Uri baseUrl,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            Int32 retryCount,
+            Int32 retryInterval,
+            IApplicationLogger logger,
             IMetricLogger metricLogger
         )
-            : this (baseUrl, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, retryCount, retryInterval)
+            : base(baseUrl, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, retryCount, retryInterval, logger, metricLogger)
         {
-            this.logger = logger;
-            this.metricLogger = metricLogger;
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClientBase class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerSyncClientBase class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
         /// <param name="httpClient">The client to use to connect.</param>
-        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to <see cref="TUser"/> instances.</param>
-        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to <see cref="TGroup"/> instances.</param>
-        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to <see cref="TComponent"/> instances.</param>
-        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to <see cref="TAccess"/> instances.</param>
+        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
+        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to TComponent instances.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</param>
         /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
         /// <param name="retryInterval">The time in seconds between retries.</param>
-        public AccessManagerClientBase
-        (
-            Uri baseUrl, 
-            HttpClient httpClient,
-            IUniqueStringifier<TUser> userStringifier,
-            IUniqueStringifier<TGroup> groupStringifier,
-            IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier,
-            Int32 retryCount, 
-            Int32 retryInterval
-        )
-        {
-            SetBaseConstructorParameters
-            (
-                baseUrl,
-                userStringifier,
-                groupStringifier,
-                applicationComponentStringifier,
-                accessLevelStringifier,
-                retryCount,
-                retryInterval
-            );
-            this.httpClient = httpClient;
-            SetHttpClientAcceptHeader(this.httpClient);
-            httpClientInstantiatedInConstructor = false;
-            logger = new NullLogger();
-            metricLogger = new NullMetricLogger();
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClientBase class.
-        /// </summary>
-        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
-        /// <param name="httpClient">The client to use to connect.</param>
-        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to <see cref="TUser"/> instances.</param>
-        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to <see cref="TGroup"/> instances.</param>
-        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to <see cref="TComponent"/> instances.</param>
-        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to <see cref="TAccess"/> instances.</param>
-        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
-        /// <param name="retryInterval">The time in seconds between retries.</param>
-        /// <param name="logger">The logger for general logging.</param>
-        /// <param name="metricLogger">The logger for metrics.</param>
-        public AccessManagerClientBase
+        public AccessManagerSyncClientBase
         (
             Uri baseUrl,
             HttpClient httpClient,
@@ -205,39 +115,65 @@ namespace ApplicationAccess.Hosting.Rest.Client
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
             Int32 retryCount,
-            Int32 retryInterval, 
-            IApplicationLogger logger,
-            IMetricLogger metricLogger
+            Int32 retryInterval
         )
-            : this(baseUrl, httpClient, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, retryCount, retryInterval)
+            : base(baseUrl, httpClient, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, retryCount, retryInterval)
         {
-            this.logger = logger;
-            this.metricLogger = metricLogger;
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerClientBase class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerSyncClientBase class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
         /// <param name="httpClient">The client to use to connect.</param>
-        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to <see cref="TUser"/> instances.</param>
-        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to <see cref="TGroup"/> instances.</param>
-        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to <see cref="TComponent"/> instances.</param>
-        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to <see cref="TAccess"/> instances.</param>
-        /// <param name="exceptionHandingPolicy">Exception handling policy for HttpClient calls.</param>
+        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
+        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to TComponent instances.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</param>
+        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
+        /// <param name="retryInterval">The time in seconds between retries.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>When setting parameter 'exceptionHandingPolicy', note that the web API only returns non-success HTTP status errors in the case of persistent, and non-transient errors (e.g. 400 in the case of bad/malformed requests, and 500 in the case of critical server-side errors).  Retrying the same request after receiving these error statuses will result in an identical response, and hence these statuses should not be included as part of a transient exception handling policy.</remarks>
-        public AccessManagerClientBase
+        public AccessManagerSyncClientBase
         (
-            Uri baseUrl, 
+            Uri baseUrl,
             HttpClient httpClient,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
-            AsyncPolicy exceptionHandingPolicy, 
-            IApplicationLogger logger, 
+            Int32 retryCount,
+            Int32 retryInterval,
+            IApplicationLogger logger,
+            IMetricLogger metricLogger
+        )
+            : base(baseUrl, httpClient, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, retryCount, retryInterval, logger, metricLogger)
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.AccessManagerSyncClientBase class.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
+        /// <param name="httpClient">The client to use to connect.</param>
+        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
+        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to TComponent instances.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</param>
+        /// <param name="exceptionHandingPolicy">Exception handling policy for HttpClient calls.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        /// <remarks>When setting parameter 'exceptionHandingPolicy', note that the web API only returns non-success HTTP status errors in the case of persistent, and non-transient errors (e.g. 400 in the case of bad/malformed requests, and 500 in the case of critical server-side errors).  Retrying the same request after receiving these error statuses will result in an identical response, and hence these statuses are not passed to Polly and will be ignored if included as part of a transient exception handling policy.  Exposing of this parameter is designed to allow overriding of the retry policy and actions when encountering <see cref="HttpRequestException">HttpRequestExceptions</see> caused by network errors, etc.</remarks>
+        public AccessManagerSyncClientBase
+        (
+            Uri baseUrl,
+            HttpClient httpClient,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            Policy exceptionHandingPolicy,
+            IApplicationLogger logger,
             IMetricLogger metricLogger
         )
             : this(baseUrl, httpClient, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, 1, 1, logger, metricLogger)
@@ -247,7 +183,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         #region IAccessManager Methods
 
-        #pragma warning disable 0649
+        #pragma warning disable 1591
 
         protected IEnumerable<TUser> UsersBase
         {
@@ -284,7 +220,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
                 return SendGetRequest<List<String>>(url);
             }
         }
-        /// <inheritdoc/>
+
         protected void AddUserBase(TUser user)
         {
             var url = new Uri(baseUrl, $"users/{userStringifier.ToString(user)}");
@@ -629,108 +565,16 @@ namespace ApplicationAccess.Hosting.Rest.Client
             return returnHashSet;
         }
 
-        #pragma warning restore 0649
+        #pragma warning restore 1591
 
         #endregion
 
         #region Private/Protected Methods
 
-        /// <summary>
-        /// Performs setup for a minimal/common set of constructor parameters.
-        /// </summary>
-        /// <param name="baseUrl">The base URL for the hosted Web API.</param>
-        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to <see cref="TUser"/> instances.</param>
-        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to <see cref="TGroup"/> instances.</param>
-        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to <see cref="TComponent"/> instances.</param>
-        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to <see cref="TAccess"/> instances.</param>
-        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
-        /// <param name="retryInterval">The time in seconds between retries.</param>
-        protected void SetBaseConstructorParameters
-        (
-            Uri baseUrl,
-            IUniqueStringifier<TUser> userStringifier,
-            IUniqueStringifier<TGroup> groupStringifier,
-            IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier,
-            Int32 retryCount,
-            Int32 retryInterval
-        )
+        /// <inheritdoc/>
+        protected override void SetupExceptionHanderPolicies(Int32 retryCount, Int32 retryInterval, Action<Exception, TimeSpan, Int32, Context> onRetryAction)
         {
-            SetupExceptionHanderPoliciesFromConstructorParameters(retryCount, retryInterval);
-            InitializeBaseUrl(baseUrl);
-            errorResponseDeserializer = new HttpErrorResponseJsonSerializer();
-            InitializeStatusCodeToExceptionThrowingActionMap();
-            this.userStringifier = userStringifier;
-            this.groupStringifier = groupStringifier; ;
-            this.applicationComponentStringifier = applicationComponentStringifier;
-            this.accessLevelStringifier = accessLevelStringifier;
-            disposed = false;
-        }
-
-        /// <summary>
-        /// Adds an appropriate path suffix to the specified 'baseUrl' constructor parameter.
-        /// </summary>
-        /// <param name="baseUrl">The base URL to initialize.</param>
-        protected void InitializeBaseUrl(Uri baseUrl)
-        {
-            this.baseUrl = new Uri(baseUrl, "api/v1/");
-        }
-
-        /// <summary>
-        /// Sets appropriate 'Accept' headers on the specified HTTP client.
-        /// </summary>
-        /// <param name="httpClient">The HTTP client to set the header(s) on.</param>
-        protected void SetHttpClientAcceptHeader(HttpClient httpClient)
-        {
-            const String acceptHeaderName = "Accept";
-            const String acceptHeaderValue = "application/json";
-            if (httpClient.DefaultRequestHeaders.Contains(acceptHeaderName) == true)
-            {
-                httpClient.DefaultRequestHeaders.Remove(acceptHeaderName); 
-            }
-            httpClient.DefaultRequestHeaders.Add(acceptHeaderName, acceptHeaderValue);
-        }
-
-        /// <summary>
-        /// Initializes the 'statusCodeToExceptionThrowingActionMap' member.
-        /// </summary>
-        protected void InitializeStatusCodeToExceptionThrowingActionMap()
-        {
-            statusCodeToExceptionThrowingActionMap = new Dictionary<HttpStatusCode, Action<String>>()
-            {
-                { 
-                    HttpStatusCode.InternalServerError, 
-                    (String exceptionMessage) => { throw new Exception(exceptionMessage); }
-                },
-                {
-                    HttpStatusCode.BadRequest,
-                    (String exceptionMessage) => { throw new ArgumentException(exceptionMessage); }
-                }
-            };
-        }
-
-        /// <summary>
-        /// Sets up the 'exceptionHanderPolicy' members from the 'retryCount' and 'retryInterval' constructor parameters.
-        /// </summary>
-        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
-        /// <param name="retryInterval">The time in seconds between retries.</param>
-        protected void SetupExceptionHanderPoliciesFromConstructorParameters(Int32 retryCount, Int32 retryInterval)
-        {
-            if (retryCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be less than 0.");
-            if (retryCount > 59)
-                throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be greater than 59.");
-            if (retryInterval < 0)
-                throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be less than 0.");
-            if (retryInterval > 120)
-                throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be greater than 120.");
-
-            Action<Exception, TimeSpan, Int32, Context> onRetryAction = (Exception exception, TimeSpan actionRetryInterval, Int32 currentRetryCount, Context context) =>
-            {
-                logger.Log(this, LogLevel.Warning, $"Exception occurred when sending HTTP request.  Retrying in {retryInterval} seconds (retry {currentRetryCount} of {retryCount}).", exception);
-                metricLogger.Increment(new HttpRequestRetried());
-            };
-            exceptionHandingPolicy = Policy.Handle<HttpRequestException>().WaitAndRetryAsync(retryCount, (Int32 currentRetryNumber) => { return TimeSpan.FromSeconds(retryInterval); }, onRetryAction);
+            exceptionHandingPolicy = Policy.Handle<HttpRequestException>().WaitAndRetry(retryCount, (Int32 currentRetryNumber) => { return TimeSpan.FromSeconds(retryInterval); }, onRetryAction);
         }
 
         /// <summary>
@@ -831,24 +675,18 @@ namespace ApplicationAccess.Hosting.Rest.Client
         /// <param name="requestUrl">The URL of the request.</param>
         /// <param name="responseAction">An action to perform on receiving a response to the request.  Accepts 4 parameters: the HTTP method used in the request which generated the response, the URL of the request which generated the response, the HTTP status code received as part of the response, and a stream containing the response body.</param>
         /// <remarks>The Stream passed to the 'responseAction' parameter is closed/disposed when this method completes, so it should not be used outside of the context of the 'responseAction' parameter (e.g. set to a variable external to the 'responseAction' parameter).</remarks>
-        protected void SendRequest(HttpMethod method, Uri requestUrl, Action<HttpMethod, Uri, HttpStatusCode, Stream> responseAction)
+        protected virtual void SendRequest(HttpMethod method, Uri requestUrl, Action<HttpMethod, Uri, HttpStatusCode, Stream> responseAction)
         {
-            Func<Task> httpClientAction = async () =>
+            Action httpClientAction = () =>
             {
                 using (var request = new HttpRequestMessage(method, requestUrl))
-                using (var response = await httpClient.SendAsync(request))
+                using (var response = httpClient.Send(request))
                 {
-                    responseAction.Invoke(method, requestUrl, response.StatusCode, response.Content.ReadAsStreamAsync().Result);
+                    responseAction.Invoke(method, requestUrl, response.StatusCode, response.Content.ReadAsStream());
                 }
             };
-            try
-            {
-                exceptionHandingPolicy.ExecuteAsync(httpClientAction).Wait();
-            }
-            catch (AggregateException ae)
-            {
-                ExceptionDispatchInfo.Capture(ae.GetBaseException()).Throw();
-            }
+
+            exceptionHandingPolicy.Execute(httpClientAction);
         }
 
         /// <summary>
@@ -928,51 +766,6 @@ namespace ApplicationAccess.Hosting.Rest.Client
             }
         }
 
-        #endregion
-
-        #region Finalize / Dispose Methods
-
-        /// <summary>
-        /// Releases the unmanaged resources used by the ReaderNode.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #pragma warning disable 1591
-
-        ~AccessManagerClientBase()
-        {
-            Dispose(false);
-        }
-
-        #pragma warning restore 1591
-
-        /// <summary>
-        /// Provides a method to free unmanaged resources used by this class.
-        /// </summary>
-        /// <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    // Free other state (managed objects).
-                    if (httpClientInstantiatedInConstructor == true)
-                    {
-                        httpClient.Dispose();
-                    }
-                }
-                // Free your own state (unmanaged objects).
-
-                // Set large fields to null.
-
-                disposed = true;
-            }
-        }
         #endregion
     }
 }
