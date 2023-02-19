@@ -38,7 +38,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class AccessManagerSyncClientBase<TUser, TGroup, TComponent, TAccess> : AccessManagerClientBase<TUser, TGroup, TComponent, TAccess>
+    public abstract class AccessManagerSyncClientBase<TUser, TGroup, TComponent, TAccess> : AccessManagerClientBase<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>Exception handling policy for HttpClient calls.</summary>
         protected Policy exceptionHandingPolicy;

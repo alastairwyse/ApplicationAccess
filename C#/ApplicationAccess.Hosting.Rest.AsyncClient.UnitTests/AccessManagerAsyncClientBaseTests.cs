@@ -42,7 +42,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
         private Uri baseUrl;
         private IApplicationLogger mockLogger;
         private IMetricLogger mockMetricLogger;
-        private TestAccessManagerAsyncClientWithProtectedMembers<String, String, String, String> testAccessManagerAsyncClient;
+        private TestAccessManagerAsyncClientBaseWithProtectedMembers<String, String, String, String> testAccessManagerAsyncClientBase;
 
         [SetUp]
         protected void SetUp()
@@ -50,7 +50,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
             baseUrl = new Uri("http://localhost:5170/api/v1/");
             mockLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testAccessManagerAsyncClient = new TestAccessManagerAsyncClientWithProtectedMembers<String, String, String, String>
+            testAccessManagerAsyncClientBase = new TestAccessManagerAsyncClientBaseWithProtectedMembers<String, String, String, String>
             (
                 baseUrl,
                 new StringUniqueStringifier(),
@@ -67,7 +67,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
         [TearDown]
         protected void TearDown()
         {
-            testAccessManagerAsyncClient.Dispose();
+            testAccessManagerAsyncClientBase.Dispose();
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerAsyncClient = new TestAccessManagerAsyncClientWithProtectedMembers<String, String, String, String>
+                testAccessManagerAsyncClientBase = new TestAccessManagerAsyncClientBaseWithProtectedMembers<String, String, String, String>
                 (
                     baseUrl,
                     new StringUniqueStringifier(),
@@ -98,7 +98,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerAsyncClient = new TestAccessManagerAsyncClientWithProtectedMembers<String, String, String, String>
+                testAccessManagerAsyncClientBase = new TestAccessManagerAsyncClientBaseWithProtectedMembers<String, String, String, String>
                 (
                     baseUrl,
                     new StringUniqueStringifier(),
@@ -121,7 +121,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerAsyncClient = new TestAccessManagerAsyncClientWithProtectedMembers<String, String, String, String>
+                testAccessManagerAsyncClientBase = new TestAccessManagerAsyncClientBaseWithProtectedMembers<String, String, String, String>
                 (
                     baseUrl,
                     new StringUniqueStringifier(),
@@ -144,7 +144,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerAsyncClient = new TestAccessManagerAsyncClientWithProtectedMembers<String, String, String, String>
+                testAccessManagerAsyncClientBase = new TestAccessManagerAsyncClientBaseWithProtectedMembers<String, String, String, String>
                 (
                     baseUrl,
                     new StringUniqueStringifier(),
@@ -175,7 +175,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
 
                 var e = Assert.ThrowsAsync<ArgumentException>(async delegate
                 {
-                    await testAccessManagerAsyncClient.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.BadRequest, responseBody);
+                    await testAccessManagerAsyncClientBase.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.BadRequest, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith(errorMessage));
@@ -195,7 +195,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
 
                 var e = Assert.ThrowsAsync<Exception>(async delegate
                 {
-                    await testAccessManagerAsyncClient.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.InternalServerError, responseBody);
+                    await testAccessManagerAsyncClientBase.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.InternalServerError, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith(errorMessage));
@@ -215,7 +215,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
 
                 var e = Assert.ThrowsAsync<Exception>(async delegate
                 {
-                    await testAccessManagerAsyncClient.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
+                    await testAccessManagerAsyncClientBase.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith($"Failed to call URL '{testUrl.ToString()}' with 'POST' method.  Received non-succces HTTP response status '503', error code '{errorCode}', and error message '{errorMessage}'."));
@@ -237,7 +237,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
 
                 var e = Assert.ThrowsAsync<Exception>(async delegate
                 {
-                    await testAccessManagerAsyncClient.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
+                    await testAccessManagerAsyncClientBase.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith($"Failed to call URL '{testUrl.ToString()}' with 'POST' method.  Received non-succces HTTP response status '503' and response body '{errorMessage}'."));
@@ -258,7 +258,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
 
                 var e = Assert.ThrowsAsync<Exception>(async delegate
                 {
-                    await testAccessManagerAsyncClient.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
+                    await testAccessManagerAsyncClientBase.HandleNonSuccessResponseStatusAsync(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith($"Failed to call URL '{testUrl.ToString()}' with 'POST' method.  Received non-succces HTTP response status '503'."));
@@ -290,12 +290,12 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests
         /// <summary>
         /// Version of the <see cref="AccessManagerAsyncClientBase{TUser, TGroup, TComponent, TAccess}"/> class where protected members are exposed as public so that they can be unit tested.
         /// </summary>
-        private class TestAccessManagerAsyncClientWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManagerAsyncClientBase<TUser, TGroup, TComponent, TAccess>
+        private class TestAccessManagerAsyncClientBaseWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManagerAsyncClientBase<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests.TestAccessManagerAsyncClientWithProtectedMembers class.
+            /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests.TestAccessManagerAsyncClientBaseWithProtectedMembers class.
             /// </summary>
-            public TestAccessManagerAsyncClientWithProtectedMembers
+            public TestAccessManagerAsyncClientBaseWithProtectedMembers
             (
                 Uri baseUrl,
                 IUniqueStringifier<TUser> userStringifier,

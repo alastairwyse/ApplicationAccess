@@ -41,7 +41,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         private Uri baseUrl;
         private IApplicationLogger mockLogger;
         private IMetricLogger mockMetricLogger;
-        private TestAccessManagerClientWithProtectedMembers<String, String, String, String> testAccessManagerClient;
+        private TestAccessManagerClientBaseWithProtectedMembers<String, String, String, String> testAccessManagerClientBase;
 
         [SetUp]
         protected void SetUp()
@@ -49,7 +49,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
             baseUrl = new Uri("http://localhost:5170/api/v1/");
             mockLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testAccessManagerClient = new TestAccessManagerClientWithProtectedMembers<String, String, String, String>
+            testAccessManagerClientBase = new TestAccessManagerClientBaseWithProtectedMembers<String, String, String, String>
             (
                 baseUrl, 
                 new StringUniqueStringifier(), 
@@ -66,7 +66,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         [TearDown]
         protected void TearDown()
         {
-            testAccessManagerClient.Dispose();
+            testAccessManagerClientBase.Dispose();
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerClient = new TestAccessManagerClientWithProtectedMembers<String, String, String, String>
+                testAccessManagerClientBase = new TestAccessManagerClientBaseWithProtectedMembers<String, String, String, String>
                 (
                     baseUrl, 
                     new StringUniqueStringifier(),
@@ -97,7 +97,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerClient = new TestAccessManagerClientWithProtectedMembers<String, String, String, String>
+                testAccessManagerClientBase = new TestAccessManagerClientBaseWithProtectedMembers<String, String, String, String>
                 (
                     baseUrl,
                     new StringUniqueStringifier(),
@@ -120,7 +120,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerClient = new TestAccessManagerClientWithProtectedMembers<String, String, String, String>
+                testAccessManagerClientBase = new TestAccessManagerClientBaseWithProtectedMembers<String, String, String, String>
                 (
                     baseUrl,
                     new StringUniqueStringifier(),
@@ -143,7 +143,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testAccessManagerClient = new TestAccessManagerClientWithProtectedMembers<String, String, String, String>
+                testAccessManagerClientBase = new TestAccessManagerClientBaseWithProtectedMembers<String, String, String, String>
                 (
                     baseUrl,
                     new StringUniqueStringifier(),
@@ -174,7 +174,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
 
                 var e = Assert.Throws<ArgumentException>(delegate
                 {
-                    testAccessManagerClient.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.BadRequest, responseBody);
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.BadRequest, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith(errorMessage));
@@ -194,7 +194,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
 
                 var e = Assert.Throws<Exception>(delegate
                 {
-                    testAccessManagerClient.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.InternalServerError, responseBody);
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.InternalServerError, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith(errorMessage));
@@ -214,7 +214,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
 
                 var e = Assert.Throws<Exception>(delegate
                 {
-                    testAccessManagerClient.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith($"Failed to call URL '{testUrl.ToString()}' with 'POST' method.  Received non-succces HTTP response status '503', error code '{errorCode}', and error message '{errorMessage}'."));
@@ -236,7 +236,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
 
                 var e = Assert.Throws<Exception>(delegate
                 {
-                    testAccessManagerClient.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith($"Failed to call URL '{testUrl.ToString()}' with 'POST' method.  Received non-succces HTTP response status '503' and response body '{errorMessage}'."));
@@ -257,7 +257,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
 
                 var e = Assert.Throws<Exception>(delegate
                 {
-                    testAccessManagerClient.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.ServiceUnavailable, responseBody);
                 });
 
                 Assert.That(e.Message, Does.StartWith($"Failed to call URL '{testUrl.ToString()}' with 'POST' method.  Received non-succces HTTP response status '503'."));
@@ -289,12 +289,12 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         /// <summary>
         /// Version of the <see cref="AccessManagerSyncClientBase{TUser, TGroup, TComponent, TAccess}"/> class where protected members are exposed as public so that they can be unit tested.
         /// </summary>
-        private class TestAccessManagerClientWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManagerSyncClientBase<TUser, TGroup, TComponent, TAccess>
+        private class TestAccessManagerClientBaseWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManagerSyncClientBase<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.UnitTests.TestAccessManagerClientWithProtectedMembers class.
+            /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Client.UnitTests.TestAccessManagerClientBaseWithProtectedMembers class.
             /// </summary>
-            public TestAccessManagerClientWithProtectedMembers
+            public TestAccessManagerClientBaseWithProtectedMembers
             (
                 Uri baseUrl,
                 IUniqueStringifier<TUser> userStringifier,
