@@ -30,6 +30,7 @@ using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 using log4net;
 using log4net.Config;
+using ApplicationAccess.Hosting.Rest.Client;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -39,12 +40,27 @@ namespace ApplicationAccess.TestHarness
         protected static String applicationAccessDatabaseConnectionConfigurationFileProperty = "ApplicationAccessDatabaseConnectionConfiguration";
         protected static String metricsBufferConfigurationFileProperty = "MetricsBufferConfiguration";
         protected static String persisterBufferFlushStrategyConfigurationFileProperty = "PersisterBufferFlushStrategyConfiguration";
+        protected static String accessManagerRestClientConfigurationFileProperty = "AccessManagerRestClientConfiguration";
         protected static String operationGeneratorConfigurationFileProperty = "OperationGeneratorConfiguration";
         protected static String testHarnessConfigurationFileProperty = "TestHarnessConfiguration";
         
         protected static ManualResetEvent stopNotifySignal;
 
         static void Main(string[] args)
+        {
+            RunWithLocalReaderWriterNode(args);
+        }
+
+        protected static void StopThreadTask()
+        {
+            Console.ReadLine();
+            stopNotifySignal.Set();
+        }
+
+        /// <summary>
+        /// Runs a local <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> access manager instance.
+        /// </summary>
+        protected static void RunWithLocalReaderWriterNode(string[] args)
         {
             // Get configuration file path from command line parameters
             if (args.Length != 1)
@@ -56,18 +72,18 @@ namespace ApplicationAccess.TestHarness
             {
                 configurationRoot = configurationBuilder.Build();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new Exception($"Failed to load configuration from file '{args[0]}'.", e);
             }
-            foreach (String currentConfigurationSection in new String[] 
-            { 
-                metricsDatabaseConnectionConfigurationFileProperty, 
+            foreach (String currentConfigurationSection in new String[]
+            {
+                metricsDatabaseConnectionConfigurationFileProperty,
                 applicationAccessDatabaseConnectionConfigurationFileProperty,
                 metricsBufferConfigurationFileProperty,
                 persisterBufferFlushStrategyConfigurationFileProperty,
-                operationGeneratorConfigurationFileProperty, 
-                testHarnessConfigurationFileProperty 
+                operationGeneratorConfigurationFileProperty,
+                testHarnessConfigurationFileProperty
             })
             {
                 if (configurationRoot.GetSection(currentConfigurationSection).Exists() == false)
@@ -164,7 +180,7 @@ namespace ApplicationAccess.TestHarness
                                     metricLogger
                                 )
                             )
-                            
+
                             using
                             (
                                 var testAccessManager = new ReaderWriterNode<String, String, TestApplicationComponent, TestAccessLevel>
@@ -303,10 +319,97 @@ namespace ApplicationAccess.TestHarness
             }
         }
 
-        protected static void StopThreadTask()
+        /// <summary>
+        /// Runs the test harness locally, connecting to a remote <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> instance via REST.
+        /// </summary>
+        protected static void RunWithRemoteRestAccessManager(string[] args)
         {
-            Console.ReadLine();
-            stopNotifySignal.Set();
+            // Get configuration file path from command line parameters
+            if (args.Length != 1)
+                throw new ArgumentException($"Expected 1 command line parameter, but recevied {args.Length}.");
+            var configurationBuilder = new ConfigurationBuilder();
+            configurationBuilder.AddJsonFile(args[0], false, false);
+            IConfigurationRoot configurationRoot = null;
+            try
+            {
+                configurationRoot = configurationBuilder.Build();
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to load configuration from file '{args[0]}'.", e);
+            }
+            foreach (String currentConfigurationSection in new String[]
+            {
+                metricsDatabaseConnectionConfigurationFileProperty,
+                metricsBufferConfigurationFileProperty,
+                accessManagerRestClientConfigurationFileProperty, 
+                operationGeneratorConfigurationFileProperty,
+                testHarnessConfigurationFileProperty
+            })
+            {
+                if (configurationRoot.GetSection(currentConfigurationSection).Exists() == false)
+                    throw new Exception($"Could not find section '{currentConfigurationSection}' in configuration file.");
+            }
+            DatabaseConnectionConfiguration metricsDatabaseConnectionConfiguration = new DatabaseConnectionConfigurationReader().Read(configurationRoot.GetSection(metricsDatabaseConnectionConfigurationFileProperty));
+            MetricsBufferConfiguration metricsBufferConfiguration = new MetricsBufferConfigurationReader().Read(configurationRoot.GetSection(metricsBufferConfigurationFileProperty));
+            AccessManagerRestClientConfiguration accessManagerRestClientConfiguration = new AccessManagerRestClientConfigurationReader().Read(configurationRoot.GetSection(accessManagerRestClientConfigurationFileProperty));
+            OperationGeneratorConfiguration operationGeneratorConfiguration = new OperationGeneratorConfigurationReader().Read(configurationRoot.GetSection(operationGeneratorConfigurationFileProperty));
+            TestHarnessConfiguration testHarnessConfiguration = new TestHarnessConfigurationReader().Read(configurationRoot.GetSection(testHarnessConfigurationFileProperty));
+
+            // Setup the test harness
+            stopNotifySignal = new ManualResetEvent(false);
+
+            // Setup SQL Server connection strings
+            var metricsConnectionStringBuilder = new SqlConnectionStringBuilder();
+            metricsConnectionStringBuilder.DataSource = metricsDatabaseConnectionConfiguration.DataSource;
+            metricsConnectionStringBuilder.InitialCatalog = metricsDatabaseConnectionConfiguration.InitialCatalogue;
+            metricsConnectionStringBuilder.Encrypt = false;
+            metricsConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
+            metricsConnectionStringBuilder.UserID = metricsDatabaseConnectionConfiguration.UserId;
+            metricsConnectionStringBuilder.Password = metricsDatabaseConnectionConfiguration.Password;
+
+            // Setup the log4net loggers
+            const String log4netConfigFileName = "log4net.config";
+            XmlConfigurator.Configure(new FileInfo(log4netConfigFileName));
+            ILog log4netMetricLoggerLogger = LogManager.GetLogger(typeof(SqlServerMetricLogger));
+            var metricLoggerLogger = new ApplicationLoggingLog4NetAdapter(log4netMetricLoggerLogger);
+            ILog log4netRestClientLogger = LogManager.GetLogger(typeof(AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>));
+            var restClientLogger = new ApplicationLoggingLog4NetAdapter(log4netRestClientLogger);
+            ILog log4netTestHarnessExceptionLogger = LogManager.GetLogger(typeof(TestHarness<String, String, TestApplicationComponent, TestAccessLevel>));
+            var testHarnessExceptionLogger = new ApplicationLoggingLog4NetAdapter(log4netTestHarnessExceptionLogger);
+
+            // Setup the metric loggers
+            const String clientMetricLoggerCategory = "ApplicationAccessTestHarnessRestClient";  // To be used by the client... i.e. only for metrics of Polly retries
+            const String generalMetricLoggerCategory = "ApplicationAccessRestClientIntervalMetrics";  // To be used by the AccessManagerMetricLogger instance wrapping the client
+            String sqlServerMetricsConnectionString = metricsConnectionStringBuilder.ConnectionString;
+            Int32 sqlServerRetryCount = metricsDatabaseConnectionConfiguration.RetryCount;
+            Int32 sqlServerRetryInterval = metricsDatabaseConnectionConfiguration.RetryInterval;
+            Int32 metricLoggerBufferSizeLimit = metricsBufferConfiguration.BufferSizeLimit;
+
+            String sqlServerConnectionString = metricsConnectionStringBuilder.ConnectionString;
+            var metricsBufferProcessingStrategyFactory = new MetricsBufferProcessingStrategyFactory();
+            var clientMetricLoggerBufferProcessingStrategyAndActions = metricsBufferProcessingStrategyFactory.MakeProcessingStrategy(metricsBufferConfiguration);
+            var generalMetricLoggerBufferProcessingStrategyAndActions = metricsBufferProcessingStrategyFactory.MakeProcessingStrategy(metricsBufferConfiguration);
+            try
+            {
+                IBufferProcessingStrategy clientMetricLoggerBufferProcessingStrategy = clientMetricLoggerBufferProcessingStrategyAndActions.BufferFlushStrategy;
+                IBufferProcessingStrategy generalMetricLoggerBufferProcessingStrategy = generalMetricLoggerBufferProcessingStrategyAndActions.BufferFlushStrategy;
+                using (var clientMetricLogger = new SqlServerMetricLogger(clientMetricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, clientMetricLoggerBufferProcessingStrategy, false, metricLoggerLogger))
+                using (var generalMetricLogger = new SqlServerMetricLogger(generalMetricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, generalMetricLoggerBufferProcessingStrategy, false, metricLoggerLogger))
+                {
+                    // Keep goin from here...
+                    //   From the line 'var testAccessManager = new ReaderWriterNode<String, String, TestApplicationComponent, TestAccessLevel>'
+                    //   But need to do a client for each thread
+                    //   So actually possibly above needs to move inside test harness config and be called in a loop
+
+                    // Yeah. setup will be quite different... create a new client for each thread in the TestHarness... plus definitely new metric logger... and possibly new plain logger (likely should do this too)
+                }
+            }
+            finally
+            {
+                generalMetricLoggerBufferProcessingStrategyAndActions.DisposeAction.Invoke();
+                clientMetricLoggerBufferProcessingStrategyAndActions.DisposeAction.Invoke();
+            }
         }
     }
 }

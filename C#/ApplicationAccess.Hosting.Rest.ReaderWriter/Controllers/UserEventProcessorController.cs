@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-using ApplicationAccess.Hosting.Rest;
 using ApplicationAccess.Hosting.Rest.Controllers;
+using Microsoft.Extensions.Logging;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter.Controllers
 {

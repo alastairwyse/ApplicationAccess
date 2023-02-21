@@ -31,6 +31,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+    /// <remarks>Instances of this class are not guaranteed to be thread safe, and should not be accessed by multiple threads concurrently.</remarks>
     public class AccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess> : AccessManagerAsyncClientBase<TUser, TGroup, TComponent, TAccess>, IAccessManagerAsyncQueryProcessor<TUser, TGroup, TComponent, TAccess>, IAccessManagerAsyncEventProcessor<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>

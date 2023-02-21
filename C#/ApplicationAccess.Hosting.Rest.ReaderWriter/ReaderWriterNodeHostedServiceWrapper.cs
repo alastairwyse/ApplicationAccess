@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.SqlServer;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationMetrics.MetricLoggers;

@@ -32,7 +32,7 @@ namespace ApplicationAccess.Hosting.UnitTests
     {
         private Tuple<Guid, DateTime> returnedLoadState;
         private IReaderNodeRefreshStrategy mockRefreshStrategy;
-        private IAccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel> mockEventCache;
+        private IAccessManagerTemporalEventQueryProcessor<String, String, ApplicationScreen, AccessLevel> mockEventCache;
         private IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel> mockPersistentReader;
         private ReaderNode<String, String, ApplicationScreen, AccessLevel> testReaderNode;
 
@@ -41,7 +41,7 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             returnedLoadState = new Tuple<Guid, DateTime>(Guid.Parse("5555795a-6408-4084-aa86-a70f8731376a"), CreateDataTimeFromString("2022-10-06 19:27:01"));
             mockRefreshStrategy = Substitute.For<IReaderNodeRefreshStrategy>();
-            mockEventCache = Substitute.For<IAccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>>();
+            mockEventCache = Substitute.For<IAccessManagerTemporalEventQueryProcessor<String, String, ApplicationScreen, AccessLevel>>();
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader);
         }

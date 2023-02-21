@@ -311,7 +311,7 @@
         <member name="F:ApplicationAccess.Hosting.ReaderNode`4.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
             </summary>
@@ -319,7 +319,7 @@
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
             </summary>
@@ -686,6 +686,34 @@
             </summary>
             <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
         </member>
+        <member name="T:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4">
+            <summary>
+            A node in an ApplicationAccess hosting environment which caches <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> events for <see cref="T:ApplicationAccess.Hosting.ReaderNode`4">ReaderNodes</see>.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.eventCache">
+            <summary>The underlying object which performs caching.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.TemporalEventBulkCachingNode class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.GetAllEventsSince(System.Guid)">
+            <inheritdoc/>
+        </member>
         <member name="T:ApplicationAccess.Hosting.WriterNode`4">
             <summary>
             A node in a multi-reader, single-writer ApplicationAccess hosting environment which allows writing permissions and authorizations for an application.
@@ -710,51 +738,48 @@
         <member name="F:ApplicationAccess.Hosting.WriterNode`4.persistentReader">
             <summary>Used to load the complete state of the AccessManager instance.</summary>
         </member>
-        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventCache">
-            <summary>Caches recent events which changed the AccessManager, so the can be accessed quickly by <see cref="T:ApplicationAccess.Hosting.ReaderNode`4">ReaderNodes</see></summary>
-        </member>
         <member name="F:ApplicationAccess.Hosting.WriterNode`4.metricLogger">
             <summary>The logger for metrics.</summary>
         </member>
         <member name="F:ApplicationAccess.Hosting.WriterNode`4.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="eventCache">Cache for events which changed the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="eventCache">Cache for events which changed the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="eventCache">Cache for events which changed the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="eventCache">Cache for events which changed the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
         <member name="M:ApplicationAccess.Hosting.WriterNode`4.Load(System.Boolean)">
@@ -823,13 +848,12 @@
         <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventCache{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
             <summary>
             Initializes members which are common between all constructors.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-            <param name="eventCache">Cache for events which changed the AccessManager.</param>
         </member>
         <member name="M:ApplicationAccess.Hosting.WriterNode`4.Dispose">
             <summary>

@@ -34,6 +34,44 @@
             </summary>
             <param name="eventBufferItem">The event to process/apply.</param>
         </member>
+        <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache`4">
+            <summary>
+            Caches a predefined number of AccessManager <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> events, allowing writing of events in a bulk/consolidated operation.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache`4.#ctor(System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="guidProvider">The provider to use for random Guids.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+            <summary>
+            Adds a sequence of events which subclass <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> to the cache.
+            </summary>
+            <param name="events">The events to cache.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkPersisterBuffer`4">
             <summary>
             Buffers events which change the structure of an <see cref="T:ApplicationAccess.AccessManager`4"/> class in memory before writing them to an instance of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/>.  
@@ -113,33 +151,12 @@
         </member>
         <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4">
             <summary>
-            Caches a predefined number of <see cref="T:ApplicationAccess.Persistence.EventBufferItemBase"/> events.
+            Caches a predefined number of AccessManager <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> events.
             </summary>
             <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
             <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
             <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.cachedEventCount">
-            <summary>The number of events to retain on the cache.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.cachedEvents">
-            <summary>Holds all cached events, with the <see cref="P:System.Collections.Generic.LinkedList`1.Last">Last</see> property holding the most recently cached.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.cachedEventsGuidIndex">
-            <summary>Holds the <see cref="T:System.Collections.Generic.LinkedListNode`1"/> wrapping each cached event, indexed by its <see cref="P:ApplicationAccess.Persistence.EventBufferItemBase.EventId">EventId</see> property.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.metricLogger">
-            <summary>The logger for metrics.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.guidProvider">
-            <summary>The provider to use for random Guids.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.dateTimeProvider">
-            <summary>The provider to use for the current date and time.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.disposed">
-            <summary>Indicates whether the object has been disposed.</summary>
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.#ctor(System.Int32)">
             <summary>
@@ -284,22 +301,66 @@
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+        <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4">
             <summary>
-            Adds a sequence of events which subclass <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> to the cache.
+            Base for classes which cache a predefined number of AccessManager <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> events.
             </summary>
-            <param name="events">The events to cache.</param>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.GetAllEventsSince(System.Guid)">
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.cachedEventCount">
+            <summary>The number of events to retain on the cache.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.cachedEvents">
+            <summary>Holds all cached events, with the <see cref="P:System.Collections.Generic.LinkedList`1.Last">Last</see> property holding the most recently cached.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.cachedEventsGuidIndex">
+            <summary>Holds the <see cref="T:System.Collections.Generic.LinkedListNode`1"/> wrapping each cached event, indexed by its <see cref="P:ApplicationAccess.Persistence.EventBufferItemBase.EventId">EventId</see> property.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.guidProvider">
+            <summary>The provider to use for random Guids.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.dateTimeProvider">
+            <summary>The provider to use for the current date and time.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.#ctor(System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase class.
+            </summary>
+            <param name="cachedEventCount">The number of events to retain on the cache.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="guidProvider">The provider to use for random Guids.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.GetAllEventsSince(System.Guid)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.CacheEvent(ApplicationAccess.Persistence.TemporalEventBufferItemBase)">
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.CacheEvent(ApplicationAccess.Persistence.TemporalEventBufferItemBase)">
             <summary>
             Adds the specified event to the cache structures.
             </summary>
             <param name="newEvent">The event to add.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCache`4.TrimCachedEvents">
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.TrimCachedEvents">
             <summary>
             Trims any events in excess of the 'cachedEventCount' property from the cache structures.
             </summary>
@@ -1097,23 +1158,6 @@
             </summary>
             <param name="events">The events to write.</param>
         </member>
-        <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventCache`4">
-            <summary>
-            Caches events written to an <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> or <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/>, and defines methods to return the events in order of occurrence.
-            </summary>
-            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventCache`4.GetAllEventsSince(System.Guid)">
-            <summary>
-            Retrieves all events which occurred since the event with the specified id.
-            </summary>
-            <param name="eventId">The id of the event to retrieve all events since.</param>
-            <returns>An ordered list of events which occurred since the specified event, and not including the specified event.  Returned in order from least recent to most recent.</returns>
-            <exception cref="T:ApplicationAccess.Persistence.EventNotCachedException">The event with the specified id was not found in the cache.</exception>
-        </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4">
             <summary>
             Defines methods to write events which change the structure of an AccessManager class to persistent storage.  Designed to operate behind a component which buffers the events, and hence methods include a unique id for each event, and the date/time in the past when the even occurred.
@@ -1304,6 +1348,23 @@
             <param name="entity">The entity in the mapping.</param>
             <param name="eventId">The unique id of the event.</param>
             <param name="occurredTime">The historic date and time that the mapping was removed.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor`4">
+            <summary>
+            Defines methods which read events that change the structure of an AccessManager class.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor`4.GetAllEventsSince(System.Guid)">
+            <summary>
+            Retrieves all events which occurred since the event with the specified id.
+            </summary>
+            <param name="eventId">The id of the event to retrieve all events since.</param>
+            <returns>An ordered list of events which occurred since the specified event, and not including the specified event.  Returned in order from least recent to most recent.</returns>
+            <exception cref="T:ApplicationAccess.Persistence.EventNotCachedException">The event with the specified id was not found in the cache.</exception>
         </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4">
             <summary>

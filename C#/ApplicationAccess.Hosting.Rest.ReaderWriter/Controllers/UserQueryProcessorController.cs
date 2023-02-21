@@ -15,6 +15,7 @@
  */
 
 using ApplicationAccess.Hosting.Rest.Controllers;
+using Microsoft.Extensions.Logging;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter.Controllers
 {

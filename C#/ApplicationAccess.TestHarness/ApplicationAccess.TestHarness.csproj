@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <!-- 2022-12-11 - Adding below to suppress 'Microsoft.Extensions.FileSystemGlobbing 7.0.0 doesn't support netcoreapp3.1 and has not been tested with it.' build warnings. -->
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
     <Description>Classes which which test ApplicationAccess classes.</Description>
@@ -22,7 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Client\ApplicationAccess.Hosting.Rest.Client.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting\ApplicationAccess.Hosting.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Metrics\ApplicationAccess.Metrics.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
     <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />

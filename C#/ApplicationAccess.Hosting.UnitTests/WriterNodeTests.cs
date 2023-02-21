@@ -30,7 +30,7 @@ namespace ApplicationAccess.Hosting.UnitTests
         private IAccessManagerEventBufferFlushStrategy mockEventBufferFlushStrategy;
         private IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel> mockPersistentReader;
         private IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
-        private IAccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel> mockEventCache;
+        private IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel> mockEventCache;
         private WriterNode<String, String, ApplicationScreen, AccessLevel> testWriterNode;
 
         [SetUp]
@@ -39,7 +39,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockEventBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
-            mockEventCache = Substitute.For<IAccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>>();
+            mockEventCache = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
             testWriterNode = new WriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockEventCache);
         }
 

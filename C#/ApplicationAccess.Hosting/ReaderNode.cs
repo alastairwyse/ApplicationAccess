@@ -37,7 +37,7 @@ namespace ApplicationAccess.Hosting
         /// <summary>The strategy/methodology to use to refresh the contents of the reader node.</summary>
         protected IReaderNodeRefreshStrategy refreshStrategy;
         /// <summary>Cache for events which change the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted.</summary>
-        protected IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache;
+        protected IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache;
         /// <summary>Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</summary>
         protected IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader;
         /// <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
@@ -57,7 +57,7 @@ namespace ApplicationAccess.Hosting
         /// <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
         /// <param name="eventCache">Cache for events which change the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted.</param>
         /// <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</param>
-        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader)
+        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader)
         {
             this.refreshStrategy = refreshStrategy;
             this.eventCache = eventCache;
@@ -77,7 +77,7 @@ namespace ApplicationAccess.Hosting
         /// <param name="eventCache">Cache for events which change the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted.</param>
         /// <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, IMetricLogger metricLogger)
+        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, IMetricLogger metricLogger)
             : this(refreshStrategy, eventCache, persistentReader)
         {
             this.metricLogger = metricLogger;

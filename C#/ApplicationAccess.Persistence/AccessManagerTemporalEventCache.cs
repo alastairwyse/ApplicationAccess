@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2022 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,53 +15,27 @@
  */
 
 using System;
-using System.Collections.Generic;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
-using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Caches a predefined number of <see cref="EventBufferItemBase"/> events.
+    /// Caches a predefined number of AccessManager <see cref="TemporalEventBufferItemBase"/> events.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class AccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess>
+    public class AccessManagerTemporalEventCache<TUser, TGroup, TComponent, TAccess> : AccessManagerTemporalEventCacheBase<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>
     {
-        /// <summary>The number of events to retain on the cache.</summary>
-        protected Int32 cachedEventCount;
-        /// <summary>Holds all cached events, with the <see cref="LinkedList{T}.Last">Last</see> property holding the most recently cached.</summary>
-        protected LinkedList<TemporalEventBufferItemBase> cachedEvents;
-        /// <summary>Holds the <see cref="LinkedListNode{T}"/> wrapping each cached event, indexed by its <see cref="EventBufferItemBase.EventId">EventId</see> property.</summary>
-        protected Dictionary<Guid, LinkedListNode<TemporalEventBufferItemBase>> cachedEventsGuidIndex;
-        /// <summary>The logger for metrics.</summary>
-        protected IMetricLogger metricLogger;
-        /// <summary>The provider to use for random Guids.</summary>
-        protected Utilities.IGuidProvider guidProvider;
-        /// <summary>The provider to use for the current date and time.</summary>
-        protected IDateTimeProvider dateTimeProvider;
-        /// <summary>Indicates whether the object has been disposed.</summary>
-        protected Boolean disposed;
-
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCache class.
         /// </summary>
         /// <param name="cachedEventCount">The number of events to retain on the cache.</param>
         public AccessManagerTemporalEventCache(Int32 cachedEventCount)
+            : base(cachedEventCount)
         {
-            if (cachedEventCount < 1)
-                throw new ArgumentOutOfRangeException(nameof(cachedEventCount), $"Parameter '{nameof(cachedEventCount)}' must be greater than or equal to 1.");
-
-            this.cachedEventCount = cachedEventCount;
-            cachedEvents = new LinkedList<TemporalEventBufferItemBase>();
-            cachedEventsGuidIndex = new Dictionary<Guid, LinkedListNode<TemporalEventBufferItemBase>>();
-            metricLogger = new NullMetricLogger();
-            guidProvider = new Utilities.DefaultGuidProvider();
-            dateTimeProvider = new DefaultDateTimeProvider();
-            disposed = false;
         }
 
         /// <summary>
@@ -70,9 +44,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="cachedEventCount">The number of events to retain on the cache.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public AccessManagerTemporalEventCache(Int32 cachedEventCount, IMetricLogger metricLogger)
-            : this(cachedEventCount)
+            : base(cachedEventCount, metricLogger)
         {
-            this.metricLogger = metricLogger;
         }
 
         /// <summary>
@@ -84,10 +57,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
         public AccessManagerTemporalEventCache(Int32 cachedEventCount, IMetricLogger metricLogger, Utilities.IGuidProvider guidProvider, IDateTimeProvider dateTimeProvider)
-            : this(cachedEventCount, metricLogger)
+            : base(cachedEventCount, metricLogger, guidProvider, dateTimeProvider)
         {
-            this.guidProvider = guidProvider;
-            this.dateTimeProvider = dateTimeProvider;
         }
 
         /// <inheritdoc/>
@@ -349,76 +320,5 @@ namespace ApplicationAccess.Persistence
             var newEvent = new GroupToEntityMappingEventBufferItem<TGroup>(eventId, EventAction.Remove, group, entityType, entity, occurredTime);
             CacheEvent(newEvent);
         }
-
-        /// <summary>
-        /// Adds a sequence of events which subclass <see cref="TemporalEventBufferItemBase"/> to the cache.
-        /// </summary>
-        /// <param name="events">The events to cache.</param>
-        public void PersistEvents(IList<TemporalEventBufferItemBase> events)
-        {
-            lock (cachedEvents)
-            {
-                foreach (TemporalEventBufferItemBase currentEvent in events)
-                {
-                    cachedEvents.AddLast(currentEvent);
-                    cachedEventsGuidIndex.Add(currentEvent.EventId, cachedEvents.Last);
-                    TrimCachedEvents();
-                    metricLogger.Increment(new EventCached());
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        public IList<TemporalEventBufferItemBase> GetAllEventsSince(Guid eventId)
-        {
-            lock (cachedEvents)
-            {
-                if (cachedEventsGuidIndex.ContainsKey(eventId) == false)
-                    throw new EventNotCachedException($"No event with {nameof(eventId)} '{eventId}' was found in the cache.");
-
-                var returnList = new List<TemporalEventBufferItemBase>();
-                LinkedListNode<TemporalEventBufferItemBase> currentNode = cachedEventsGuidIndex[eventId];
-                currentNode = currentNode.Next;
-                while (currentNode != null)
-                {
-                    returnList.Add(currentNode.Value);
-                    currentNode = currentNode.Next;
-                }
-                metricLogger.Add(new CachedEventsRead(), returnList.Count);
-
-                return returnList;
-            }
-        }
-
-        #region Private/Protected Methods
-
-        /// <summary>
-        /// Adds the specified event to the cache structures.
-        /// </summary>
-        /// <param name="newEvent">The event to add.</param>
-        protected void CacheEvent(TemporalEventBufferItemBase newEvent)
-        {
-            lock (cachedEvents)
-            {
-                cachedEvents.AddLast(newEvent);
-                cachedEventsGuidIndex.Add(newEvent.EventId, cachedEvents.Last);
-                TrimCachedEvents();
-                metricLogger.Increment(new EventCached());
-            }
-        }
-
-        /// <summary>
-        /// Trims any events in excess of the 'cachedEventCount' property from the cache structures.
-        /// </summary>
-        protected void TrimCachedEvents()
-        {
-            while (cachedEvents.Count > cachedEventCount)
-            {
-                cachedEventsGuidIndex.Remove(cachedEvents.First.Value.EventId);
-                cachedEvents.RemoveFirst();
-            }
-        }
-
-        #endregion
     }
 }
