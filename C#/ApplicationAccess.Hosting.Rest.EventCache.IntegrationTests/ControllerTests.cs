@@ -320,6 +320,9 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
 
         #region Nested Classes
 
+        // TODO: This class is also defined in the ApplicationAccess.Hosting.Rest.Client.IntegrationTests namespace
+        //   Could look at moving somewhere common
+
         /// <summary>
         /// Implementation of <see cref="IUniqueStringifier{T}"/> which counts the number of calls to the FromString() and ToString() methods.
         /// </summary>

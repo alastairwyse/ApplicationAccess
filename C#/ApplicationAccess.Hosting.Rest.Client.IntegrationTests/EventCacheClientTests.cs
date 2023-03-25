@@ -36,10 +36,10 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
     public class EventCacheClientTests : IntegrationTestsBase
     {
         private Uri testBaseUrl;
-        private MethodCallCountingStringUniqueStringifier userStringifier;
-        private MethodCallCountingStringUniqueStringifier groupStringifier;
-        private MethodCallCountingStringUniqueStringifier applicationComponentStringifier;
-        private MethodCallCountingStringUniqueStringifier accessLevelStringifier;
+        private StringUniqueStringifier userStringifier;
+        private StringUniqueStringifier groupStringifier;
+        private StringUniqueStringifier applicationComponentStringifier;
+        private StringUniqueStringifier accessLevelStringifier;
         private IApplicationLogger mockLogger;
         private IMetricLogger mockMetricLogger;
         private TestEventCacheClient<String, String, String, String> testEventCacheClient;
@@ -60,10 +60,10 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         protected void SetUp()
         {
             testBaseUrl = new Uri("http://localhost/");
-            userStringifier = new MethodCallCountingStringUniqueStringifier();
-            groupStringifier = new MethodCallCountingStringUniqueStringifier();
-            applicationComponentStringifier = new MethodCallCountingStringUniqueStringifier();
-            accessLevelStringifier = new MethodCallCountingStringUniqueStringifier();
+            userStringifier = new StringUniqueStringifier();
+            groupStringifier = new StringUniqueStringifier();
+            applicationComponentStringifier = new StringUniqueStringifier();
+            accessLevelStringifier = new StringUniqueStringifier();
             mockLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             testEventCacheClient = new TestEventCacheClient<String, String, String, String>
