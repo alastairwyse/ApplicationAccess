@@ -76,7 +76,9 @@ namespace ApplicationAccess.TestHarness
                     Double exceptionsPerSecond = 1000.0 / averageOperationInterval;
                     if (exceptionsPerSecond > exceptionsPerSecondThreshold)
                     {
-                        throw new Exception($"{this.GetType().Name} '{nameof(exceptionsPerSecond)}' threshold exceeded.", inputException);
+                        String exceptionMessage = $"{this.GetType().Name} '{nameof(exceptionsPerSecond)}' threshold exceeded.";
+                        logger.Log(LogLevel.Critical, exceptionMessage, inputException);
+                        throw new Exception(exceptionMessage, inputException);
                     }
                     else
                     {

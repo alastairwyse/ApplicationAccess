@@ -50,7 +50,7 @@ namespace ApplicationAccess.TestHarness
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.TestHarness.DefaultOperationTriggerer class.
         /// </summary>
-        /// <param name="targetOperationsPerSecond">The target number of operations per second to trigger.</param>
+        /// <param name="targetOperationsPerSecond">The target number of operations per second to trigger.  A value of 0.0 will trigger operations continuously at the maximum possible frequency.</param>
         /// <param name="previousInitiationTimeWindowSize">The number of previous operation initiation timestamps to keep, in order to calculate the number of operations triggered per second.</param>
         public DefaultOperationTriggerer(Double targetOperationsPerSecond, Int32 previousInitiationTimeWindowSize)
         {
@@ -130,7 +130,13 @@ namespace ApplicationAccess.TestHarness
                 // Wait for the main thread to signal that it's initiated the operation
                 if (stopMethodCalled == false)
                 {
-                    operationInitiatedSignal.WaitOne();
+                    // TODO: REMOVE TEMPORARY DEBUGGING CODE
+                    //   Timeout parameter... trying to fix deadlock when stopping the TestHarness
+                    Boolean receivedSingal = operationInitiatedSignal.WaitOne(10000);
+                    if (receivedSingal == false)
+                    {
+                        Console.WriteLine($"{this.GetType().Name}: WARNING: 'operationInitiatedSignal' timed out after calling the WaitOne() method");
+                    }
                 }
             }
         }
@@ -140,6 +146,11 @@ namespace ApplicationAccess.TestHarness
         /// </summary>
         protected Int32 CalculateWaitTimeForNextOperation()
         {
+            if (targetOperationsPerSecond == 0.0)
+            {
+                return 0;
+            }
+
             Double waitTime = 1000.0 / targetOperationsPerSecond;
             lock(previousInitiationTimeWindow)
             {

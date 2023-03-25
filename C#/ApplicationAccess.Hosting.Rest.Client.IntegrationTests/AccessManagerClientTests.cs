@@ -80,6 +80,14 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
                 mockLogger,
                 mockMetricLogger
             );
+            mockEntityEventProcessor.ClearReceivedCalls();
+            mockEntityQueryProcessor.ClearReceivedCalls();
+            mockGroupEventProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupEventProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockUserEventProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.ClearReceivedCalls();
         }
 
         [TearDown]
@@ -960,7 +968,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         /// <summary>
         /// Test version of the <see cref="AccessManagerClient{TUser, TGroup, TComponent, TAccess}"/> class which overrides the SendRequest() method so the class can be tested synchronously using <see cref="WebApplicationFactory{TEntryPoint}"/>.
         /// </summary>
-        /// <remarks>Testing the <see cref="AccessManagerClient{TUser, TGroup, TComponent, TAccess}"/> class directly using <see cref="WebApplicationFactory{TEntryPoint}"/> resulted in error "The synchronous method is not supported by 'Microsoft.AspNetCore.TestHost.ClientHandler'".  Judging by the <see href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.testhost.clienthandler?view=aspnetcore-6.0">documentation for the clienthandler class</see> (which I assume wraps HttpClient calls), it only supports a SendAsync() method.  Given support for the syncronous <see cref="HttpClient.Send(HttpRequestMessage)">HttpClient.Send()</see> was only ontroduced in .NET 5, I'm assuming this is yet to be supported by clients generated via the <see cref="WebApplicationFactory{TEntryPoint}.CreateClient">WebApplicationFactory.CreateClient()</see> method.  Hence, in order to test the class, this class overrides the SendRequest() method to call the HttpClient using the SendAsync() method and 'Result' property.  Although you wouldn't do this in released code (due to risk of deadlocks in certain run contexts outlined <see href="https://medium.com/rubrikkgroup/understanding-async-avoiding-deadlocks-e41f8f2c6f5d">here</see>, better to test the other functionality in the class (exception handling, response parsing, etc...) than not to test at all.</remarks>
+        /// <remarks>Testing the <see cref="AccessManagerClient{TUser, TGroup, TComponent, TAccess}"/> class directly using <see cref="WebApplicationFactory{TEntryPoint}"/> resulted in error "The synchronous method is not supported by 'Microsoft.AspNetCore.TestHost.ClientHandler'".  Judging by the <see href="https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.testhost.clienthandler?view=aspnetcore-6.0"> documentation for the clienthandler class</see> (which I assume wraps HttpClient calls), it only supports a SendAsync() method.  Given support for the syncronous <see cref="HttpClient.Send(HttpRequestMessage)">HttpClient.Send()</see> was only ontroduced in .NET 5, I'm assuming this is yet to be supported by clients generated via the <see cref="WebApplicationFactory{TEntryPoint}.CreateClient">WebApplicationFactory.CreateClient()</see> method.  Hence, in order to test the class, this class overrides the SendRequest() method to call the HttpClient using the SendAsync() method and 'Result' property.  Although you wouldn't do this in released code (due to risk of deadlocks in certain run contexts outlined <see href="https://medium.com/rubrikkgroup/understanding-async-avoiding-deadlocks-e41f8f2c6f5d">here</see>, better to test the other functionality in the class (exception handling, response parsing, etc...) than not to test at all.</remarks>
         private class TestAccessManagerClient<TUser, TGroup, TComponent, TAccess> : AccessManagerClient<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>
@@ -1115,42 +1123,12 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
                     }
                     catch (AggregateException ae)
                     {
+                        // Since the SendAsync() method is used above, it will throw an AggregateException on failure which needs to be rethrown as its base exception to be able to properly test retries with the syncronous version of the Polly.Policy used by AccessManagerClient
                         ExceptionDispatchInfo.Capture(ae.GetBaseException()).Throw();
                     }
                 };
 
                 exceptionHandingPolicy.Execute(httpClientAction);
-            }
-        }
-
-        /// <summary>
-        /// Implementation of <see cref="IUniqueStringifier{T}"/> which counts the number of calls to the FromString() and ToString() methods.
-        /// </summary>
-        private class MethodCallCountingStringUniqueStringifier : IUniqueStringifier<String>
-        {
-            public Int32 FromStringCallCount { get; protected set; }
-            public Int32 ToStringCallCount { get; protected set; }
-
-            public MethodCallCountingStringUniqueStringifier()
-            {
-                FromStringCallCount = 0;
-                ToStringCallCount = 0;
-            }
-
-            /// <inheritdoc/>
-            public String FromString(String stringifiedObject)
-            {
-                FromStringCallCount++;
-
-                return stringifiedObject;
-            }
-
-            /// <inheritdoc/>
-            public String ToString(String inputObject)
-            {
-                ToStringCallCount++;
-
-                return inputObject;
             }
         }
 

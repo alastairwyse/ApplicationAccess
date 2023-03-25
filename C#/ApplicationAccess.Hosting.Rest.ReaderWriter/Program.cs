@@ -58,6 +58,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 middlewareUtilities.AddSwaggerGenerationForAssembly(swaggerGenOptions, typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly);
             });
 
+            middlewareUtilities.SetupFileLogging(builder);
+
             // Validate and register top level configuration items
             builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()
                 .Bind(builder.Configuration.GetSection(AccessManagerSqlServerConnectionOptions.AccessManagerSqlServerConnectionOptionsName))
@@ -68,7 +70,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             builder.Services.AddOptions<MetricLoggingOptions>()
                 .Bind(builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName))
                 .ValidateDataAnnotations().ValidateOnStart();
-            builder.Services.AddOptions<MetricLoggingOptions>()
+            builder.Services.AddOptions<ErrorHandlingOptions>()
                 .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
                 .ValidateDataAnnotations().ValidateOnStart();
 
@@ -89,9 +91,12 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             // Register the hosted service wrapper
             if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
             {
-                builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
+                //builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
+
+                // TODO: REMOVE TEMPORARY DEBUGGING CODE
+                builder.Services.AddHostedService<TestReaderWriterNodeHostedServiceWrapper>();
             }
-            
+
             WebApplication app = builder.Build();
             
             // Configure the HTTP request pipeline.
@@ -128,6 +133,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// <remarks>The IConfigurationSection ValidateDataAnnotations() extension method does not recursively validate child sections of the section being validated, hence this is performed explicitly in this method for relevant IOptions pattern objects.</remarks>
         protected static void ValidateSecondaryConfiguration(WebApplicationBuilder builder)
         {
+            // TODO: May be able to move this to a common utility class
+
             var middlewareUtilities = new MiddlewareUtilities();
             middlewareUtilities.ValidateMetricLoggingOptions(builder);
         }

@@ -639,12 +639,27 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
+    /// Amount metric which records the number of events cached.
+    /// </summary>
+    public class EventsCached : AmountMetric
+    {
+        protected static String staticName = "EventsCached";
+        protected static String staticDescription = "The number of events cached";
+
+        public EventsCached()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Amount metric which records the number of events read from the cache.
     /// </summary>
     public class CachedEventsRead : AmountMetric
     {
         protected static String staticName = "CachedEventsRead";
-        protected static String staticDescription = "The number of events read from the cache.";
+        protected static String staticDescription = "The number of events read from the cache";
 
         public CachedEventsRead()
         {

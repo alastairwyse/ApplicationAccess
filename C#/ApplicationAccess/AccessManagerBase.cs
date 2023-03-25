@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace ApplicationAccess
@@ -343,9 +344,10 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
 
-            if (userToComponentMap.ContainsKey(user) == true)
+            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+            if (containsUser == true)
             {
-                foreach (ApplicationComponentAndAccessLevel currentPair in userToComponentMap[user])
+                foreach (ApplicationComponentAndAccessLevel currentPair in componentsAndAccessInMapping)
                 {
                     yield return new Tuple<TComponent, TAccess>(currentPair.ApplicationComponent, currentPair.AccessLevel);
                 }
@@ -398,9 +400,10 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
                 ThrowGroupDoesntExistException(group, nameof(group));
 
-            if (groupToComponentMap.ContainsKey(group) == true)
+            Boolean containsGroup = groupToComponentMap.TryGetValue(group, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+            if (containsGroup == true)
             {
-                foreach (ApplicationComponentAndAccessLevel currentPair in groupToComponentMap[group])
+                foreach (ApplicationComponentAndAccessLevel currentPair in componentsAndAccessInMapping)
                 {
                     yield return new Tuple<TComponent, TAccess>(currentPair.ApplicationComponent, currentPair.AccessLevel);
                 }
@@ -470,16 +473,21 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
 
-            foreach (String currentEntity in entities[entityType])
+            Boolean containsEntityType = entities.TryGetValue(entityType, out ISet<String> entitiesOfType);
+            if (containsEntityType == true)
             {
-                yield return currentEntity;
+                foreach (String currentEntity in entitiesOfType)
+                {
+                    yield return currentEntity;
+                }
             }
         }
 
         /// <inheritdoc/>
         public virtual Boolean ContainsEntity(String entityType, String entity)
         {
-            return (entities.ContainsKey(entityType) && entities[entityType].Contains(entity));
+            Boolean containsEntityType = entities.TryGetValue(entityType, out ISet<String> entitiesOfType);
+            return (containsEntityType && entitiesOfType.Contains(entity));
         }
 
         /// <inheritdoc/>
@@ -518,9 +526,10 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
 
-            if (userToEntityMap.ContainsKey(user) == true)
+            Boolean containsUser = userToEntityMap.TryGetValue(user, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+            if (containsUser == true)
             {
-                foreach (KeyValuePair<String, ISet<String>> currentEntityType in userToEntityMap[user])
+                foreach (KeyValuePair<String, ISet<String>> currentEntityType in entitiesAndTypesInMapping)
                 {
                     foreach (String currentEntity in currentEntityType.Value)
                     {
@@ -538,16 +547,17 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
 
-            if (userToEntityMap.ContainsKey(user) == true && userToEntityMap[user].ContainsKey(entityType) == true)
+            Boolean containsUser = userToEntityMap.TryGetValue(user, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+            if (containsUser == true)
             {
-                foreach (String currentEntity in userToEntityMap[user][entityType])
+                Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
+                if (containsEntity == true)
                 {
-                    yield return currentEntity;
+                    foreach (String currentEntity in entitiesInMapping)
+                    {
+                        yield return currentEntity;
+                    }
                 }
-            }
-            else
-            {
-                yield break;
             }
         }
 
@@ -600,9 +610,10 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
                 ThrowGroupDoesntExistException(group, nameof(group));
 
-            if (groupToEntityMap.ContainsKey(group) == true)
+            Boolean containsGroup = groupToEntityMap.TryGetValue(group, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+            if (containsGroup == true)
             {
-                foreach (KeyValuePair<String, ISet<String>> currentEntityType in groupToEntityMap[group])
+                foreach (KeyValuePair<String, ISet<String>> currentEntityType in entitiesAndTypesInMapping)
                 {
                     foreach (String currentEntity in currentEntityType.Value)
                     {
@@ -620,16 +631,18 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
 
-            if (groupToEntityMap.ContainsKey(group) == true && groupToEntityMap[group].ContainsKey(entityType) == true)
+            Boolean containsGroup = groupToEntityMap.TryGetValue(group, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+            if (containsGroup == true)
+            
             {
-                foreach (String currentEntity in groupToEntityMap[group][entityType])
+                Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
+                if (containsEntity == true)
                 {
-                    yield return currentEntity;
+                    foreach (String currentEntity in entitiesInMapping)
+                    {
+                        yield return currentEntity;
+                    }
                 }
-            }
-            else
-            {
-                yield break;
             }
         }
 
@@ -659,15 +672,17 @@ namespace ApplicationAccess
             {
                 return false;
             }
-            var componentAndAccess = new ApplicationComponentAndAccessLevel(applicationComponent, accessLevel);
-            if (userToComponentMap.ContainsKey(user) == true && userToComponentMap[user].Contains(componentAndAccess) == true)
+            var comparisonComponentAndAccess = new ApplicationComponentAndAccessLevel(applicationComponent, accessLevel);
+            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+            if (containsUser == true && componentsAndAccessInMapping.Contains(comparisonComponentAndAccess) == true)
             {
                 return true;
             }
             Boolean hasAccess = false;
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                if (groupToComponentMap.ContainsKey(currentGroup) == true && groupToComponentMap[currentGroup].Contains(componentAndAccess) == true)
+                containsUser = groupToComponentMap.TryGetValue(currentGroup, out componentsAndAccessInMapping);
+                if (containsUser == true && componentsAndAccessInMapping.Contains(comparisonComponentAndAccess) == true)
                 {
                     hasAccess = true;
                     return false;
@@ -689,26 +704,35 @@ namespace ApplicationAccess
             {
                 return false;
             }
-            if (entities.ContainsKey(entityType) == false)
+            Boolean containsEntityType = entities.TryGetValue(entityType, out ISet<String> entitiesOfType);
+            if (containsEntityType == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
-            if (entities[entityType].Contains(entity) == false)
+            if (entitiesOfType.Contains(entity) == false)
                 ThrowEntityDoesntExistException(entity, nameof(entity));
-            if (userToEntityMap.ContainsKey(user) == true && userToEntityMap[user].ContainsKey(entityType) == true && userToEntityMap[user][entityType].Contains(entity) == true)
+            Boolean containsUser = userToEntityMap.TryGetValue(user, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+            if (containsUser == true)
             {
-                return true;
+                Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
+                if (containsEntity == true && entitiesInMapping.Contains(entity) == true)
+                {
+                    return true;
+                }
             }
             Boolean hasAccess = false;
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                if (groupToEntityMap.ContainsKey(currentGroup) == true && groupToEntityMap[currentGroup].ContainsKey(entityType) == true && groupToEntityMap[currentGroup][entityType].Contains(entity) == true)
+                containsUser = groupToEntityMap.TryGetValue(currentGroup, out entitiesAndTypesInMapping);
+                if (containsUser == true)
                 {
-                    hasAccess = true;
-                    return false;
+                    Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
+                    if (containsEntity == true && entitiesInMapping.Contains(entity) == true)
+                    {
+                        hasAccess = true;
+                        return false;
+                    }
                 }
-                else
-                {
-                    return true;
-                }
+
+                return true;
             };
             userToGroupMap.TraverseFromLeaf(user, vertexAction);
 
@@ -722,18 +746,20 @@ namespace ApplicationAccess
                 ThrowUserDoesntExistException(user, nameof(user));
 
             var returnComponentsAndAccessLevels = new HashSet<Tuple<TComponent, TAccess>>();
-            if (userToComponentMap.ContainsKey(user) == true)
+            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+            if (containsUser == true)
             {
-                foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in userToComponentMap[user])
+                foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in componentsAndAccessInMapping)
                 {
                     returnComponentsAndAccessLevels.Add(new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel));
                 }
             }
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                if (groupToComponentMap.ContainsKey(currentGroup) == true)
+                Boolean containsGroup = groupToComponentMap.TryGetValue(currentGroup, out componentsAndAccessInMapping);
+                if (containsGroup == true)
                 {
-                    foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in groupToComponentMap[currentGroup])
+                    foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in componentsAndAccessInMapping)
                     {
                         var currentComponentAndAccessLevelAsTuple = new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel);
                         if (returnComponentsAndAccessLevels.Contains(currentComponentAndAccessLevelAsTuple) == false)
@@ -759,9 +785,10 @@ namespace ApplicationAccess
             var returnComponentsAndAccessLevels = new HashSet<Tuple<TComponent, TAccess>>();
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                if (groupToComponentMap.ContainsKey(currentGroup) == true)
+                Boolean containsGroup = groupToComponentMap.TryGetValue(currentGroup, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+                if (containsGroup == true)
                 {
-                    foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in groupToComponentMap[currentGroup])
+                    foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in componentsAndAccessInMapping)
                     {
                         var currentComponentAndAccessLevelAsTuple = new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel);
                         if (returnComponentsAndAccessLevels.Contains(currentComponentAndAccessLevelAsTuple) == false)
@@ -785,15 +812,28 @@ namespace ApplicationAccess
                 ThrowUserDoesntExistException(user, nameof(user));
 
             var returnEntities = new HashSet<Tuple<String, String>>();
-            foreach (Tuple<String, String> currentEntity in GetUserToEntityMappings(user))
+            try
             {
-                returnEntities.Add(currentEntity);
+                IEnumerable<Tuple<String, String>> entitiesAndTypesInMapping = GetUserToEntityMappings(user);
+                foreach (Tuple<String, String> currentEntity in entitiesAndTypesInMapping)
+                {
+                    returnEntities.Add(currentEntity);
+                }
+            }
+            catch (ArgumentException)
+            {
+                // GetUserToEntityMappings() will throw an ArgumentException if the specified user doesn't exist which could happen if another thread deletes the user between the check at the top of this method and here
+                return returnEntities;
             }
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                if (groupToEntityMap.ContainsKey(currentGroup) == true)
+                try
                 {
                     returnEntities.UnionWith(GetGroupToEntityMappings(currentGroup));
+                }
+                catch (ArgumentException)
+                {
+                    // GetGroupToEntityMappings() will throw an ArgumentException if the specified group doesn't exist which could happen if another thread deletes the group during traversal
                 }
 
                 return true;
@@ -812,15 +852,29 @@ namespace ApplicationAccess
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
 
             var returnEntities = new HashSet<String>();
-            foreach (String currentEntity in GetUserToEntityMappings(user, entityType))
+            try
             {
-                returnEntities.Add(currentEntity);
+                IEnumerable<String> entitiesInMapping = GetUserToEntityMappings(user, entityType);
+                foreach (String currentEntity in entitiesInMapping)
+                {
+                    returnEntities.Add(currentEntity);
+                }
+            }
+            catch (ArgumentException)
+            {
+                // GetUserToEntityMappings() will throw an ArgumentException if the specified user and/or entity type doesn't exist which could happen if another thread deletes either between the check at the top of this method and here
+                return returnEntities;
             }
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                if (groupToEntityMap.ContainsKey(currentGroup) == true && groupToEntityMap[currentGroup].ContainsKey(entityType) == true)
+                Boolean containsGroup = groupToEntityMap.TryGetValue(currentGroup, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+                if (containsGroup == true)
                 {
-                    returnEntities.UnionWith(groupToEntityMap[currentGroup][entityType]);
+                    Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
+                    if (containsEntity == true)
+                    {
+                        returnEntities.UnionWith(entitiesInMapping);
+                    }
                 }
 
                 return true;
@@ -839,9 +893,13 @@ namespace ApplicationAccess
             var returnEntities = new HashSet<Tuple<String, String>>();
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                if (groupToEntityMap.ContainsKey(currentGroup) == true)
+                try
                 {
                     returnEntities.UnionWith(GetGroupToEntityMappings(currentGroup));
+                }
+                catch (ArgumentException)
+                {
+                    // GetGroupToEntityMappings() will throw an ArgumentException if the specified group doesn't exist which could happen if another thread deletes the group during traversal
                 }
 
                 return true;
@@ -862,9 +920,14 @@ namespace ApplicationAccess
             var returnEntities = new HashSet<String>();
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                if (groupToEntityMap.ContainsKey(currentGroup) == true && groupToEntityMap[currentGroup].ContainsKey(entityType) == true)
+                Boolean containsGroup = groupToEntityMap.TryGetValue(currentGroup, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+                if (containsGroup == true)
                 {
-                    returnEntities.UnionWith(groupToEntityMap[currentGroup][entityType]);
+                    Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
+                    if (containsEntity == true)
+                    {
+                        returnEntities.UnionWith(entitiesInMapping);
+                    }
                 }
 
                 return true;

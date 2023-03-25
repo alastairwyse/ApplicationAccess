@@ -28,6 +28,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         public ElementTargetStorageCountsConfiguration ElementTargetStorageCounts;
         public Double QueryToEventOperationRatio;
         public Int32 DataElementStorerCountPrintFrequency;
+        public Int32 ContainsMethodInvalidParameterGenerationFrequency;
     }
 
     #pragma warning restore 0649

@@ -279,10 +279,11 @@ namespace ApplicationAccess
         {
             ThrowExceptionIfLeafVertexDoesntExistInGraph(startVertex, nameof(startVertex));
 
-            if (leafToNonLeafEdges.ContainsKey(startVertex) == true)
+            Boolean edgesExist = leafToNonLeafEdges.TryGetValue(startVertex, out ISet<TNonLeaf> connectedEdgeVertices);
+            if (edgesExist == true)
             {
                 var visitedVertices = new HashSet<TNonLeaf>();
-                foreach (TNonLeaf nextEdgeVertex in leafToNonLeafEdges[startVertex])
+                foreach (TNonLeaf nextEdgeVertex in connectedEdgeVertices)
                 {
                     TraverseFromNonLeafRecurse(nextEdgeVertex, visitedVertices, vertexAction);
                 }
@@ -374,9 +375,10 @@ namespace ApplicationAccess
                     break;
                 }
 
-                if (leafToNonLeafEdges.ContainsKey(currentLeaf) == true)
+                Boolean edgesExist = leafToNonLeafEdges.TryGetValue(currentLeaf, out ISet<TNonLeaf> connectedEdgeVertices);
+                if (edgesExist == true)
                 {
-                    foreach (TNonLeaf currentNonLeaf in leafToNonLeafEdges[currentLeaf])
+                    foreach (TNonLeaf currentNonLeaf in connectedEdgeVertices)
                     {
                         if (visitedVertices.Contains(currentNonLeaf) == false)
                         {
@@ -404,9 +406,10 @@ namespace ApplicationAccess
             if (keepTraversing == true)
             {
                 visitedVertices.Add(nextVertex);
-                if (nonLeafToNonLeafEdges.ContainsKey(nextVertex) == true)
+                Boolean edgesExist = nonLeafToNonLeafEdges.TryGetValue(nextVertex, out ISet<TNonLeaf> connectedEdgeVertices);
+                if (edgesExist == true)
                 {
-                    foreach (TNonLeaf nextEdgeVertex in nonLeafToNonLeafEdges[nextVertex])
+                    foreach (TNonLeaf nextEdgeVertex in connectedEdgeVertices)
                     {
                         if (visitedVertices.Contains(nextEdgeVertex) == false)
                         {

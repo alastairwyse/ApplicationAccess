@@ -31,6 +31,7 @@ namespace ApplicationAccess.TestHarness
         protected INewAccessLevelGenerator<TAccess> newwAccessLevelGenerator;
         protected INewEntityGenerator newEntityGenerator;
         protected INewEntityTypeGenerator newEntityTypeGenerator;
+        protected Int32 containsMethodInvalidParameterGenerationFrequency;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.TestHarness.DefaultOperationParameterGenerator class.
@@ -42,6 +43,7 @@ namespace ApplicationAccess.TestHarness
         /// <param name="newwAccessLevelGenerator">Generator for new access levels.</param>
         /// <param name="newEntityGenerator">Generator for new entities.</param>
         /// <param name="newEntityTypeGenerator">Generator for new entity types.</param>
+        /// <param name="containsMethodInvalidParameterGenerationFrequency">The frequency that a 'contains' operation (e.g. 'ContainsUser') will generate an invalid parameter (i.e. one which would return a false result).  The number specified represents in '1 in X' chance that an an invalid parameter will be generated, e.g. a value of 10 means that an invalid parameter would be generated on average once for each 10 calls to the method.  A value of 1 means  an invalid parameter will alwayd be generated.  A value of 0 means an invalid parameter will never be generated.</param>
         public DefaultOperationParameterGenerator
         (
             DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
@@ -50,9 +52,13 @@ namespace ApplicationAccess.TestHarness
             INewApplicationComponentGenerator<TComponent> newApplicationComponentGenerator,
             INewAccessLevelGenerator<TAccess> newwAccessLevelGenerator,
             INewEntityGenerator newEntityGenerator,
-            INewEntityTypeGenerator newEntityTypeGenerator
+            INewEntityTypeGenerator newEntityTypeGenerator, 
+            Int32 containsMethodInvalidParameterGenerationFrequency
         )
         {
+            if (containsMethodInvalidParameterGenerationFrequency < 0)
+                throw new ArgumentOutOfRangeException(nameof(containsMethodInvalidParameterGenerationFrequency), $"Parameter '{nameof(containsMethodInvalidParameterGenerationFrequency)}' must be greater than or equal to 0.");
+
             randomGenerator = new Random();
             this.dataElementStorer = dataElementStorer;
             this.newUserGenerator = newUserGenerator;
@@ -61,6 +67,7 @@ namespace ApplicationAccess.TestHarness
             this.newwAccessLevelGenerator = newwAccessLevelGenerator;
             this.newEntityGenerator = newEntityGenerator;
             this.newEntityTypeGenerator = newEntityTypeGenerator;
+            this.containsMethodInvalidParameterGenerationFrequency = containsMethodInvalidParameterGenerationFrequency;
         }
 
         public TUser GenerateAddUserParameter()
@@ -70,7 +77,11 @@ namespace ApplicationAccess.TestHarness
 
         public TUser GenerateContainsUserParameter()
         {
-            if (randomGenerator.Next(2) == 0)
+            if (containsMethodInvalidParameterGenerationFrequency == 0)
+            {
+                return dataElementStorer.GetRandomUser();
+            }
+            else if (randomGenerator.Next(containsMethodInvalidParameterGenerationFrequency) == 0)
             {
                 return newUserGenerator.Generate();
             }
@@ -91,8 +102,12 @@ namespace ApplicationAccess.TestHarness
         }
 
         public TGroup GenerateContainsGroupParameter()
-        {
-            if (randomGenerator.Next(2) == 0)
+        {   
+            if (containsMethodInvalidParameterGenerationFrequency == 0)
+            {
+                return dataElementStorer.GetRandomGroup();
+            }
+            else if (randomGenerator.Next(containsMethodInvalidParameterGenerationFrequency) == 0)
             {
                 return newGroupGenerator.Generate();
             }
@@ -194,7 +209,11 @@ namespace ApplicationAccess.TestHarness
 
         public String GenerateContainsEntityTypeParameter()
         {
-            if (randomGenerator.Next(2) == 0)
+            if (containsMethodInvalidParameterGenerationFrequency == 0)
+            {
+                return dataElementStorer.GetRandomEntityType();
+            }
+            else if (randomGenerator.Next(containsMethodInvalidParameterGenerationFrequency) == 0)
             {
                 return newEntityTypeGenerator.Generate();
             }
@@ -224,7 +243,11 @@ namespace ApplicationAccess.TestHarness
 
         public Tuple<String, String> GenerateContainsEntityParameters()
         {
-            if (randomGenerator.Next(2) == 0)
+            if (containsMethodInvalidParameterGenerationFrequency == 0)
+            {
+                return dataElementStorer.GetRandomEntity();
+            }
+            else if (randomGenerator.Next(containsMethodInvalidParameterGenerationFrequency) == 0)
             {
                 String entityType = newEntityTypeGenerator.Generate();
                 String entity = newEntityGenerator.Generate();

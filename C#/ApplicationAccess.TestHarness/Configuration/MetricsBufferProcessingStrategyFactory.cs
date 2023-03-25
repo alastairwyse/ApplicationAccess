@@ -19,6 +19,9 @@ using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.TestHarness.Configuration
 {
+    /// <summary>
+    /// Creates and instance of <see cref="IBufferProcessingStrategy"/> based on specified configuration, plus a set of actions which can be used to start, stop, and dispose of the created strategy instance.
+    /// </summary>
     class MetricsBufferProcessingStrategyFactory
     {
         /// <summary>

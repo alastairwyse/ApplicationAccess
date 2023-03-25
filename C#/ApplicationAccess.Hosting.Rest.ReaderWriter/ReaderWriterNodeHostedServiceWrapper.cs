@@ -141,7 +141,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             eventBufferFlushStrategy.Start();
             logger.LogInformation($"Completed starting {nameof(eventBufferFlushStrategy)}.");
             // Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLogger != null)
+            if (metricLoggingOptions.MetricLoggingEnabled == true)
             {
                 logger.LogInformation($"Starting {nameof(metricLogger)}...");
                 metricLogger.Start();
@@ -166,7 +166,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Stopping {nameof(eventBufferFlushStrategy)}...");
             eventBufferFlushStrategy.Stop();
             logger.LogInformation($"Completed stopping {nameof(eventBufferFlushStrategy)}.");
-            if (metricLogger != null)
+            if (metricLoggingOptions.MetricLoggingEnabled == true)
             {
                 logger.LogInformation($"Stopping {nameof(metricLogger)}...");
                 metricLogger.Stop();
@@ -175,7 +175,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Disposing objects...");
             eventBufferFlushStrategy.Dispose();
             eventPersister.Dispose();
-            if (metricLogger != null)
+            if (metricLoggingOptions.MetricLoggingEnabled == true)
             {
                 metricLoggerBufferProcessingStrategy.Dispose();
                 metricLogger.Dispose();
@@ -207,32 +207,35 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 eventBufferFlushingOptions.FlushLoopInterval
             );
 
-            var connectionStringBuilder = new SqlConnectionStringBuilder();
-            connectionStringBuilder.DataSource = accessManagerSqlServerConnectionOptions.DataSource;
+            var accessManagerConnectionStringBuilder = new SqlConnectionStringBuilder();
+            accessManagerConnectionStringBuilder.DataSource = accessManagerSqlServerConnectionOptions.DataSource;
             // TODO: Need to enable this once I find a way to inject cert details etc into
-            connectionStringBuilder.Encrypt = false;
-            connectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
-            connectionStringBuilder.InitialCatalog = accessManagerSqlServerConnectionOptions.InitialCatalog;
-            connectionStringBuilder.UserID = accessManagerSqlServerConnectionOptions.UserId;
-            connectionStringBuilder.Password = accessManagerSqlServerConnectionOptions.Password;
-            String connectionString = connectionStringBuilder.ConnectionString;
+            accessManagerConnectionStringBuilder.Encrypt = false;
+            accessManagerConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
+            accessManagerConnectionStringBuilder.InitialCatalog = accessManagerSqlServerConnectionOptions.InitialCatalog;
+            accessManagerConnectionStringBuilder.UserID = accessManagerSqlServerConnectionOptions.UserId;
+            accessManagerConnectionStringBuilder.Password = accessManagerSqlServerConnectionOptions.Password;
+            String accessManagerConnectionString = accessManagerConnectionStringBuilder.ConnectionString;
             IApplicationLogger eventPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
             (
                 loggerFactory.CreateLogger<SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>>()
             );
-            eventPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
-            (
-                connectionString,
-                accessManagerSqlServerConnectionOptions.RetryCount,
-                accessManagerSqlServerConnectionOptions.RetryInterval,
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier(),
-                eventPersisterLogger
-            );
 
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            {
+                eventPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
+                (
+                    accessManagerConnectionString,
+                    accessManagerSqlServerConnectionOptions.RetryCount,
+                    accessManagerSqlServerConnectionOptions.RetryInterval,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    eventPersisterLogger
+                );
+            }
+            else
             {
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
                 switch (metricBufferProcessingOptions.BufferProcessingStrategy)
@@ -247,15 +250,15 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                         throw new Exception($"Encountered unhandled {nameof(MetricBufferProcessingStrategyImplementation)} '{metricBufferProcessingOptions.BufferProcessingStrategy}' while attempting to create {nameof(ReaderWriterNode<String, String, String, String>)} constructor parameters.");
                 }
                 MetricsSqlServerConnectionOptions metricsSqlServerConnectionOptions = metricLoggingOptions.MetricsSqlServerConnection;
-                connectionStringBuilder = new SqlConnectionStringBuilder();
-                connectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;
+                var metricsConnectionStringBuilder = new SqlConnectionStringBuilder();
+                metricsConnectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;
                 // TODO: Need to enable this once I find a way to inject cert details etc into
-                connectionStringBuilder.Encrypt = false;
-                connectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
-                connectionStringBuilder.InitialCatalog = metricsSqlServerConnectionOptions.InitialCatalog;
-                connectionStringBuilder.UserID = metricsSqlServerConnectionOptions.UserId;
-                connectionStringBuilder.Password = metricsSqlServerConnectionOptions.Password;
-                connectionString = connectionStringBuilder.ConnectionString;
+                metricsConnectionStringBuilder.Encrypt = false;
+                metricsConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
+                metricsConnectionStringBuilder.InitialCatalog = metricsSqlServerConnectionOptions.InitialCatalog;
+                metricsConnectionStringBuilder.UserID = metricsSqlServerConnectionOptions.UserId;
+                metricsConnectionStringBuilder.Password = metricsSqlServerConnectionOptions.Password;
+                String metricsConnectionString = metricsConnectionStringBuilder.ConnectionString;
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
                     loggerFactory.CreateLogger<SqlServerMetricLogger>()
@@ -263,12 +266,24 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 metricLogger = new SqlServerMetricLogger
                 (
                     sqlServerMetricLoggerCategoryName,
-                    connectionString,
+                    metricsConnectionString,
                     metricsSqlServerConnectionOptions.RetryCount,
                     metricsSqlServerConnectionOptions.RetryInterval,
                     metricLoggerBufferProcessingStrategy,
                     true,
                     metricLoggerLogger
+                );
+                eventPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
+                (
+                    accessManagerConnectionString,
+                    accessManagerSqlServerConnectionOptions.RetryCount,
+                    accessManagerSqlServerConnectionOptions.RetryInterval,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    eventPersisterLogger,
+                    metricLogger
                 );
             }
         }

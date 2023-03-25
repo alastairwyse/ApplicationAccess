@@ -69,7 +69,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests", "ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests\ApplicationAccess.Hosting.Rest.AsyncClient.UnitTests.csproj", "{61C9AFAE-9C79-4D7E-AC33-2690B9396DBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.EventCache", "ApplicationAccess.Hosting.Rest.EventCache\ApplicationAccess.Hosting.Rest.EventCache.csproj", "{B619B5CC-1B70-4271-9767-B8F509F75AEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.EventCache", "ApplicationAccess.Hosting.Rest.EventCache\ApplicationAccess.Hosting.Rest.EventCache.csproj", "{B619B5CC-1B70-4271-9767-B8F509F75AEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests", "ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests\ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests.csproj", "{D8A3D67E-2675-4C16-B097-112A95B3D5CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -213,6 +215,10 @@ Global
 		{B619B5CC-1B70-4271-9767-B8F509F75AEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B619B5CC-1B70-4271-9767-B8F509F75AEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B619B5CC-1B70-4271-9767-B8F509F75AEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8A3D67E-2675-4C16-B097-112A95B3D5CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8A3D67E-2675-4C16-B097-112A95B3D5CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8A3D67E-2675-4C16-B097-112A95B3D5CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8A3D67E-2675-4C16-B097-112A95B3D5CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

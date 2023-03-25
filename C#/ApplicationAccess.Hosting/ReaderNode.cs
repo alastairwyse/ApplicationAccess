@@ -303,7 +303,7 @@ namespace ApplicationAccess.Hosting
             {
                 if (throwExceptionIfStorageIsEmpty == true)
                 {
-                    metricLogger.CancelBegin(beginId, new ReaderWriterNodeLoadTime());
+                    metricLogger.CancelBegin(beginId, new ReaderNodeLoadTime());
                     throw new Exception("Failed to load access manager state from persistent storage.", pse);
                 }
             }

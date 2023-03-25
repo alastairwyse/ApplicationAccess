@@ -34,7 +34,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         protected ILogger<EntityEventProcessorControllerBase> logger;
 
         /// <summary>
-        ///  Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.EntityEventProcessorControllerBase class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.EntityEventProcessorControllerBase class.
         /// </summary>
         public EntityEventProcessorControllerBase(EntityEventProcessorHolder entityEventProcessorHolder, ILogger<EntityEventProcessorControllerBase> logger)
         {
@@ -50,7 +50,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpPost]
         [Route("entityTypes/{entityType}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public StatusCodeResult AddEntityType([FromRoute] string entityType)
+        public StatusCodeResult AddEntityType([FromRoute] String entityType)
         {
             entityEventProcessor.AddEntityType(entityType);
 

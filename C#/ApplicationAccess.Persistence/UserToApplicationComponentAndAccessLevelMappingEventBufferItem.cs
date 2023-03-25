@@ -23,6 +23,10 @@ namespace ApplicationAccess.Persistence
     /// </summary>
     public class UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess> : TemporalEventBufferItemBase
     {
+        // TODO: This could derive from UserEventBufferItem and save repeating the User property
+        //   Same for GroupToApplicationComponentAndAccessLevelMappingEventBufferItem and others
+        //   Just need to check for effect on places where multiple TemporalEventBufferItemBase classes are stored in a list
+
         /// <summary>The user in the mapping.</summary>
         protected TUser user;
         /// <summary>The application component in the mapping.</summary>

@@ -28,6 +28,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         protected const String exceptionsPerSecondThresholdPropertyName = "ExceptionsPerSecondThreshold";
         protected const String previousExceptionOccurenceTimeWindowSizePropertyName = "PreviousExceptionOccurenceTimeWindowSize";
         protected const String ignoreKnownAccessManagerExceptionsPropertyName = "IgnoreKnownAccessManagerExceptions";
+        protected const String operationLimitPropertyName = "OperationLimit";
 
         public TestHarnessConfigurationReader()
         : base("Test harness")
@@ -43,6 +44,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             ThrowExceptionIfPropertyNotFound(exceptionsPerSecondThresholdPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(previousExceptionOccurenceTimeWindowSizePropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(ignoreKnownAccessManagerExceptionsPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(operationLimitPropertyName, configurationSection);
 
             var returnConfiguration = new TestHarnessConfiguration();
 
@@ -53,6 +55,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             returnConfiguration.ExceptionsPerSecondThreshold = GetConfigurationValueAsDouble(exceptionsPerSecondThresholdPropertyName, configurationSection);
             returnConfiguration.PreviousExceptionOccurenceTimeWindowSize = GetConfigurationValueAsInteger(previousExceptionOccurenceTimeWindowSizePropertyName, configurationSection);
             returnConfiguration.IgnoreKnownAccessManagerExceptions = GetConfigurationValueAsBoolean(ignoreKnownAccessManagerExceptionsPropertyName, configurationSection);
+            returnConfiguration.OperationLimit = GetConfigurationValueAsInt64(operationLimitPropertyName, configurationSection);
 
             return returnConfiguration;
         }

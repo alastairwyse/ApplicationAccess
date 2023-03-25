@@ -46,6 +46,6 @@ namespace ApplicationAccess.Hosting.Models.Options
             DequeueOperationLoopInterval = 0;
         }
 
-#pragma warning restore 0649
+        #pragma warning restore 0649
     }
 }

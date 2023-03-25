@@ -28,6 +28,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using Serilog;
 
 namespace ApplicationAccess.Hosting.Rest
 {
@@ -106,6 +107,16 @@ namespace ApplicationAccess.Hosting.Rest
                     }
                 });
             });
+        }
+
+        // TODO: REMOVE TEMPORARY DEBUGGING CODE
+        public void SetupFileLogging(WebApplicationBuilder builder)
+        {
+            var fileLoggingConfiguration = new LoggerConfiguration()
+                .MinimumLevel.Warning()
+                .WriteTo.RollingFile(@"C:\Temp\ApplicationAccessReaderWriterNodeLog.txt");
+            ILogger fileLogger = fileLoggingConfiguration.CreateLogger();
+            builder.Logging.AddSerilog(fileLogger);
         }
 
         #region Private/Protected Methods

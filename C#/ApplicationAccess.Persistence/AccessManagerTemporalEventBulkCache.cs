@@ -75,8 +75,8 @@ namespace ApplicationAccess.Persistence
                     cachedEvents.AddLast(currentEvent);
                     cachedEventsGuidIndex.Add(currentEvent.EventId, cachedEvents.Last);
                     TrimCachedEvents();
-                    metricLogger.Increment(new EventCached());
                 }
+                metricLogger.Add(new EventsCached(), events.Count);
             }
         }
     }

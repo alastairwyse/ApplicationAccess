@@ -112,5 +112,20 @@ namespace ApplicationAccess.Hosting
         }
     }
 
+    /// <summary>
+    /// Count metric which records the time taken to load the entire contents of a writer node.
+    /// </summary>
+    public class WriterNodeLoadTime : IntervalMetric
+    {
+        protected static String staticName = "WriterNodeLoadTime";
+        protected static String staticDescription = "The time taken to load the entire contents of a writer node";
+
+        public WriterNodeLoadTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
 #pragma warning restore 1591
 }

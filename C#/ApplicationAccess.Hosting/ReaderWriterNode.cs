@@ -142,7 +142,6 @@ namespace ApplicationAccess.Hosting
             {
                 concurrentAccessManager.MetricLoggingEnabled = false;
                 persistentReader.Load(concurrentAccessManager);
-                concurrentAccessManager.MetricLoggingEnabled = true;
             }
             catch (PersistentStorageEmptyException pse)
             {
@@ -150,12 +149,16 @@ namespace ApplicationAccess.Hosting
                 {
                     metricLogger.CancelBegin(beginId, new ReaderWriterNodeLoadTime());
                     throw new Exception("Failed to load access manager state from persistent storage.", pse);
-                }    
+                }
             }
             catch (Exception e)
             {
                 metricLogger.CancelBegin(beginId, new ReaderWriterNodeLoadTime());
                 throw new Exception("Failed to load access manager state from persistent storage.", e);
+            }
+            finally
+            {
+                concurrentAccessManager.MetricLoggingEnabled = true;
             }
             metricLogger.End(beginId, new ReaderWriterNodeLoadTime());
         }

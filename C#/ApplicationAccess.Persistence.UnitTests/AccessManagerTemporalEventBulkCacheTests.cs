@@ -58,15 +58,18 @@ namespace ApplicationAccess.Persistence.UnitTests
             testAccessManagerTemporalEventBulkCache.PersistEvents(testEvents);
 
             IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventBulkCache.GetAllEventsSince(eventId2);
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsCached>(), 3);
             Assert.AreEqual(1, result.Count);
             Assert.AreSame(testEvent3, result[0]);
 
 
+            mockMetricLogger.ClearReceivedCalls();
             testAccessManagerTemporalEventBulkCache = new AccessManagerTemporalEventBulkCache<String, String, ApplicationScreen, AccessLevel>(3, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
 
             testAccessManagerTemporalEventBulkCache.PersistEvents(testEvents);
 
             result = testAccessManagerTemporalEventBulkCache.GetAllEventsSince(eventId1);
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsCached>(), 3);
             Assert.AreEqual(2, result.Count);
             Assert.AreSame(testEvent2, result[0]);
             Assert.AreSame(testEvent3, result[1]);

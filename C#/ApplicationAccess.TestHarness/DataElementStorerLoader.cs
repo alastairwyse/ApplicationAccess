@@ -30,13 +30,19 @@ namespace ApplicationAccess.TestHarness
         /// </summary>
         /// <param name="reader">The <see cref="IAccessManagerPersistentReader{TUser, TGroup, TComponent, TAccess}"/> to load from.</param>
         /// <param name="dataElementStorer">The <see cref="DataElementStorer{TUser, TGroup, TComponent, TAccess}"/> to load to. </param>
-        public void Load(IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> reader, DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer)
+        /// <param name="throwExceptionIfStorageIsEmpty">Throws an exception if the storage is empty.</param>
+        public void Load(IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> reader, DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, Boolean throwExceptionIfStorageIsEmpty)
         {
             // Read into a temporary/intermediate AccessManager instance
             var intermediateAccessManager = new AccessManager<TUser, TGroup, TComponent, TAccess>();
             try
             {
                 reader.Load(intermediateAccessManager);
+            }
+            catch (PersistentStorageEmptyException)
+            {
+                if (throwExceptionIfStorageIsEmpty == true)
+                    throw;
             }
             catch (Exception e)
             {

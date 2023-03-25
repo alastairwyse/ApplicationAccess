@@ -24,6 +24,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         protected const String elementTargetStorageCountsPropertyName = "ElementTargetStorageCounts";
         protected const String queryToEventOperationRatioPropertyName = "QueryToEventOperationRatio";
         protected const String dataElementStorerCountPrintFrequencyPropertyName = "DataElementStorerCountPrintFrequency";
+        protected const String containsMethodInvalidParameterGenerationFrequencyPropertyName = "ContainsMethodInvalidParameterGenerationFrequency";
 
         public OperationGeneratorConfigurationReader()
             : base("Operation generator")
@@ -35,6 +36,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             ThrowExceptionIfSectionNotFound(elementTargetStorageCountsPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(queryToEventOperationRatioPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(dataElementStorerCountPrintFrequencyPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(containsMethodInvalidParameterGenerationFrequencyPropertyName, configurationSection);
 
             var returnConfiguration = new OperationGeneratorConfiguration();
 
@@ -43,6 +45,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             returnConfiguration.ElementTargetStorageCounts = storeageCountsReader.Read(configurationSection.GetSection(elementTargetStorageCountsPropertyName));
             returnConfiguration.QueryToEventOperationRatio = GetConfigurationValueAsDouble(queryToEventOperationRatioPropertyName, configurationSection);
             returnConfiguration.DataElementStorerCountPrintFrequency = GetConfigurationValueAsInteger(dataElementStorerCountPrintFrequencyPropertyName, configurationSection);
+            returnConfiguration.ContainsMethodInvalidParameterGenerationFrequency = GetConfigurationValueAsInteger(containsMethodInvalidParameterGenerationFrequencyPropertyName, configurationSection);
 
             return returnConfiguration;
         }

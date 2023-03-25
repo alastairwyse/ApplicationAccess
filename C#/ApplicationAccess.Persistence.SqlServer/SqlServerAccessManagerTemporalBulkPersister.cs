@@ -221,7 +221,28 @@ namespace ApplicationAccess.Persistence.SqlServer
             {
                 CreateSqlParameterWithValue(eventsParameterName, SqlDbType.Structured, stagingTable)
             };
-            storedProcedureExecutor.Execute(processEventsStoredProcedureName, parameters);
+            // TODO: REMOVE TEMPORARY DEBUGGING CODE
+            //   Remove try/catch
+            try
+            {
+                storedProcedureExecutor.Execute(processEventsStoredProcedureName, parameters);
+            }
+            catch (Exception)
+            {
+                logger.Log(LogLevel.Critical, "Exception occurred in SqlServerAccessManagerTemporalBulkPersister.PersistEvents() method");
+                logger.Log(LogLevel.Critical, "Contents of staging table as follows...");
+                foreach (DataRow currentRow in stagingTable.Rows)
+                {
+                    var logLineBuilder = new System.Text.StringBuilder();
+                    for (Int32 currentCellIndex = 0; currentCellIndex < stagingTable.Columns.Count; currentCellIndex++)
+                    {
+                        logLineBuilder.Append($"{currentRow[currentCellIndex]}, ");
+                    }
+                    logger.Log(LogLevel.Critical, logLineBuilder.ToString());
+                }
+
+                throw;
+            }
         }
 
         #region Private/Protected Methods

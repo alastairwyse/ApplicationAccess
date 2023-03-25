@@ -20,7 +20,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ApplicationAccess.Hosting.Models.Options
 {
     /// <summary>
-    /// Container class storing options forerror handling, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
+    /// Container class storing options for error handling, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
     /// </summary>
     public class ErrorHandlingOptions
     {

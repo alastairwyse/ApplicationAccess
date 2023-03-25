@@ -136,7 +136,11 @@ namespace ApplicationAccess
         /// <returns>True if the element is successfully found and removed.  Otherwise, false. This method returns false if item is not found in the set.</returns>
         public bool Remove(T item)
         {
-            return dictionary.TryRemove(item, out Byte tempValue);
+            Boolean result = dictionary.TryRemove(item, out Byte tempValue);
+            // TODO: REMOVE TEMPORARY DEBUGGING CODE
+            if (result == false)
+                throw new Exception($"ConcurrentDictionary.TryRemove() method with param '{item}' returned false.");
+            return result;
         }
 
         public bool SetEquals(IEnumerable<T> other)

@@ -277,6 +277,11 @@
             Count metric which records the time taken to load the entire contents of a reader/writer node.
             </summary>
         </member>
+        <member name="T:ApplicationAccess.Hosting.WriterNodeLoadTime">
+            <summary>
+            Count metric which records the time taken to load the entire contents of a writer node.
+            </summary>
+        </member>
         <member name="T:ApplicationAccess.Hosting.ReaderNode`4">
             <summary>
             A node in a multi-reader, single-writer ApplicationAccess hosting environment which allows reading permissions and authorizations for an application.

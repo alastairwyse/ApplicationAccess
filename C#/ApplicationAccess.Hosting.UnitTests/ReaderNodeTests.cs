@@ -22,6 +22,7 @@ using ApplicationAccess.UnitTests;
 using ApplicationAccess.Persistence;
 using NUnit.Framework;
 using NSubstitute;
+using ApplicationMetrics;
 
 namespace ApplicationAccess.Hosting.UnitTests
 {
@@ -34,6 +35,7 @@ namespace ApplicationAccess.Hosting.UnitTests
         private IReaderNodeRefreshStrategy mockRefreshStrategy;
         private IAccessManagerTemporalEventQueryProcessor<String, String, ApplicationScreen, AccessLevel> mockEventCache;
         private IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel> mockPersistentReader;
+        private IMetricLogger mockMetricLogger;
         private ReaderNode<String, String, ApplicationScreen, AccessLevel> testReaderNode;
 
         [SetUp]
@@ -43,13 +45,16 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockRefreshStrategy = Substitute.For<IReaderNodeRefreshStrategy>();
             mockEventCache = Substitute.For<IAccessManagerTemporalEventQueryProcessor<String, String, ApplicationScreen, AccessLevel>>();
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
-            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader);
+            mockMetricLogger = Substitute.For<IMetricLogger>();
+            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, mockMetricLogger);
         }
 
         [Test]
         public void Load_ThrowExceptionIfStorageIsEmptySetFalseAndCallToPersistentReaderFails()
         {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var mockException = new Exception("Failed to load.");
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeLoadTime>()).Returns(testBeginId);
             mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
@@ -57,6 +62,8 @@ namespace ApplicationAccess.Hosting.UnitTests
                 testReaderNode.Load(false);
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeLoadTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ReaderNodeLoadTime>());
             Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
             Assert.AreEqual(mockException, e.InnerException);
         }
@@ -64,7 +71,9 @@ namespace ApplicationAccess.Hosting.UnitTests
         [Test]
         public void Load_ThrowExceptionIfStorageIsEmptySetTrueAndCallToPersistentReaderFails()
         {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var mockException = new Exception("Failed to load.");
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeLoadTime>()).Returns(testBeginId);
             mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
@@ -72,6 +81,8 @@ namespace ApplicationAccess.Hosting.UnitTests
                 testReaderNode.Load(true);
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeLoadTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ReaderNodeLoadTime>());
             Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
             Assert.AreEqual(mockException, e.InnerException);
         }
@@ -79,7 +90,9 @@ namespace ApplicationAccess.Hosting.UnitTests
         [Test]
         public void Load_ThrowExceptionIfStorageIsEmptySetTrueAndPersistentStorageEmpty()
         {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var mockException = new PersistentStorageEmptyException("Persistent storage is empty.");
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeLoadTime>()).Returns(testBeginId);
             mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
@@ -87,6 +100,8 @@ namespace ApplicationAccess.Hosting.UnitTests
                 testReaderNode.Load(true);
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeLoadTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ReaderNodeLoadTime>());
             Assert.That(e.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
             Assert.AreEqual(mockException, e.InnerException);
         }
@@ -94,12 +109,16 @@ namespace ApplicationAccess.Hosting.UnitTests
         [Test]
         public void Load_ThrowExceptionIfStorageIsEmptySetFalseAndPersistentStorageEmpty()
         {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var mockException = new PersistentStorageEmptyException("Persistent storage is empty.");
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeLoadTime>()).Returns(testBeginId);
             mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
 
             testReaderNode.Load(false);
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeLoadTime>());
             mockPersistentReader.Received(1).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ReaderNodeLoadTime>());
         }
 
         [Test]

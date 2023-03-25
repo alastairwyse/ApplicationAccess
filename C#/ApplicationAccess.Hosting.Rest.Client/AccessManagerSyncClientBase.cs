@@ -19,14 +19,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.DataTransferObjects;
 using ApplicationAccess.Hosting.Rest.AsyncClient;
-using ApplicationAccess.Serialization;
 using ApplicationLogging;
 using ApplicationMetrics;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Polly;
 
 namespace ApplicationAccess.Hosting.Rest.Client
@@ -687,83 +684,6 @@ namespace ApplicationAccess.Hosting.Rest.Client
             };
 
             exceptionHandingPolicy.Execute(httpClientAction);
-        }
-
-        /// <summary>
-        /// Handles receipt of a non-success HTTP response status, by converting the status and response body to an appropriate Exception and throwing that Exception.
-        /// </summary>
-        /// <param name="method">The HTTP method used in the request which generated the response.</param>
-        /// <param name="requestUrl">The URL of the request which generated the response.</param>
-        /// <param name="responseStatus">The received HTTP response status.</param>
-        /// <param name="responseBody">The received response body.</param>
-        protected void HandleNonSuccessResponseStatus(HttpMethod method, Uri requestUrl, HttpStatusCode responseStatus, Stream responseBody)
-        {
-            String baseExceptionMessage = $"Failed to call URL '{requestUrl.ToString()}' with '{method.ToString()}' method.  Received non-succces HTTP response status '{(Int32)responseStatus}'";
-
-            // Attempt to deserialize a HttpErrorResponse from the body
-            responseBody.Position = 0;
-            HttpErrorResponse httpErrorResponse = DeserializeResponseBodyToHttpErrorResponse(responseBody);
-            if (httpErrorResponse != null)
-            {
-                if (statusCodeToExceptionThrowingActionMap.ContainsKey(responseStatus) == true)
-                {
-                    statusCodeToExceptionThrowingActionMap[responseStatus].Invoke(httpErrorResponse.Message);
-                }
-                else
-                {
-                    String exceptionMessagePostfix = $", error code '{httpErrorResponse.Code}', and error message '{httpErrorResponse.Message}'.";
-                    throw new Exception(baseExceptionMessage + exceptionMessagePostfix);
-                }
-            }
-            else
-            {
-                // Read the response body as a string
-                String responseBodyAsString = "";
-                responseBody.Position = 0;
-                using (var streamReader = new StreamReader(responseBody, defaultEncoding))
-                {
-                    responseBodyAsString = streamReader.ReadToEnd();
-                }
-                if (String.IsNullOrEmpty(responseBodyAsString.Trim()) == false)
-                {
-                    throw new Exception(baseExceptionMessage + $" and response body '{responseBodyAsString}'.");
-                }
-                else
-                {
-                    throw new Exception(baseExceptionMessage + ".");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Attempts to deserialize the body of a HTTP response received as a <see cref="Stream"/> to an <see cref="HttpErrorResponse"/> instance.
-        /// </summary>
-        /// <param name="responseBody">The response body to deserialize.</param>
-        /// <returns>The deserialized response body, or null if the reponse could not be deserialized (e.g. was empty, or did not contain JSON).</returns>
-        protected HttpErrorResponse DeserializeResponseBodyToHttpErrorResponse(Stream responseBody)
-        {
-            using (var streamReader = new StreamReader(responseBody, defaultEncoding, false, 1024, true))
-            using (var jsonReader = new JsonTextReader(streamReader))
-            {
-                JObject bodyAsJson = null;
-                try
-                {
-                    bodyAsJson = (JObject)JToken.ReadFrom(jsonReader);
-
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-                try
-                {
-                    return errorResponseDeserializer.Deserialize(bodyAsJson);
-                }
-                catch (DeserializationException)
-                {
-                    return null;
-                }
-            }
         }
 
         #endregion

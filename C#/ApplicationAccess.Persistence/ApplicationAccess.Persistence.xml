@@ -1408,6 +1408,32 @@
             <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
+        <member name="T:ApplicationAccess.Persistence.ListAccessManagerTemporalBulkPersister`4">
+            <summary>
+            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> which writes AccessManager events to an internal list which can be retrieved later.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <remarks>This class is intended to facilitate testing.</remarks>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.ListAccessManagerTemporalBulkPersister`4.eventsList">
+            <summary>The list which holds all the written events.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.ListAccessManagerTemporalBulkPersister`4.Events">
+            <summary>
+            The events written by the persister.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.ListAccessManagerTemporalBulkPersister`4.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.ListAccessManagerTemporalBulkPersister class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.ListAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+            <inheritdoc/>
+        </member>
         <member name="T:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy">
             <summary>
             A buffer flush strategy that flushes/processes the buffered events at a regular interval.
@@ -1647,6 +1673,11 @@
         <member name="T:ApplicationAccess.Persistence.EventCached">
             <summary>
             Count metric which records an event cached.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventsCached">
+            <summary>
+            Amount metric which records the number of events cached.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.CachedEventsRead">

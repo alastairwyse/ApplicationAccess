@@ -32,6 +32,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         public Double ExceptionsPerSecondThreshold;
         public Int32 PreviousExceptionOccurenceTimeWindowSize;
         public Boolean IgnoreKnownAccessManagerExceptions;
+        public Int64 OperationLimit;
     }
 
     #pragma warning restore 0649

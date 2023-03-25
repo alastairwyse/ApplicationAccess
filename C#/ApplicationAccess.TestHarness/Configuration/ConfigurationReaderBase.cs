@@ -52,6 +52,17 @@ namespace ApplicationAccess.TestHarness.Configuration
             return returnValue;
         }
 
+        protected Int64 GetConfigurationValueAsInt64(String propertyName, IConfigurationSection configurationSection)
+        {
+            String valueAsString = configurationSection[propertyName];
+            Int64 returnValue = 0;
+            Boolean parseResult = Int64.TryParse(valueAsString, out returnValue);
+            if (parseResult == false)
+                throw new Exception($"{configurationTypeName} configuration property '{propertyName}' with value '{valueAsString}' could not be converted to an Int64.");
+
+            return returnValue;
+        }
+
         protected Double GetConfigurationValueAsDouble(String propertyName, IConfigurationSection configurationSection)
         {
             String valueAsString = configurationSection[propertyName];
