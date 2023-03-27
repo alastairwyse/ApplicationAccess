@@ -69,26 +69,28 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
             <param name="logger">The logger for general logging.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -96,13 +98,14 @@
             <param name="logger">The logger for general logging.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger,ApplicationAccess.Persistence.SqlServer.IStoredProcedureExecutionWrapper)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger,ApplicationAccess.Persistence.SqlServer.IStoredProcedureExecutionWrapper)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -171,26 +174,28 @@
             <typeparam name="TAccess">The type of levels of access in the IAccessManagerTemporalEventPersister and IAccessManagerTemporalPersistentReader implementations.</typeparam>
             <remarks>Note that <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4">IAccessManagerEventProcessor</see> methods implemented in this class should not be called from concurrent threads.  The class is designed to operate behind a class which manages mutual exclusion such as the <see cref="T:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4">AccessManagerTemporalEventPersisterBuffer</see> or <see cref="T:ApplicationAccess.Validation.ConcurrentAccessManagerEventValidator`4">ConcurrentAccessManagerEventValidator</see> classes.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
             <param name="logger">The logger for general logging.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -392,6 +397,9 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.retryInterval">
             <summary>The time in seconds between operation retries.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.operationTimeout">
+            <summary>The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.userStringifier">
             <summary>A string converter for users.</summary>
         </member>
@@ -421,26 +429,28 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.connectionRetryAction">
             <summary>The action to invoke if an action is retried due to a transient error.</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
             <param name="logger">The logger for general logging.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.#ctor(System.String,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>

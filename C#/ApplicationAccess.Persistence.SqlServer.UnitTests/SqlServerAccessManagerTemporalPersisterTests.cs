@@ -43,6 +43,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                 "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                 5, 
                 10, 
+                60, 
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
@@ -66,6 +67,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                     "  ",
                     5,
                     10,
+                60,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
@@ -88,6 +90,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                     "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                     -1,
                     10,
+                    60,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
@@ -110,6 +113,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                     "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                     60,
                     10,
+                    60,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
@@ -132,6 +136,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                     "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                     5,
                     -1,
+                    60,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
@@ -154,6 +159,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                     "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                     5,
                     121,
+                    60,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
@@ -164,6 +170,29 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'retryInterval' with value 121 cannot be greater than 120."));
             Assert.AreEqual("retryInterval", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_OperationTimeoutParameterGreaterThan0()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
+                (
+                    "Server=testServer; Database=testDB; User Id=userId; Password=password;",
+                    5,
+                    10,
+                    -1,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new NullLogger()
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'operationTimeout' with value -1 cannot be less than 0."));
+            Assert.AreEqual("operationTimeout", e.ParamName);
         }
 
         [Test]

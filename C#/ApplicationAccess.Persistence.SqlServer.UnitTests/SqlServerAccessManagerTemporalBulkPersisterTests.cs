@@ -79,6 +79,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
                 "Server=testServer; Database=testDB; User Id=userId; Password=password;",
                 5,
                 10,
+                60, 
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),

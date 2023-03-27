@@ -100,6 +100,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -110,13 +111,14 @@ namespace ApplicationAccess.Persistence.SqlServer
             string connectionString,
             Int32 retryCount,
             Int32 retryInterval,
+            Int32 operationTimeout,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
             IApplicationLogger logger
         )
-            : base(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
+            : base(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
         {
             stagingTable = new DataTable();
             idColumn = new DataColumn(idColumnName, typeof(Int64));
@@ -147,6 +149,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -158,6 +161,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             string connectionString,
             Int32 retryCount,
             Int32 retryInterval,
+            Int32 operationTimeout,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
@@ -165,7 +169,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             IApplicationLogger logger,
             IMetricLogger metricLogger
         )
-            : this(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
+            : this(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
         {
             base.metricLogger = metricLogger;
         }
@@ -176,6 +180,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -189,6 +194,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             string connectionString,
             Int32 retryCount,
             Int32 retryInterval,
+            Int32 operationTimeout,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
@@ -197,7 +203,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             IMetricLogger metricLogger, 
             IStoredProcedureExecutionWrapper storedProcedureExecutor
         )
-            : this(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger, metricLogger)
+            : this(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger, metricLogger)
         {
             this.storedProcedureExecutor = storedProcedureExecutor;
         }

@@ -86,7 +86,7 @@ namespace ApplicationAccess.TestHarness
             Int32 dataElementStorerCountPrintFrequency
         )
         {
-            if (queryToEventOperationRatio <= 0.0)
+            if (queryToEventOperationRatio < 0.0)
                 throw new ArgumentOutOfRangeException(nameof(queryToEventOperationRatio), $"Parameter '{nameof(queryToEventOperationRatio)}' must be greater than 0.");
             if (dataElementStorerCountPrintFrequency < 0)
                 throw new ArgumentOutOfRangeException(nameof(dataElementStorerCountPrintFrequency), $"Parameter '{nameof(dataElementStorerCountPrintFrequency)}' must be greater than 0.");

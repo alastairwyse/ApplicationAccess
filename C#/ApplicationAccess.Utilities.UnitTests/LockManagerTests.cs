@@ -715,5 +715,7 @@ namespace ApplicationAccess.Utilities.UnitTests
                 Assert.IsFalse(Monitor.IsEntered(n));
             }));
         }
+
+        // TODO: Add test for locks around cache population in method AcquireLocksAndInvokeAction()
     }
 }

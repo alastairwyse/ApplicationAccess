@@ -54,7 +54,7 @@ namespace ApplicationAccess.TestHarness
         /// <param name="previousInitiationTimeWindowSize">The number of previous operation initiation timestamps to keep, in order to calculate the number of operations triggered per second.</param>
         public DefaultOperationTriggerer(Double targetOperationsPerSecond, Int32 previousInitiationTimeWindowSize)
         {
-            if (targetOperationsPerSecond <= 0.0)
+            if (targetOperationsPerSecond < 0.0)
                 throw new ArgumentOutOfRangeException(nameof(targetOperationsPerSecond), $"Parameter '{nameof(targetOperationsPerSecond)}' with value {targetOperationsPerSecond} cannot be less than or equal to 0.");
             if (previousInitiationTimeWindowSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(previousInitiationTimeWindowSize), $"Parameter '{nameof(previousInitiationTimeWindowSize)}' with value {previousInitiationTimeWindowSize} cannot be less than 0.");

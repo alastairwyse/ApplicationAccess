@@ -143,23 +143,33 @@ namespace ApplicationAccess.Utilities
             }
             else
             {
-                // Traverse the dependency graph to get all the associated objects
-                var lockObjectsWithLockSequence = new List<LockObjectAndSequenceNumber>();
-                var addObjectToLockObjectsGraphTraverseAction = new Action<Object>((Object currentObject) => 
+                lock(lockObjectDependencyCache)
                 {
-                    var lockObjectAndSequenceNumber = new LockObjectAndSequenceNumber(currentObject, registeredObjectSequenceNumbers[currentObject]);
-                    lockObjectsWithLockSequence.Add(lockObjectAndSequenceNumber);
-                });
-                TraverseDependencyGraph(lockObject, lockObjectDependencyPattern, new HashSet<Object>(), addObjectToLockObjectsGraphTraverseAction);
-                // Sort the objects by sequence number
-                lockObjectsWithLockSequence.Sort();
-                lockObjects = new List<Object>();
-                foreach (LockObjectAndSequenceNumber currentLockObjectAndSequence in lockObjectsWithLockSequence)
-                {
-                    lockObjects.Add(currentLockObjectAndSequence.LockObject);
+                    if (lockObjectDependencyCache.ContainsKey(cacheKey) == false)
+                    {
+                        // Traverse the dependency graph to get all the associated objects
+                        var lockObjectsWithLockSequence = new List<LockObjectAndSequenceNumber>();
+                        var addObjectToLockObjectsGraphTraverseAction = new Action<Object>((Object currentObject) =>
+                        {
+                            var lockObjectAndSequenceNumber = new LockObjectAndSequenceNumber(currentObject, registeredObjectSequenceNumbers[currentObject]);
+                            lockObjectsWithLockSequence.Add(lockObjectAndSequenceNumber);
+                        });
+                        TraverseDependencyGraph(lockObject, lockObjectDependencyPattern, new HashSet<Object>(), addObjectToLockObjectsGraphTraverseAction);
+                        // Sort the objects by sequence number
+                        lockObjectsWithLockSequence.Sort();
+                        lockObjects = new List<Object>();
+                        foreach (LockObjectAndSequenceNumber currentLockObjectAndSequence in lockObjectsWithLockSequence)
+                        {
+                            lockObjects.Add(currentLockObjectAndSequence.LockObject);
+                        }
+                        // Add the lock objects to the cache
+                        lockObjectDependencyCache.Add(cacheKey, lockObjects);
+                    }
+                    else
+                    {
+                        lockObjects = lockObjectDependencyCache[cacheKey];
+                    }
                 }
-                // Add the lock objects to the cache
-                lockObjectDependencyCache.Add(cacheKey, lockObjects);
             }
 
             // Acquire locks and invoke the action

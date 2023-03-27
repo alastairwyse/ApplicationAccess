@@ -15,13 +15,16 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ApplicationAccess.Hosting.Models.Options;
-using ApplicationAccess.Persistence;
+using System.IO;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Persistence;
 using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
@@ -157,7 +160,26 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Completed disposing objects.");
 
             logger.LogInformation($"Writing generated events to storage...");
-            // TODO: Placeholder for serializing events in eventPersister
+            var serialIzerOptions = new JsonSerializerOptions
+            {
+                Converters =
+                {
+                    new TemporalEventBufferItemBaseConverter<String, String, String, String>
+                    (
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier()
+                    )
+                }
+            };
+            String serializedEventsFilePath = @"C:\Temp\" + DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss") + "ReaderWriter Generated Events.json";
+            using (var fileStream = new FileStream(serializedEventsFilePath, FileMode.CreateNew))
+            {
+                JsonSerializer.Serialize<List<TemporalEventBufferItemBase>>(fileStream, eventPersister.Events, serialIzerOptions);
+                fileStream.Flush();
+                fileStream.Close();
+            }
             logger.LogInformation($"Completed writing generated events to storage.");
 
             logger.LogInformation($"Completed stopping {nameof(ReaderWriterNodeHostedServiceWrapper)}.");

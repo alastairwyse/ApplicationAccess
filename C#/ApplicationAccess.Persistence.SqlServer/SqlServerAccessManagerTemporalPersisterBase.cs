@@ -45,6 +45,8 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected Int32 retryCount;
         /// <summary>The time in seconds between operation retries.</summary>
         protected Int32 retryInterval;
+        /// <summary>The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
+        protected Int32 operationTimeout;
         /// <summary>A string converter for users.</summary>
         protected IUniqueStringifier<TUser> userStringifier;
         /// <summary>A string converter for groups.</summary>
@@ -72,6 +74,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -82,6 +85,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             string connectionString,
             Int32 retryCount,
             Int32 retryInterval,
+            Int32 operationTimeout, 
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
@@ -99,10 +103,13 @@ namespace ApplicationAccess.Persistence.SqlServer
                 throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be less than 0.");
             if (retryInterval > 120)
                 throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be greater than 120.");
+            if (operationTimeout < 0)
+                throw new ArgumentOutOfRangeException(nameof(operationTimeout), $"Parameter '{nameof(operationTimeout)}' with value {operationTimeout} cannot be less than 0.");
 
             this.connectionString = connectionString;
             this.retryCount = retryCount;
             this.retryInterval = retryInterval;
+            this.operationTimeout = operationTimeout;
             this.userStringifier = userStringifier;
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
@@ -139,6 +146,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -150,13 +158,14 @@ namespace ApplicationAccess.Persistence.SqlServer
             string connectionString,
             Int32 retryCount,
             Int32 retryInterval,
+            Int32 operationTimeout,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
             IApplicationLogger logger,
             IMetricLogger metricLogger
-        ) : this(connectionString, retryCount, retryInterval, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
+        ) : this(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
         {
             this.metricLogger = metricLogger;
         }
@@ -530,7 +539,7 @@ namespace ApplicationAccess.Persistence.SqlServer
                     connection.RetryLogicProvider.Retrying += connectionRetryAction;
                     connection.Open();
                     command.Connection = connection;
-                    command.CommandTimeout = retryInterval * retryCount;
+                    command.CommandTimeout = operationTimeout;
                     command.ExecuteNonQuery();
                     connection.RetryLogicProvider.Retrying -= connectionRetryAction;
                 }
@@ -652,7 +661,7 @@ namespace ApplicationAccess.Persistence.SqlServer
                 connection.RetryLogicProvider.Retrying += connectionRetryAction;
                 connection.Open();
                 command.Connection = connection;
-                command.CommandTimeout = retryInterval * retryCount;
+                command.CommandTimeout = operationTimeout;
                 using (SqlDataReader dataReader = command.ExecuteReader())
                 {
                     while (dataReader.Read())
@@ -692,7 +701,7 @@ namespace ApplicationAccess.Persistence.SqlServer
                 connection.RetryLogicProvider.Retrying += connectionRetryAction;
                 connection.Open();
                 command.Connection = connection;
-                command.CommandTimeout = retryInterval * retryCount;
+                command.CommandTimeout = operationTimeout;
                 using (SqlDataReader dataReader = command.ExecuteReader())
                 {
                     while (dataReader.Read())
@@ -740,7 +749,7 @@ namespace ApplicationAccess.Persistence.SqlServer
                 connection.RetryLogicProvider.Retrying += connectionRetryAction;
                 connection.Open();
                 command.Connection = connection;
-                command.CommandTimeout = retryInterval * retryCount;
+                command.CommandTimeout = operationTimeout;
                 using (SqlDataReader dataReader = command.ExecuteReader())
                 {
                     while (dataReader.Read())
