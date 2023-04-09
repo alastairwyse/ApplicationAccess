@@ -27,6 +27,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         protected const String passwordPropertyName = "Password";
         protected const String retryCountPropertyName = "RetryCount";
         protected const String retryIntervalPropertyName = "RetryInterval";
+        protected const String operationTimeoutPropertyName = "OperationTimeout";
 
         public DatabaseConnectionConfigurationReader()
             : base("Database connection")
@@ -41,6 +42,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             ThrowExceptionIfPropertyNotFound(passwordPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(retryCountPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(retryIntervalPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(operationTimeoutPropertyName, configurationSection);
 
             var returnConfiguration = new DatabaseConnectionConfiguration();
             returnConfiguration.DataSource = configurationSection[dataSourcePropertyName];
@@ -49,6 +51,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             returnConfiguration.Password = configurationSection[passwordPropertyName];
             returnConfiguration.RetryCount = GetConfigurationValueAsInteger(retryCountPropertyName, configurationSection);
             returnConfiguration.RetryInterval = GetConfigurationValueAsInteger(retryIntervalPropertyName, configurationSection);
+            returnConfiguration.OperationTimeout = GetConfigurationValueAsInteger(operationTimeoutPropertyName, configurationSection);
 
             return returnConfiguration;
         }

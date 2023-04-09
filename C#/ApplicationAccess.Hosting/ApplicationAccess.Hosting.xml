@@ -200,11 +200,23 @@
         <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.readerNodeRefreshWorkerThread">
             <summary>Worker thread which implements the strategy to refresh the contents of reader node.</summary>
         </member>
-        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.refreshException">
-            <summary>Set with any exception which occurrs on the worker thread when refreshing the reader node.  Null if no exception has occurred.</summary>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.refreshExceptionDispatchInfo">
+            <summary>Set with any exception which occurrs on the worker thread when refreshing the reader node (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
         </member>
         <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.refreshLoopInterval">
             <summary>The time to wait (in milliseconds) between reader node refreshes.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.stopMethodCalled">
+            <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.workerThreadCompleteSignal">
+            <summary>Signal that is set after the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.flushLoopIterationCount">
+            <summary>The number of iterations of the worker thread to flush/process.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
         </member>
         <member name="E:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed">
             <inheritdoc/>
@@ -214,6 +226,15 @@
             Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy class.
             </summary>
             <param name="refreshLoopInterval">The time to wait (in milliseconds) between reader node refreshes.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.#ctor(System.Int32,System.Threading.ManualResetEvent,System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy class.
+            </summary>
+            <param name="refreshLoopInterval">The time to wait (in milliseconds) between reader node refreshes.</param>
+            <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
+            <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.NotifyQueryMethodCalled">
             <inheritdoc/>
@@ -245,6 +266,17 @@
             <summary>
             Checks whether property 'refreshException' has been set, and re-throws the exception in the case that it has.
             </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the LoopingWorkerThreadReaderNodeRefreshStrategy.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
         </member>
         <member name="T:ApplicationAccess.Hosting.CacheMiss">
             <summary>
@@ -304,6 +336,9 @@
         <member name="F:ApplicationAccess.Hosting.ReaderNode`4.accessManager">
             <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
         </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.dateTimeProvider">
+            <summary>The provider to use for the current date and time.</summary>
+        </member>
         <member name="F:ApplicationAccess.Hosting.ReaderNode`4.metricLogger">
             <summary>The logger for metrics.</summary>
         </member>
@@ -332,6 +367,17 @@
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
             <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="P:ApplicationAccess.Hosting.ReaderNode`4.Users">
             <inheritdoc/>

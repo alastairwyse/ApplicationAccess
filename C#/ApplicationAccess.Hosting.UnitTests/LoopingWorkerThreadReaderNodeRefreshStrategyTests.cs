@@ -25,12 +25,22 @@ namespace ApplicationAccess.Hosting.UnitTests
     /// </summary>
     public class LoopingWorkerThreadReaderNodeRefreshStrategyTests
     {
+        // Note - some tests in this class are not deterministic, and could fail under difference harware.  See note/disclaimer in class ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBaseTests.
+
+        private ManualResetEvent workerThreadCompleteSignal;
         private LoopingWorkerThreadReaderNodeRefreshStrategy testLoopingWorkerThreadReaderNodeRefreshStrategy;
 
         [SetUp]
         protected void SetUp()
         {
-            testLoopingWorkerThreadReaderNodeRefreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(250);
+            workerThreadCompleteSignal = new ManualResetEvent(false);
+            testLoopingWorkerThreadReaderNodeRefreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(250, workerThreadCompleteSignal, 3);
+        }
+
+        [TearDown]
+        protected void TearDown()
+        {
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.Dispose();
         }
 
         [Test]
@@ -59,10 +69,24 @@ namespace ApplicationAccess.Hosting.UnitTests
                 testLoopingWorkerThreadReaderNodeRefreshStrategy.NotifyQueryMethodCalled();
             });
 
+            workerThreadCompleteSignal.WaitOne();
             Assert.That(e.Message, Does.StartWith("Exception occurred on reader node refreshing worker thread at "));
             Assert.AreEqual(e.InnerException, mockException);
         }
+        
+        [Test]
+        public void Start()
+        {
+            Int32 refreshcount = 0;
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed += (Object sender, EventArgs e) => { refreshcount++; };
 
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.Start();
+
+            workerThreadCompleteSignal.WaitOne();
+            Assert.AreEqual(3, refreshcount);
+        }
+
+        
         [Test]
         public void Stop_ExceptionOccurredOnWorkerThread()
         {
@@ -70,15 +94,65 @@ namespace ApplicationAccess.Hosting.UnitTests
             testLoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed += (Object sender, EventArgs e) => { throw mockException; };
             testLoopingWorkerThreadReaderNodeRefreshStrategy.Start();
             // Wait for the worker thread loop iterval to elapse
-            Thread.Sleep(500);
+            Thread.Sleep(300);
 
             var e = Assert.Throws<ReaderNodeRefreshException>(delegate
             {
                 testLoopingWorkerThreadReaderNodeRefreshStrategy.Stop();
             });
 
+            workerThreadCompleteSignal.WaitOne();
             Assert.That(e.Message, Does.StartWith("Exception occurred on reader node refreshing worker thread at "));
             Assert.AreEqual(e.InnerException, mockException);
+        }
+        
+        [Test]
+        public void Stop_ExceptionOccursOnWorkerThreadPerformingFinalRefresh()
+        {
+            var mockException = new Exception("Worker thread refresh exception.");
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed += (Object sender, EventArgs e) => { throw mockException; };
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.Start();
+            // Wait a short time and then call stop
+            //  At the first call to CheckAndThrowRefreshException() in the Stop() method, the worked thread is still waiting... hence second call to CheckAndThrowRefreshException() in Stop() should rethrow the exception
+            Thread.Sleep(50);
+
+            var e = Assert.Throws<ReaderNodeRefreshException>(delegate
+            {
+                testLoopingWorkerThreadReaderNodeRefreshStrategy.Stop();
+            });
+
+            workerThreadCompleteSignal.WaitOne();
+            Assert.That(e.Message, Does.StartWith("Exception occurred on reader node refreshing worker thread at "));
+            Assert.AreEqual(e.InnerException, mockException);
+        }
+        
+        [Test]
+        public void Stop()
+        {
+            testLoopingWorkerThreadReaderNodeRefreshStrategy.Dispose();
+            workerThreadCompleteSignal = new ManualResetEvent(false);
+            testLoopingWorkerThreadReaderNodeRefreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(500, workerThreadCompleteSignal, 10);
+            Int32 refreshEventsRaised = 0;
+            using (var secondCallToRefreshSignal = new ManualResetEvent(false))
+            {
+                testLoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed += (Object sender, EventArgs e) => 
+                {
+                    if (refreshEventsRaised == 1)
+                    {
+                        secondCallToRefreshSignal.Set();
+                    }
+                    refreshEventsRaised++;
+                };
+
+                testLoopingWorkerThreadReaderNodeRefreshStrategy.Start();
+                secondCallToRefreshSignal.WaitOne();
+                // Wait a short time to try to ensure that Stop() is not called before the start of the next worker thread loop iteration (in which case the worker thread would stop prematurely and 'refreshEventsRaised' count would only be 2 not 3)
+                Thread.Sleep(200);
+                testLoopingWorkerThreadReaderNodeRefreshStrategy.Stop();
+                workerThreadCompleteSignal.WaitOne();
+
+                Assert.AreEqual(3, refreshEventsRaised);
+            }
         }
     }
 }

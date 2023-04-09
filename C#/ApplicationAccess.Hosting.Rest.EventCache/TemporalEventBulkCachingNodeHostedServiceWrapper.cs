@@ -142,7 +142,11 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         /// </summary>
         protected void InitializeCachingNodeConstructorParameters(MetricLoggingOptions metricLoggingOptions)
         {
-            const String sqlServerMetricLoggerCategoryName = "ApplicationAccessEventCachingNode";
+            String sqlServerMetricLoggerCategoryName = "ApplicationAccessEventCachingNode";
+            if (metricLoggingOptions.MetricCategorySuffix != "")
+            {
+                sqlServerMetricLoggerCategoryName = $"{sqlServerMetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
+            }
 
             if (metricLoggingOptions.MetricLoggingEnabled == true)
             {

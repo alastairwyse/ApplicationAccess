@@ -75,7 +75,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 .ValidateDataAnnotations().ValidateOnStart();
 
             // Validate secondary level coonfiguration items
-            ValidateSecondaryConfiguration(builder);
+            ValidateSecondaryConfiguration(builder, middlewareUtilities);
 
             // Register 'holder' classes for the interfaces that comprise IAccessManager
             //   See notes in remarks of class UserQueryProcessorHolder for an explanation
@@ -130,12 +130,12 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// Validates secondary level application configuration.
         /// </summary>
         /// <param name="builder">The builder for the application.</param>
+        /// <param name="middlewareUtilities">The <see cref="MiddlewareUtilities"/> instance used to perform the validation.</param>
         /// <remarks>The IConfigurationSection ValidateDataAnnotations() extension method does not recursively validate child sections of the section being validated, hence this is performed explicitly in this method for relevant IOptions pattern objects.</remarks>
-        protected static void ValidateSecondaryConfiguration(WebApplicationBuilder builder)
+        protected static void ValidateSecondaryConfiguration(WebApplicationBuilder builder, MiddlewareUtilities middlewareUtilities)
         {
             // TODO: May be able to move this to a common utility class
 
-            var middlewareUtilities = new MiddlewareUtilities();
             middlewareUtilities.ValidateMetricLoggingOptions(builder);
         }
     }

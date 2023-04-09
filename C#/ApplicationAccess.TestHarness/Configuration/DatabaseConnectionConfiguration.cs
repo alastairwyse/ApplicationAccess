@@ -31,6 +31,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         public String Password;
         public Int32 RetryCount;
         public Int32 RetryInterval;
+        public Int32 OperationTimeout;
     }
 
     #pragma warning restore 0649

@@ -34,7 +34,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     /// <summary>
     /// Wraps an instance of <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> and associated components and initializes them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
     /// </summary>
-    /// <remarks>StartAsync() calls constructs a <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
+    /// <remarks>StartAsync() constructs a <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
     public class ReaderWriterNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection
@@ -54,7 +54,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 
         /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the ReaderWriterNode.</summary>
         protected SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy eventBufferFlushStrategy;
-        /// <summary>Used to persist changes load data to/from the AccessManager.</summary>
+        /// <summary>Used to persist changes to and load data from the AccessManager.</summary>
         protected SqlServerAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
@@ -199,7 +199,11 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             ILoggerFactory loggerFactory
         )
         {
-            const String sqlServerMetricLoggerCategoryName = "ApplicationAccessReaderWriterNode";
+            String sqlServerMetricLoggerCategoryName = "ApplicationAccessReaderWriterNode";
+            if (metricLoggingOptions.MetricCategorySuffix != "")
+            {
+                sqlServerMetricLoggerCategoryName = $"{sqlServerMetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
+            }
 
             eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
             (

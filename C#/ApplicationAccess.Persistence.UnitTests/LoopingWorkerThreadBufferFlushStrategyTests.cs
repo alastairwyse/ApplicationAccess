@@ -16,7 +16,6 @@
 
 using System;
 using System.Threading;
-using ApplicationAccess.UnitTests;
 using ApplicationMetrics.MetricLoggers;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
@@ -99,25 +98,28 @@ namespace ApplicationAccess.Persistence.UnitTests
         [Test]
         public void Stop()
         {
-            var secondCallToFlushSignal = new ManualResetEvent(false);
-            testLoopingWorkerThreadBufferFlushStrategy.BufferFlushed -= flushHandler; flushHandler = (Object sender, EventArgs e) =>
+            using (var secondCallToFlushSignal = new ManualResetEvent(false))
             {
-                // On the second raising of the event, simulate adding a buffered event and set the 'secondCallToFlushSignal' call (main thread then immediately calls Stop() which simulates events being buffered after Stop() is called)
-                if (flushEventsRaised == 1)
+                testLoopingWorkerThreadBufferFlushStrategy.BufferFlushed -= flushHandler; 
+                flushHandler = (Object sender, EventArgs e) =>
                 {
-                    testLoopingWorkerThreadBufferFlushStrategy.UserEventBufferItemCount = 1;
-                    secondCallToFlushSignal.Set();
-                }
-                flushEventsRaised++;
-            };
-            testLoopingWorkerThreadBufferFlushStrategy.BufferFlushed += flushHandler;
+                    // On the second raising of the event, simulate adding a buffered event and set the 'secondCallToFlushSignal' call (main thread then immediately calls Stop() which simulates events being buffered after Stop() is called)
+                    if (flushEventsRaised == 1)
+                    {
+                        testLoopingWorkerThreadBufferFlushStrategy.UserEventBufferItemCount = 1;
+                        secondCallToFlushSignal.Set();
+                    }
+                    flushEventsRaised++;
+                };
+                testLoopingWorkerThreadBufferFlushStrategy.BufferFlushed += flushHandler;
 
-            testLoopingWorkerThreadBufferFlushStrategy.Start();
-            secondCallToFlushSignal.WaitOne();
-            testLoopingWorkerThreadBufferFlushStrategy.Stop();
-            workerThreadCompleteSignal.WaitOne();
+                testLoopingWorkerThreadBufferFlushStrategy.Start();
+                secondCallToFlushSignal.WaitOne();
+                testLoopingWorkerThreadBufferFlushStrategy.Stop();
+                workerThreadCompleteSignal.WaitOne();
 
-            Assert.AreEqual(3, flushEventsRaised);
+                Assert.AreEqual(3, flushEventsRaised);
+            }
         }
     }
 }

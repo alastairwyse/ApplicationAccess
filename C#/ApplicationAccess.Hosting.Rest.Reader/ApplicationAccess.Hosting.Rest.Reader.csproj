@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Authors>Alastair Wyse</Authors>
+    <Description>Classes which host an ApplicationAccess ReaderNode as a REST-based web API.</Description>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ApplicationLogging" Version="2.0.0" />
+    <PackageReference Include="ApplicationLogging.Adapters.MicrosoftLoggingExtensions" Version="1.0.1" />
+    <PackageReference Include="ApplicationMetrics" Version="5.1.0" />
+    <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="1.2.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Client\ApplicationAccess.Hosting.Rest.Client.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Utilities\ApplicationAccess.Hosting.Rest.Utilities.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting\ApplicationAccess.Hosting.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.csproj" />
+  </ItemGroup>
+
+</Project>

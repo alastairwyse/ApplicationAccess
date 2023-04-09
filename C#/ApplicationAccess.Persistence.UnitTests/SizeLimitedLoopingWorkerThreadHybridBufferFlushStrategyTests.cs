@@ -18,7 +18,6 @@ using System;
 using System.Globalization;
 using System.Threading;
 using ApplicationAccess.Utilities;
-using ApplicationAccess.UnitTests;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;

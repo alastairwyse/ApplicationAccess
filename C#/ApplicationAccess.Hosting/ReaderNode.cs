@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Threading;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Metrics;
+using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
 
@@ -42,6 +43,8 @@ namespace ApplicationAccess.Hosting
         protected IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader;
         /// <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
         protected MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> accessManager;
+        /// <summary>The provider to use for the current date and time.</summary>
+        protected IDateTimeProvider dateTimeProvider;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
         /// <summary>The id of the most recent event which changed the AccessManager.</summary>
@@ -62,6 +65,7 @@ namespace ApplicationAccess.Hosting
             this.refreshStrategy = refreshStrategy;
             this.eventCache = eventCache;
             this.persistentReader = persistentReader;
+            dateTimeProvider = new DefaultDateTimeProvider();
             metricLogger = new NullMetricLogger();
             accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
             // Subscribe to the refreshStrategy's 'ReaderNodeRefreshed' event
@@ -82,6 +86,21 @@ namespace ApplicationAccess.Hosting
         {
             this.metricLogger = metricLogger;
             accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
+        /// </summary>
+        /// <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+        /// <param name="eventCache">Cache for events which change the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted.</param>
+        /// <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
+        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, IMetricLogger metricLogger, IDateTimeProvider dateTimeProvider)
+            : this(refreshStrategy, eventCache, persistentReader, metricLogger)
+        {
+            this.dateTimeProvider = dateTimeProvider;
         }
 
         /// <inheritdoc/>
@@ -354,14 +373,17 @@ namespace ApplicationAccess.Hosting
             if (updateEvents != null)
             {
                 metricLogger.Add(new CachedEventsReceived(), updateEvents.Count);
-                var eventProcessor = new AccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>(accessManager);
-                foreach (TemporalEventBufferItemBase currentEvent in updateEvents)
+                if (updateEvents.Count > 0)
                 {
-                    eventProcessor.Process(currentEvent);
-                    TimeSpan processingDelay = DateTime.UtcNow - currentEvent.OccurredTime;
-                    metricLogger.Add(new EventProcessingDelay(), Convert.ToInt64(Math.Round(processingDelay.TotalMilliseconds)));
+                    var eventProcessor = new AccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>(accessManager);
+                    foreach (TemporalEventBufferItemBase currentEvent in updateEvents)
+                    {
+                        eventProcessor.Process(currentEvent);
+                        TimeSpan processingDelay = dateTimeProvider.UtcNow() - currentEvent.OccurredTime;
+                        metricLogger.Add(new EventProcessingDelay(), Convert.ToInt64(Math.Round(processingDelay.TotalMilliseconds)));
+                    }
+                    latestEventId = updateEvents[updateEvents.Count - 1].EventId;
                 }
-                latestEventId = updateEvents[updateEvents.Count - 1].EventId;
             }
             metricLogger.Increment(new RefreshOperationCompleted());
         }

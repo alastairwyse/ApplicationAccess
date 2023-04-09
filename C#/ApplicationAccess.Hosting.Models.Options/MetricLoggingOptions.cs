@@ -31,6 +31,8 @@ namespace ApplicationAccess.Hosting.Models.Options
         [Required(ErrorMessage = $"Configuration for '{nameof(MetricLoggingEnabled)}' is required.")]
         public Boolean MetricLoggingEnabled { get; set; }
 
+        public String MetricCategorySuffix { get; set; }
+
         [Required(ErrorMessage = $"Configuration for '{nameof(MetricBufferProcessing)}' is required.")]
         public MetricBufferProcessingOptions? MetricBufferProcessing { get; set; }
 
@@ -40,6 +42,7 @@ namespace ApplicationAccess.Hosting.Models.Options
         public MetricLoggingOptions()
         {
             MetricLoggingEnabled = false;
+            MetricCategorySuffix = "";
             MetricBufferProcessing = null;
             MetricsSqlServerConnection = null;
         }
