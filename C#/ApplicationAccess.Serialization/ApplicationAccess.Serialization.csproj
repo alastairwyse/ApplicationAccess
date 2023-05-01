@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Authors>Alastair Wyse</Authors>
     <Company>Alastair Wyse</Company>
     <Copyright>Copyright © Alastair Wyse 2021</Copyright>

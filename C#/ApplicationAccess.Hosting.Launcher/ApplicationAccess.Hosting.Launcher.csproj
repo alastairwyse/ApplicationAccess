@@ -5,6 +5,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Authors>Alastair Wyse</Authors>
     <Description>Command line utility to launch hosted ApplicationAccess components, e.g. when they are hosted inside a Docker container.</Description>
   </PropertyGroup>

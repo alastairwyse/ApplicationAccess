@@ -5,6 +5,7 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateProgramFile>false</GenerateProgramFile>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Authors>Alastair Wyse</Authors>
     <Company />
     <Description>Unit tests for classes in the ApplicationAccess.Hosting.Rest namespace.</Description>

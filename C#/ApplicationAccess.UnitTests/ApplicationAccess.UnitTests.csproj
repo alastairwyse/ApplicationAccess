@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <NoWin32Manifest>true</NoWin32Manifest>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Authors>Alastair Wyse</Authors>
     <Company></Company>
     <Description>Unit tests for classes in the ApplicationAccess namespace.</Description>

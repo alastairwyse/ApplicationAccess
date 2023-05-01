@@ -4,10 +4,12 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <GenerateProgramFile>false</GenerateProgramFile>
     <Authors>Alastair Wyse</Authors>
     <Company></Company>
     <Description>Integration tests for the ApplicationAccess.Hosting.Rest.ReaderWriter namespace... i.e. tests which instantiate the web host using the WebApplicationFactory class.</Description>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <ItemGroup>

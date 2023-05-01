@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Description>Provides metrics capture for classes in the ApplicationAccess.Serialization namespace.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
