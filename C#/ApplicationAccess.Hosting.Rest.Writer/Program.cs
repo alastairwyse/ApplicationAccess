@@ -58,7 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 middlewareUtilities.AddSwaggerGenerationForAssembly(swaggerGenOptions, typeof(Rest.Controllers.EntityEventProcessorControllerBase).Assembly);
             });
 
-            middlewareUtilities.SetupFileLogging(builder);
+            middlewareUtilities.SetupFileLogging(builder, "ApplicationAccessWriterNodeLog");
 
             // Validate and register top level configuration items
             builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()

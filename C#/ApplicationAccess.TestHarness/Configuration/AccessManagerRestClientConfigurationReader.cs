@@ -21,9 +21,11 @@ namespace ApplicationAccess.TestHarness.Configuration
 {
     class AccessManagerRestClientConfigurationReader : ConfigurationReaderBase
     {
-        protected const String accessManagerUrlPropertyName = "AccessManagerUrl";
+        protected const String accessManagerQueryUrlPropertyName = "AccessManagerQueryUrl";
+        protected const String accessManagerEventUrlPropertyName = "AccessManagerEventUrl";
         protected const String retryCountPropertyName = "RetryCount";
         protected const String retryIntervalPropertyName = "RetryInterval";
+        protected const String logIntervalMetricsPropertyName = "LogIntervalMetrics";
 
         public AccessManagerRestClientConfigurationReader()
             : base("Access manager rest client")
@@ -32,14 +34,18 @@ namespace ApplicationAccess.TestHarness.Configuration
 
         public AccessManagerRestClientConfiguration Read(IConfigurationSection configurationSection)
         {
-            ThrowExceptionIfPropertyNotFound(accessManagerUrlPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(accessManagerQueryUrlPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(accessManagerEventUrlPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(retryCountPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(retryIntervalPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(logIntervalMetricsPropertyName, configurationSection);
 
             var returnConfiguration = new AccessManagerRestClientConfiguration();
-            returnConfiguration.AccessManagerUrl = configurationSection[accessManagerUrlPropertyName];
+            returnConfiguration.AccessManagerQueryUrl = configurationSection[accessManagerQueryUrlPropertyName];
+            returnConfiguration.AccessManagerEventUrl = configurationSection[accessManagerEventUrlPropertyName];
             returnConfiguration.RetryCount = GetConfigurationValueAsInteger(retryCountPropertyName, configurationSection);
             returnConfiguration.RetryInterval = GetConfigurationValueAsInteger(retryIntervalPropertyName, configurationSection);
+            returnConfiguration.LogIntervalMetrics = GetConfigurationValueAsBoolean(logIntervalMetricsPropertyName, configurationSection);
 
             return returnConfiguration;
         }

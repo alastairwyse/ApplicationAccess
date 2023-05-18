@@ -155,7 +155,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             // Signal the looping trigger thread and wait for another iteration
             loopingTriggerThreadLoopCompleteSignal.Set();
             Thread.Sleep(500);
-            // 'lastFlushCompleteTime' should be the same as the previous loop iteration, and UtcNow() gives a time 100ms later than 'lastFlushCompleteTime' plus the 250ms loop interval, hence 'LastWaitInterval' should be -100
+            // 'lastFlushCompleteTime' should be the same as the previous loop iteration, and UtcNow() gives a time 100ms later than 'lastFlushCompleteTime' plus the 250ms loop interval, hence 'lastWaitInterval' should be -100
             Assert.AreEqual(-100, testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.LastWaitInterval);
             // Signal the looping trigger thread and wait for another iteration
             loopingTriggerThreadLoopCompleteSignal.Set();

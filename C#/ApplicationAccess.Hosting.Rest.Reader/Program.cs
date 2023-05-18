@@ -58,7 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 middlewareUtilities.AddSwaggerGenerationForAssembly(swaggerGenOptions, typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly);
             });
 
-            middlewareUtilities.SetupFileLogging(builder);
+            middlewareUtilities.SetupFileLogging(builder, "ApplicationAccessReaderNodeLog");
 
             // Validate and register top level configuration items
             builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()

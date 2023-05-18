@@ -110,11 +110,11 @@ namespace ApplicationAccess.Hosting.Rest
         }
 
         // TODO: REMOVE TEMPORARY DEBUGGING CODE
-        public void SetupFileLogging(WebApplicationBuilder builder)
+        public void SetupFileLogging(WebApplicationBuilder builder, String logFileNamePrefix)
         {
             var fileLoggingConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Warning()
-                .WriteTo.RollingFile(@"C:\Temp\ApplicationAccessReaderWriterNodeLog.txt");
+                .WriteTo.RollingFile(@$"C:\Temp\{logFileNamePrefix}.txt");
             ILogger fileLogger = fileLoggingConfiguration.CreateLogger();
             builder.Logging.AddSerilog(fileLogger);
         }

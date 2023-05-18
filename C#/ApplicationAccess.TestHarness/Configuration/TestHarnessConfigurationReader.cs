@@ -15,12 +15,14 @@
  */
 
 using System;
+using System.Net.Http.Headers;
 using Microsoft.Extensions.Configuration;
 
 namespace ApplicationAccess.TestHarness.Configuration
 {
     class TestHarnessConfigurationReader : ConfigurationReaderBase
     {
+        protected const String testProfilePropertyName = "TestProfile";
         protected const String loadExistingDataPropertyName = "LoadExistingData";
         protected const String threadCountPropertyName = "ThreadCount";
         protected const String targetOperationsPerSecondPropertyName = "TargetOperationsPerSecond";
@@ -37,6 +39,7 @@ namespace ApplicationAccess.TestHarness.Configuration
 
         public TestHarnessConfiguration Read(IConfigurationSection configurationSection)
         {
+            ThrowExceptionIfPropertyNotFound(testProfilePropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(loadExistingDataPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(threadCountPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(targetOperationsPerSecondPropertyName, configurationSection);
@@ -48,6 +51,7 @@ namespace ApplicationAccess.TestHarness.Configuration
 
             var returnConfiguration = new TestHarnessConfiguration();
 
+            returnConfiguration.TestProfile = configurationSection[testProfilePropertyName];
             returnConfiguration.LoadExistingData = GetConfigurationValueAsBoolean(loadExistingDataPropertyName, configurationSection);
             returnConfiguration.ThreadCount = GetConfigurationValueAsInteger(threadCountPropertyName, configurationSection);
             returnConfiguration.TargetOperationsPerSecond = GetConfigurationValueAsDouble(targetOperationsPerSecondPropertyName, configurationSection);

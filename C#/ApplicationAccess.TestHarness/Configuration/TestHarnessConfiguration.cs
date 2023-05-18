@@ -25,6 +25,7 @@ namespace ApplicationAccess.TestHarness.Configuration
     /// </summary>
     class TestHarnessConfiguration
     {
+        public String TestProfile;
         public Boolean LoadExistingData;
         public Int32 ThreadCount;
         public Double TargetOperationsPerSecond;

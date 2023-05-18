@@ -94,6 +94,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<UserAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UsersStored>(), Arg.Any<Int64>());
         }
@@ -111,6 +112,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UsersStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Users.Contains(testUser));
         }
 
@@ -129,6 +131,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UsersStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Users.Contains(testUser));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -156,6 +159,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result);
             mockMetricLogger.Received(1).Increment(Arg.Any<ContainsUserQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -210,6 +214,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<UserRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UsersStored>(), Arg.Any<Int64>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToGroupMappingsStored>(), Arg.Any<Int64>());
@@ -267,6 +272,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 5);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 3);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 5);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Users.Contains("user1"));
 
 
@@ -286,8 +292,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 0);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 0);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Users.Contains("user4"));
-
         }
 
         [Test]
@@ -342,6 +348,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 5);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 3);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 5);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Users.Contains("user1"));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -407,6 +414,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupsStored>(), Arg.Any<Int64>());
         }
@@ -424,6 +432,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Groups.Contains(testGroup));
         }
 
@@ -442,6 +451,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Groups.Contains(testGroup));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -469,6 +479,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result);
             mockMetricLogger.Received(1).Increment(Arg.Any<ContainsGroupQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -525,6 +536,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupsStored>(), Arg.Any<Int64>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToGroupMappingsStored>(), Arg.Any<Int64>());
@@ -585,6 +597,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 4);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 3);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 5);
+            Assert.AreEqual(8, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains("group2"));
 
 
@@ -601,6 +614,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 1);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 1);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 3);
+            Assert.AreEqual(8, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains("group3"));
 
 
@@ -621,6 +635,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 0);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 0);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
+            Assert.AreEqual(8, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains("group6"));
         }
 
@@ -678,6 +693,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 4);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 3);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 5);
+            Assert.AreEqual(8, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains("group2"));
             Assert.IsTrue(postProcessingActionInvoked);
 
@@ -696,6 +712,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 1);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 1);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 3);
+            Assert.AreEqual(8, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains("group3")); 
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -765,6 +782,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<UserToGroupMappingAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToGroupMappingAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToGroupMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToGroupMappingsStored>(), Arg.Any<Int64>());
         }
@@ -786,6 +804,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToGroupMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToGroupMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
         }
 
@@ -808,6 +827,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToGroupMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToGroupMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -842,6 +862,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetUserToGroupMappingsQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetUserToGroupMappingsQuery>());
 
 
@@ -855,6 +876,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 ;
             mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQuery>());
         }
 
@@ -878,6 +900,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetUserToGroupMappingsQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetUserToGroupMappingsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
 
 
             testMetricLoggingConcurrentAccessManager.AddGroup(testIndirectGroup);
@@ -892,6 +915,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -940,6 +964,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<UserToGroupMappingRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToGroupMappingRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToGroupMappingRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToGroupMappingsStored>(), Arg.Any<Int64>());
         }
@@ -962,6 +987,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToGroupMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToGroupMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
         }
 
@@ -985,6 +1011,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToGroupMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToGroupMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -1024,6 +1051,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupToGroupMappingAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToGroupMappingAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToGroupMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToGroupMappingsStored>(), Arg.Any<Int64>());
         }
@@ -1045,6 +1073,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToGroupMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToGroupMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
         }
 
@@ -1067,6 +1096,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToGroupMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToGroupMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -1101,6 +1131,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetGroupToGroupMappingsQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetGroupToGroupMappingsQuery>());
 
 
@@ -1114,6 +1145,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             ;
             mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsWithIndirectMappingsQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetGroupToGroupMappingsWithIndirectMappingsQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetGroupToGroupMappingsWithIndirectMappingsQuery>());
         }
 
@@ -1136,6 +1168,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupMappingsQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
 
 
             testMetricLoggingConcurrentAccessManager.AddGroup(testIndirectGroup);
@@ -1150,6 +1183,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsWithIndirectMappingsQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupMappingsWithIndirectMappingsQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsWithIndirectMappingsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -1198,6 +1232,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupToGroupMappingRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToGroupMappingRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToGroupMappingRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToGroupMappingsStored>(), Arg.Any<Int64>());
         }
@@ -1220,6 +1255,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToGroupMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToGroupMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
         }
 
@@ -1243,6 +1279,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToGroupMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToGroupMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -1280,6 +1317,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToApplicationComponentAndAccessLevelMappingAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), Arg.Any<Int64>());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToApplicationComponentAndAccessLevelMappingCount);
@@ -1300,6 +1338,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToApplicationComponentAndAccessLevelMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
@@ -1321,6 +1360,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToApplicationComponentAndAccessLevelMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.IsTrue(postProcessingActionInvoked);
@@ -1352,6 +1392,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Create)));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetUserToApplicationComponentAndAccessLevelMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -1384,6 +1425,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), Arg.Any<Int64>());
         }
@@ -1404,6 +1446,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
@@ -1426,6 +1469,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.IsTrue(postProcessingActionInvoked);
@@ -1463,6 +1507,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), Arg.Any<Int64>());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.GroupToApplicationComponentAndAccessLevelMappingCount);
@@ -1483,6 +1528,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
@@ -1504,6 +1550,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.IsTrue(postProcessingActionInvoked);
@@ -1535,6 +1582,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Create)));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToApplicationComponentAndAccessLevelMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -1567,6 +1615,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), Arg.Any<Int64>());
         }
@@ -1587,6 +1636,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
@@ -1609,6 +1659,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.IsTrue(postProcessingActionInvoked);
@@ -1645,6 +1696,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<EntityTypeAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<EntityTypeAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<EntityTypeAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), Arg.Any<Int64>());
         }
@@ -1662,6 +1714,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EntityTypeAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<EntityTypeAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains(testEntityType));
         }
 
@@ -1680,6 +1733,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EntityTypeAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<EntityTypeAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains(testEntityType));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -1707,6 +1761,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result);
             mockMetricLogger.Received(1).Increment(Arg.Any<ContainsEntityTypeQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -1756,6 +1811,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<EntityTypeRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<EntityTypeRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<EntityTypeRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntitiesStored>(), 2);
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), 2);
@@ -1804,6 +1860,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user1"));
@@ -1823,6 +1880,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 1);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user1"));
@@ -1852,6 +1910,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 0);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user5"));
@@ -1899,6 +1958,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user1"));
@@ -1920,6 +1980,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 1);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user1"));
@@ -1979,6 +2040,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<EntityAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<EntityAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<EntityAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntitiesStored>(), Arg.Any<Int64>());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.EntityCount);
@@ -2000,6 +2062,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EntityAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<EntityAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
         }
@@ -2022,6 +2085,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EntityAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<EntityAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
             Assert.IsTrue(postProcessingActionInvoked);
@@ -2055,6 +2119,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(testEntity));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2085,6 +2150,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result);
             mockMetricLogger.Received(1).Increment(Arg.Any<ContainsEntityQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2134,6 +2200,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<EntityRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<EntityRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<EntityRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntitiesStored>(), Arg.Any<Int64>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToEntityMappingsStored>(), Arg.Any<Int64>());
@@ -2181,6 +2248,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 3);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 4);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(6, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), Arg.Any<Int64>());
             Assert.AreEqual(3, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.AreEqual(4, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
@@ -2227,6 +2295,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 3);
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 4);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(6, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), Arg.Any<Int64>());
             Assert.AreEqual(3, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.AreEqual(4, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
@@ -2293,6 +2362,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<UserToEntityMappingAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToEntityMappingAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToEntityMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToEntityMappingsStored>(), Arg.Any<Int64>());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
@@ -2318,6 +2388,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToEntityMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
@@ -2344,6 +2415,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToEntityMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
@@ -2385,6 +2457,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(new Tuple<String, String>(testEntityType, testEntity)));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetUserToEntityMappingsForUserQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2421,6 +2494,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(testEntity));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetUserToEntityMappingsForUserAndEntityTypeQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2461,6 +2535,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<UserToEntityMappingRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToEntityMappingRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToEntityMappingRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToEntityMappingsStored>(), Arg.Any<Int64>());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
@@ -2487,6 +2562,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToEntityMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
@@ -2514,6 +2590,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToEntityMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
@@ -2561,6 +2638,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupToEntityMappingAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToEntityMappingAddTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToEntityMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToEntityMappingsStored>(), Arg.Any<Int64>());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCount);
@@ -2586,6 +2664,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToEntityMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
@@ -2612,6 +2691,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToEntityMappingAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
@@ -2653,6 +2733,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(new Tuple<String, String>(testEntityType, testEntity)));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToEntityMappingsForGroupQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2689,6 +2770,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(testEntity));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2729,6 +2811,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupToEntityMappingRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToEntityMappingRemoveTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToEntityMappingRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToEntityMappingsStored>(), Arg.Any<Int64>());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCount);
@@ -2755,6 +2838,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToEntityMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCount);
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
@@ -2782,6 +2866,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToEntityMappingRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCount);
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
@@ -2833,6 +2918,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToApplicationComponentQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToApplicationComponentQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToApplicationComponentQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2876,6 +2962,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToEntityQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<HasAccessToEntityQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<HasAccessToEntityQuery>());
         }
 
@@ -2902,6 +2989,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToEntityQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToEntityQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToEntityQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2939,6 +3027,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetApplicationComponentsAccessibleByUserQuery>());
         }
 
@@ -2964,6 +3053,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentsAccessibleByUserQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -3000,6 +3090,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetApplicationComponentsAccessibleByGroupQuery>());
         }
 
@@ -3025,6 +3116,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentsAccessibleByGroupQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -3054,6 +3146,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             String testEntityType = "ClientAccount";
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>()).Returns(testBeginId);
 
             var e = Assert.Throws<ArgumentException>(delegate
@@ -3063,6 +3156,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetEntitiesAccessibleByUserQuery>());
         }
 
@@ -3094,6 +3188,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByUserQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -3129,6 +3224,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             String testEntityType = "ClientAccount";
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>()).Returns(testBeginId);
 
             var e = Assert.Throws<ArgumentException>(delegate
@@ -3138,6 +3234,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetEntitiesAccessibleByUserQuery>());
         }
 
@@ -3169,6 +3266,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByUserQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -3214,6 +3312,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetEntitiesAccessibleByGroupQuery>());
         }
 
@@ -3245,6 +3344,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByGroupQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -3293,6 +3393,7 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GetEntitiesAccessibleByGroupQuery>());
         }
 
@@ -3324,6 +3425,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByGroupQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]

@@ -36,7 +36,7 @@ namespace ApplicationAccess.Hosting.Launcher
             //   SOME KIND OF 'MODE' type param to either emcrypt config, OR launch a component
             //     -mode encrypt -file C:\Temp\Somefile.jxon
             //     -mode launch -component ReaderWriter -port 5001 -config [base64]
-            //
+            //     'mode' options should be 'encodeConfiguration' and 'launch'
 
             Console.WriteLine("Hello, World!");
         }

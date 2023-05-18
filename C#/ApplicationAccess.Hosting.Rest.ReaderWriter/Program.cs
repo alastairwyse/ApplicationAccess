@@ -58,7 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 middlewareUtilities.AddSwaggerGenerationForAssembly(swaggerGenOptions, typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly);
             });
 
-            middlewareUtilities.SetupFileLogging(builder);
+            middlewareUtilities.SetupFileLogging(builder, "ApplicationAccessReaderWriterNodeLog");
 
             // Validate and register top level configuration items
             builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()
@@ -91,10 +91,10 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             // Register the hosted service wrapper
             if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
             {
-                //builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
+                builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
 
                 // TODO: REMOVE TEMPORARY DEBUGGING CODE
-                builder.Services.AddHostedService<TestReaderWriterNodeHostedServiceWrapper>();
+                //builder.Services.AddHostedService<TestReaderWriterNodeHostedServiceWrapper>();
             }
 
             WebApplication app = builder.Build();

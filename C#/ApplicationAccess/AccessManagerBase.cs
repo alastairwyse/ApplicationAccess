@@ -523,42 +523,13 @@ namespace ApplicationAccess
         /// <inheritdoc/>
         public virtual IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
-            if (userToGroupMap.ContainsLeafVertex(user) == false)
-                ThrowUserDoesntExistException(user, nameof(user));
-
-            Boolean containsUser = userToEntityMap.TryGetValue(user, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
-            if (containsUser == true)
-            {
-                foreach (KeyValuePair<String, ISet<String>> currentEntityType in entitiesAndTypesInMapping)
-                {
-                    foreach (String currentEntity in currentEntityType.Value)
-                    {
-                        yield return new Tuple<String, String>(currentEntityType.Key, currentEntity);
-                    }
-                }
-            }
+            return GetUserToEntityMappingsImplementation(user);
         }
 
         /// <inheritdoc/>
         public virtual IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
-            if (userToGroupMap.ContainsLeafVertex(user) == false)
-                ThrowUserDoesntExistException(user, nameof(user));
-            if (entities.ContainsKey(entityType) == false)
-                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
-
-            Boolean containsUser = userToEntityMap.TryGetValue(user, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
-            if (containsUser == true)
-            {
-                Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
-                if (containsEntity == true)
-                {
-                    foreach (String currentEntity in entitiesInMapping)
-                    {
-                        yield return currentEntity;
-                    }
-                }
-            }
+            return GetUserToEntityMappingsImplementation(user, entityType);
         }
 
         /// <inheritdoc/>
@@ -607,20 +578,7 @@ namespace ApplicationAccess
         /// <inheritdoc/>
         public virtual IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
-            if (userToGroupMap.ContainsNonLeafVertex(group) == false)
-                ThrowGroupDoesntExistException(group, nameof(group));
-
-            Boolean containsGroup = groupToEntityMap.TryGetValue(group, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
-            if (containsGroup == true)
-            {
-                foreach (KeyValuePair<String, ISet<String>> currentEntityType in entitiesAndTypesInMapping)
-                {
-                    foreach (String currentEntity in currentEntityType.Value)
-                    {
-                        yield return new Tuple<String, String>(currentEntityType.Key, currentEntity);
-                    }
-                }
-            }
+            return GetGroupToEntityMappingsImplementation(group);
         }
 
         /// <inheritdoc/>
@@ -814,7 +772,7 @@ namespace ApplicationAccess
             var returnEntities = new HashSet<Tuple<String, String>>();
             try
             {
-                IEnumerable<Tuple<String, String>> entitiesAndTypesInMapping = GetUserToEntityMappings(user);
+                IEnumerable<Tuple<String, String>> entitiesAndTypesInMapping = GetUserToEntityMappingsImplementation(user);
                 foreach (Tuple<String, String> currentEntity in entitiesAndTypesInMapping)
                 {
                     returnEntities.Add(currentEntity);
@@ -829,7 +787,7 @@ namespace ApplicationAccess
             {
                 try
                 {
-                    returnEntities.UnionWith(GetGroupToEntityMappings(currentGroup));
+                    returnEntities.UnionWith(GetGroupToEntityMappingsImplementation(currentGroup));
                 }
                 catch (ArgumentException)
                 {
@@ -854,7 +812,7 @@ namespace ApplicationAccess
             var returnEntities = new HashSet<String>();
             try
             {
-                IEnumerable<String> entitiesInMapping = GetUserToEntityMappings(user, entityType);
+                IEnumerable<String> entitiesInMapping = GetUserToEntityMappingsImplementation(user, entityType);
                 foreach (String currentEntity in entitiesInMapping)
                 {
                     returnEntities.Add(currentEntity);
@@ -895,7 +853,7 @@ namespace ApplicationAccess
             {
                 try
                 {
-                    returnEntities.UnionWith(GetGroupToEntityMappings(currentGroup));
+                    returnEntities.UnionWith(GetGroupToEntityMappingsImplementation(currentGroup));
                 }
                 catch (ArgumentException)
                 {
@@ -1000,6 +958,82 @@ namespace ApplicationAccess
                 }
             }
             entities[entityType].Remove(entity);
+        }
+
+        /// <summary>
+        /// Gets the entities that the specified user is mapped to.
+        /// </summary>
+        /// <param name="user">The user to retrieve the mappings for.</param>
+        /// <returns>A collection of Tuples containing the entity type and entity that the specified user is mapped to.</returns>
+        /// <remarks>Putting implementation of GetUserToEntityMappings() in this method allows methods like GetEntitiesAccessibleByUser() to call this method rather than the public virtual GetUserToEntityMappings().  Calling the public virtual version from GetUserToEntityMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        protected IEnumerable<Tuple<String, String>> GetUserToEntityMappingsImplementation(TUser user)
+        {
+            if (userToGroupMap.ContainsLeafVertex(user) == false)
+                ThrowUserDoesntExistException(user, nameof(user));
+
+            Boolean containsUser = userToEntityMap.TryGetValue(user, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+            if (containsUser == true)
+            {
+                foreach (KeyValuePair<String, ISet<String>> currentEntityType in entitiesAndTypesInMapping)
+                {
+                    foreach (String currentEntity in currentEntityType.Value)
+                    {
+                        yield return new Tuple<String, String>(currentEntityType.Key, currentEntity);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the entities that the specified group is mapped to.
+        /// </summary>
+        /// <param name="group">The group to retrieve the mappings for.</param>
+        /// <returns>A collection of Tuples containing the entity type and entity that the specified group is mapped to.</returns>
+        /// <remarks>Putting implementation of GetUserToEntityMappings() in this method allows methods like GetEntitiesAccessibleByUser() to call this method rather than the public virtual GetUserToEntityMappings().  Calling the public virtual version from GetUserToEntityMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        protected IEnumerable<Tuple<String, String>> GetGroupToEntityMappingsImplementation(TGroup group)
+        {
+            if (userToGroupMap.ContainsNonLeafVertex(group) == false)
+                ThrowGroupDoesntExistException(group, nameof(group));
+
+            Boolean containsGroup = groupToEntityMap.TryGetValue(group, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+            if (containsGroup == true)
+            {
+                foreach (KeyValuePair<String, ISet<String>> currentEntityType in entitiesAndTypesInMapping)
+                {
+                    foreach (String currentEntity in currentEntityType.Value)
+                    {
+                        yield return new Tuple<String, String>(currentEntityType.Key, currentEntity);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the entities of a given type that the specified user is mapped to.
+        /// </summary>
+        /// <param name="user">The user to retrieve the mappings for.</param>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <returns>A collection of entities that the specified user is mapped to.</returns>
+        /// <remarks>Putting implementation of GetUserToEntityMappings() in this method allows methods like GetEntitiesAccessibleByUser() to call this method rather than the public virtual GetUserToEntityMappings().  Calling the public virtual version from GetUserToEntityMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        protected IEnumerable<String> GetUserToEntityMappingsImplementation(TUser user, String entityType)
+        {
+            if (userToGroupMap.ContainsLeafVertex(user) == false)
+                ThrowUserDoesntExistException(user, nameof(user));
+            if (entities.ContainsKey(entityType) == false)
+                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
+
+            Boolean containsUser = userToEntityMap.TryGetValue(user, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
+            if (containsUser == true)
+            {
+                Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
+                if (containsEntity == true)
+                {
+                    foreach (String currentEntity in entitiesInMapping)
+                    {
+                        yield return currentEntity;
+                    }
+                }
+            }
         }
 
         #pragma warning disable 1591

@@ -24,6 +24,8 @@ namespace ApplicationAccess.TestHarness
     /// </summary>
     public class MetricLoggerFilter: IMetricLogger
     {
+        // TODO: Replace instances of this class with MetricLoggerTypeFilter once it's added to ApplicationMetrics
+
         /// <summary>The <see cref="IMetricLogger"/> which is wrapped by the filter.</summary>
         protected IMetricLogger wrappedMetricLogger;
         /// <summary>Whether or not to log instances of <see cref="CountMetric">CountMetrics</see>.</summary>

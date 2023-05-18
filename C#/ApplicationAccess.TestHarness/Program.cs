@@ -25,7 +25,6 @@ using Microsoft.Extensions.Configuration;
 using ApplicationAccess.TestHarness.Configuration;
 using ApplicationAccess.Hosting;
 using ApplicationAccess.Hosting.Rest.Client;
-using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.SqlServer;
 using ApplicationAccess.Utilities;
@@ -35,6 +34,7 @@ using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 using log4net;
 using log4net.Config;
+using ApplicationAccess.Metrics;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -47,8 +47,10 @@ namespace ApplicationAccess.TestHarness
         protected static String accessManagerRestClientConfigurationFileProperty = "AccessManagerRestClientConfiguration";
         protected static String operationGeneratorConfigurationFileProperty = "OperationGeneratorConfiguration";
         protected static String testHarnessConfigurationFileProperty = "TestHarnessConfiguration";
-        
+
+        protected static HashSet<String> validTestProfiles;
         protected static ManualResetEvent stopNotifySignal;
+        protected static volatile Boolean stopped;
 
         static void Main(string[] args)
         {
@@ -66,15 +68,37 @@ namespace ApplicationAccess.TestHarness
             {
                 throw new Exception($"Failed to load configuration from file '{args[0]}'.", e);
             }
+            validTestProfiles = new HashSet<String>()
+            {
+                "LocalReaderWriterNode",
+                "RemoteRestAccessManager"
+            };
+            stopped = false;
 
-            //RunWithLocalReaderWriterNode(configurationRoot);
-            RunWithRemoteRestAccessManager(configurationRoot);
+            TestHarnessConfiguration testHarnessConfiguration = new TestHarnessConfigurationReader().Read(configurationRoot.GetSection(testHarnessConfigurationFileProperty));
+            if (validTestProfiles.Contains(testHarnessConfiguration.TestProfile) == false)
+                throw new Exception($"TestHarness configuration contains invalid '{nameof(testHarnessConfiguration.TestProfile)}' value '{testHarnessConfiguration.TestProfile}'.");
+            if (testHarnessConfiguration.TestProfile == "LocalReaderWriterNode")
+            {
+                RunWithLocalReaderWriterNode(configurationRoot);
+            }
+            else if (testHarnessConfiguration.TestProfile == "RemoteRestAccessManager")
+            {
+                RunWithRemoteRestAccessManager(configurationRoot);
+            }
+            else
+            {
+                throw new Exception($"TestHarness configuration contains unhandled '{nameof(testHarnessConfiguration.TestProfile)}' value '{testHarnessConfiguration.TestProfile}'.");
+            }
         }
 
         protected static void StopThreadTask()
         {
             Console.ReadLine();
-            stopNotifySignal.Set();
+            if (stopped == false)
+            {
+                stopNotifySignal.Set();
+            }
         }
 
         /// <summary>
@@ -219,21 +243,22 @@ namespace ApplicationAccess.TestHarness
                                 {
                                     var dataElementStorerLoader = new DataElementStorerLoader<String, String, TestApplicationComponent, TestAccessLevel>();
                                     dataElementStorerLoader.Load(persister, dataElementStorer, false);
-                                    testAccessManager.Load(true);
+                                    testAccessManager.Load(false);
                                 }
 
                                 // Setup TestHarness array parameters
                                 Double targetOperationsPerSecond = testHarnessConfiguration.TargetOperationsPerSecond;
                                 Int32 previousInitiationTimeWindowSize = testHarnessConfiguration.PreviousOperationInitiationTimeWindowSize;
-                                var testAccessManagers = new List<IAccessManager<String, String, TestApplicationComponent, TestAccessLevel>>();
+                                var testAccessManagerQueryProcessors = new List<IAccessManagerQueryProcessor<String, String, TestApplicationComponent, TestAccessLevel>>();
+                                var testAccessManagerEventProcessors = new List<IAccessManagerEventProcessor<String, String, TestApplicationComponent, TestAccessLevel>>();
                                 var operationGenerators = new List<IOperationGenerator>();
                                 var parameterGenerators = new List<IOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>>();
-                                var operationTriggerers = new List<IOperationTriggerer>();
                                 var exceptionLoggers = new List<IApplicationLogger>();
                                 for (Int32 i = 0; i < workerThreadCount; i++)
                                 {
                                     // Set the reader/writer node as the test access manager on each thread
-                                    testAccessManagers.Add(testAccessManager);
+                                    testAccessManagerQueryProcessors.Add(testAccessManager);
+                                    testAccessManagerEventProcessors.Add(testAccessManager);
 
                                     var operationGenerator = new DefaultOperationGenerator<String, String, TestApplicationComponent, TestAccessLevel>
                                     (
@@ -258,10 +283,6 @@ namespace ApplicationAccess.TestHarness
                                         operationGeneratorConfiguration.ContainsMethodInvalidParameterGenerationFrequency
                                     );
                                     parameterGenerators.Add(parameterGenerator);
-
-                                    var operationTriggerer = new DefaultOperationTriggerer(targetOperationsPerSecond, previousInitiationTimeWindowSize);
-                                    operationTriggerers.Add(operationTriggerer);
-
                                     exceptionLoggers.Add(testHarnessExceptionLogger);
                                 }
 
@@ -273,11 +294,13 @@ namespace ApplicationAccess.TestHarness
                                 (
                                     workerThreadCount,
                                     dataElementStorer,
-                                    testAccessManagers,
+                                    testAccessManagerQueryProcessors,
+                                    testAccessManagerEventProcessors, 
                                     operationGenerators,
                                     parameterGenerators,
-                                    operationTriggerers,
                                     exceptionLoggers,
+                                    stopNotifySignal, 
+                                    targetOperationsPerSecond, 
                                     exceptionsPerSecondThreshold,
                                     previousExceptionOccurenceTimeWindowSize,
                                     operationLimit, 
@@ -286,22 +309,17 @@ namespace ApplicationAccess.TestHarness
                                 {
                                     metricLogger.Start();
                                     accessManagerEventBufferFlushStrategyAndActions.StartAction.Invoke();
-                                    foreach (IOperationTriggerer currentOperationTriggerer in operationTriggerers)
-                                    {
-                                        currentOperationTriggerer.Start();
-                                    }
-
                                     try
                                     {
                                         var stopSignalThread = new Thread(StopThreadTask);
                                         stopSignalThread.Start();
                                         testHarness.Start();
                                         stopNotifySignal.WaitOne();
+                                        stopped = true;
                                         testHarness.Stop();
                                     }
                                     finally
                                     {
-                                        // Don't need to call operationTriggerer.Stop(), as it's called from the TestHarness.Stop() method
                                         Console.WriteLine("Stopping 'persisterBufferFlushStrategy'...");
                                         accessManagerEventBufferFlushStrategyAndActions.StopAction.Invoke();
                                         Console.WriteLine("Stopping 'metricLogger'...");
@@ -310,11 +328,6 @@ namespace ApplicationAccess.TestHarness
                                         stopNotifySignal.Dispose();
                                         Console.WriteLine("Flushing log4net logs...");
                                         LogManager.Flush(10000);
-                                        foreach (IOperationTriggerer currentOperationTriggerer in operationTriggerers)
-                                        {
-                                            currentOperationTriggerer.Stop();
-                                            currentOperationTriggerer.Dispose();
-                                        }
                                     }
                                 }
                             }
@@ -446,11 +459,12 @@ namespace ApplicationAccess.TestHarness
                 Int32 previousInitiationTimeWindowSize = testHarnessConfiguration.PreviousOperationInitiationTimeWindowSize;
                 var metricsBufferFlushStrategies = new List<BufferFlushStrategyFactoryResult<IBufferProcessingStrategy>>();
                 var metricsLoggers = new List<SqlServerMetricLogger>();
-                var testAccessManagerClients = new List<AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>>();
-                var testAccessManagers = new List<IAccessManager<String, String, TestApplicationComponent, TestAccessLevel>>();
+                var testAccessManagerQueryClients = new List<AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>>();
+                var testAccessManagerEventClients = new List<AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>>();
+                var testAccessManagerQueryProcessors = new List<IAccessManagerQueryProcessor<String, String, TestApplicationComponent, TestAccessLevel>>();
+                var testAccessManagerEventProcessors = new List<IAccessManagerEventProcessor<String, String, TestApplicationComponent, TestAccessLevel>>();
                 var operationGenerators = new List<IOperationGenerator>();
                 var parameterGenerators = new List<IOperationParameterGenerator<String, String, TestApplicationComponent, TestAccessLevel>>();
-                var operationTriggerers = new List<IOperationTriggerer>();
                 var exceptionLoggers = new List<IApplicationLogger>();
                 for (Int32 i = 0; i < workerThreadCount; i++)
                 {
@@ -463,10 +477,10 @@ namespace ApplicationAccess.TestHarness
                     ));
                     // Create a filter for the metric logger so that it only logs interval metrics
                     var filteredMetricLogger = new MetricLoggerFilter(metricsLoggers.Last(), false, false, false, true);
-                    // Setup an AccessManager client for the current worker thread
-                    var client = new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
+                    // Setup AccessManager query clients for the current worker thread
+                    var queryClient = new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
                     (
-                        new Uri(accessManagerRestClientConfiguration.AccessManagerUrl),
+                        new Uri(accessManagerRestClientConfiguration.AccessManagerQueryUrl),
                         httpClient, 
                         new StringUniqueStringifier(),
                         new StringUniqueStringifier(),
@@ -480,22 +494,54 @@ namespace ApplicationAccess.TestHarness
                     );
                     // Need to add the client to two lists here as we need a list of IAccessManager to pass to the TestHarness, and Lists are not covariant
                     //   But we also need a list of AccessManagerClient so we can call dispose on them (IAccessManager doesn't implement IDiposable)
-                    testAccessManagerClients.Add(client);
-
-                    // TODO: Add some config around here rather than hard coding
-                    /*
-
-                    // Setup a decorator metric logger around the client
-                    var metricLoggingClient = new AccessManagerMetricLogger<String, String, TestApplicationComponent, TestAccessLevel>
+                    testAccessManagerQueryClients.Add(queryClient);
+                    if (accessManagerRestClientConfiguration.LogIntervalMetrics == true)
+                    {
+                        // Setup a decorator metric logger around the client
+                        var metricLoggingQueryClient = new AccessManagerMetricLogger<String, String, TestApplicationComponent, TestAccessLevel>
+                        (
+                            queryClient,
+                            filteredMetricLogger
+                        );
+                        // This is the list of IAccessManager which gets passed to the TestHarness
+                        testAccessManagerQueryProcessors.Add(metricLoggingQueryClient);
+                    }
+                    else
+                    {
+                        testAccessManagerQueryProcessors.Add(queryClient);
+                    }
+                    // Setup AccessManager event clients for the current worker thread
+                    var eventClient = new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
                     (
-                        client,
-                        filteredMetricLogger
+                        new Uri(accessManagerRestClientConfiguration.AccessManagerEventUrl),
+                        httpClient,
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier(),
+                        new EnumUniqueStringifier<TestApplicationComponent>(),
+                        new EnumUniqueStringifier<TestAccessLevel>(),
+                        accessManagerRestClientConfiguration.RetryCount,
+                        accessManagerRestClientConfiguration.RetryInterval,
+                        restClientLogger,
+                        // We pass the 'unfiltered' metric logger here, as it's only used for logging metrics when retries are required
+                        metricsLoggers.Last()
                     );
-                    // This is the list of IAccessManager which gets passed to the TestHarness
-                    testAccessManagers.Add(metricLoggingClient);
-
-                    */
-                    testAccessManagers.Add(client);
+                    // Need to add the client to two lists here as we need a list of IAccessManager to pass to the TestHarness, and Lists are not covariant
+                    //   But we also need a list of AccessManagerClient so we can call dispose on them (IAccessManager doesn't implement IDiposable)
+                    if (accessManagerRestClientConfiguration.LogIntervalMetrics == true)
+                    {
+                        // Setup a decorator metric logger around the client
+                        var metricLoggingEventClient = new AccessManagerMetricLogger<String, String, TestApplicationComponent, TestAccessLevel>
+                        (
+                            eventClient,
+                            filteredMetricLogger
+                        );
+                        // This is the list of IAccessManager which gets passed to the TestHarness
+                        testAccessManagerEventProcessors.Add(metricLoggingEventClient);
+                    }
+                    else
+                    {
+                        testAccessManagerEventProcessors.Add(eventClient);
+                    }
 
                     var operationGenerator = new DefaultOperationGenerator<String, String, TestApplicationComponent, TestAccessLevel>
                     (
@@ -520,10 +566,6 @@ namespace ApplicationAccess.TestHarness
                         operationGeneratorConfiguration.ContainsMethodInvalidParameterGenerationFrequency
                     );
                     parameterGenerators.Add(parameterGenerator);
-
-                    var operationTriggerer = new DefaultOperationTriggerer(targetOperationsPerSecond, previousInitiationTimeWindowSize);
-                    operationTriggerers.Add(operationTriggerer);
-
                     exceptionLoggers.Add(testHarnessExceptionLogger);
                 }
 
@@ -535,11 +577,13 @@ namespace ApplicationAccess.TestHarness
                 (
                     workerThreadCount,
                     dataElementStorer,
-                    testAccessManagers, 
+                    testAccessManagerQueryProcessors, 
+                    testAccessManagerEventProcessors, 
                     operationGenerators,
                     parameterGenerators,
-                    operationTriggerers,
                     exceptionLoggers,
+                    stopNotifySignal,
+                    targetOperationsPerSecond, 
                     exceptionsPerSecondThreshold,
                     previousExceptionOccurenceTimeWindowSize,
                     operationLimit,
@@ -550,24 +594,23 @@ namespace ApplicationAccess.TestHarness
                     {
                         currentmetricLogger.Start();
                     }
-
-                    foreach (IOperationTriggerer currentOperationTriggerer in operationTriggerers)
-                    {
-                        currentOperationTriggerer.Start();
-                    }
-
                     try
                     {
                         var stopSignalThread = new Thread(StopThreadTask);
                         stopSignalThread.Start();
                         testHarness.Start();
                         stopNotifySignal.WaitOne();
+                        stopped = true;
                         testHarness.Stop();
                     }
                     finally
                     {
                         Console.WriteLine("Disposing AccessManager clients...");
-                        foreach (AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel> currentClient in testAccessManagerClients)
+                        foreach (AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel> currentClient in testAccessManagerQueryClients)
+                        {
+                            currentClient.Dispose();
+                        }
+                        foreach (AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel> currentClient in testAccessManagerEventClients)
                         {
                             currentClient.Dispose();
                         }
@@ -587,11 +630,6 @@ namespace ApplicationAccess.TestHarness
                         Console.WriteLine("Flushing log4net logs...");
                         LogManager.Flush(10000);
                         Console.WriteLine("Stopping and disposing 'operationTriggerers'...");
-                        foreach (IOperationTriggerer currentOperationTriggerer in operationTriggerers)
-                        {
-                            currentOperationTriggerer.Stop();
-                            currentOperationTriggerer.Dispose();
-                        }
                     }
                 }
             }

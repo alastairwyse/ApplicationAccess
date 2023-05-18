@@ -212,6 +212,31 @@
             <param name="userToEntityMappingPostRemovalAction">An action which is invoked after removing a user to entity mapping.  Accepts 3 parameters: the user in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
             <param name="groupToEntityMappingPostRemovalAction">An action which is invoked after removing a group to entity mapping.  Accepts 3 parameters: the group in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
         </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToEntityMappingsImplementation(`0)">
+            <summary>
+            Gets the entities that the specified user is mapped to.
+            </summary>
+            <param name="user">The user to retrieve the mappings for.</param>
+            <returns>A collection of Tuples containing the entity type and entity that the specified user is mapped to.</returns>
+            <remarks>Putting implementation of GetUserToEntityMappings() in this method allows methods like GetEntitiesAccessibleByUser() to call this method rather than the public virtual GetUserToEntityMappings().  Calling the public virtual version from GetUserToEntityMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToEntityMappingsImplementation(`1)">
+            <summary>
+            Gets the entities that the specified group is mapped to.
+            </summary>
+            <param name="group">The group to retrieve the mappings for.</param>
+            <returns>A collection of Tuples containing the entity type and entity that the specified group is mapped to.</returns>
+            <remarks>Putting implementation of GetUserToEntityMappings() in this method allows methods like GetEntitiesAccessibleByUser() to call this method rather than the public virtual GetUserToEntityMappings().  Calling the public virtual version from GetUserToEntityMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToEntityMappingsImplementation(`0,System.String)">
+            <summary>
+            Gets the entities of a given type that the specified user is mapped to.
+            </summary>
+            <param name="user">The user to retrieve the mappings for.</param>
+            <param name="entityType">The entity type to retrieve the mappings for.</param>
+            <returns>A collection of entities that the specified user is mapped to.</returns>
+            <remarks>Putting implementation of GetUserToEntityMappings() in this method allows methods like GetEntitiesAccessibleByUser() to call this method rather than the public virtual GetUserToEntityMappings().  Calling the public virtual version from GetUserToEntityMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        </member>
         <member name="T:ApplicationAccess.AccessManagerBase`4.ApplicationComponentAndAccessLevel">
             <summary>
             Container class which holds an application component and a level of access of that component.

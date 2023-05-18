@@ -25,9 +25,11 @@ namespace ApplicationAccess.TestHarness.Configuration
     /// </summary>
     class AccessManagerRestClientConfiguration
     {
-        public String AccessManagerUrl;
+        public String AccessManagerQueryUrl;
+        public String AccessManagerEventUrl;
         public Int32 RetryCount;
         public Int32 RetryInterval;
+        public Boolean LogIntervalMetrics;
     }
 
     #pragma warning restore 0649
