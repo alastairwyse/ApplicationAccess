@@ -25,9 +25,5 @@ namespace ApplicationAccess.Hosting.Models.Options
     public class AccessManagerSqlServerConnectionOptions : SqlServerConnectionOptions
     {
         public const String AccessManagerSqlServerConnectionOptionsName = "AccessManagerSqlServerConnection";
-
-        // TODO: When application metrics also supports a timeout, push this to the base SqlServerConnectionOptions class
-        [Range(0, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 OperationTimeout { get; set; }
     }
 }

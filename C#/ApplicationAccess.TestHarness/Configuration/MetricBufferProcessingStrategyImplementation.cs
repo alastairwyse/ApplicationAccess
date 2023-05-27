@@ -25,6 +25,7 @@ namespace ApplicationAccess.TestHarness.Configuration
     enum MetricBufferProcessingStrategyImplementation
     {
         SizeLimitedBufferProcessor,
-        LoopingWorkerThreadBufferProcessor
+        LoopingWorkerThreadBufferProcessor,
+        SizeLimitedLoopingWorkerThreadHybridBufferProcessor
     }
 }

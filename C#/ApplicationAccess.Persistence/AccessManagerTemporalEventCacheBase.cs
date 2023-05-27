@@ -42,7 +42,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>The provider to use for random Guids.</summary>
         protected Utilities.IGuidProvider guidProvider;
         /// <summary>The provider to use for the current date and time.</summary>
-        protected IDateTimeProvider dateTimeProvider;
+        protected Utilities.IDateTimeProvider dateTimeProvider;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase class.
@@ -80,7 +80,7 @@ namespace ApplicationAccess.Persistence
         /// <param name="guidProvider">The provider to use for random Guids.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public AccessManagerTemporalEventCacheBase(Int32 cachedEventCount, IMetricLogger metricLogger, Utilities.IGuidProvider guidProvider, IDateTimeProvider dateTimeProvider)
+        public AccessManagerTemporalEventCacheBase(Int32 cachedEventCount, IMetricLogger metricLogger, Utilities.IGuidProvider guidProvider, Utilities.IDateTimeProvider dateTimeProvider)
             : this(cachedEventCount, metricLogger)
         {
             this.guidProvider = guidProvider;

@@ -251,6 +251,9 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     case MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor:
                         metricLoggerBufferProcessingStrategy = new LoopingWorkerThreadBufferProcessor(metricBufferProcessingOptions.DequeueOperationLoopInterval);
                         break;
+                    case MetricBufferProcessingStrategyImplementation.SizeLimitedLoopingWorkerThreadHybridBufferProcessor:
+                        metricLoggerBufferProcessingStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit, metricBufferProcessingOptions.DequeueOperationLoopInterval);
+                        break;
                     default:
                         throw new Exception($"Encountered unhandled {nameof(MetricBufferProcessingStrategyImplementation)} '{metricBufferProcessingOptions.BufferProcessingStrategy}' while attempting to create {nameof(ReaderWriterNode<String, String, String, String>)} constructor parameters.");
                 }
@@ -274,7 +277,9 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     metricsConnectionString,
                     metricsSqlServerConnectionOptions.RetryCount,
                     metricsSqlServerConnectionOptions.RetryInterval,
-                    metricLoggerBufferProcessingStrategy,
+                    metricsSqlServerConnectionOptions.OperationTimeout, 
+                    metricLoggerBufferProcessingStrategy, 
+                    IntervalMetricBaseTimeUnit.Nanosecond, 
                     true,
                     metricLoggerLogger
                 );

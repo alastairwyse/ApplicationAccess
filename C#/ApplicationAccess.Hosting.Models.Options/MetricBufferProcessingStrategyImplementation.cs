@@ -22,6 +22,7 @@ namespace ApplicationAccess.Hosting.Models.Options
     public enum MetricBufferProcessingStrategyImplementation
     {
         SizeLimitedBufferProcessor,
-        LoopingWorkerThreadBufferProcessor
+        LoopingWorkerThreadBufferProcessor,
+        SizeLimitedLoopingWorkerThreadHybridBufferProcessor
     }
 }

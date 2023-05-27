@@ -162,6 +162,7 @@ namespace ApplicationAccess.TestHarness
             String sqlServerMetricsConnectionString = metricsConnectionStringBuilder.ConnectionString;
             Int32 sqlServerRetryCount = metricsDatabaseConnectionConfiguration.RetryCount;
             Int32 sqlServerRetryInterval = metricsDatabaseConnectionConfiguration.RetryInterval;
+            Int32 sqlServerOperationTimeout = metricsDatabaseConnectionConfiguration.OperationTimeout;
             Int32 metricLoggerBufferSizeLimit = metricsBufferConfiguration.BufferSizeLimit;
 
             // Setup the SQL Server persister
@@ -172,7 +173,7 @@ namespace ApplicationAccess.TestHarness
             try
             {
                 IBufferProcessingStrategy metricLoggerBufferProcessingStrategy = metricLoggerBufferProcessingStrategyAndActions.BufferFlushStrategy;
-                using (var metricLogger = new SqlServerMetricLogger(metricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, metricLoggerBufferProcessingStrategy, false, metricLoggerLogger))
+                using (var metricLogger = new SqlServerMetricLogger(metricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, sqlServerOperationTimeout, metricLoggerBufferProcessingStrategy, IntervalMetricBaseTimeUnit.Nanosecond, false, metricLoggerLogger))
                 {
                     var accessManagerEventBufferFlushStrategyAndActions = accessManagerEventBufferFlushStrategyFactory.MakeFlushStrategy(persisterBufferFlushStrategyConfiguration, metricLogger);
                     try
@@ -406,6 +407,7 @@ namespace ApplicationAccess.TestHarness
             String sqlServerMetricsConnectionString = metricsConnectionStringBuilder.ConnectionString;
             Int32 sqlServerRetryCount = metricsDatabaseConnectionConfiguration.RetryCount;
             Int32 sqlServerRetryInterval = metricsDatabaseConnectionConfiguration.RetryInterval;
+            Int32 sqlServerOperationTimeout = metricsDatabaseConnectionConfiguration.OperationTimeout;
             Int32 metricLoggerBufferSizeLimit = metricsBufferConfiguration.BufferSizeLimit;
 
             String sqlServerConnectionString = metricsConnectionStringBuilder.ConnectionString;
@@ -473,7 +475,7 @@ namespace ApplicationAccess.TestHarness
                     // Setup a metric logger for the current worker thread
                     metricsLoggers.Add(new SqlServerMetricLogger
                     (
-                        clientMetricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, metricsBufferFlushStrategies.Last().BufferFlushStrategy, false, metricLoggerLogger
+                        clientMetricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, sqlServerOperationTimeout, metricsBufferFlushStrategies.Last().BufferFlushStrategy, IntervalMetricBaseTimeUnit.Nanosecond, false, metricLoggerLogger
                     ));
                     // Create a filter for the metric logger so that it only logs interval metrics
                     var filteredMetricLogger = new MetricLoggerFilter(metricsLoggers.Last(), false, false, false, true);

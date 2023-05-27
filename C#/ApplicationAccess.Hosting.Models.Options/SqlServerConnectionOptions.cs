@@ -46,6 +46,10 @@ namespace ApplicationAccess.Hosting.Models.Options
         [Range(0, 120, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
         public Int32 RetryInterval { get; set; }
 
+        [Required(ErrorMessage = $"Configuration for '{nameof(OperationTimeout)}' is required.")]
+        [Range(0, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
+        public Int32 OperationTimeout { get; set; }
+
         public SqlServerConnectionOptions()
         {
             DataSource = "";
@@ -54,6 +58,7 @@ namespace ApplicationAccess.Hosting.Models.Options
             Password = "";
             RetryCount = -1;
             RetryInterval = -1;
+            OperationTimeout = -1;
         }
 
         #pragma warning restore 0649

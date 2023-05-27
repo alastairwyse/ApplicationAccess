@@ -40,7 +40,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>The provider to use for random Guids.</summary>
         protected Utilities.IGuidProvider guidProvider;
         /// <summary>The provider to use for the current date and time.</summary>
-        protected IDateTimeProvider dateTimeProvider;
+        protected Utilities.IDateTimeProvider dateTimeProvider;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
         /// <summary>The delegate which handles a <see cref="IAccessManagerEventBufferFlushStrategy.BufferFlushed">BufferFlushed</see> event.</summary>
@@ -109,7 +109,7 @@ namespace ApplicationAccess.Persistence
             bufferFlushedEventHandler = (Object sender, EventArgs e) => { Flush(); };
             bufferFlushStrategy.BufferFlushed += bufferFlushedEventHandler;
             guidProvider = new Utilities.DefaultGuidProvider();
-            dateTimeProvider = new StopwatchDateTimeProvider();
+            dateTimeProvider = new Utilities.StopwatchDateTimeProvider();
             metricLogger = new NullMetricLogger();
             disposed = false;
             lastEventSequenceNumber = -1;
@@ -169,7 +169,7 @@ namespace ApplicationAccess.Persistence
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
             IMetricLogger metricLogger, 
             Utilities.IGuidProvider guidProvider,
-            IDateTimeProvider dateTimeProvider
+            Utilities.IDateTimeProvider dateTimeProvider
         ) : this(eventValidator, bufferFlushStrategy, metricLogger)
         {
             this.guidProvider = guidProvider;

@@ -53,6 +53,16 @@ namespace ApplicationAccess.TestHarness.Configuration
                         StopAction = () => { },
                         DisposeAction = () => { sizeLimitedBufferProcessor.Dispose(); },
                     };
+                case MetricBufferProcessingStrategyImplementation.SizeLimitedLoopingWorkerThreadHybridBufferProcessor:
+                    var sizeLimitedLoopingWorkerThreadHybridBufferProcessor = new SizeLimitedLoopingWorkerThreadHybridBufferProcessor(config.BufferSizeLimit, config.DequeueOperationLoopInterval);
+                    return new BufferFlushStrategyFactoryResult<IBufferProcessingStrategy>()
+                    {
+                        BufferFlushStrategy = sizeLimitedLoopingWorkerThreadHybridBufferProcessor,
+                        // Start() and Stop() are called by the MetricLoggerBuffer implementation wrapping the flush strategy
+                        StartAction = () => { },
+                        StopAction = () => { },
+                        DisposeAction = () => { sizeLimitedLoopingWorkerThreadHybridBufferProcessor.Dispose(); },
+                    };
                 default:
                     throw new Exception($"Encountered unhandled {typeof(MetricBufferProcessingStrategyImplementation).Name} '{config.BufferImplementation}'.");
             }

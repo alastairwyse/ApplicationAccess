@@ -44,7 +44,7 @@ namespace ApplicationAccess.Hosting
         /// <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
         protected MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> accessManager;
         /// <summary>The provider to use for the current date and time.</summary>
-        protected IDateTimeProvider dateTimeProvider;
+        protected Utilities.IDateTimeProvider dateTimeProvider;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
         /// <summary>The id of the most recent event which changed the AccessManager.</summary>
@@ -97,7 +97,7 @@ namespace ApplicationAccess.Hosting
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, IMetricLogger metricLogger, IDateTimeProvider dateTimeProvider)
+        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, IMetricLogger metricLogger, Utilities.IDateTimeProvider dateTimeProvider)
             : this(refreshStrategy, eventCache, persistentReader, metricLogger)
         {
             this.dateTimeProvider = dateTimeProvider;
