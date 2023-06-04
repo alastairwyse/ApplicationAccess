@@ -89,7 +89,7 @@ namespace ApplicationAccess.Hosting.Rest
                         context.Response.ContentType = MediaTypeNames.Application.Json;
                         context.Response.StatusCode = (Int32)exceptionToHttpStatusCodeConverter.Convert(exception);
                         HttpErrorResponse httpErrorResponse = null;
-                        if (context.Response.StatusCode == StatusCodes.Status500InternalServerError && errorHandlingOptions.OverrideInternalServerErrors == true)
+                        if (context.Response.StatusCode == StatusCodes.Status500InternalServerError && errorHandlingOptions.OverrideInternalServerErrors.Value == true)
                         {
                             httpErrorResponse = new HttpErrorResponse("InternalServerError", errorHandlingOptions.InternalServerErrorMessageOverride);
                         }

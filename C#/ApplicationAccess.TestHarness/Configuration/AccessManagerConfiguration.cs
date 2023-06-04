@@ -16,13 +16,17 @@
 
 using System;
 
-namespace ApplicationAccess.Hosting.Models.Options
+namespace ApplicationAccess.TestHarness.Configuration
 {
+    #pragma warning disable 0649
+
     /// <summary>
-    /// Container class storing options for connecting to the Microsoft SQL Server database which is used to persist access manager events, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
+    /// Model/container class holding access manager configuration.
     /// </summary>
-    public class AccessManagerSqlServerConnectionOptions : SqlServerConnectionOptions
+    class AccessManagerConfiguration
     {
-        public const String AccessManagerSqlServerConnectionOptionsName = "AccessManagerSqlServerConnection";
+        public Boolean StoreBidirectionalMappings;
     }
+
+    #pragma warning restore 0649
 }

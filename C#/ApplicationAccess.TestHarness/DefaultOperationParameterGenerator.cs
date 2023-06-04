@@ -24,7 +24,7 @@ namespace ApplicationAccess.TestHarness
     public class DefaultOperationParameterGenerator<TUser, TGroup, TComponent, TAccess> : IOperationParameterGenerator<TUser, TGroup, TComponent, TAccess>
     {
         protected Random randomGenerator;
-        protected DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
+        protected IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
         protected INewUserGenerator<TUser> newUserGenerator;
         protected INewGroupGenerator<TGroup> newGroupGenerator;
         protected INewApplicationComponentGenerator<TComponent> newApplicationComponentGenerator;
@@ -36,7 +36,7 @@ namespace ApplicationAccess.TestHarness
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.TestHarness.DefaultOperationParameterGenerator class.
         /// </summary>
-        /// <param name="dataElementStorer"></param>
+        /// <param name="dataElementStorer">The data elements stored in the AccessManager instance under test.</param>
         /// <param name="newUserGenerator">Generator for new users.</param>
         /// <param name="newGroupGenerator">Generator for new groups.</param>
         /// <param name="newApplicationComponentGenerator">Generator for new application components.</param>
@@ -46,7 +46,7 @@ namespace ApplicationAccess.TestHarness
         /// <param name="containsMethodInvalidParameterGenerationFrequency">The frequency that a 'contains' operation (e.g. 'ContainsUser') will generate an invalid parameter (i.e. one which would return a false result).  The number specified represents in '1 in X' chance that an an invalid parameter will be generated, e.g. a value of 10 means that an invalid parameter would be generated on average once for each 10 calls to the method.  A value of 1 means  an invalid parameter will alwayd be generated.  A value of 0 means an invalid parameter will never be generated.</param>
         public DefaultOperationParameterGenerator
         (
-            DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
+            IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
             INewUserGenerator<TUser> newUserGenerator,
             INewGroupGenerator<TGroup> newGroupGenerator,
             INewApplicationComponentGenerator<TComponent> newApplicationComponentGenerator,

@@ -33,8 +33,10 @@ namespace ApplicationAccess
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.AccessManager class.
         /// </summary>
-        public AccessManager()
-            : base(new StandardCollectionFactory(), new DirectedGraph<TUser, TGroup>())
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        public AccessManager(Boolean storeBidirectionalMappings)
+            : base(new StandardCollectionFactory(), new DirectedGraph<TUser, TGroup>(storeBidirectionalMappings), storeBidirectionalMappings)
         {
         }
     }

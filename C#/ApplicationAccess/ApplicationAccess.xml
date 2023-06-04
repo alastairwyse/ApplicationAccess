@@ -14,10 +14,12 @@
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
             <remarks>Note that all generic type parameters must implement relevant methods to allow storing in a <see cref="T:System.Collections.Generic.HashSet`1"/> (at minimum <see cref="T:System.IEquatable`1"/> and <see cref="M:System.Object.GetHashCode">GetHashcode()</see>).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</remarks>
         </member>
-        <member name="M:ApplicationAccess.AccessManager`4.#ctor">
+        <member name="M:ApplicationAccess.AccessManager`4.#ctor(System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.AccessManager class.
             </summary>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
         <member name="T:ApplicationAccess.AccessManagerBase`4">
             <summary>
@@ -50,6 +52,15 @@
         <member name="F:ApplicationAccess.AccessManagerBase`4.groupToEntityMap">
             <summary>A dictionary which stores group to entity mappings.  The value stores another dictionary whose key contains the entity type and whose value contains the name of all entities of the specified type which are mapped to the group.</summary>
         </member>
+        <member name="F:ApplicationAccess.AccessManagerBase`4.storeBidirectionalMappings">
+            <summary>Whether to store bidirectional mappings between elements.</summary>
+        </member>
+        <member name="F:ApplicationAccess.AccessManagerBase`4.userToEntityReverseMap">
+            <summary>The reverse of the mappings in member 'userToEntityMap'.</summary>
+        </member>
+        <member name="F:ApplicationAccess.AccessManagerBase`4.groupToEntityReverseMap">
+            <summary>The reverse of the mappings in member 'groupToEntityMap'.</summary>
+        </member>
         <member name="P:ApplicationAccess.AccessManagerBase`4.Users">
             <inheritdoc/>
         </member>
@@ -59,12 +70,14 @@
         <member name="P:ApplicationAccess.AccessManagerBase`4.EntityTypes">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.AccessManagerBase`4.#ctor(ApplicationAccess.ICollectionFactory,ApplicationAccess.DirectedGraphBase{`0,`1})">
+        <member name="M:ApplicationAccess.AccessManagerBase`4.#ctor(ApplicationAccess.ICollectionFactory,ApplicationAccess.DirectedGraphBase{`0,`1},System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.AccessManagerBase class.
             </summary>
             <param name="collectionFactory">>Creates instances of collection classes.</param>
             <param name="userToGroupMap">The user to group map the access manager should use internally.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.Clear">
             <summary>
@@ -295,22 +308,27 @@
         <member name="F:ApplicationAccess.ConcurrentAccessManager`4.groupToGroupMapLock">
             <summary>Lock object for the group to group map of the base class directed graph member.</summary>
         </member>
-        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.#ctor">
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.#ctor(System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.ConcurrentAccessManager class.
             </summary>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.#ctor(ApplicationAccess.ConcurrentDirectedGraph{`0,`1})">
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.#ctor(ApplicationAccess.ConcurrentDirectedGraph{`0,`1},System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.ConcurrentAccessManager class.
             </summary>
             <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.#ctor(ApplicationAccess.ICollectionFactory)">
+        <member name="M:ApplicationAccess.ConcurrentAccessManager`4.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.ConcurrentAccessManager class.
             </summary>
             <param name="collectionFactory">A mock collection factory.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="M:ApplicationAccess.ConcurrentAccessManager`4.Clear">
@@ -777,23 +795,30 @@
         <member name="F:ApplicationAccess.ConcurrentDirectedGraph`2.nonLeafToNonLeafEdgesLock">
             <summary>Lock object for the non-leaf to non-leaf map.</summary>
         </member>
-        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.#ctor">
-            <summary>
-            Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
-            </summary>
-        </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.#ctor(System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
             </summary>
-            <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
-            <remarks>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set true.</remarks>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings for edges in the graph are stored in both directions.  This avoids slow scanning of dictionaries which store the edge mappings in certain operations (like RemoveLeafToNonLeafEdge()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean)">
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.#ctor(System.Boolean,System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
+            </summary>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
+            <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
+            <remarks>
+            <para>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set true.</para>
+            <para>If parameter 'storeBidirectionalMappings' is set to True, mappings for edges in the graph are stored in both directions.  This avoids slow scanning of dictionaries which store the edge mappings in certain operations (like RemoveLeafToNonLeafEdge()), at the cost of addition storage and hence memory usage.</para>
+            </remarks>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean,System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
             </summary>
             <param name="collectionFactory">A mock collection factory.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
             <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
@@ -977,10 +1002,12 @@
             <typeparam name="TLeaf">The type of leaf vertices.</typeparam>
             <typeparam name="TNonLeaf">The type of non-leaf vertices.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.DirectedGraph`2.#ctor">
+        <member name="M:ApplicationAccess.DirectedGraph`2.#ctor(System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.DirectedGraph class.
             </summary>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings for edges in the graph are stored in both directions.  This avoids slow scanning of dictionaries which store the edge mappings in certain operations (like RemoveLeafToNonLeafEdge()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
         <member name="T:ApplicationAccess.DirectedGraphBase`2">
             <summary>
@@ -1004,6 +1031,15 @@
         <member name="F:ApplicationAccess.DirectedGraphBase`2.nonLeafToNonLeafEdges">
             <summary>The edges which join non-leaf and non-left vertices within the graph.</summary>
         </member>
+        <member name="F:ApplicationAccess.DirectedGraphBase`2.storeBidirectionalMappings">
+            <summary>Whether to store bidirectional mappings for edges within the graph.</summary>
+        </member>
+        <member name="F:ApplicationAccess.DirectedGraphBase`2.leafToNonLeafReverseEdges">
+            <summary>The reverse of the edges in member 'leafToNonLeafEdges'.</summary>
+        </member>
+        <member name="F:ApplicationAccess.DirectedGraphBase`2.nonLeafToNonLeafReverseEdges">
+            <summary>The reverse of the edges in member 'nonLeafToNonLeafEdges'.</summary>
+        </member>
         <member name="P:ApplicationAccess.DirectedGraphBase`2.LeafVertices">
             <summary>
             Returns a collection of all leaf vertices in the graph.
@@ -1014,11 +1050,13 @@
             Returns a collection of all non-leaf vertices in the graph.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.DirectedGraphBase`2.#ctor(ApplicationAccess.ICollectionFactory)">
+        <member name="M:ApplicationAccess.DirectedGraphBase`2.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.DirectedGraphBase class.
             </summary>
             <param name="collectionFactory">Creates instances of collection classes.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings for edges in the graph are stored in both directions.  This avoids slow scanning of dictionaries which store the edge mappings in certain operations (like RemoveLeafToNonLeafEdge()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
         <member name="M:ApplicationAccess.DirectedGraphBase`2.Clear">
             <summary>

@@ -61,6 +61,9 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             middlewareUtilities.SetupFileLogging(builder, "ApplicationAccessWriterNodeLog");
 
             // Validate and register top level configuration items
+            builder.Services.AddOptions<AccessManagerOptions>()
+                .Bind(builder.Configuration.GetSection(AccessManagerOptions.AccessManagerOptionsName))
+                .ValidateDataAnnotations().ValidateOnStart();
             builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()
                 .Bind(builder.Configuration.GetSection(AccessManagerSqlServerConnectionOptions.AccessManagerSqlServerConnectionOptionsName))
                 .ValidateDataAnnotations().ValidateOnStart();
@@ -105,7 +108,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             app.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName).Bind(errorHandlingOptions);
             var exceptionToHttpStatusCodeConverter = new ExceptionToHttpStatusCodeConverter();
             ExceptionToHttpErrorResponseConverter exceptionToHttpErrorResponseConverter = null;
-            if (errorHandlingOptions.IncludeInnerExceptions == true)
+            if (errorHandlingOptions.IncludeInnerExceptions.Value == true)
             {
                 exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter();
             }

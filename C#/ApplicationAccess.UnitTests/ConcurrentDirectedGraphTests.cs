@@ -39,7 +39,7 @@ namespace ApplicationAccess.UnitTests
             mockDictionary = Substitute.For<IDictionary<String, ISet<String>>>();
             mockSet = Substitute.For<ISet<String>>();
             mockCollectionFactory = new MockCollectionFactory<String, String, ISet<String>>(mockDictionary, mockSet);
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, true);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, true);
         }
 
         [Test]
@@ -51,7 +51,7 @@ namespace ApplicationAccess.UnitTests
             //   Was suprised that this happens in one of the constructor overloads of List<T> (https://www.dotnetframework.org/default.aspx/Net/Net/3@5@50727@3053/DEVDIV/depot/DevDiv/releases/whidbey/netfxsp/ndp/clr/src/BCL/System/Collections/Generic/List@cs/2/List@cs)
             //   Hence including this test and other similar to ensure an 'uncastable' IEnumerable<T> is returned
 
-            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>();
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>(false);
             String testPerson = "Per1";
             testConcurrentDirectedGraph2.AddLeafVertex(testPerson);
 
@@ -64,7 +64,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void NonLeafVertices()
         {
-            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>();
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>(false);
             String testPerson = "Per1";
             testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson);
 
@@ -96,7 +96,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddLeafVertex_AcquireLockFalseLocksNotSet()
         {
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
             String testPerson = "Per1";
 
             mockSet.Contains(testPerson).Returns<Boolean>(false);
@@ -135,7 +135,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveLeafVertex_AcquireLockFalseLocksNotSet()
         {
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
             String testPerson = "Per1";
 
             mockSet.Contains(testPerson).Returns<Boolean>(true);
@@ -174,7 +174,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddNonLeafVertex_AcquireLockFalseLocksNotSet()
         {
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
             String testPerson = "Per1";
 
             mockSet.Contains(testPerson).Returns<Boolean>(false);
@@ -213,7 +213,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveNonLeafVertex_AcquireLockFalseLocksNotSet()
         {
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
             String testPerson = "Per1";
 
             mockSet.Contains(testPerson).Returns<Boolean>(true);
@@ -256,7 +256,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddLeafToNonLeafEdge_AcquireLockFalseLocksNotSet()
         {
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
             String testPerson1 = "Per1";
             String testGroup1 = "Grp2";
 
@@ -280,7 +280,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetLeafEdges()
         {
-            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>();
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>(false);
             String testPerson1 = "Per1";
             String testPerson2 = "Per2";
             testConcurrentDirectedGraph2.AddLeafVertex(testPerson1);
@@ -319,7 +319,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveLeafToNonLeafEdge_AcquireLockFalseLocksNotSet()
         {
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
             String testPerson1 = "Per1";
             String testGroup1 = "Grp2";
 
@@ -366,7 +366,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddNonLeafToNonLeafEdge_AcquireLockFalseLocksNotSet()
         {
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
             String testGroup1 = "Grp1";
             String testGroup2 = "Grp2";
 
@@ -390,7 +390,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetNonLeafEdges()
         {
-            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>();
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>(false);
             String testPerson1 = "Per1";
             String testPerson2 = "Per2";
             testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson1);
@@ -429,7 +429,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveNonLeafToNonLeafEdge_AcquireLockFalseLocksNotSet()
         {
-            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false);
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
             String testGroup1 = "Grp1";
             String testGroup2 = "Grp2";
 
@@ -483,8 +483,8 @@ namespace ApplicationAccess.UnitTests
                 get { return nonLeafToNonLeafEdgesLock; }
             }
 
-            public ConcurrentDirectedGraphWithProtectedMembers(ICollectionFactory collectionFactory, Boolean acquireLocks)
-                : base(collectionFactory, acquireLocks)
+            public ConcurrentDirectedGraphWithProtectedMembers(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings, Boolean acquireLocks)
+                : base(collectionFactory, storeBidirectionalMappings, acquireLocks)
             {
             }
         }

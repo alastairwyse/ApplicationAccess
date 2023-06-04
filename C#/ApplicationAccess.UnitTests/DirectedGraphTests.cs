@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ApplicationAccess;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
@@ -29,11 +28,22 @@ namespace ApplicationAccess.UnitTests
     public class DirectedGraphTests
     {
         private DirectedGraph<String, String> testDirectedGraph;
+        private DirectedGraphWithProtectedMembers<String, String> testBidirectionalDirectedGraph;
 
         [SetUp]
         protected void SetUp()
         {
-            testDirectedGraph = new DirectedGraph<String, String>();
+            testDirectedGraph = new DirectedGraph<String, String>(false);
+            testBidirectionalDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>(true);
+        }
+
+        [Test]
+        public void Constructor()
+        {
+            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>(false);
+
+            Assert.IsNull(((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).LeafToNonLeafReverseEdges);
+            Assert.IsNull(((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).NonLeafToNonLeafReverseEdges);
         }
 
         [Test]
@@ -91,6 +101,19 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void Clear_BidirectionalMappingsTrue()
+        {
+            CreatePersonGroupGraph(testBidirectionalDirectedGraph);
+            Assert.AreNotEqual(0, testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges.Count());
+            Assert.AreNotEqual(0, testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges.Count());
+
+            testBidirectionalDirectedGraph.Clear();
+
+            Assert.AreEqual(0, testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges.Count());
+            Assert.AreEqual(0, testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges.Count());
+        }
+
+        [Test]
         public void AddLeafVertex_LeafVertexAlreadyExists()
         {
             testDirectedGraph.AddLeafVertex("abc");
@@ -128,13 +151,31 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveLeafVertex()
         {
-            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>();
+            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>(false);
             CreatePersonGroupGraph(testDirectedGraph);
 
             testDirectedGraph.RemoveLeafVertex("Per1");
 
             Assert.IsFalse(testDirectedGraph.LeafVertices.Contains("Per1"));
             Assert.IsFalse(((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).LeafToNonLeafEdges.ContainsKey("Per1"));
+        }
+
+        [Test]
+        public void RemoveLeafVertex_BidirectionalMappingsTrue()
+        {
+            CreatePersonGroupGraph(testBidirectionalDirectedGraph);
+
+            testBidirectionalDirectedGraph.RemoveLeafVertex("Per3");
+
+            Assert.IsFalse(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp1"].Contains("Per3"));
+            Assert.IsFalse(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp2"].Contains("Per3"));
+            Assert.AreEqual(2, testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp1"].Count);
+            Assert.AreEqual(3, testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp2"].Count);
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp1"].Contains("Per1"));
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp1"].Contains("Per2"));
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp2"].Contains("Per4"));
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp2"].Contains("Per5"));
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp2"].Contains("Per6"));
         }
 
         [Test]
@@ -175,7 +216,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveNonLeafVertex()
         {
-            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>();
+            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>(false);
             CreatePersonGroupGraph(testDirectedGraph);
             var visitedLeaves = new HashSet<String>();
             var visitedNonLeaves = new HashSet<String>();
@@ -210,6 +251,19 @@ namespace ApplicationAccess.UnitTests
             ((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).TraverseGraph(leafVertexAction, nonLeafVertexAction);
             Assert.IsFalse(visitedNonLeaves.Contains("Grp2"));
             Assert.IsFalse(((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).NonLeafToNonLeafEdges.ContainsKey("Grp2"));
+        }
+
+        [Test]
+        public void RemoveNonLeafVertex_BidirectionalMappingsTrue()
+        {
+            CreatePersonGroupGraph(testBidirectionalDirectedGraph);
+
+            testBidirectionalDirectedGraph.RemoveNonLeafVertex("Grp2");
+
+            Assert.IsFalse(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges.ContainsKey("Grp2"));
+            Assert.IsFalse(testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges["Grp3"].Contains("Grp2"));
+            Assert.AreEqual(1, testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges["Grp3"].Count);
+            Assert.IsTrue(testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges["Grp3"].Contains("Grp1"));
         }
 
         [Test]
@@ -255,6 +309,19 @@ namespace ApplicationAccess.UnitTests
 
             Assert.That(e.Message, Does.StartWith("Vertex 'parent' does not exist in the graph."));
             Assert.AreEqual("parent", e.NonLeafVertex);
+        }
+
+        [Test]
+        public void AddLeafToNonLeafEdge_BidirectionalMappingsTrue()
+        {
+            testBidirectionalDirectedGraph.AddLeafVertex("child");
+            testBidirectionalDirectedGraph.AddNonLeafVertex("parent");
+
+            testBidirectionalDirectedGraph.AddLeafToNonLeafEdge("child", "parent");
+
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges.ContainsKey("parent"));
+            Assert.AreEqual(1, testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["parent"].Count);
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["parent"].Contains("child"));
         }
 
         [Test]
@@ -349,6 +416,19 @@ namespace ApplicationAccess.UnitTests
 
             testDirectedGraph.TraverseFromLeaf("Per1", vertexAction);
             Assert.AreEqual(0, visitedNonLeaves.Count);
+        }
+
+        [Test]
+        public void RemoveLeafToNonLeafEdge_BidirectionalMappingsTrue()
+        {
+            CreatePersonGroupGraph(testBidirectionalDirectedGraph);
+
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per1", "Grp1");
+
+            Assert.IsFalse(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp1"].Contains("Per1"));
+            Assert.AreEqual(2, testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp1"].Count);
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp1"].Contains("Per2"));
+            Assert.IsTrue(testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges["Grp1"].Contains("Per3"));
         }
 
         [Test]
@@ -447,6 +527,20 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void AddNonLeafToNonLeafEdge_BidirectionalMappingsTrue()
+        {
+            testBidirectionalDirectedGraph.AddNonLeafVertex("parent1");
+            testBidirectionalDirectedGraph.AddNonLeafVertex("parent2");
+
+            testBidirectionalDirectedGraph.AddNonLeafToNonLeafEdge("parent1", "parent2");
+
+            Assert.IsFalse(testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges.ContainsKey("parent1"));
+            Assert.IsTrue(testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges.ContainsKey("parent2"));
+            Assert.AreEqual(1, testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges["parent2"].Count);
+            Assert.IsTrue(testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges["parent2"].Contains("parent1"));
+        }
+
+        [Test]
         public void GetNonLeafEdges_VertexDoesntExist()
         {
             var e = Assert.Throws<NonLeafVertexNotFoundException<String>>(delegate
@@ -537,6 +631,18 @@ namespace ApplicationAccess.UnitTests
             testDirectedGraph.TraverseFromNonLeaf("Grp2", vertexAction);
             Assert.AreEqual(1, visitedNonLeaves.Count);
             Assert.AreEqual("Grp2", visitedNonLeaves[0]);
+        }
+
+        [Test]
+        public void RemoveNonLeafToNonLeafEdge_BidirectionalMappingsTrue()
+        {
+            CreatePersonGroupGraph(testBidirectionalDirectedGraph);
+
+            testBidirectionalDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp2", "Grp3");
+
+            Assert.IsTrue(testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges.ContainsKey("Grp3"));
+            Assert.AreEqual(1, testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges["Grp3"].Count);
+            Assert.IsTrue(testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges["Grp3"].Contains("Grp1"));
         }
 
         [Test]
@@ -715,7 +821,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void TraverseGraph()
         {
-            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>();
+            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>(false);
             CreatePersonGroupGraph(testDirectedGraph);
             var visitedLeaves = new HashSet<String>();
             var visitedNonLeaves = new HashSet<String>();
@@ -752,7 +858,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void TraverseGraph_StopTraversingAtSpecifiedLeafVertex()
         {
-            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>();
+            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>(false);
             CreatePersonGroupGraph(testDirectedGraph);
             // Add a group which is only connected to 'Per3' (hence should not be traversed to if traversal stops at 'Per3')
             testDirectedGraph.AddNonLeafVertex("Grp5");
@@ -789,7 +895,7 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void TraverseGraph_StopTraversingAtSpecifiedNonLeafVertex()
         {
-            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>();
+            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>(false);
             CreatePersonGroupGraph(testDirectedGraph);
             // Add a group which is only connected to 'Grp2' (hence should not be traversed to if traversal stops at 'Grp2')
             testDirectedGraph.AddNonLeafVertex("Grp5");
@@ -823,6 +929,85 @@ namespace ApplicationAccess.UnitTests
             Assert.GreaterOrEqual(visitedNonLeaves.Count, 1);
             Assert.IsTrue(visitedNonLeaves.Contains("Grp2"));
             Assert.IsFalse(visitedNonLeaves.Contains("Grp5"));
+        }
+
+        [Test]
+        public void AddRemoveAdd()
+        {
+            // Tests Add*() > Remove*() > Add*() add operations in sequence, to ensure that no residual vertices nor edges are left in the underying structures after Remove*() operations
+            testDirectedGraph = new DirectedGraphWithProtectedMembers<String, String>(false);
+            CreatePersonGroupGraph(testDirectedGraph);
+
+            testDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp2", "Grp3");
+            testDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp1", "Grp3");
+            testDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp1", "Grp4");
+            testDirectedGraph.RemoveLeafToNonLeafEdge("Per7", "Grp3");
+            testDirectedGraph.RemoveLeafToNonLeafEdge("Per6", "Grp2");
+            testDirectedGraph.RemoveLeafToNonLeafEdge("Per5", "Grp2");
+            testDirectedGraph.RemoveLeafToNonLeafEdge("Per4", "Grp2");
+            testDirectedGraph.RemoveLeafToNonLeafEdge("Per3", "Grp2");
+            testDirectedGraph.RemoveLeafToNonLeafEdge("Per3", "Grp1");
+            testDirectedGraph.RemoveLeafToNonLeafEdge("Per2", "Grp1");
+            testDirectedGraph.RemoveLeafToNonLeafEdge("Per1", "Grp1");
+            testDirectedGraph.RemoveNonLeafVertex("Grp4");
+            testDirectedGraph.RemoveNonLeafVertex("Grp3");
+            testDirectedGraph.RemoveNonLeafVertex("Grp2");
+            testDirectedGraph.RemoveNonLeafVertex("Grp1");
+            testDirectedGraph.RemoveLeafVertex("Per7");
+            testDirectedGraph.RemoveLeafVertex("Per6");
+            testDirectedGraph.RemoveLeafVertex("Per5");
+            testDirectedGraph.RemoveLeafVertex("Per4");
+            testDirectedGraph.RemoveLeafVertex("Per3");
+            testDirectedGraph.RemoveLeafVertex("Per2");
+            testDirectedGraph.RemoveLeafVertex("Per1");
+
+            Assert.AreEqual(0, testDirectedGraph.LeafVertices.Count());
+            Assert.AreEqual(0, testDirectedGraph.NonLeafVertices.Count());
+            Assert.AreEqual(0, ((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).LeafToNonLeafEdges.Count);
+            Assert.AreEqual(0, ((DirectedGraphWithProtectedMembers<String, String>)testDirectedGraph).NonLeafToNonLeafEdges.Count);
+
+
+            CreatePersonGroupGraph(testDirectedGraph);
+        }
+
+        [Test]
+        public void AddRemoveAdd_BidirectionalMappingsTrue()
+        {
+            // Tests Add*() > Remove*() > Add*() add operations in sequence, to ensure that no residual vertices nor edges are left in the underying structures after Remove*() operations, when storing bidirectional mappings
+            CreatePersonGroupGraph(testBidirectionalDirectedGraph);
+
+            testBidirectionalDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp2", "Grp3");
+            testBidirectionalDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp1", "Grp3");
+            testBidirectionalDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp1", "Grp4");
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per7", "Grp3");
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per6", "Grp2");
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per5", "Grp2");
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per4", "Grp2");
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per3", "Grp2");
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per3", "Grp1");
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per2", "Grp1");
+            testBidirectionalDirectedGraph.RemoveLeafToNonLeafEdge("Per1", "Grp1");
+            testBidirectionalDirectedGraph.RemoveNonLeafVertex("Grp4");
+            testBidirectionalDirectedGraph.RemoveNonLeafVertex("Grp3");
+            testBidirectionalDirectedGraph.RemoveNonLeafVertex("Grp2");
+            testBidirectionalDirectedGraph.RemoveNonLeafVertex("Grp1");
+            testBidirectionalDirectedGraph.RemoveLeafVertex("Per7");
+            testBidirectionalDirectedGraph.RemoveLeafVertex("Per6");
+            testBidirectionalDirectedGraph.RemoveLeafVertex("Per5");
+            testBidirectionalDirectedGraph.RemoveLeafVertex("Per4");
+            testBidirectionalDirectedGraph.RemoveLeafVertex("Per3");
+            testBidirectionalDirectedGraph.RemoveLeafVertex("Per2");
+            testBidirectionalDirectedGraph.RemoveLeafVertex("Per1");
+
+            Assert.AreEqual(0, testBidirectionalDirectedGraph.LeafVertices.Count());
+            Assert.AreEqual(0, testBidirectionalDirectedGraph.NonLeafVertices.Count());
+            Assert.AreEqual(0, testBidirectionalDirectedGraph.LeafToNonLeafEdges.Count);
+            Assert.AreEqual(0, testBidirectionalDirectedGraph.NonLeafToNonLeafEdges.Count);
+            Assert.AreEqual(0, testBidirectionalDirectedGraph.LeafToNonLeafReverseEdges.Count);
+            Assert.AreEqual(0, testBidirectionalDirectedGraph.NonLeafToNonLeafReverseEdges.Count);
+
+
+            CreatePersonGroupGraph(testBidirectionalDirectedGraph);
         }
 
         #region Private/Protected Methods
@@ -877,8 +1062,8 @@ namespace ApplicationAccess.UnitTests
         /// <typeparam name="TNonLeaf">The type of non-leaf vertices.</typeparam>
         private class DirectedGraphWithProtectedMembers<TLeaf, TNonLeaf> : DirectedGraph<TLeaf, TNonLeaf> where TLeaf : IEquatable<TLeaf> where TNonLeaf : IEquatable<TNonLeaf>
         {
-            public DirectedGraphWithProtectedMembers()
-                : base()
+            public DirectedGraphWithProtectedMembers(Boolean storeBidirectionalMappings)
+                : base(storeBidirectionalMappings)
             {
             }
 
@@ -896,6 +1081,22 @@ namespace ApplicationAccess.UnitTests
             public IDictionary<TNonLeaf, ISet<TNonLeaf>> NonLeafToNonLeafEdges
             {
                 get { return nonLeafToNonLeafEdges; }
+            }
+
+            /// <summary>
+            /// The reverse of the edges in member 'LeafToNonLeafEdges'.
+            /// </summary>
+            public IDictionary<TNonLeaf, ISet<TLeaf>> LeafToNonLeafReverseEdges
+            {
+                get { return leafToNonLeafReverseEdges; }
+            }
+
+            /// <summary>
+            /// The reverse of the edges in member 'NonLeafToNonLeafEdges'.
+            /// </summary>
+            public IDictionary<TNonLeaf, ISet<TNonLeaf>> NonLeafToNonLeafReverseEdges
+            {
+                get { return nonLeafToNonLeafReverseEdges; }
             }
 
             /// <summary>

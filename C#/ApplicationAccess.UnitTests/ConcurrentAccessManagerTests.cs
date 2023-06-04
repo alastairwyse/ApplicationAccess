@@ -33,7 +33,7 @@ namespace ApplicationAccess.UnitTests
         [SetUp]
         protected void SetUp()
         {
-            testConcurrentAccessManager = new ConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>();
+            testConcurrentAccessManager = new ConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false);
         }
 
         [Test]
@@ -607,8 +607,8 @@ namespace ApplicationAccess.UnitTests
                 get { return groupToEntityMap; }
             }
 
-            public ConcurrentAccessManagerWithProtectedMembers()
-                : base()
+            public ConcurrentAccessManagerWithProtectedMembers(Boolean storeBidirectionalMappings)
+                : base(storeBidirectionalMappings)
             {
             }
         }

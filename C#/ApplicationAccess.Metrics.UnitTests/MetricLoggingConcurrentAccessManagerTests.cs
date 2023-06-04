@@ -38,7 +38,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         protected void SetUp()
         {
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
         }
 
         [Test]
@@ -2023,6 +2023,104 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveEntityType_BidirectionalMappingsTrue()
+        {
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ProductType");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddUser("user3");
+            testMetricLoggingConcurrentAccessManager.AddUser("user4");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user4", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user1", "BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group1", "BusinessUnit", "Marketing");
+            mockMetricLogger.ClearReceivedCalls();
+            mockMetricLogger.Begin(Arg.Any<EntityTypeRemoveTime>()).Returns(testBeginId);
+
+            testMetricLoggingConcurrentAccessManager.RemoveEntityType("ClientAccount");
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<EntityTypeRemoveTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EntityTypeRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<EntityTypeRemoved>());
+            mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 2);
+            mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 2);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ClientAccount"));
+
+
+            mockMetricLogger.ClearReceivedCalls();
+            mockMetricLogger.Begin(Arg.Any<EntityTypeRemoveTime>()).Returns(testBeginId);
+
+            testMetricLoggingConcurrentAccessManager.RemoveEntityType("ProductType");
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<EntityTypeRemoveTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EntityTypeRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<EntityTypeRemoved>());
+            mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 2);
+            mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 1);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(1, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ProductType"));
+
+
+            // Additional scenario to test bug found with 'userToEntityMappingCountPerUser' and 'groupToEntityMappingCountPerGroup' member
+            //   FrequencyTable.DecrementBy() method will not accept 0 parameter.
+            testMetricLoggingConcurrentAccessManager.Clear();
+            testMetricLoggingConcurrentAccessManager.AddUser("user5");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group2");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user5", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.RemoveEntity("ClientAccount", "CompanyA");
+            mockMetricLogger.ClearReceivedCalls();
+            mockMetricLogger.Begin(Arg.Any<EntityTypeRemoveTime>()).Returns(testBeginId);
+
+            testMetricLoggingConcurrentAccessManager.RemoveEntityType("ClientAccount");
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<EntityTypeRemoveTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EntityTypeRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<EntityTypeRemoved>());
+            mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
+            Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.EntityCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user5"));
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.GroupToEntityMappingCountPerUser.GetFrequency("group2"));
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ClientAccount"));
+        }
+
+        [Test]
         public void AddEntity_ExceptionWhenAdding()
         {
             String testEntityType = "ClientAccount";
@@ -2334,6 +2432,53 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.RemoveEntity("BusinessUnit", "Marketing");
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(3, testMetricLoggingConcurrentAccessManager.EntityCount);
+            Assert.AreEqual(4, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
+            Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetEntities("BusinessUnit").Contains("Marketing"));
+        }
+
+        [Test]
+        public void RemoveEntity_BidirectionalMappingsTrue()
+        {
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ProductType");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddEntity("BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddUser("user3");
+            testMetricLoggingConcurrentAccessManager.AddUser("user4");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user3", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user4", "group1");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user1", "BusinessUnit", "Sales");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user2", "BusinessUnit", "Marketing");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group1", "BusinessUnit", "Marketing");
+            mockMetricLogger.ClearReceivedCalls();
+            mockMetricLogger.Begin(Arg.Any<EntityRemoveTime>()).Returns(testBeginId);
+
+            testMetricLoggingConcurrentAccessManager.RemoveEntity("BusinessUnit", "Marketing");
+
+            mockMetricLogger.Received(1).Begin(Arg.Any<EntityRemoveTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EntityRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<EntityRemoved>());
+            mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 3);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 4);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
+            Assert.AreEqual(6, mockMetricLogger.ReceivedCalls().Count());
+            mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), Arg.Any<Int64>());
             Assert.AreEqual(3, testMetricLoggingConcurrentAccessManager.EntityCount);
             Assert.AreEqual(4, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCount);
             Assert.AreEqual(2, testMetricLoggingConcurrentAccessManager.UserToEntityMappingCountPerUser.GetFrequency("user1"));
@@ -3524,9 +3669,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Metrics.UnitTests.MetricLoggingConcurrentAccessManagerTests+MetricLoggingConcurrentAccessManagerWithProtectedMembers class.
             /// </summary>
+            /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
-            public MetricLoggingConcurrentAccessManagerWithProtectedMembers(IMetricLogger metricLogger)
-                : base(metricLogger)
+            public MetricLoggingConcurrentAccessManagerWithProtectedMembers(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
+                : base(storeBidirectionalMappings, metricLogger)
             {
             }
         }

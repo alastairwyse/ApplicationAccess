@@ -55,7 +55,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerAccessManagerTemporalPersister.Load(DateTime.Now, new AccessManager<String, String, String, String>());
+                testSqlServerAccessManagerTemporalPersister.Load(DateTime.Now, new AccessManager<String, String, String, String>(false));
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' must be expressed as UTC."));
@@ -67,7 +67,7 @@ namespace ApplicationAccess.Persistence.SqlServer.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerAccessManagerTemporalPersister.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>());
+                testSqlServerAccessManagerTemporalPersister.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>(false));
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' will value '{DateTime.MaxValue.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff")}' is greater than the current time '"));

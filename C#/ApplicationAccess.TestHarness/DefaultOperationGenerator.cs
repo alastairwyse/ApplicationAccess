@@ -27,7 +27,7 @@ namespace ApplicationAccess.TestHarness
     public class DefaultOperationGenerator<TUser, TGroup, TComponent, TAccess> : IOperationGenerator
     {
         /// <summary>The data elements stored in the AccessManager instance under test.</summary>
-        protected DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
+        protected IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
         /// <summary>The target elements counts for each storage structure.</summary>
         protected Dictionary<StorageStructure, Int32> targetStorageStructureCounts;
         /// <summary>The available data element counter for application componenets.</summary>
@@ -78,7 +78,7 @@ namespace ApplicationAccess.TestHarness
         /// <param name="dataElementStorerCountPrintFrequency">>How often counts of items in the 'dataElementStorer' member should be printed to the console (e.g. a value of 1000 would print once every 1000 calls to the Generate() method).</param>
         public DefaultOperationGenerator
         (
-            DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, 
+            IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, 
             Dictionary<StorageStructure, Int32> targetStorageStructureCounts,
             IAvailableDataElementCounter<TComponent> componentAvailableDataElementCounter,
             IAvailableDataElementCounter<TAccess> accessLeveAvailableDataElementCounter, 
@@ -376,7 +376,7 @@ namespace ApplicationAccess.TestHarness
             return betaScaleFactor * baseProbabililty;
         }
 
-        protected void PrintDataElementStorerCounts(DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer)
+        protected void PrintDataElementStorerCounts(IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer)
         {
             var dataElementStorerCountProperties = new List<Tuple<StorageStructure, Func<Int32>>>()
             {

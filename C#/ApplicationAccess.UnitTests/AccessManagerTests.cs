@@ -28,11 +28,20 @@ namespace ApplicationAccess.UnitTests
     public class AccessManagerTests
     {
         private AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testAccessManager;
+        private AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testBidirectionalAccessManager;
 
         [SetUp]
         protected void SetUp()
         {
-            testAccessManager = new AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>();
+            testAccessManager = new AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false);
+            testBidirectionalAccessManager = new AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(true);
+        }
+
+        [Test]
+        public void Constructor()
+        {
+            Assert.IsNull(testAccessManager.UserToEntityReverseMap);
+            Assert.IsNull(testAccessManager.GroupToEntityReverseMap);
         }
 
         [Test]
@@ -68,6 +77,39 @@ namespace ApplicationAccess.UnitTests
             Assert.AreEqual(0, testAccessManager.Entities.Count());
             Assert.AreEqual(0, testAccessManager.UserToEntityMap.Count());
             Assert.AreEqual(0, testAccessManager.GroupToEntityMap.Count());
+        }
+
+        [Test]
+        public void Clear_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddUser("user1");
+            testBidirectionalAccessManager.AddUser("user2");
+            testBidirectionalAccessManager.AddGroup("group1");
+            testBidirectionalAccessManager.AddGroup("group2");
+            testBidirectionalAccessManager.AddGroup("group3");
+            testBidirectionalAccessManager.AddGroup("group4");
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntityType("BusinessUnit");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user1", "group1");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group1", "group2");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group3", "group4");
+            testBidirectionalAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testBidirectionalAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testBidirectionalAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+            Assert.AreNotEqual(0, testBidirectionalAccessManager.Users.Count());
+            Assert.AreNotEqual(0, testBidirectionalAccessManager.Groups.Count());
+
+            testBidirectionalAccessManager.Clear();
+
+            Assert.AreEqual(0, testBidirectionalAccessManager.Entities.Count());
+            Assert.AreEqual(0, testBidirectionalAccessManager.UserToEntityMap.Count());
+            Assert.AreEqual(0, testBidirectionalAccessManager.GroupToEntityMap.Count());
+            Assert.AreEqual(0, testBidirectionalAccessManager.UserToEntityReverseMap.Count());
+            Assert.AreEqual(0, testBidirectionalAccessManager.GroupToEntityReverseMap.Count());
         }
 
         [Test]
@@ -122,6 +164,31 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void RemoveUser_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddUser("user1");
+            testBidirectionalAccessManager.AddUser("user2");
+            testBidirectionalAccessManager.AddGroup("group1");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user1", "group1");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user2", "group1");
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+
+            testBidirectionalAccessManager.RemoveUser("user1");
+
+            Assert.IsFalse(testBidirectionalAccessManager.Users.Contains("user1"));
+            Assert.IsTrue(testBidirectionalAccessManager.Users.Contains("user2"));
+            Assert.IsFalse(testBidirectionalAccessManager.UserToEntityMap.ContainsKey("user1"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityMap.ContainsKey("user2"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap.ContainsKey("ClientAccount"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"].ContainsKey("CompanyA"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Contains("user2"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Count);
+        }
+
+        [Test]
         public void AddGroup_GroupAlreadyExists()
         {
             testAccessManager.AddGroup("group1");
@@ -167,6 +234,28 @@ namespace ApplicationAccess.UnitTests
             Assert.IsTrue(testAccessManager.GroupToComponentMapContainsKey("group2"));
             Assert.IsFalse(testAccessManager.GroupToEntityMap.ContainsKey("group1"));
             Assert.IsTrue(testAccessManager.GroupToEntityMap.ContainsKey("group2"));
+        }
+
+        [Test]
+        public void RemoveGroup_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddGroup("group1");
+            testBidirectionalAccessManager.AddGroup("group2");
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyA");
+
+            testBidirectionalAccessManager.RemoveGroup("group1");
+
+            Assert.IsFalse(testBidirectionalAccessManager.Groups.Contains("group1"));
+            Assert.IsTrue(testBidirectionalAccessManager.Groups.Contains("group2"));
+            Assert.IsFalse(testBidirectionalAccessManager.GroupToEntityMap.ContainsKey("group1"));
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityMap.ContainsKey("group2"));
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap.ContainsKey("ClientAccount"));
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"].ContainsKey("CompanyA"));
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"]["CompanyA"].Contains("group2"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"]["CompanyA"].Count);
         }
 
         [Test]
@@ -770,6 +859,63 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void RemoveEntityType_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntityType("BusinessUnit");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddUser("User1");
+            testBidirectionalAccessManager.AddUser("User2");
+            testBidirectionalAccessManager.AddGroup("Group1");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User1", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User1", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User1", "BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User2", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User2", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User2", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("Group1", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("Group1", "BusinessUnit", "Marketing");
+
+            testBidirectionalAccessManager.RemoveEntityType("ClientAccount");
+
+            foreach (KeyValuePair<String, IDictionary<String, ISet<String>>> currentKvp in testBidirectionalAccessManager.UserToEntityMap)
+            {
+                Assert.False(currentKvp.Value.ContainsKey("ClientAccount"));
+            }
+            foreach (KeyValuePair<String, IDictionary<String, ISet<String>>> currentKvp in testBidirectionalAccessManager.GroupToEntityMap)
+            {
+                Assert.False(currentKvp.Value.ContainsKey("ClientAccount"));
+            }
+            var mappings = new HashSet<Tuple<String, String>>(testBidirectionalAccessManager.GetUserToEntityMappings("User1"));
+            Assert.AreEqual(1, mappings.Count);
+            Assert.IsTrue(mappings.Contains(new Tuple<String, String>("BusinessUnit", "Marketing")));
+            mappings = new HashSet<Tuple<String, String>>(testBidirectionalAccessManager.GetUserToEntityMappings("User2"));
+            Assert.AreEqual(1, mappings.Count);
+            Assert.IsTrue(mappings.Contains(new Tuple<String, String>("BusinessUnit", "Sales")));
+            mappings = new HashSet<Tuple<String, String>>(testBidirectionalAccessManager.GetGroupToEntityMappings("Group1"));
+            Assert.AreEqual(1, mappings.Count);
+            Assert.IsTrue(mappings.Contains(new Tuple<String, String>("BusinessUnit", "Marketing")));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap.Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap.ContainsKey("BusinessUnit"));
+            Assert.AreEqual(2, testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"].ContainsKey("Marketing"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"].ContainsKey("Sales"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"]["Marketing"].Count);
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"]["Sales"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"]["Marketing"].Contains("User1"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"]["Sales"].Contains("User2"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap.Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap.ContainsKey("BusinessUnit"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap["BusinessUnit"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["BusinessUnit"].ContainsKey("Marketing"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap["BusinessUnit"]["Marketing"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["BusinessUnit"]["Marketing"].Contains("Group1"));
+        }
+
+        [Test]
         public void AddEntity_EntityTypeDoesntExist()
         {
             var e = Assert.Throws<ArgumentException>(delegate
@@ -910,6 +1056,79 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void RemoveEntity_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntityType("BusinessUnit");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddUser("User1");
+            testBidirectionalAccessManager.AddUser("User2");
+            testBidirectionalAccessManager.AddGroup("Group1");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User1", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User1", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User1", "BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User2", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User2", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddUserToEntityMapping("User2", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("Group1", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("Group1", "BusinessUnit", "Marketing");
+
+            testBidirectionalAccessManager.RemoveEntity("ClientAccount", "CompanyB");
+
+            foreach (KeyValuePair<String, IDictionary<String, ISet<String>>> currentKvp in testBidirectionalAccessManager.UserToEntityMap)
+            {
+                if (currentKvp.Value.ContainsKey("ClientAccount"))
+                {
+                    Assert.False(currentKvp.Value["ClientAccount"].Contains("CompanyB"));
+                }
+            }
+            foreach (KeyValuePair<String, IDictionary<String, ISet<String>>> currentKvp in testBidirectionalAccessManager.GroupToEntityMap)
+            {
+                if (currentKvp.Value.ContainsKey("ClientAccount"))
+                {
+                    Assert.False(currentKvp.Value["ClientAccount"].Contains("CompanyB"));
+                }
+            }
+            var mappings = new HashSet<Tuple<String, String>>(testBidirectionalAccessManager.GetUserToEntityMappings("User1"));
+            Assert.AreEqual(2, mappings.Count);
+            Assert.IsTrue(mappings.Contains(new Tuple<String, String>("ClientAccount", "CompanyA")));
+            Assert.IsTrue(mappings.Contains(new Tuple<String, String>("BusinessUnit", "Marketing")));
+            mappings = new HashSet<Tuple<String, String>>(testBidirectionalAccessManager.GetUserToEntityMappings("User2"));
+            Assert.AreEqual(2, mappings.Count);
+            Assert.IsTrue(mappings.Contains(new Tuple<String, String>("ClientAccount", "CompanyA")));
+            Assert.IsTrue(mappings.Contains(new Tuple<String, String>("BusinessUnit", "Sales")));
+            mappings = new HashSet<Tuple<String, String>>(testBidirectionalAccessManager.GetGroupToEntityMappings("Group1"));
+            Assert.AreEqual(1, mappings.Count);
+            Assert.IsTrue(mappings.Contains(new Tuple<String, String>("BusinessUnit", "Marketing")));
+            Assert.AreEqual(2, testBidirectionalAccessManager.UserToEntityReverseMap.Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap.ContainsKey("ClientAccount"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap.ContainsKey("BusinessUnit"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"].ContainsKey("CompanyA"));
+            Assert.AreEqual(2, testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"].ContainsKey("Marketing"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"].ContainsKey("Sales"));
+            Assert.AreEqual(2, testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Contains("User1"));
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Contains("User2"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"]["Marketing"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"]["Marketing"].Contains("User1"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"]["Sales"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["BusinessUnit"]["Sales"].Contains("User2"));
+            Assert.AreEqual(2, testBidirectionalAccessManager.GroupToEntityReverseMap.Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap.ContainsKey("ClientAccount"));
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap.ContainsKey("BusinessUnit"));
+            Assert.AreEqual(0, testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"].Count);
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap["BusinessUnit"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["BusinessUnit"].ContainsKey("Marketing"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap["BusinessUnit"]["Marketing"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["BusinessUnit"]["Marketing"].Contains("Group1"));
+        }
+
+        [Test]
         public void AddUserToEntityMapping_UserDoesntExist()
         {
             var e = Assert.Throws<ArgumentException>(delegate
@@ -964,6 +1183,22 @@ namespace ApplicationAccess.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith("A mapping between user 'user1' and entity 'CompanyA' with type 'ClientAccount' already exists."));
+        }
+        [Test]
+        public void AddUserToEntityMapping_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddUser("user1");
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+
+            testBidirectionalAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap.Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap.ContainsKey("ClientAccount"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"].ContainsKey("CompanyA"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Contains("user1"));
         }
 
         [Test]
@@ -1160,6 +1395,27 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void RemoveUserToEntityMapping_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddUser("user1");
+            testBidirectionalAccessManager.AddUser("user2");
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntityType("BusinessUnit");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyB");
+
+            testBidirectionalAccessManager.RemoveUserToEntityMapping("user1", "ClientAccount", "CompanyB");
+
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap.Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap.ContainsKey("ClientAccount"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"].ContainsKey("CompanyB"));
+            Assert.AreEqual(0, testBidirectionalAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyB"].Count);
+        }
+
+        [Test]
         public void AddGroupToEntityMapping_GroupDoesntExist()
         {
             var e = Assert.Throws<ArgumentException>(delegate
@@ -1214,6 +1470,23 @@ namespace ApplicationAccess.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith("A mapping between group 'group1' and entity 'CompanyA' with type 'ClientAccount' already exists."));
+        }
+
+        [Test]
+        public void AddGroupToEntityMapping_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddGroup("group1");
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap.Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap.ContainsKey("ClientAccount"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"].ContainsKey("CompanyA"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"]["CompanyA"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"]["CompanyA"].Contains("group1"));
         }
 
         [Test]
@@ -1407,6 +1680,27 @@ namespace ApplicationAccess.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith("A mapping between group 'group1' and entity 'CompanyA' with type 'ClientAccount' doesn't exist."));
+        }
+
+        [Test]
+        public void RemoveGroupToEntityMapping_BidirectionalMappingsTrue()
+        {
+            testBidirectionalAccessManager.AddGroup("group1");
+            testBidirectionalAccessManager.AddGroup("group2");
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntityType("BusinessUnit");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap.Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap.ContainsKey("ClientAccount"));
+            Assert.AreEqual(1, testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"].Count);
+            Assert.IsTrue(testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"].ContainsKey("CompanyB"));
+            Assert.AreEqual(0, testBidirectionalAccessManager.GroupToEntityReverseMap["ClientAccount"]["CompanyB"].Count);
         }
 
         [Test]
@@ -1975,6 +2269,302 @@ namespace ApplicationAccess.UnitTests
             Assert.IsTrue(result.Contains("CustomerService"));
         }
 
+        [Test]
+        public void AddRemoveAdd()
+        {
+            // Tests Add*() > Remove*() > Add*() add operations in sequence, to ensure that no residual mappings are left in the underying structures after Remove*() operations
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddUser("user3");
+            testAccessManager.AddUser("user4");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddGroup("group5");
+            testAccessManager.AddGroup("group6");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddUserToGroupMapping("user3", "group2");
+            testAccessManager.AddUserToGroupMapping("user4", "group4");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testAccessManager.AddGroupToGroupMapping("group5", "group6");
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Create);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testAccessManager.AddEntityType("ClientAccount");
+            testAccessManager.AddEntityType("BusinessUnit");
+            testAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testAccessManager.AddEntity("ClientAccount", "CompanyE");
+            testAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testAccessManager.AddEntity("BusinessUnit", "Sales");
+            testAccessManager.AddEntity("BusinessUnit", "Accounting");
+            testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyD");
+            testAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group1", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
+            testAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("group5", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group5", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Accounting");
+
+            testAccessManager.RemoveGroupToEntityMapping("group6", "BusinessUnit", "Accounting");
+            testAccessManager.RemoveGroupToEntityMapping("group6", "BusinessUnit", "Sales");
+            testAccessManager.RemoveGroupToEntityMapping("group5", "BusinessUnit", "Sales");
+            testAccessManager.RemoveGroupToEntityMapping("group5", "ClientAccount", "CompanyB");
+            testAccessManager.RemoveGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
+            testAccessManager.RemoveGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testAccessManager.RemoveGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testAccessManager.RemoveGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
+            testAccessManager.RemoveGroupToEntityMapping("group1", "BusinessUnit", "Sales");
+            testAccessManager.RemoveUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testAccessManager.RemoveUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testAccessManager.RemoveUserToEntityMapping("user1", "ClientAccount", "CompanyD");
+            testAccessManager.RemoveEntity("BusinessUnit", "Accounting");
+            testAccessManager.RemoveEntity("BusinessUnit", "Sales");
+            testAccessManager.RemoveEntity("BusinessUnit", "Marketing");
+            testAccessManager.RemoveEntity("ClientAccount", "CompanyE");
+            testAccessManager.RemoveEntity("ClientAccount", "CompanyD");
+            testAccessManager.RemoveEntity("ClientAccount", "CompanyC");
+            testAccessManager.RemoveEntity("ClientAccount", "CompanyB");
+            testAccessManager.RemoveEntity("ClientAccount", "CompanyA");
+            testAccessManager.RemoveEntityType("BusinessUnit");
+            testAccessManager.RemoveEntityType("ClientAccount");
+            testAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testAccessManager.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManager.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Create);
+            testAccessManager.RemoveGroupToGroupMapping("group5", "group6");
+            testAccessManager.RemoveGroupToGroupMapping("group3", "group5");
+            testAccessManager.RemoveGroupToGroupMapping("group2", "group3");
+            testAccessManager.RemoveUserToGroupMapping("user4", "group4");
+            testAccessManager.RemoveUserToGroupMapping("user3", "group2");
+            testAccessManager.RemoveUserToGroupMapping("user2", "group2");
+            testAccessManager.RemoveUserToGroupMapping("user1", "group1");
+            testAccessManager.RemoveGroup("group6");
+            testAccessManager.RemoveGroup("group5");
+            testAccessManager.RemoveGroup("group4");
+            testAccessManager.RemoveGroup("group3");
+            testAccessManager.RemoveGroup("group2");
+            testAccessManager.RemoveGroup("group1");
+            testAccessManager.RemoveUser("user4");
+            testAccessManager.RemoveUser("user3");
+            testAccessManager.RemoveUser("user2");
+            testAccessManager.RemoveUser("user1");
+
+            Assert.AreEqual(0, testAccessManager.UserToGroupMap.LeafVertices.Count());
+            Assert.AreEqual(0, testAccessManager.UserToGroupMap.NonLeafVertices.Count());
+            Assert.AreEqual(0, testAccessManager.Entities.Count());
+            Assert.AreEqual(0, testAccessManager.UserToEntityMap.Count());
+            Assert.AreEqual(0, testAccessManager.GroupToEntityMap.Count);
+
+
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUser("user2");
+            testAccessManager.AddUser("user3");
+            testAccessManager.AddUser("user4");
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroup("group2");
+            testAccessManager.AddGroup("group3");
+            testAccessManager.AddGroup("group4");
+            testAccessManager.AddGroup("group5");
+            testAccessManager.AddGroup("group6");
+            testAccessManager.AddUserToGroupMapping("user1", "group1");
+            testAccessManager.AddUserToGroupMapping("user2", "group2");
+            testAccessManager.AddUserToGroupMapping("user3", "group2");
+            testAccessManager.AddUserToGroupMapping("user4", "group4");
+            testAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testAccessManager.AddGroupToGroupMapping("group5", "group6");
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Create);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testAccessManager.AddEntityType("ClientAccount");
+            testAccessManager.AddEntityType("BusinessUnit");
+            testAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testAccessManager.AddEntity("ClientAccount", "CompanyE");
+            testAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testAccessManager.AddEntity("BusinessUnit", "Sales");
+            testAccessManager.AddEntity("BusinessUnit", "Accounting");
+            testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyD");
+            testAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group1", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
+            testAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("group5", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("group5", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Accounting");
+        }
+
+        [Test]
+        public void AddRemoveAdd_BidirectionalMappingsTrue()
+        {
+            // Tests Add*() > Remove*() > Add*() add operations in sequence, to ensure that no residual mappings are left in the underying structures after Remove*() operations, when storing bidirectional mappings
+            testBidirectionalAccessManager.AddUser("user1");
+            testBidirectionalAccessManager.AddUser("user2");
+            testBidirectionalAccessManager.AddUser("user3");
+            testBidirectionalAccessManager.AddUser("user4");
+            testBidirectionalAccessManager.AddGroup("group1");
+            testBidirectionalAccessManager.AddGroup("group2");
+            testBidirectionalAccessManager.AddGroup("group3");
+            testBidirectionalAccessManager.AddGroup("group4");
+            testBidirectionalAccessManager.AddGroup("group5");
+            testBidirectionalAccessManager.AddGroup("group6");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user1", "group1");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user2", "group2");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user3", "group2");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user4", "group4");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group5", "group6");
+            testBidirectionalAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Create);
+            testBidirectionalAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testBidirectionalAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testBidirectionalAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testBidirectionalAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntityType("BusinessUnit");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyE");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Accounting");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyD");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group1", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group5", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group5", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Accounting");
+
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group6", "BusinessUnit", "Accounting");
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group6", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group5", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group5", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.RemoveGroupToEntityMapping("group1", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.RemoveUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.RemoveUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.RemoveUserToEntityMapping("user1", "ClientAccount", "CompanyD");
+            testBidirectionalAccessManager.RemoveEntity("BusinessUnit", "Accounting");
+            testBidirectionalAccessManager.RemoveEntity("BusinessUnit", "Sales");
+            testBidirectionalAccessManager.RemoveEntity("BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.RemoveEntity("ClientAccount", "CompanyE");
+            testBidirectionalAccessManager.RemoveEntity("ClientAccount", "CompanyD");
+            testBidirectionalAccessManager.RemoveEntity("ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.RemoveEntity("ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.RemoveEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.RemoveEntityType("BusinessUnit");
+            testBidirectionalAccessManager.RemoveEntityType("ClientAccount");
+            testBidirectionalAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testBidirectionalAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testBidirectionalAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testBidirectionalAccessManager.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testBidirectionalAccessManager.RemoveUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Create);
+            testBidirectionalAccessManager.RemoveGroupToGroupMapping("group5", "group6");
+            testBidirectionalAccessManager.RemoveGroupToGroupMapping("group3", "group5");
+            testBidirectionalAccessManager.RemoveGroupToGroupMapping("group2", "group3");
+            testBidirectionalAccessManager.RemoveUserToGroupMapping("user4", "group4");
+            testBidirectionalAccessManager.RemoveUserToGroupMapping("user3", "group2");
+            testBidirectionalAccessManager.RemoveUserToGroupMapping("user2", "group2");
+            testBidirectionalAccessManager.RemoveUserToGroupMapping("user1", "group1");
+            testBidirectionalAccessManager.RemoveGroup("group6");
+            testBidirectionalAccessManager.RemoveGroup("group5");
+            testBidirectionalAccessManager.RemoveGroup("group4");
+            testBidirectionalAccessManager.RemoveGroup("group3");
+            testBidirectionalAccessManager.RemoveGroup("group2");
+            testBidirectionalAccessManager.RemoveGroup("group1");
+            testBidirectionalAccessManager.RemoveUser("user4");
+            testBidirectionalAccessManager.RemoveUser("user3");
+            testBidirectionalAccessManager.RemoveUser("user2");
+            testBidirectionalAccessManager.RemoveUser("user1");
+
+            Assert.AreEqual(0, testBidirectionalAccessManager.UserToGroupMap.LeafVertices.Count());
+            Assert.AreEqual(0, testBidirectionalAccessManager.UserToGroupMap.NonLeafVertices.Count());
+            Assert.AreEqual(0, testBidirectionalAccessManager.Entities.Count());
+            Assert.AreEqual(0, testBidirectionalAccessManager.UserToEntityMap.Count());
+            Assert.AreEqual(0, testBidirectionalAccessManager.GroupToEntityMap.Count);
+            Assert.AreEqual(0, testBidirectionalAccessManager.UserToEntityReverseMap.Count);
+            Assert.AreEqual(0, testBidirectionalAccessManager.GroupToEntityReverseMap.Count);
+
+
+            testBidirectionalAccessManager.AddUser("user1");
+            testBidirectionalAccessManager.AddUser("user2");
+            testBidirectionalAccessManager.AddUser("user3");
+            testBidirectionalAccessManager.AddUser("user4");
+            testBidirectionalAccessManager.AddGroup("group1");
+            testBidirectionalAccessManager.AddGroup("group2");
+            testBidirectionalAccessManager.AddGroup("group3");
+            testBidirectionalAccessManager.AddGroup("group4");
+            testBidirectionalAccessManager.AddGroup("group5");
+            testBidirectionalAccessManager.AddGroup("group6");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user1", "group1");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user2", "group2");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user3", "group2");
+            testBidirectionalAccessManager.AddUserToGroupMapping("user4", "group4");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group3", "group5");
+            testBidirectionalAccessManager.AddGroupToGroupMapping("group5", "group6");
+            testBidirectionalAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Create);
+            testBidirectionalAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testBidirectionalAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testBidirectionalAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testBidirectionalAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testBidirectionalAccessManager.AddEntityType("ClientAccount");
+            testBidirectionalAccessManager.AddEntityType("BusinessUnit");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testBidirectionalAccessManager.AddEntity("ClientAccount", "CompanyE");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddEntity("BusinessUnit", "Accounting");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyD");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyA");
+            testBidirectionalAccessManager.AddUserToEntityMapping("user2", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group1", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Marketing");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group3", "ClientAccount", "CompanyC");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group5", "ClientAccount", "CompanyB");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group5", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Sales");
+            testBidirectionalAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Accounting");
+        }
+
         #region Nested Classes
 
         /// <summary>
@@ -2008,6 +2598,27 @@ namespace ApplicationAccess.UnitTests
             public IDictionary<TGroup, IDictionary<String, ISet<String>>> GroupToEntityMap
             {
                 get { return groupToEntityMap; }
+            }
+
+            /// <summary>The reverse of the mappings in member 'userToEntityMap'.</summary>
+            public IDictionary<String, IDictionary<String, ISet<TUser>>> UserToEntityReverseMap
+            {
+                get { return userToEntityReverseMap; }
+            }
+
+            /// <summary>The reverse of the mappings in member 'groupToEntityMap'.</summary>
+            public IDictionary<String, IDictionary<String, ISet<TGroup>>> GroupToEntityReverseMap
+            {
+                get { return groupToEntityReverseMap; }
+            }
+
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.UnitTests+AccessManagerWithProtectedMembers class.
+            /// </summary>
+            /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            public AccessManagerWithProtectedMembers(Boolean storeBidirectionalMappings)
+                : base(storeBidirectionalMappings)
+            {
             }
 
             /// <summary>

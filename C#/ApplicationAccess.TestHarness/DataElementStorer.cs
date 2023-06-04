@@ -22,19 +22,23 @@ using ApplicationAccess.Utilities;
 namespace ApplicationAccess.TestHarness
 {
     /// <summary>
-    /// Stores data elements stored in the AccessManager instance under test.
+    /// Stores data elements managed by the AccessManager instance under test.
     /// </summary>
-    public class DataElementStorer<TUser, TGroup, TComponent, TAccess>
+    public class DataElementStorer<TUser, TGroup, TComponent, TAccess> : IDataElementStorer<TUser, TGroup, TComponent, TAccess>
     {
         protected RandomlyAccessibleSet<TUser> users;
         protected RandomlyAccessibleSet<TGroup> groups;
         protected RandomlyAccessibleDictionary<TUser, RandomlyAccessibleSet<TGroup>> userToGroupMap;
         protected RandomlyAccessibleDictionary<TGroup, RandomlyAccessibleSet<TGroup>> groupToGroupMap;
+        protected Dictionary<TGroup, HashSet<TUser>> userToGroupReverseMap;
+        protected Dictionary<TGroup, HashSet<TGroup>> groupToGroupReverseMap;
         protected RandomlyAccessibleDictionary<TUser, RandomlyAccessibleSet<Tuple<TComponent, TAccess>>> userToComponentMap;
         protected RandomlyAccessibleDictionary<TGroup, RandomlyAccessibleSet<Tuple<TComponent, TAccess>>> groupToComponentMap;
         protected RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>> entities;
         protected RandomlyAccessibleDictionary<TUser, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> userToEntityMap;
         protected RandomlyAccessibleDictionary<TGroup, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> groupToEntityMap;
+        protected Dictionary<String, Dictionary<String, HashSet<TUser>>> userToEntityReverseMap;
+        protected Dictionary<String, Dictionary<String, HashSet<TGroup>>> groupToEntityReverseMap;
         protected Int32 userToGroupMappingCount;
         protected Int32 groupToGroupMappingCount;
         protected Int32 userToComponentMappingCount;
@@ -53,11 +57,15 @@ namespace ApplicationAccess.TestHarness
             groups = new RandomlyAccessibleSet<TGroup>();
             userToGroupMap = new RandomlyAccessibleDictionary<TUser, RandomlyAccessibleSet<TGroup>>();
             groupToGroupMap = new RandomlyAccessibleDictionary<TGroup, RandomlyAccessibleSet<TGroup>>();
+            userToGroupReverseMap = new Dictionary<TGroup, HashSet<TUser>>();
+            groupToGroupReverseMap = new Dictionary<TGroup, HashSet<TGroup>>();
             userToComponentMap = new RandomlyAccessibleDictionary<TUser, RandomlyAccessibleSet<Tuple<TComponent, TAccess>>>();
             groupToComponentMap = new RandomlyAccessibleDictionary<TGroup, RandomlyAccessibleSet<Tuple<TComponent, TAccess>>>();
             entities = new RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>();
             userToEntityMap = new RandomlyAccessibleDictionary<TUser, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>>();
             groupToEntityMap = new RandomlyAccessibleDictionary<TGroup, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>>();
+            userToEntityReverseMap = new Dictionary<String, Dictionary<String, HashSet<TUser>>>();
+            groupToEntityReverseMap = new Dictionary<String, Dictionary<String, HashSet<TGroup>>>();
             userToGroupMappingCount = 0;
             groupToGroupMappingCount = 0;
             userToComponentMappingCount = 0;
@@ -181,6 +189,13 @@ namespace ApplicationAccess.TestHarness
             {
                 if (userToEntityMap.ContainsKey(user) == true)
                 {
+                    foreach (KeyValuePair<String, RandomlyAccessibleSet<String>> currentKvp in userToEntityMap[user])
+                    {
+                        foreach (String currentEntity in userToEntityMap[user][currentKvp.Key])
+                        {
+                            userToEntityReverseMap[currentKvp.Key][currentEntity].Remove(user);
+                        }
+                    }
                     Int32 newUserToEntityMappingCount = userToEntityMappingCount;
                     foreach (KeyValuePair<String, RandomlyAccessibleSet<String>> currentKvp in userToEntityMap[user])
                     {
@@ -197,6 +212,10 @@ namespace ApplicationAccess.TestHarness
                 }
                 if (userToGroupMap.ContainsKey(user) == true)
                 {
+                    foreach (TGroup currentGroup in userToGroupMap[user])
+                    {
+                        userToGroupReverseMap[currentGroup].Remove(user);
+                    }
                     Int32 newUserToGroupMappingCount = userToGroupMappingCount - userToGroupMap[user].Count;
                     userToGroupMap.Remove(user);
                     Interlocked.CompareExchange(ref userToGroupMappingCount, newUserToGroupMappingCount, userToGroupMappingCount);
@@ -233,6 +252,13 @@ namespace ApplicationAccess.TestHarness
             {
                 if (groupToEntityMap.ContainsKey(group) == true)
                 {
+                    foreach (KeyValuePair<String, RandomlyAccessibleSet<String>> currentKvp in groupToEntityMap[group])
+                    {
+                        foreach (String currentEntity in groupToEntityMap[group][currentKvp.Key])
+                        {
+                            groupToEntityReverseMap[currentKvp.Key][currentEntity].Remove(group);
+                        }
+                    }
                     Int32 newGroupToEntityMappingCount = groupToEntityMappingCount;
                     foreach (KeyValuePair<String, RandomlyAccessibleSet<String>> currentKvp in groupToEntityMap[group])
                     {
@@ -247,28 +273,34 @@ namespace ApplicationAccess.TestHarness
                     groupToComponentMap.Remove(group);
                     Interlocked.CompareExchange(ref groupToComponentMappingCount, newGroupToComponentMappingCount, groupToComponentMappingCount);
                 }
-                foreach (KeyValuePair<TGroup, RandomlyAccessibleSet<TGroup>> currentKvp in groupToGroupMap)
+                if (groupToGroupReverseMap.ContainsKey(group) == true)
                 {
-                    if (currentKvp.Value.Contains(group) == true)
+                    foreach (TGroup currentfromGroup in groupToGroupReverseMap[group])
                     {
-                        currentKvp.Value.Remove(group);
+                        groupToGroupMap[currentfromGroup].Remove(group);
                         Interlocked.Decrement(ref groupToGroupMappingCount);
                     }
+                    groupToGroupReverseMap.Remove(group);
                 }
                 if (groupToGroupMap.ContainsKey(group) == true)
                 {
+                    foreach(TGroup currentToGroup in groupToGroupMap[group])
+                    {
+                        groupToGroupReverseMap[currentToGroup].Remove(group);
+                    }
                     Int32 newGroupToGroupMappingCount = groupToGroupMappingCount - groupToGroupMap[group].Count;
                     groupToGroupMap.Remove(group);
                     Interlocked.CompareExchange(ref groupToGroupMappingCount, newGroupToGroupMappingCount, groupToGroupMappingCount);
                 }
-                foreach (KeyValuePair<TUser, RandomlyAccessibleSet<TGroup>> currentKvp in userToGroupMap)
+                if (userToGroupReverseMap.ContainsKey(group) == true)
                 {
-                    if (currentKvp.Value.Contains(group) == true)
+                    foreach (TUser currentUser in userToGroupReverseMap[group])
                     {
-                        currentKvp.Value.Remove(group);
+                        userToGroupMap[currentUser].Remove(group);
                         Interlocked.Decrement(ref userToGroupMappingCount);
                     }
                 }
+
                 if (groups.Contains(group) == true)
                 {
                     groups.Remove(group);
@@ -302,6 +334,14 @@ namespace ApplicationAccess.TestHarness
                     userToGroupMap[user].Add(group);
                     Interlocked.Increment(ref userToGroupMappingCount);
                 }
+                if (userToGroupReverseMap.ContainsKey(group) == false)
+                {
+                    userToGroupReverseMap.Add(group, new HashSet<TUser>());
+                }
+                if (userToGroupReverseMap[group].Contains(user) == false)
+                {
+                    userToGroupReverseMap[group].Add(user);
+                }
             }));
         }
 
@@ -315,6 +355,7 @@ namespace ApplicationAccess.TestHarness
                     {
                         userToGroupMap[user].Remove(group);
                         Interlocked.Decrement(ref userToGroupMappingCount);
+                        userToGroupReverseMap[group].Remove(user);
                     }
                     if (userToGroupMap[user].Count == 0)
                     {
@@ -352,6 +393,14 @@ namespace ApplicationAccess.TestHarness
                     groupToGroupMap[fromGroup].Add(toGroup);
                     Interlocked.Increment(ref groupToGroupMappingCount);
                 }
+                if (groupToGroupReverseMap.ContainsKey(toGroup) == false)
+                {
+                    groupToGroupReverseMap.Add(toGroup, new HashSet<TGroup>());
+                }
+                if (groupToGroupReverseMap[toGroup].Contains(fromGroup) == false)
+                {
+                    groupToGroupReverseMap[toGroup].Add(fromGroup);
+                }
             }));
         }
 
@@ -365,6 +414,7 @@ namespace ApplicationAccess.TestHarness
                     {
                         groupToGroupMap[fromGroup].Remove(toGroup);
                         Interlocked.Decrement(ref groupToGroupMappingCount);
+                        groupToGroupReverseMap[toGroup].Remove(fromGroup);
                     }
                     if (groupToGroupMap[fromGroup].Count == 0)
                     {
@@ -507,45 +557,38 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(entities, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
-                var usersToRemove = new List<TUser>();
-                Int32 newUserToEntityMappingCount = userToEntityMappingCount;
-                foreach (KeyValuePair<TUser, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> currentKvp in userToEntityMap)
+                if (userToEntityReverseMap.ContainsKey(entityType) == true)
                 {
-                    if (currentKvp.Value.ContainsKey(entityType))
+                    var usersMappedToEntityType = new HashSet<TUser>();
+                    Int32 newUserToEntityMappingCount = userToEntityMappingCount;
+                    foreach (String currentEntity in userToEntityReverseMap[entityType].Keys)
                     {
-                        newUserToEntityMappingCount -= currentKvp.Value[entityType].Count;
-                        currentKvp.Value.Remove(entityType);
+                        usersMappedToEntityType.UnionWith(userToEntityReverseMap[entityType][currentEntity]);
                     }
-                    if (currentKvp.Value.Count == 0)
+                    foreach (TUser currentUser in usersMappedToEntityType)
                     {
-                        usersToRemove.Add(currentKvp.Key);
+                        newUserToEntityMappingCount -= userToEntityMap[currentUser][entityType].Count;
+                        userToEntityMap[currentUser].Remove(entityType);
                     }
+                    userToEntityReverseMap.Remove(entityType);
+                    Interlocked.CompareExchange(ref userToEntityMappingCount, newUserToEntityMappingCount, userToEntityMappingCount);
                 }
-                foreach (TUser currentUser in usersToRemove)
+                if (groupToEntityReverseMap.ContainsKey(entityType) == true)
                 {
-                    userToEntityMap.Remove(currentUser);
-                }
-                Interlocked.CompareExchange(ref userToEntityMappingCount, newUserToEntityMappingCount, userToEntityMappingCount);
-
-                var groupsToRemove = new List<TGroup>();
-                Int32 newGroupToEntityMappingCount = groupToEntityMappingCount;
-                foreach (KeyValuePair<TGroup, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> currentKvp in groupToEntityMap)
-                {
-                    if (currentKvp.Value.ContainsKey(entityType))
+                    var groupssMappedToEntityType = new HashSet<TGroup>();
+                    Int32 newgroupToEntityMappingCount = groupToEntityMappingCount;
+                    foreach (String currentEntity in groupToEntityReverseMap[entityType].Keys)
                     {
-                        newGroupToEntityMappingCount -= currentKvp.Value[entityType].Count;
-                        currentKvp.Value.Remove(entityType);
+                        groupssMappedToEntityType.UnionWith(groupToEntityReverseMap[entityType][currentEntity]);
                     }
-                    if (currentKvp.Value.Count == 0)
+                    foreach (TGroup currentGroup in groupssMappedToEntityType)
                     {
-                        groupsToRemove.Add(currentKvp.Key);
+                        newgroupToEntityMappingCount -= groupToEntityMap[currentGroup][entityType].Count;
+                        groupToEntityMap[currentGroup].Remove(entityType);
                     }
+                    groupToEntityReverseMap.Remove(entityType);
+                    Interlocked.CompareExchange(ref groupToEntityMappingCount, newgroupToEntityMappingCount, groupToEntityMappingCount);
                 }
-                foreach (TGroup currentGroup in groupsToRemove)
-                {
-                    groupToEntityMap.Remove(currentGroup);
-                }
-                Interlocked.CompareExchange(ref groupToEntityMappingCount, newGroupToEntityMappingCount, groupToEntityMappingCount);
 
                 if (entities.ContainsKey(entityType) == true)
                 {
@@ -580,60 +623,23 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(entities, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
-                var usersToRemove = new List<TUser>();
-                foreach (KeyValuePair<TUser, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> currentKvp in userToEntityMap)
+                if (userToEntityReverseMap.ContainsKey(entityType) && userToEntityReverseMap[entityType].ContainsKey(entity))
                 {
-                    if (currentKvp.Value.ContainsKey(entityType))
+                    foreach (TUser currentUser in userToEntityReverseMap[entityType][entity])
                     {
-                        if (currentKvp.Value[entityType].Contains(entity) == true)
-                        {
-                            currentKvp.Value[entityType].Remove(entity);
-                            Interlocked.Decrement(ref userToEntityMappingCount);
-                        }
+                        userToEntityMap[currentUser][entityType].Remove(entity);
+                        Interlocked.Decrement(ref userToEntityMappingCount);
                     }
-                    if (currentKvp.Value.ContainsKey(entityType))
-                    {
-                        if (currentKvp.Value[entityType].Count == 0)
-                        {
-                            currentKvp.Value.Remove(entityType);
-                        }
-                    }
-                    if (currentKvp.Value.Count == 0)
-                    {
-                        usersToRemove.Add(currentKvp.Key);
-                    }
+                    userToEntityReverseMap[entityType].Remove(entity);
                 }
-                foreach (TUser currentUser in usersToRemove)
+                if (groupToEntityReverseMap.ContainsKey(entityType) && groupToEntityReverseMap[entityType].ContainsKey(entity))
                 {
-                    userToEntityMap.Remove(currentUser);
-                }
-
-                var groupsToRemove = new List<TGroup>();
-                foreach (KeyValuePair<TGroup, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> currentKvp in groupToEntityMap)
-                {
-                    if (currentKvp.Value.ContainsKey(entityType))
+                    foreach (TGroup currentGroup in groupToEntityReverseMap[entityType][entity])
                     {
-                        if (currentKvp.Value[entityType].Contains(entity) == true)
-                        {
-                            currentKvp.Value[entityType].Remove(entity);
-                            Interlocked.Decrement(ref groupToEntityMappingCount);
-                        }
+                        groupToEntityMap[currentGroup][entityType].Remove(entity);
+                        Interlocked.Decrement(ref groupToEntityMappingCount);
                     }
-                    if (currentKvp.Value.ContainsKey(entityType))
-                    {
-                        if (currentKvp.Value[entityType].Count == 0)
-                        {
-                            currentKvp.Value.Remove(entityType);
-                        }
-                    }
-                    if (currentKvp.Value.Count == 0)
-                    {
-                        groupsToRemove.Add(currentKvp.Key);
-                    }
-                }
-                foreach (TGroup currentGroup in groupsToRemove)
-                {
-                    groupToEntityMap.Remove(currentGroup);
+                    groupToEntityReverseMap[entityType].Remove(entity);
                 }
 
                 if (entities.ContainsKey(entityType) == true && entities[entityType].Contains(entity) == true)
@@ -677,6 +683,18 @@ namespace ApplicationAccess.TestHarness
                     userToEntityMap[user][entityType].Add(entity);
                     Interlocked.Increment(ref userToEntityMappingCount);
                 }
+                if (userToEntityReverseMap.ContainsKey(entityType) == false)
+                {
+                    userToEntityReverseMap.Add(entityType, new Dictionary<String, HashSet<TUser>>());
+                }
+                if (userToEntityReverseMap[entityType].ContainsKey(entity) == false)
+                {
+                    userToEntityReverseMap[entityType].Add(entity, new HashSet<TUser>());
+                }
+                if (userToEntityReverseMap[entityType][entity].Contains(user) == false)
+                {
+                    userToEntityReverseMap[entityType][entity].Add(user);
+                }
             }));
         }
 
@@ -698,6 +716,21 @@ namespace ApplicationAccess.TestHarness
                     if (userToEntityMap[user].Count == 0)
                     {
                         userToEntityMap.Remove(user);
+                    }
+                }
+                if (userToEntityReverseMap.ContainsKey(entityType) == true && userToEntityReverseMap[entityType].ContainsKey(entity) == true)
+                {
+                    if (userToEntityReverseMap[entityType][entity].Contains(user) == true)
+                    {
+                        userToEntityReverseMap[entityType][entity].Remove(user);
+                    }
+                    if (userToEntityReverseMap[entityType][entity].Count == 0)
+                    {
+                        userToEntityReverseMap[entityType].Remove(entity);
+                    }
+                    if (userToEntityReverseMap[entityType].Count == 0)
+                    {
+                        userToEntityReverseMap.Remove(entityType);
                     }
                 }
             }));
@@ -737,6 +770,18 @@ namespace ApplicationAccess.TestHarness
                     groupToEntityMap[group][entityType].Add(entity);
                     Interlocked.Increment(ref groupToEntityMappingCount);
                 }
+                if (groupToEntityReverseMap.ContainsKey(entityType) == false)
+                {
+                    groupToEntityReverseMap.Add(entityType, new Dictionary<String, HashSet<TGroup>>());
+                }
+                if (groupToEntityReverseMap[entityType].ContainsKey(entity) == false)
+                {
+                    groupToEntityReverseMap[entityType].Add(entity, new HashSet<TGroup>());
+                }
+                if (groupToEntityReverseMap[entityType][entity].Contains(group) == false)
+                {
+                    groupToEntityReverseMap[entityType][entity].Add(group);
+                }
             }));
         }
 
@@ -758,6 +803,21 @@ namespace ApplicationAccess.TestHarness
                     if (groupToEntityMap[group].Count == 0)
                     {
                         groupToEntityMap.Remove(group);
+                    }
+                }
+                if (groupToEntityReverseMap.ContainsKey(entityType) == true && groupToEntityReverseMap[entityType].ContainsKey(entity) == true)
+                {
+                    if (groupToEntityReverseMap[entityType][entity].Contains(group) == true)
+                    {
+                        groupToEntityReverseMap[entityType][entity].Remove(group);
+                    }
+                    if (groupToEntityReverseMap[entityType][entity].Count == 0)
+                    {
+                        groupToEntityReverseMap[entityType].Remove(entity);
+                    }
+                    if (groupToEntityReverseMap[entityType].Count == 0)
+                    {
+                        groupToEntityReverseMap.Remove(entityType);
                     }
                 }
             }));

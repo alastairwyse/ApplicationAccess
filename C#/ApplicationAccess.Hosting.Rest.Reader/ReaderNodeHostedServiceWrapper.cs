@@ -38,6 +38,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
     public class ReaderNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection
+        protected AccessManagerOptions accessManagerOptions;
         protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
         protected EventCacheRefreshOptions eventCacheRefreshOptions;
@@ -67,6 +68,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         /// </summary>
         public ReaderNodeHostedServiceWrapper
         (
+            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<EventCacheRefreshOptions> eventCacheRefreshOptions,
@@ -79,6 +81,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             ILogger<ReaderNodeHostedServiceWrapper> logger
         )
         {
+            this.accessManagerOptions = accessManagerOptions.Value;
             this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;
             this.eventCacheRefreshOptions = eventCacheRefreshOptions.Value;
@@ -109,13 +112,13 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             );
 
             // Create the ReaderNode
-            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
-                readerNode = new ReaderNode<String, String, String, String>(refreshStrategy, eventCacheClient, persistentReader);
+                readerNode = new ReaderNode<String, String, String, String>(refreshStrategy, eventCacheClient, persistentReader, accessManagerOptions.StoreBidirectionalMappings.Value);
             }
             else
             {
-                readerNode = new ReaderNode<String, String, String, String>(refreshStrategy, eventCacheClient, persistentReader, metricLogger);
+                readerNode = new ReaderNode<String, String, String, String>(refreshStrategy, eventCacheClient, persistentReader, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
             }
 
             // Set the ReaderWriterNode on the 'holder' classes
@@ -128,7 +131,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
 
             // Start buffer flushing/processing
             //   Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 logger.LogInformation($"Starting {nameof(metricLogger)}...");
                 metricLogger.Start();
@@ -157,7 +160,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             logger.LogInformation($"Stopping {nameof(refreshStrategy)}...");
             refreshStrategy.Stop();
             logger.LogInformation($"Completed stopping {nameof(refreshStrategy)}.");
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 logger.LogInformation($"Stopping {nameof(metricLogger)}...");
                 metricLogger.Stop();
@@ -166,7 +169,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             logger.LogInformation($"Disposing objects...");
             eventCacheClient.Dispose();
             persistentReader.Dispose();
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 metricLoggerBufferProcessingStrategy.Dispose();
                 metricLogger.Dispose();
@@ -222,7 +225,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 throw new Exception($"Failed to convert event cache host '{eventCacheConnectionOptions.Host}' to a {typeof(Uri).Name}.", e);
             }
 
-            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
                 persistentReader = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
                 (

@@ -42,7 +42,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testReadertWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testReadertWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, false, mockMetricLogger);
         }
 
         [Test]

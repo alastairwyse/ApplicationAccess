@@ -106,7 +106,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             app.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName).Bind(errorHandlingOptions);
             var exceptionToHttpStatusCodeConverter = new ExceptionToHttpStatusCodeConverter();
             ExceptionToHttpErrorResponseConverter exceptionToHttpErrorResponseConverter = null;
-            if (errorHandlingOptions.IncludeInnerExceptions == true)
+            if (errorHandlingOptions.IncludeInnerExceptions.Value == true)
             {
                 exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter();
             }

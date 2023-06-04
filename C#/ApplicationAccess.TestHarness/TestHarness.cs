@@ -30,7 +30,7 @@ namespace ApplicationAccess.TestHarness
     public class TestHarness<TUser, TGroup, TComponent, TAccess> : IDisposable
     {
         protected Int32 workerThreadCount;
-        protected DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
+        protected IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
         /// <summary>The <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> component of the AccessManager under test.</summary>
         protected IList<IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess>> testAccessManagerQueryProcessors;
         /// <summary>The <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}"/> component of the AccessManager under test.</summary>
@@ -68,7 +68,7 @@ namespace ApplicationAccess.TestHarness
         public TestHarness
         (
             Int32 workerThreadCount,
-            DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
+            IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
             IList<IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess>> testAccessManagerQueryProcessors,
             IList<IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>> testAccessManagerEventProcessors, 
             IList<IOperationGenerator> operationGenerators,

@@ -38,6 +38,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     public class ReaderWriterNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection
+        protected AccessManagerOptions accessManagerOptions;
         protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
         protected MetricLoggingOptions metricLoggingOptions;
@@ -68,6 +69,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// </summary>
         public ReaderWriterNodeHostedServiceWrapper
         (
+            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -83,6 +85,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             ILogger<ReaderWriterNodeHostedServiceWrapper> logger
         )
         {
+            this.accessManagerOptions = accessManagerOptions.Value;
             this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
@@ -115,13 +118,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             );
 
             // Create the ReaderWriterNode
-            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
-                readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister);
+                readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value);
             }
             else
             {
-                readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, metricLogger);
+                readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
             }
 
             // Set the ReaderWriterNode on the 'holder' classes
@@ -141,7 +144,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             eventBufferFlushStrategy.Start();
             logger.LogInformation($"Completed starting {nameof(eventBufferFlushStrategy)}.");
             // Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 logger.LogInformation($"Starting {nameof(metricLogger)}...");
                 metricLogger.Start();
@@ -166,7 +169,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Stopping {nameof(eventBufferFlushStrategy)}...");
             eventBufferFlushStrategy.Stop();
             logger.LogInformation($"Completed stopping {nameof(eventBufferFlushStrategy)}.");
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 logger.LogInformation($"Stopping {nameof(metricLogger)}...");
                 metricLogger.Stop();
@@ -175,7 +178,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Disposing objects...");
             eventBufferFlushStrategy.Dispose();
             eventPersister.Dispose();
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 metricLoggerBufferProcessingStrategy.Dispose();
                 metricLogger.Dispose();
@@ -225,7 +228,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 loggerFactory.CreateLogger<SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>>()
             );
 
-            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
                 eventPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
                 (

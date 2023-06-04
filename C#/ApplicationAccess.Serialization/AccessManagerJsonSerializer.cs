@@ -263,7 +263,7 @@ namespace ApplicationAccess.Serialization
             // Deserialize the user to group map
             try
             {
-                var userToGroupMap = new DirectedGraph<TUser, TGroup>();
+                var userToGroupMap = new DirectedGraph<TUser, TGroup>(false);
                 directedGraphSerializer.Deserialize<TUser, TGroup>(((JObject)jsonDocument[userToGroupMapPropertyName]), userStringifier, groupStringifier, userToGroupMap);
                 foreach (TUser currentUser in userToGroupMap.LeafVertices)
                 {
@@ -550,7 +550,7 @@ namespace ApplicationAccess.Serialization
         /// <returns>The user to group mapping structure in the access manager</returns>
         protected DirectedGraph<TUser, TGroup> ExtractUserToGroupMap<TUser, TGroup, TComponent, TAccess>(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManager)
         {
-            var returnGraph = new DirectedGraph<TUser, TGroup>();
+            var returnGraph = new DirectedGraph<TUser, TGroup>(false);
 
             foreach (TUser currentUser in accessManager.Users)
             {

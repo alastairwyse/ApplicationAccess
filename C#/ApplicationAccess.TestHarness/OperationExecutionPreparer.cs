@@ -28,7 +28,7 @@ namespace ApplicationAccess.TestHarness
         protected IOperationParameterGenerator<TUser, TGroup, TComponent, TAccess> parameterGenerator;
         protected IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess> accessManagerQueryProcessor;
         protected IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> accessManagerEventProcessor;
-        protected DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
+        protected IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.TestHarness.OperationExecutionPreparer class.
@@ -42,7 +42,7 @@ namespace ApplicationAccess.TestHarness
             IOperationParameterGenerator<TUser, TGroup, TComponent, TAccess> parameterGenerator, 
             IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess> accessManagerQueryProcessor,
             IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> accessManagerEventProcessor,
-            DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer
+            IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer
         )
         {
             this.parameterGenerator = parameterGenerator;

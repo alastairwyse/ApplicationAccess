@@ -45,7 +45,7 @@ namespace ApplicationAccess.Metrics
         protected Int32 userToEntityMappingCount;
         /// <summary>The number of user to entity mappings stored for each user.</summary>
         protected FrequencyTable<TUser> userToEntityMappingCountPerUser;
-        /// <summary>The number of group tp entity mappings stored.</summary>
+        /// <summary>The number of group to entity mappings stored.</summary>
         protected Int32 groupToEntityMappingCount;
         /// <summary>The number of group to entity mappings stored for each group.</summary>
         protected FrequencyTable<TGroup> groupToEntityMappingCountPerGroup;
@@ -78,9 +78,11 @@ namespace ApplicationAccess.Metrics
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager class.
         /// </summary>
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public MetricLoggingConcurrentAccessManager(IMetricLogger metricLogger)
-            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(false, new MappingMetricLogger(metricLogger)))
+        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        public MetricLoggingConcurrentAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
+            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(false, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings)
         {
             InitializeItemAndMappingCountFields();
 

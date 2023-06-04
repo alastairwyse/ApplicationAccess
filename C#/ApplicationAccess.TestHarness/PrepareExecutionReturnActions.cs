@@ -32,7 +32,7 @@ namespace ApplicationAccess.TestHarness
         }
 
         /// <summary>
-        /// Action which runs any post-execution routines (e.g. updating data in the <see cref="DataElementStorer{TUser, TGroup, TComponent, TAccess}"/> instance).
+        /// Action which runs any post-execution routines (e.g. updating data in the <see cref="IDataElementStorer{TUser, TGroup, TComponent, TAccess}"/> instance).
         /// </summary>
         public Action PostExecutionAction
         {
@@ -43,7 +43,7 @@ namespace ApplicationAccess.TestHarness
         /// Initialises a new instance of the ApplicationAccess.TestHarness.PrepareExecutionReturnActions class.
         /// </summary>
         /// <param name="executionAction">Action which executes the operation.</param>
-        /// <param name="postExecutionAction">Action which runs any post-execution routines (e.g. updating data in the <see cref="DataElementStorer{TUser, TGroup, TComponent, TAccess}"/> instance).</param>
+        /// <param name="postExecutionAction">Action which runs any post-execution routines (e.g. updating data in the <see cref="IDataElementStorer{TUser, TGroup, TComponent, TAccess}"/> instance).</param>
         public PrepareExecutionReturnActions(Action executionAction, Action postExecutionAction)
         {
             this.ExecutionAction = executionAction;

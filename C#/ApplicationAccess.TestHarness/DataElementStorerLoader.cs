@@ -21,20 +21,20 @@ using ApplicationAccess.Persistence;
 namespace ApplicationAccess.TestHarness
 {
     /// <summary>
-    /// Loads data from an <see cref="IAccessManagerPersistentReader{TUser, TGroup, TComponent, TAccess}"/> to a <see cref="DataElementStorer{TUser, TGroup, TComponent, TAccess}"/>.
+    /// Loads data from an <see cref="IAccessManagerPersistentReader{TUser, TGroup, TComponent, TAccess}"/> to an <see cref="IDataElementStorer{TUser, TGroup, TComponent, TAccess}"/> instance.
     /// </summary>
     public class DataElementStorerLoader<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>
-        /// Loads data from an <see cref="IAccessManagerPersistentReader{TUser, TGroup, TComponent, TAccess}"/> to a <see cref="DataElementStorer{TUser, TGroup, TComponent, TAccess}"/>.
+        /// Loads data from an <see cref="IAccessManagerPersistentReader{TUser, TGroup, TComponent, TAccess}"/> to an <see cref="IDataElementStorer{TUser, TGroup, TComponent, TAccess}"/> instance.
         /// </summary>
         /// <param name="reader">The <see cref="IAccessManagerPersistentReader{TUser, TGroup, TComponent, TAccess}"/> to load from.</param>
-        /// <param name="dataElementStorer">The <see cref="DataElementStorer{TUser, TGroup, TComponent, TAccess}"/> to load to. </param>
+        /// <param name="dataElementStorer">The <see cref="IDataElementStorer{TUser, TGroup, TComponent, TAccess}"/> to load to. </param>
         /// <param name="throwExceptionIfStorageIsEmpty">Throws an exception if the storage is empty.</param>
-        public void Load(IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> reader, DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, Boolean throwExceptionIfStorageIsEmpty)
+        public void Load(IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> reader, IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, Boolean throwExceptionIfStorageIsEmpty)
         {
             // Read into a temporary/intermediate AccessManager instance
-            var intermediateAccessManager = new AccessManager<TUser, TGroup, TComponent, TAccess>();
+            var intermediateAccessManager = new AccessManager<TUser, TGroup, TComponent, TAccess>(false);
             try
             {
                 reader.Load(intermediateAccessManager);

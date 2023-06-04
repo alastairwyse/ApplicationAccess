@@ -15,14 +15,27 @@
  */
 
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace ApplicationAccess.Hosting.Models.Options
 {
     /// <summary>
-    /// Container class storing options for connecting to the Microsoft SQL Server database which is used to persist access manager events, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
+    /// Container class storing options for configuring an AccessManager object, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
     /// </summary>
-    public class AccessManagerSqlServerConnectionOptions : SqlServerConnectionOptions
+    public class AccessManagerOptions
     {
-        public const String AccessManagerSqlServerConnectionOptionsName = "AccessManagerSqlServerConnection";
+        #pragma warning disable 0649
+
+        public const String AccessManagerOptionsName = "AccessManager";
+
+        [Required(ErrorMessage = $"Configuration for '{nameof(StoreBidirectionalMappings)}' is required.")]
+        public Nullable<Boolean> StoreBidirectionalMappings { get; set; }
+
+        public AccessManagerOptions()
+        {
+            StoreBidirectionalMappings = null;
+        }
+
+        #pragma warning restore 0649
     }
 }

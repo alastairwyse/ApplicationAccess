@@ -38,6 +38,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
     public class WriterNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection
+        protected AccessManagerOptions accessManagerOptions;
         protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
@@ -67,6 +68,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// </summary>
         public WriterNodeHostedServiceWrapper
         (
+            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
@@ -79,6 +81,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             ILogger<WriterNodeHostedServiceWrapper> logger
         )
         {
+            this.accessManagerOptions = accessManagerOptions.Value;
             this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;
@@ -110,13 +113,13 @@ namespace ApplicationAccess.Hosting.Rest.Writer
 
 
             // Create the WriterNode
-            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
-                writerNode = new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient);
+                writerNode = new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, accessManagerOptions.StoreBidirectionalMappings.Value);
             }
             else
             {
-                writerNode = new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
+                writerNode = new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
             }
 
             // Set the WriterNode on the 'holder' classes
@@ -132,7 +135,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             eventBufferFlushStrategy.Start();
             logger.LogInformation($"Completed starting {nameof(eventBufferFlushStrategy)}.");
             // Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 logger.LogInformation($"Starting {nameof(metricLogger)}...");
                 metricLogger.Start();
@@ -157,7 +160,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             logger.LogInformation($"Stopping {nameof(eventBufferFlushStrategy)}...");
             eventBufferFlushStrategy.Stop();
             logger.LogInformation($"Completed stopping {nameof(eventBufferFlushStrategy)}.");
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 logger.LogInformation($"Stopping {nameof(metricLogger)}...");
                 metricLogger.Stop();
@@ -166,7 +169,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             logger.LogInformation($"Disposing objects...");
             eventBufferFlushStrategy.Dispose();
             eventPersister.Dispose();
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 metricLoggerBufferProcessingStrategy.Dispose();
                 metricLogger.Dispose();
@@ -227,7 +230,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 throw new Exception($"Failed to convert event cache host '{eventCacheConnectionOptions.Host}' to a {typeof(Uri).Name}.", e);
             }
 
-            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
                 eventPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
                 (

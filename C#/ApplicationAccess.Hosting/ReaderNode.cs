@@ -41,6 +41,8 @@ namespace ApplicationAccess.Hosting
         protected IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache;
         /// <summary>Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</summary>
         protected IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader;
+        /// <summary>Whether to store bidirectional mappings between elements.</summary>
+        protected readonly Boolean storeBidirectionalMappings;
         /// <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
         protected MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> accessManager;
         /// <summary>The provider to use for the current date and time.</summary>
@@ -60,14 +62,17 @@ namespace ApplicationAccess.Hosting
         /// <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
         /// <param name="eventCache">Cache for events which change the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted.</param>
         /// <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</param>
-        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader)
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, Boolean storeBidirectionalMappings)
         {
             this.refreshStrategy = refreshStrategy;
             this.eventCache = eventCache;
             this.persistentReader = persistentReader;
+            this.storeBidirectionalMappings = storeBidirectionalMappings;
             dateTimeProvider = new DefaultDateTimeProvider();
             metricLogger = new NullMetricLogger();
-            accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
+            accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(storeBidirectionalMappings, metricLogger);
             // Subscribe to the refreshStrategy's 'ReaderNodeRefreshed' event
             refreshedEventHandler = (Object sender, EventArgs e) => { Refresh(); };
             refreshStrategy.ReaderNodeRefreshed += refreshedEventHandler;
@@ -80,12 +85,14 @@ namespace ApplicationAccess.Hosting
         /// <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
         /// <param name="eventCache">Cache for events which change the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted.</param>
         /// <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</param>
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, IMetricLogger metricLogger)
-            : this(refreshStrategy, eventCache, persistentReader)
+        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
+            : this(refreshStrategy, eventCache, persistentReader, storeBidirectionalMappings)
         {
             this.metricLogger = metricLogger;
-            accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
+            accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(storeBidirectionalMappings, metricLogger);
         }
 
         /// <summary>
@@ -94,11 +101,12 @@ namespace ApplicationAccess.Hosting
         /// <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
         /// <param name="eventCache">Cache for events which change the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted.</param>
         /// <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="IAccessManager{TUser, TGroup, TComponent, TAccess}"/> being hosted from persistent storage.</param>
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, IMetricLogger metricLogger, Utilities.IDateTimeProvider dateTimeProvider)
-            : this(refreshStrategy, eventCache, persistentReader, metricLogger)
+        public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, Boolean storeBidirectionalMappings, IMetricLogger metricLogger, Utilities.IDateTimeProvider dateTimeProvider)
+            : this(refreshStrategy, eventCache, persistentReader, storeBidirectionalMappings, metricLogger)
         {
             this.dateTimeProvider = dateTimeProvider;
         }
@@ -310,7 +318,7 @@ namespace ApplicationAccess.Hosting
         /// <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
         public void Load(Boolean throwExceptionIfStorageIsEmpty)
         {
-            MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> newAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
+            MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> newAccessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(storeBidirectionalMappings, metricLogger);
             newAccessManager.MetricLoggingEnabled = false;
             Guid beginId = metricLogger.Begin(new ReaderNodeLoadTime());
             try

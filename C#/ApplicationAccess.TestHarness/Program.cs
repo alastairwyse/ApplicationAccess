@@ -25,16 +25,17 @@ using Microsoft.Extensions.Configuration;
 using ApplicationAccess.TestHarness.Configuration;
 using ApplicationAccess.Hosting;
 using ApplicationAccess.Hosting.Rest.Client;
+using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.SqlServer;
 using ApplicationAccess.Utilities;
 using ApplicationLogging;
 using ApplicationLogging.Adapters;
 using ApplicationMetrics.MetricLoggers;
+using ApplicationMetrics.Filters;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 using log4net;
 using log4net.Config;
-using ApplicationAccess.Metrics;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -46,6 +47,7 @@ namespace ApplicationAccess.TestHarness
         protected static String persisterBufferFlushStrategyConfigurationFileProperty = "PersisterBufferFlushStrategyConfiguration";
         protected static String accessManagerRestClientConfigurationFileProperty = "AccessManagerRestClientConfiguration";
         protected static String operationGeneratorConfigurationFileProperty = "OperationGeneratorConfiguration";
+        protected static String accessManagerConfigurationFileProperty = "AccessManagerConfiguration";
         protected static String testHarnessConfigurationFileProperty = "TestHarnessConfiguration";
 
         protected static HashSet<String> validTestProfiles;
@@ -113,6 +115,7 @@ namespace ApplicationAccess.TestHarness
                 metricsBufferConfigurationFileProperty,
                 persisterBufferFlushStrategyConfigurationFileProperty,
                 operationGeneratorConfigurationFileProperty,
+                accessManagerConfigurationFileProperty, 
                 testHarnessConfigurationFileProperty
             })
             {
@@ -124,6 +127,7 @@ namespace ApplicationAccess.TestHarness
             MetricsBufferConfiguration metricsBufferConfiguration = new MetricsBufferConfigurationReader().Read(configurationRoot.GetSection(metricsBufferConfigurationFileProperty));
             PersisterBufferFlushStrategyConfiguration persisterBufferFlushStrategyConfiguration = new PersisterBufferFlushStrategyConfigurationReader().Read(configurationRoot.GetSection(persisterBufferFlushStrategyConfigurationFileProperty));
             OperationGeneratorConfiguration operationGeneratorConfiguration = new OperationGeneratorConfigurationReader().Read(configurationRoot.GetSection(operationGeneratorConfigurationFileProperty));
+            AccessManagerConfiguration accessManagerConfiguration = new AccessManagerConfigurationReader().Read(configurationRoot.GetSection(operationGeneratorConfigurationFileProperty));
             TestHarnessConfiguration testHarnessConfiguration = new TestHarnessConfigurationReader().Read(configurationRoot.GetSection(testHarnessConfigurationFileProperty));
 
             // Setup the test harness
@@ -219,6 +223,7 @@ namespace ApplicationAccess.TestHarness
                                     persisterBufferFlushStrategy,
                                     persister,
                                     persister,
+                                    accessManagerConfiguration.StoreBidirectionalMappings, 
                                     metricLogger
                                 )
                             )
@@ -478,7 +483,7 @@ namespace ApplicationAccess.TestHarness
                         clientMetricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, sqlServerOperationTimeout, metricsBufferFlushStrategies.Last().BufferFlushStrategy, IntervalMetricBaseTimeUnit.Nanosecond, false, metricLoggerLogger
                     ));
                     // Create a filter for the metric logger so that it only logs interval metrics
-                    var filteredMetricLogger = new MetricLoggerFilter(metricsLoggers.Last(), false, false, false, true);
+                    var filteredMetricLogger = new MetricLoggerTypeFilter(metricsLoggers.Last(), false, false, false, true);
                     // Setup AccessManager query clients for the current worker thread
                     var queryClient = new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
                     (

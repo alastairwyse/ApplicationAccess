@@ -30,8 +30,10 @@ namespace ApplicationAccess
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.DirectedGraph class.
         /// </summary>
-        public DirectedGraph()
-            : base(new StandardCollectionFactory())
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
+        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings for edges in the graph are stored in both directions.  This avoids slow scanning of dictionaries which store the edge mappings in certain operations (like RemoveLeafToNonLeafEdge()), at the cost of addition storage and hence memory usage.</remarks>
+        public DirectedGraph(Boolean storeBidirectionalMappings)
+            : base(new StandardCollectionFactory(), storeBidirectionalMappings)
         {
         }
     }

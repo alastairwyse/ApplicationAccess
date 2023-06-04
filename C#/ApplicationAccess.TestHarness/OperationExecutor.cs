@@ -26,7 +26,7 @@ namespace ApplicationAccess.TestHarness
     public class OperationExecutor<TUser, TGroup, TComponent, TAccess> : TwoWaySignallingParticipantBase
     {
         /// <summary>Stores the data elements in the AccessManager instance under test.</summary>
-        protected DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
+        protected IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
         /// <summary>The <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> component of the AccessManager under test.</summary>
         protected IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess> testAccessManagerQueryProcessor;
         /// <summary>The <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}"/> component of the AccessManager under test.</summary>
@@ -67,7 +67,7 @@ namespace ApplicationAccess.TestHarness
         /// <param name="id">An optional unique id for this OperationTriggerer instance.</param>
         public OperationExecutor
         (
-            DataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
+            IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
             IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess> testAccessManagerQueryProcessor,
             IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> testAccessManagerEventProcessor, 
             IOperationGenerator operationGenerator,

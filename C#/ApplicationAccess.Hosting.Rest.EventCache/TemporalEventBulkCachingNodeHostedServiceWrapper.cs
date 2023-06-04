@@ -83,7 +83,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             InitializeCachingNodeConstructorParameters(metricLoggingOptions);
 
             // Create the TemporalEventBulkCachingNode
-            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
                 cachingNode = new TemporalEventBulkCachingNode<String, String, String, String>(eventCachingOptions.CachedEventCount, new NullMetricLogger());
             }
@@ -148,7 +148,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
                 sqlServerMetricLoggerCategoryName = $"{sqlServerMetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
             }
 
-            if (metricLoggingOptions.MetricLoggingEnabled == true)
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
                 switch (metricBufferProcessingOptions.BufferProcessingStrategy)

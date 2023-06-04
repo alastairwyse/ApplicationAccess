@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 
 namespace ApplicationAccess.TestHarness
@@ -61,8 +65,15 @@ namespace ApplicationAccess.TestHarness
         {
             if (underlyingDictionary.Count == 0)
                 throw new InvalidOperationException("The set is empty.");
-
             return (T)underlyingDictionary[randomGenerator.Next(underlyingDictionary.Count)];
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            foreach (DictionaryEntry currentItem in underlyingDictionary)
+            {
+                yield return (T)currentItem.Key;
+            }
         }
     }
 }

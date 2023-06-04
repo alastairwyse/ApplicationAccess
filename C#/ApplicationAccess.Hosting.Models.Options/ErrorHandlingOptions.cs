@@ -29,10 +29,10 @@ namespace ApplicationAccess.Hosting.Models.Options
         public const String ErrorHandlingOptionsName = "ErrorHandling";
 
         [Required(ErrorMessage = $"Configuration for '{nameof(IncludeInnerExceptions)}' is required.")]
-        public Boolean IncludeInnerExceptions { get; set; }
+        public Nullable<Boolean> IncludeInnerExceptions { get; set; }
 
         [Required(ErrorMessage = $"Configuration for '{nameof(OverrideInternalServerErrors)}' is required.")]
-        public Boolean OverrideInternalServerErrors { get; set; }
+        public Nullable<Boolean> OverrideInternalServerErrors { get; set; }
 
         [Required(ErrorMessage = $"Configuration for '{nameof(InternalServerErrorMessageOverride)}' is required.")]
         public String InternalServerErrorMessageOverride { get; set; }
