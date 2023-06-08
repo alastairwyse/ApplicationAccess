@@ -624,10 +624,30 @@ namespace ApplicationAccess.Metrics
         }
     }
 
+    #region Base Classes
+
+    /// <summary>
+    /// Base for metrics which count the number of query operations.
+    /// </summary>
+    public abstract class QueryCountMetric : CountMetric
+    {
+    }
+
+    /// <summary>
+    /// Base for metrics which record the time taken to perform a query operation.
+    /// </summary>
+    public abstract class QueryIntervalMetric : IntervalMetric
+    {
+    }
+
+    #endregion
+
+    #region Query Operation Metrics
+
     /// <summary>
     /// Count metric which records a get on the Users property.
     /// </summary>
-    public class UsersPropertyQuery : CountMetric
+    public class UsersPropertyQuery : QueryCountMetric
     {
         protected static String staticName = "UsersPropertyQuery";
         protected static String staticDescription = "A get on the Users property";
@@ -642,7 +662,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the Users property.
     /// </summary>
-    public class UsersPropertyQueryTime : IntervalMetric
+    public class UsersPropertyQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "UsersPropertyQueryTime";
         protected static String staticDescription = "The time taken to execute the Users property";
@@ -657,7 +677,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a get on the Groups property.
     /// </summary>
-    public class GroupsPropertyQuery : CountMetric
+    public class GroupsPropertyQuery : QueryCountMetric
     {
         protected static String staticName = "GroupsPropertyQuery";
         protected static String staticDescription = "A get on the Groups property";
@@ -672,7 +692,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the Groups property.
     /// </summary>
-    public class GroupsPropertyQueryTime : IntervalMetric
+    public class GroupsPropertyQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GroupsPropertyQueryTime";
         protected static String staticDescription = "The time taken to execute the Groups property";
@@ -687,7 +707,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a get on the EntityTypes property.
     /// </summary>
-    public class EntityTypesPropertyQuery : CountMetric
+    public class EntityTypesPropertyQuery : QueryCountMetric
     {
         protected static String staticName = "EntityTypesPropertyQuery";
         protected static String staticDescription = "A get on the EntityTypes property";
@@ -702,7 +722,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the EntityTypes property.
     /// </summary>
-    public class EntityTypesPropertyQueryTime : IntervalMetric
+    public class EntityTypesPropertyQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "EntityTypesPropertyQueryTime";
         protected static String staticDescription = "The time taken to execute the EntityTypes property";
@@ -717,7 +737,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the ContainsUser() method.
     /// </summary>
-    public class ContainsUserQuery : CountMetric
+    public class ContainsUserQuery : QueryCountMetric
     {
         protected static String staticName = "ContainsUserQuery";
         protected static String staticDescription = "A call to the ContainsUser() method";
@@ -732,7 +752,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the ContainsUser() method.
     /// </summary>
-    public class ContainsUserQueryTime : IntervalMetric
+    public class ContainsUserQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "ContainsUserQueryTime";
         protected static String staticDescription = "The time taken to execute the ContainsUser() method";
@@ -747,7 +767,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the ContainsGroup() method.
     /// </summary>
-    public class ContainsGroupQuery : CountMetric
+    public class ContainsGroupQuery : QueryCountMetric
     {
         protected static String staticName = "ContainsGroupQuery";
         protected static String staticDescription = "A call to the ContainsGroup() method";
@@ -762,7 +782,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the ContainsGroup() method.
     /// </summary>
-    public class ContainsGroupQueryTime : IntervalMetric
+    public class ContainsGroupQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "ContainsGroupQueryTime";
         protected static String staticDescription = "The time taken to execute the ContainsGroup() method";
@@ -777,7 +797,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetUserToGroupMappings() method.
     /// </summary>
-    public class GetUserToGroupMappingsQuery : CountMetric
+    public class GetUserToGroupMappingsQuery : QueryCountMetric
     {
         protected static String staticName = "GetUserToGroupMappingsQuery";
         protected static String staticDescription = "A call to the GetUserToGroupMappings() method";
@@ -792,7 +812,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetUserToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
     /// </summary>
-    public class GetUserToGroupMappingsWithIndirectMappingsQuery : CountMetric
+    public class GetUserToGroupMappingsWithIndirectMappingsQuery : QueryCountMetric
     {
         protected static String staticName = "GetUserToGroupMappingsWithIndirectMappingsQuery";
         protected static String staticDescription = "A call to the GetUserToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
@@ -807,7 +827,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetUserToGroupMappings() method.
     /// </summary>
-    public class GetUserToGroupMappingsQueryTime : IntervalMetric
+    public class GetUserToGroupMappingsQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetUserToGroupMappingsQueryTime";
         protected static String staticDescription = "The time taken to execute the GetUserToGroupMappings() method";
@@ -822,7 +842,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetUserToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
     /// </summary>
-    public class GetUserToGroupMappingsWithIndirectMappingsQueryTime : IntervalMetric
+    public class GetUserToGroupMappingsWithIndirectMappingsQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetUserToGroupMappingsWithIndirectMappingsQueryTime";
         protected static String staticDescription = "The time taken to execute the GetUserToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
@@ -837,7 +857,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetGroupToGroupMappings() method.
     /// </summary>
-    public class GetGroupToGroupMappingsQuery : CountMetric
+    public class GetGroupToGroupMappingsQuery : QueryCountMetric
     {
         protected static String staticName = "GetGroupToGroupMappingsQuery";
         protected static String staticDescription = "A call to the GetGroupToGroupMappings() method";
@@ -852,7 +872,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
     /// </summary>
-    public class GetGroupToGroupMappingsWithIndirectMappingsQuery : CountMetric
+    public class GetGroupToGroupMappingsWithIndirectMappingsQuery : QueryCountMetric
     {
         protected static String staticName = "GetGroupToGroupMappingsWithIndirectMappingsQuery";
         protected static String staticDescription = "A call to the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
@@ -867,7 +887,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method.
     /// </summary>
-    public class GetGroupToGroupMappingsQueryTime : IntervalMetric
+    public class GetGroupToGroupMappingsQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetGroupToGroupMappingsQueryTime";
         protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method";
@@ -882,7 +902,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
     /// </summary>
-    public class GetGroupToGroupMappingsWithIndirectMappingsQueryTime : IntervalMetric
+    public class GetGroupToGroupMappingsWithIndirectMappingsQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetGroupToGroupMappingsWithIndirectMappingsQueryTime";
         protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
@@ -897,7 +917,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetUserToApplicationComponentAndAccessLevelMappings() method.
     /// </summary>
-    public class GetUserToApplicationComponentAndAccessLevelMappingsQuery : CountMetric
+    public class GetUserToApplicationComponentAndAccessLevelMappingsQuery : QueryCountMetric
     {
         protected static String staticName = "GetUserToApplicationComponentAndAccessLevelMappingsQuery";
         protected static String staticDescription = "A call to the GetUserToApplicationComponentAndAccessLevelMappings() method";
@@ -912,7 +932,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetUserToApplicationComponentAndAccessLevelMappings() method.
     /// </summary>
-    public class GetUserToApplicationComponentAndAccessLevelMappingsQueryTime : IntervalMetric
+    public class GetUserToApplicationComponentAndAccessLevelMappingsQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetUserToApplicationComponentAndAccessLevelMappingsQueryTime";
         protected static String staticDescription = "The time taken to execute the GetUserToApplicationComponentAndAccessLevelMappings() method";
@@ -927,7 +947,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetGroupToApplicationComponentAndAccessLevelMappings() method.
     /// </summary>
-    public class GetGroupToApplicationComponentAndAccessLevelMappingsQuery : CountMetric
+    public class GetGroupToApplicationComponentAndAccessLevelMappingsQuery : QueryCountMetric
     {
         protected static String staticName = "GetGroupToApplicationComponentAndAccessLevelMappingsQuery";
         protected static String staticDescription = "A call to the GetGroupToApplicationComponentAndAccessLevelMappings() method";
@@ -942,7 +962,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetGroupToApplicationComponentAndAccessLevelMappings() method.
     /// </summary>
-    public class GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime : IntervalMetric
+    public class GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime";
         protected static String staticDescription = "The time taken to execute the GetGroupToApplicationComponentAndAccessLevelMappings() method";
@@ -957,7 +977,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the ContainsEntityType() method.
     /// </summary>
-    public class ContainsEntityTypeQuery : CountMetric
+    public class ContainsEntityTypeQuery : QueryCountMetric
     {
         protected static String staticName = "ContainsEntityTypeQuery";
         protected static String staticDescription = "A call to the ContainsEntityType() method";
@@ -972,7 +992,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the ContainsEntityType() method.
     /// </summary>
-    public class ContainsEntityTypeQueryTime : IntervalMetric
+    public class ContainsEntityTypeQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "ContainsEntityTypeQueryTime";
         protected static String staticDescription = "The time taken to execute the ContainsEntityType() method";
@@ -987,7 +1007,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetEntities() method.
     /// </summary>
-    public class GetEntitiesQuery : CountMetric
+    public class GetEntitiesQuery : QueryCountMetric
     {
         protected static String staticName = "GetEntitiesQuery";
         protected static String staticDescription = "A call to the GetEntities() method";
@@ -1002,7 +1022,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetEntities() method.
     /// </summary>
-    public class GetEntitiesQueryTime : IntervalMetric
+    public class GetEntitiesQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetEntitiesQueryTime";
         protected static String staticDescription = "The time taken to execute the GetEntities() method";
@@ -1017,7 +1037,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the ContainsEntity() method.
     /// </summary>
-    public class ContainsEntityQuery : CountMetric
+    public class ContainsEntityQuery : QueryCountMetric
     {
         protected static String staticName = "ContainsEntityQuery";
         protected static String staticDescription = "A call to the ContainsEntity() method";
@@ -1032,7 +1052,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the ContainsEntity() method.
     /// </summary>
-    public class ContainsEntityQueryTime : IntervalMetric
+    public class ContainsEntityQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "ContainsEntityQueryTime";
         protected static String staticDescription = "The time taken to execute the ContainsEntity() method";
@@ -1047,7 +1067,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetUserToEntityMappingsForUser() method.
     /// </summary>
-    public class GetUserToEntityMappingsForUserQuery : CountMetric
+    public class GetUserToEntityMappingsForUserQuery : QueryCountMetric
     {
         protected static String staticName = "GetUserToEntityMappingsForUserQuery";
         protected static String staticDescription = "A call to the GetUserToEntityMappingsForUser() method";
@@ -1062,7 +1082,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetUserToEntityMappingsForUser() method.
     /// </summary>
-    public class GetUserToEntityMappingsForUserQueryTime : IntervalMetric
+    public class GetUserToEntityMappingsForUserQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetUserToEntityMappingsForUserQueryTime";
         protected static String staticDescription = "The time taken to execute the GetUserToEntityMappingsForUser() method";
@@ -1077,7 +1097,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetUserToEntityMappingsForUserAndEntityType() method.
     /// </summary>
-    public class GetUserToEntityMappingsForUserAndEntityTypeQuery : CountMetric
+    public class GetUserToEntityMappingsForUserAndEntityTypeQuery : QueryCountMetric
     {
         protected static String staticName = "GetUserToEntityMappingsForUserAndEntityTypeQuery";
         protected static String staticDescription = "A call to the GetUserToEntityMappingsForUserAndEntityType() method";
@@ -1092,7 +1112,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetUserToEntityMappingsForUserAndEntityType() method.
     /// </summary>
-    public class GetUserToEntityMappingsForUserAndEntityTypeQueryTime : IntervalMetric
+    public class GetUserToEntityMappingsForUserAndEntityTypeQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetUserToEntityMappingsForUserAndEntityTypeQueryTime";
         protected static String staticDescription = "The time taken to execute the GetUserToEntityMappingsForUserAndEntityType() method";
@@ -1107,7 +1127,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetGroupToEntityMappingsForGroup() method.
     /// </summary>
-    public class GetGroupToEntityMappingsForGroupQuery : CountMetric
+    public class GetGroupToEntityMappingsForGroupQuery : QueryCountMetric
     {
         protected static String staticName = "GetGroupToEntityMappingsForGroupQuery";
         protected static String staticDescription = "A call to the GetGroupToEntityMappingsForGroup() method";
@@ -1122,7 +1142,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetGroupToEntityMappingsForGroup() method.
     /// </summary>
-    public class GetGroupToEntityMappingsForGroupQueryTime : IntervalMetric
+    public class GetGroupToEntityMappingsForGroupQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetGroupToEntityMappingsForGroupQueryTime";
         protected static String staticDescription = "The time taken to execute the GetGroupToEntityMappingsForGroup() method";
@@ -1137,7 +1157,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetGroupToEntityMappingsForGroupAndEntityType() method.
     /// </summary>
-    public class GetGroupToEntityMappingsForGroupAndEntityTypeQuery : CountMetric
+    public class GetGroupToEntityMappingsForGroupAndEntityTypeQuery : QueryCountMetric
     {
         protected static String staticName = "GetGroupToEntityMappingsForGroupAndEntityTypeQuery";
         protected static String staticDescription = "A call to the GetGroupToEntityMappingsForGroupAndEntityType() method";
@@ -1152,7 +1172,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetGroupToEntityMappingsForGroupAndEntityType() method.
     /// </summary>
-    public class GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime : IntervalMetric
+    public class GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime";
         protected static String staticDescription = "The time taken to execute the GetGroupToEntityMappingsForGroupAndEntityType() method";
@@ -1167,7 +1187,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the HasAccessToApplicationComponent() method.
     /// </summary>
-    public class HasAccessToApplicationComponentQuery : CountMetric
+    public class HasAccessToApplicationComponentQuery : QueryCountMetric
     {
         protected static String staticName = "HasAccessToApplicationComponentQuery";
         protected static String staticDescription = "A call to the HasAccessToApplicationComponent() method";
@@ -1182,7 +1202,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the HasAccessToApplicationComponent() method.
     /// </summary>
-    public class HasAccessToApplicationComponentQueryTime : IntervalMetric
+    public class HasAccessToApplicationComponentQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "HasAccessToApplicationComponentQueryTime";
         protected static String staticDescription = "The time taken to execute the HasAccessToApplicationComponent() method";
@@ -1197,7 +1217,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the HasAccessToEntity() method.
     /// </summary>
-    public class HasAccessToEntityQuery : CountMetric
+    public class HasAccessToEntityQuery : QueryCountMetric
     {
         protected static String staticName = "HasAccessToEntityQuery";
         protected static String staticDescription = "A call to the HasAccessToEntity() method";
@@ -1212,7 +1232,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the HasAccessToEntity() method.
     /// </summary>
-    public class HasAccessToEntityQueryTime : IntervalMetric
+    public class HasAccessToEntityQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "HasAccessToEntityQueryTime";
         protected static String staticDescription = "The time taken to execute the HasAccessToEntity() method";
@@ -1227,7 +1247,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetApplicationComponentsAccessibleByUser() method.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByUserQuery : CountMetric
+    public class GetApplicationComponentsAccessibleByUserQuery : QueryCountMetric
     {
         protected static String staticName = "GetApplicationComponentsAccessibleByUserQuery";
         protected static String staticDescription = "A call to the GetApplicationComponentsAccessibleByUser() method";
@@ -1242,7 +1262,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetApplicationComponentsAccessibleByUser() method.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByUserQueryTime : IntervalMetric
+    public class GetApplicationComponentsAccessibleByUserQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetApplicationComponentsAccessibleByUserQueryTime";
         protected static String staticDescription = "The time taken to execute the GetApplicationComponentsAccessibleByUser() method";
@@ -1257,7 +1277,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetApplicationComponentsAccessibleByGroup() method.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByGroupQuery : CountMetric
+    public class GetApplicationComponentsAccessibleByGroupQuery : QueryCountMetric
     {
         protected static String staticName = "GetApplicationComponentsAccessibleByGroupQuery";
         protected static String staticDescription = "A call to the GetApplicationComponentsAccessibleByGroup() method";
@@ -1272,7 +1292,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetApplicationComponentsAccessibleByGroup() method.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByGroupQueryTime : IntervalMetric
+    public class GetApplicationComponentsAccessibleByGroupQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetApplicationComponentsAccessibleByGroupQueryTime";
         protected static String staticDescription = "The time taken to execute the GetApplicationComponentsAccessibleByGroup() method";
@@ -1287,7 +1307,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetEntitiesAccessibleByUser() method.
     /// </summary>
-    public class GetEntitiesAccessibleByUserQuery : CountMetric
+    public class GetEntitiesAccessibleByUserQuery : QueryCountMetric
     {
         protected static String staticName = "GetEntitiesAccessibleByUserQuery";
         protected static String staticDescription = "A call to the GetEntitiesAccessibleByUser() method";
@@ -1302,7 +1322,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetEntitiesAccessibleByUser() method.
     /// </summary>
-    public class GetEntitiesAccessibleByUserQueryTime : IntervalMetric
+    public class GetEntitiesAccessibleByUserQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetEntitiesAccessibleByUserQueryTime";
         protected static String staticDescription = "The time taken to execute the GetEntitiesAccessibleByUser() method";
@@ -1317,7 +1337,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Count metric which records a call to the GetEntitiesAccessibleByGroup() method.
     /// </summary>
-    public class GetEntitiesAccessibleByGroupQuery : CountMetric
+    public class GetEntitiesAccessibleByGroupQuery : QueryCountMetric
     {
         protected static String staticName = "GetEntitiesAccessibleByGroupQuery";
         protected static String staticDescription = "A call to the GetEntitiesAccessibleByGroup() method";
@@ -1332,7 +1352,7 @@ namespace ApplicationAccess.Metrics
     /// <summary>
     /// Interval metric which records the time taken to execute the GetEntitiesAccessibleByGroup() method.
     /// </summary>
-    public class GetEntitiesAccessibleByGroupQueryTime : IntervalMetric
+    public class GetEntitiesAccessibleByGroupQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetEntitiesAccessibleByGroupQueryTime";
         protected static String staticDescription = "The time taken to execute the GetEntitiesAccessibleByGroup() method";
@@ -1343,6 +1363,9 @@ namespace ApplicationAccess.Metrics
             base.description = staticDescription;
         }
     }
+
+    #endregion
+
     #endregion
 
     #region AccessManager Metrics

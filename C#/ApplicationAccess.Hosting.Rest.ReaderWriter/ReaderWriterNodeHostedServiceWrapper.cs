@@ -208,12 +208,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 sqlServerMetricLoggerCategoryName = $"{sqlServerMetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
             }
 
-            eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
-            (
-                eventBufferFlushingOptions.BufferSizeLimit,
-                eventBufferFlushingOptions.FlushLoopInterval
-            );
-
             var accessManagerConnectionStringBuilder = new SqlConnectionStringBuilder();
             accessManagerConnectionStringBuilder.DataSource = accessManagerSqlServerConnectionOptions.DataSource;
             // TODO: Need to enable this once I find a way to inject cert details etc into
@@ -241,6 +235,11 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     eventPersisterLogger
+                );
+                eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
+                (
+                    eventBufferFlushingOptions.BufferSizeLimit,
+                    eventBufferFlushingOptions.FlushLoopInterval
                 );
             }
             else
@@ -299,6 +298,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     eventPersisterLogger,
                     metricLogger
                 );
+                eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
+                (
+                    eventBufferFlushingOptions.BufferSizeLimit,
+                    eventBufferFlushingOptions.FlushLoopInterval,
+                    metricLogger
+                );
+
             }
         }
     }

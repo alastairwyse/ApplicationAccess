@@ -22,10 +22,31 @@ namespace ApplicationAccess.Hosting
     #pragma warning disable 1591
 
     /// <summary>
+    /// Base for count metrics logged by the <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/> class.
+    /// </summary>
+    public abstract class ReaderNodeCountMetric : CountMetric
+    {
+    }
+
+    /// <summary>
+    /// Base for amount metrics logged by the <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/> class.
+    /// </summary>
+    public abstract class ReaderNodeCAmountMetric : AmountMetric
+    {
+    }
+
+    /// <summary>
+    /// Base for interval metrics logged by the <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/> class.
+    /// </summary>
+    public abstract class ReaderNodeIntervalMetric : IntervalMetric
+    {
+    }
+
+    /// <summary>
     /// Count metric which records a cache miss occurring.
     /// </summary>
     /// <remarks>Created for the <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/> class, and records when a refresh operation finds that events subsequent to the most recently stored event are not stored in the event cache.</remarks>
-    public class CacheMiss : CountMetric
+    public class CacheMiss : ReaderNodeCountMetric
     {
         protected static String staticName = "CacheMiss";
         protected static String staticDescription = "A cache miss occurred";
@@ -40,7 +61,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Amount metric which records the number of events received in response to a request to an event cache.
     /// </summary>
-    public class CachedEventsReceived : AmountMetric
+    public class CachedEventsReceived : ReaderNodeCAmountMetric
     {
         protected static String staticName = "CachedEventsReceived";
         protected static String staticDescription = "The number of events received in response to a request to an event cache";
@@ -55,7 +76,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Amount metric which records the time in milliseconds between the original occurence of an event, and when that change was processed / applied to a reader node.
     /// </summary>
-    public class EventProcessingDelay : AmountMetric
+    public class EventProcessingDelay : ReaderNodeCAmountMetric
     {
         protected static String staticName = "EventProcessingDelay";
         protected static String staticDescription = "The time in milliseconds between the original occurence of an event, and when that change was processed / applied to a reader node";
@@ -70,7 +91,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Count metric which records the time taken to load the entire contents of a reader node.
     /// </summary>
-    public class ReaderNodeLoadTime : IntervalMetric
+    public class ReaderNodeLoadTime : ReaderNodeIntervalMetric
     {
         protected static String staticName = "ReaderNodeLoadTime";
         protected static String staticDescription = "The time taken to load the entire contents of a reader node";
@@ -85,7 +106,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Count metric which records a reader node being refreshed with the latest data.
     /// </summary>
-    public class RefreshOperationCompleted : CountMetric
+    public class RefreshOperationCompleted : ReaderNodeCountMetric
     {
         protected static String staticName = "RefreshOperationCompleted";
         protected static String staticDescription = "A reader node was refreshed with the latest data";
@@ -100,7 +121,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Count metric which records the time taken to load the entire contents of a reader/writer node.
     /// </summary>
-    public class ReaderWriterNodeLoadTime : IntervalMetric
+    public class ReaderWriterNodeLoadTime : ReaderNodeIntervalMetric
     {
         protected static String staticName = "ReaderWriterNodeLoadTime";
         protected static String staticDescription = "The time taken to load the entire contents of a reader/writer node";
@@ -115,7 +136,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Count metric which records the time taken to load the entire contents of a writer node.
     /// </summary>
-    public class WriterNodeLoadTime : IntervalMetric
+    public class WriterNodeLoadTime : ReaderNodeIntervalMetric
     {
         protected static String staticName = "WriterNodeLoadTime";
         protected static String staticDescription = "The time taken to load the entire contents of a writer node";
@@ -127,5 +148,5 @@ namespace ApplicationAccess.Hosting
         }
     }
 
-#pragma warning restore 1591
+    #pragma warning restore 1591
 }

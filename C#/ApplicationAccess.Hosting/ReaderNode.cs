@@ -22,6 +22,7 @@ using ApplicationAccess.Metrics;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
+using System.Linq;
 
 namespace ApplicationAccess.Hosting
 {
@@ -91,8 +92,15 @@ namespace ApplicationAccess.Hosting
         public ReaderNode(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
             : this(refreshStrategy, eventCache, persistentReader, storeBidirectionalMappings)
         {
-            this.metricLogger = metricLogger;
-            accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(storeBidirectionalMappings, metricLogger);
+            this.metricLogger = new MetricLoggerBaseTypeInclusionFilter
+            (
+                metricLogger, 
+                new List<Type>() { typeof(ReaderNodeCountMetric) },
+                new List<Type>() { typeof(ReaderNodeCAmountMetric) },
+                Enumerable.Empty<Type>(),
+                new List<Type>() { typeof(ReaderNodeIntervalMetric), typeof(QueryIntervalMetric) }
+            );
+            accessManager = new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(storeBidirectionalMappings, this.metricLogger);
         }
 
         /// <summary>

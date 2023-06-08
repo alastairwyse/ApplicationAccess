@@ -718,7 +718,15 @@ namespace ApplicationAccess
                     return true;
                 }
             };
-            userToGroupMap.TraverseFromLeaf(user, vertexAction);
+            // It's possbile that user could have been removed by this point due to time taken to do above lookups
+            try
+            {
+                userToGroupMap.TraverseFromLeaf(user, vertexAction);
+            }
+            catch (LeafVertexNotFoundException<TUser>)
+            {
+                return hasAccess;
+            }
 
             return hasAccess;
         }
@@ -760,7 +768,15 @@ namespace ApplicationAccess
 
                 return true;
             };
-            userToGroupMap.TraverseFromLeaf(user, vertexAction);
+            // It's possbile that user could have been removed by this point due to time taken to do above lookups
+            try
+            {
+                userToGroupMap.TraverseFromLeaf(user, vertexAction);
+            }
+            catch (LeafVertexNotFoundException<TUser>)
+            {
+                return hasAccess;
+            }
 
             return hasAccess;
         }

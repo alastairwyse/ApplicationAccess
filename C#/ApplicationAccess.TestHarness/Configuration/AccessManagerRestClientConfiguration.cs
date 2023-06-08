@@ -29,6 +29,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         public String AccessManagerEventUrl;
         public Int32 RetryCount;
         public Int32 RetryInterval;
+        public Boolean LogMetrics;
         public Boolean LogIntervalMetrics;
     }
 

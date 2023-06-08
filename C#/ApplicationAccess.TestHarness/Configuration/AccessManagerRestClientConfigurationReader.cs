@@ -25,6 +25,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         protected const String accessManagerEventUrlPropertyName = "AccessManagerEventUrl";
         protected const String retryCountPropertyName = "RetryCount";
         protected const String retryIntervalPropertyName = "RetryInterval";
+        protected const String logMetricsPropertyName = "LogMetrics";
         protected const String logIntervalMetricsPropertyName = "LogIntervalMetrics";
 
         public AccessManagerRestClientConfigurationReader()
@@ -45,7 +46,13 @@ namespace ApplicationAccess.TestHarness.Configuration
             returnConfiguration.AccessManagerEventUrl = configurationSection[accessManagerEventUrlPropertyName];
             returnConfiguration.RetryCount = GetConfigurationValueAsInteger(retryCountPropertyName, configurationSection);
             returnConfiguration.RetryInterval = GetConfigurationValueAsInteger(retryIntervalPropertyName, configurationSection);
+            returnConfiguration.LogMetrics = GetConfigurationValueAsBoolean(logMetricsPropertyName, configurationSection);
             returnConfiguration.LogIntervalMetrics = GetConfigurationValueAsBoolean(logIntervalMetricsPropertyName, configurationSection);
+
+            if (returnConfiguration.LogMetrics == false && returnConfiguration.LogIntervalMetrics == true)
+            {
+                throw new ArgumentException($"If configuration parameter '{logIntervalMetricsPropertyName}' is set {true} paramter '{logMetricsPropertyName}' must also be set {true}.");
+            }
 
             return returnConfiguration;
         }
