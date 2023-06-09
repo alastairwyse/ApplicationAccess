@@ -38,8 +38,6 @@ namespace ApplicationAccess.Metrics.UnitTests
         protected void SetUp()
         {
             mockFilteredMetricLogger = Substitute.For<IMetricLogger>();
-            // TODO: Need to setup here for tests
-            // testMetricLoggerBaseTypeInclusionFilter = 
         }
 
         [Test]

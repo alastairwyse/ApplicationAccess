@@ -104,44 +104,6 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         public void Increment(CountMetric countMetric)
         {
-            /*
-            Type metricType = countMetric.GetType();
-            if (includedCountMetricTypes.Contains(metricType) == true)
-            {
-                filteredMetricLogger.Increment(countMetric);
-            }
-            else if (excludedCountMetricTypes.Contains(metricType) == true)
-            {
-                // Do nothing
-            }
-            else
-            {
-                lock (countMetricTypesLock)
-                {
-                    Type currentBaseType = metricType.BaseType;
-                    while (currentBaseType != typeof(MetricBase))
-                    {
-                        if (countMetricBaseTypes.Contains(currentBaseType) == true)
-                        {
-                            // Need to check below again, as it wasn't checked under lock context at the top of the method
-                            if (includedCountMetricTypes.Contains(metricType) == false)
-                            {
-                                includedCountMetricTypes.Add(metricType);
-                                filteredMetricLogger.Increment(countMetric);
-                                return;
-                            }
-                        }
-
-                        currentBaseType = currentBaseType.BaseType;
-                    }
-                    if (excludedCountMetricTypes.Contains(metricType) == false)
-                    {
-                        excludedCountMetricTypes.Add(metricType);
-                    }
-                }
-            }
-            */
-
             Func<Guid> metricProcessFunction = () =>
             {
                 filteredMetricLogger.Increment(countMetric);
