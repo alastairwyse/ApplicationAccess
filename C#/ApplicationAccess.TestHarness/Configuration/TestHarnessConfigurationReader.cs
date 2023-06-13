@@ -31,6 +31,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         protected const String previousExceptionOccurenceTimeWindowSizePropertyName = "PreviousExceptionOccurenceTimeWindowSize";
         protected const String ignoreKnownAccessManagerExceptionsPropertyName = "IgnoreKnownAccessManagerExceptions";
         protected const String operationLimitPropertyName = "OperationLimit";
+        protected const String addOperationDelayTimePropertyName = "AddOperationDelayTime";
 
         public TestHarnessConfigurationReader()
         : base("Test harness")
@@ -48,6 +49,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             ThrowExceptionIfPropertyNotFound(previousExceptionOccurenceTimeWindowSizePropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(ignoreKnownAccessManagerExceptionsPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(operationLimitPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(addOperationDelayTimePropertyName, configurationSection);
 
             var returnConfiguration = new TestHarnessConfiguration();
 
@@ -60,6 +62,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             returnConfiguration.PreviousExceptionOccurenceTimeWindowSize = GetConfigurationValueAsInteger(previousExceptionOccurenceTimeWindowSizePropertyName, configurationSection);
             returnConfiguration.IgnoreKnownAccessManagerExceptions = GetConfigurationValueAsBoolean(ignoreKnownAccessManagerExceptionsPropertyName, configurationSection);
             returnConfiguration.OperationLimit = GetConfigurationValueAsInt64(operationLimitPropertyName, configurationSection);
+            returnConfiguration.AddOperationDelayTime = GetConfigurationValueAsInteger(addOperationDelayTimePropertyName, configurationSection);
 
             return returnConfiguration;
         }

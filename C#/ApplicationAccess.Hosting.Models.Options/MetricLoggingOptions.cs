@@ -29,7 +29,7 @@ namespace ApplicationAccess.Hosting.Models.Options
         public const String MetricLoggingOptionsName = "MetricLogging";
 
         [Required(ErrorMessage = $"Configuration for '{nameof(MetricLoggingEnabled)}' is required.")]
-        public Nullable<Boolean> MetricLoggingEnabled { get; set; }
+        public Boolean? MetricLoggingEnabled { get; set; }
 
         public String MetricCategorySuffix { get; set; }
 

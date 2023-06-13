@@ -244,14 +244,19 @@ namespace ApplicationAccess.TestHarness
                                     { StorageStructure.UserToEntityMap, operationGeneratorConfiguration.ElementTargetStorageCounts.UserToEntityMap },
                                     { StorageStructure.GroupToEntityMap, operationGeneratorConfiguration.ElementTargetStorageCounts.GroupToEntityMap }
                                 };
-                                var dataElementStorer = new DataElementStorer<String, String, TestApplicationComponent, TestAccessLevel>();
+                                // Setup DataElementStorer
+                                IDataElementStorer<String, String, TestApplicationComponent, TestAccessLevel> dataElementStorer = null;
+                                dataElementStorer = new DataElementStorer<String, String, TestApplicationComponent, TestAccessLevel>();
                                 if (loadExistingData == true)
                                 {
                                     var dataElementStorerLoader = new DataElementStorerLoader<String, String, TestApplicationComponent, TestAccessLevel>();
                                     dataElementStorerLoader.Load(persister, dataElementStorer, false);
                                     testAccessManager.Load(false);
                                 }
-
+                                if (testHarnessConfiguration.AddOperationDelayTime > 0)
+                                {
+                                    dataElementStorer = new DataElementStorerDelayBuffer<String, String, TestApplicationComponent, TestAccessLevel>(testHarnessConfiguration.AddOperationDelayTime, dataElementStorer);
+                                }
                                 // Setup TestHarness array parameters
                                 Double targetOperationsPerSecond = testHarnessConfiguration.TargetOperationsPerSecond;
                                 Int32 previousInitiationTimeWindowSize = testHarnessConfiguration.PreviousOperationInitiationTimeWindowSize;
@@ -436,7 +441,8 @@ namespace ApplicationAccess.TestHarness
                     { StorageStructure.UserToEntityMap, operationGeneratorConfiguration.ElementTargetStorageCounts.UserToEntityMap },
                     { StorageStructure.GroupToEntityMap, operationGeneratorConfiguration.ElementTargetStorageCounts.GroupToEntityMap }
                 };
-                var dataElementStorer = new DataElementStorer<String, String, TestApplicationComponent, TestAccessLevel>(); 
+                IDataElementStorer<String, String, TestApplicationComponent, TestAccessLevel> dataElementStorer = null;
+                dataElementStorer = new DataElementStorer<String, String, TestApplicationComponent, TestAccessLevel>();
                 if (loadExistingData == true)
                 {
                     var dataElementStorerLoader = new DataElementStorerLoader<String, String, TestApplicationComponent, TestAccessLevel>();
@@ -459,6 +465,10 @@ namespace ApplicationAccess.TestHarness
                     {
                         dataElementStorerLoader.Load(persister, dataElementStorer, false);
                     }
+                }
+                if (testHarnessConfiguration.AddOperationDelayTime > 0)
+                {
+                    dataElementStorer = new DataElementStorerDelayBuffer<String, String, TestApplicationComponent, TestAccessLevel>(testHarnessConfiguration.AddOperationDelayTime, dataElementStorer);
                 }
 
                 // Setup TestHarness array parameters

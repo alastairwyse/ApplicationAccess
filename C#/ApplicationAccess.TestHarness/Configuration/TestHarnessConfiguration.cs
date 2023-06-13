@@ -34,6 +34,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         public Int32 PreviousExceptionOccurenceTimeWindowSize;
         public Boolean IgnoreKnownAccessManagerExceptions;
         public Int64 OperationLimit;
+        public Int32 AddOperationDelayTime;
     }
 
     #pragma warning restore 0649

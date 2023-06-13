@@ -82,7 +82,7 @@ namespace ApplicationAccess.Metrics
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public MetricLoggingConcurrentAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
-            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(false, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings)
+            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings)
         {
             InitializeItemAndMappingCountFields();
 

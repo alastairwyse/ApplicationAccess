@@ -29,6 +29,8 @@ namespace ApplicationAccess.Hosting.Launcher
             //   Have 2 level options for logging... info and warning (where info will show HTTP request info)
             //     Should be validated and replace value in Logging.LogLevel.Microsoft.AspNetCore 
             //   Start the exe, doing the console redirect thing
+            //   ALSO - See if the name of the exe that Windows reports can be changed to be the underlying component rather than 'Launcher'
+            //     (e.g. for better cleanliness when errors appear in event viewer etc...)
             //   Set environment (should be able to do with '--environment "Production"')
             //     Also don't forget the port opening command line thing '--urls http://0.0.0.0:5000'
             //   Test what happens if config is wrong etc... can I clearly see the error?

@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
@@ -74,6 +73,5 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreSame(testEvent2, result[0]);
             Assert.AreSame(testEvent3, result[1]);
         }
-
     }
 }

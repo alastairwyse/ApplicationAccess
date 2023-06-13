@@ -589,6 +589,8 @@ namespace ApplicationAccess.Metrics.UnitTests
                 new List<Type>() { typeof(QueryIntervalMetric) }
             );
 
+            // Test event generation has been randonly shuffled to better simulate real-world use case
+            //   Separating the events by type of metric (but still preserving order for interval metrics) will make the below easier to trace/debug
             testMetricLoggerBaseTypeInclusionFilter.Increment(new UserRemoved());
             testMetricLoggerBaseTypeInclusionFilter.Set(new GroupsStored(), 2);
             Guid beginId1 = testMetricLoggerBaseTypeInclusionFilter.Begin(new UsersPropertyQueryTime());
