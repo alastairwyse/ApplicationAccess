@@ -153,7 +153,7 @@
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.#ctor(System.Action{System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter}})">
             <summary>
-            Initialises a new instance of the ApplicationMetrics.MetricLoggers.SqlServer.SqlServerMetricLogger+StoredProcedureExecutionWrapper class.
+            Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister+StoredProcedureExecutionWrapper class.
             </summary>
             <param name="executeAction"></param>
         </member>

@@ -128,7 +128,7 @@ namespace ApplicationAccess.Hosting
             (
                 new List<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
             );
-            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
+            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor, metricLogger);
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace ApplicationAccess.Hosting
             (
                 new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
             );
-            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
+            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor, metricLogger);
         }
 
         /// <summary>

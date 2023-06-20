@@ -42,6 +42,8 @@ namespace ApplicationAccess.TestHarness
         protected IList<IApplicationLogger> exceptionLoggers;
         protected EventWaitHandle stopSignal;
         protected Double targetOperationsPerSecond;
+        protected Int32 operationsPerSecondPrintFrequency;
+        protected Int32 previousOperationInitiationTimeWindowSize;
         protected OperationCounter operationCounter;
         protected Double exceptionsPerSecondThreshold;
         protected Int32 previousExceptionOccurenceTimeWindowSize;
@@ -60,6 +62,8 @@ namespace ApplicationAccess.TestHarness
         /// <param name="exceptionLoggers">The exception loggers to use for each worker thread</param>
         /// <param name="stopSignal">Signal used to notify that testing should be stopped/cancelled (e.g. in the case of critical error).</param>
         /// <param name="targetOperationsPerSecond">>The target number of operations per second to trigger.  A value of 0.0 will trigger operations continuously at the maximum possible frequency.</param>
+        /// <param name="operationsPerSecondPrintFrequency">The number of times per operation iteration that the actual 'operations per second' value should be printed to the console.</param>
+        /// <param name="previousOperationInitiationTimeWindowSize">The number of previous operation occurence timestamps to keep, in order to calculate the number of operations occurring per worker thread, per second.</param>
         /// <param name="exceptionsPerSecondThreshold">The threshold for the allowed number of exceptions per worker thread, per second.</param>
         /// <param name="previousExceptionOccurenceTimeWindowSize">The number of previous exception occurence timestamps to keep, in order to calculate the number of exceptions occurring per worker thread, per second.</param>
         /// <param name="operationLimit">The maximum number of operations to generate (set to 0 for no limit).  Testing will stop once this limit is reached.</param>
@@ -75,7 +79,9 @@ namespace ApplicationAccess.TestHarness
             IList<IOperationParameterGenerator<TUser, TGroup, TComponent, TAccess>> parameterGenerators,
             IList<IApplicationLogger> exceptionLoggers,
             EventWaitHandle stopSignal, 
-            Double targetOperationsPerSecond, 
+            Double targetOperationsPerSecond,
+            Int32 operationsPerSecondPrintFrequency, 
+            Int32 previousOperationInitiationTimeWindowSize, 
             Double exceptionsPerSecondThreshold,
             Int32 previousExceptionOccurenceTimeWindowSize,
             Int64 operationLimit, 
@@ -112,6 +118,8 @@ namespace ApplicationAccess.TestHarness
             this.exceptionLoggers = exceptionLoggers;
             this.stopSignal = stopSignal;
             this.targetOperationsPerSecond = targetOperationsPerSecond;
+            this.operationsPerSecondPrintFrequency = operationsPerSecondPrintFrequency;
+            this.previousOperationInitiationTimeWindowSize = previousOperationInitiationTimeWindowSize;
             this.exceptionsPerSecondThreshold = exceptionsPerSecondThreshold;
             this.previousExceptionOccurenceTimeWindowSize = previousExceptionOccurenceTimeWindowSize;
             this.ignoreKnownAccessManagerExceptions = ignoreKnownAccessManagerExceptions;
@@ -126,7 +134,7 @@ namespace ApplicationAccess.TestHarness
         {
             for (Int32 i = 0; i < workerThreadCount; i++)
             {
-                var currentOperationTriggerer = new OperationTriggerer(targetOperationsPerSecond, previousExceptionOccurenceTimeWindowSize, i.ToString());
+                var currentOperationTriggerer = new OperationTriggerer(targetOperationsPerSecond, previousOperationInitiationTimeWindowSize, operationsPerSecondPrintFrequency, i.ToString());
                 var currentOperationExecutor = new OperationExecutor<TUser, TGroup, TComponent, TAccess>
                 (
                     dataElementStorer,
@@ -144,6 +152,7 @@ namespace ApplicationAccess.TestHarness
                 );
                 currentOperationTriggerer.Counterpart = currentOperationExecutor;
                 currentOperationExecutor.Counterpart = currentOperationTriggerer;
+                currentOperationExecutor.OperationTriggerer = currentOperationTriggerer;
                 operationTriggerers.Add(currentOperationTriggerer);
                 operationExecutors.Add(currentOperationExecutor);
                 currentOperationTriggerer.Start();

@@ -29,6 +29,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         public Boolean LoadExistingData;
         public Int32 ThreadCount;
         public Double TargetOperationsPerSecond;
+        public Int32 OperationsPerSecondPrintFrequency;
         public Int32 PreviousOperationInitiationTimeWindowSize;
         public Double ExceptionsPerSecondThreshold;
         public Int32 PreviousExceptionOccurenceTimeWindowSize;

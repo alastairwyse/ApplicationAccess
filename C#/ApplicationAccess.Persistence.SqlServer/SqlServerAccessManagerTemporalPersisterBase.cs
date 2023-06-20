@@ -832,7 +832,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             if (transactionTime == DateTime.MinValue)
                 throw eventIdToTransactionTimeMapRowDoesntExistException;
 
-            LoadToAccessManager(stateTime, accessManagerToLoadTo);
+            LoadToAccessManager(transactionTime, accessManagerToLoadTo);
 
             return new Tuple<Guid, DateTime>(eventId, transactionTime);
         }

@@ -28,6 +28,8 @@ namespace ApplicationAccess.TestHarness
     {
         /// <summary>Used to accurately measure frequency of operations triggered.</summary>
         protected Stopwatch stopwatch;
+        /// <summary>The <see cref="Stopwatch.Frequency"/> property value.</summary>
+        protected Int64 stopwatchFrequncy;
         /// <summary>The timestamp at which the Start() method was called.</summary>
         protected DateTime startTime;
         /// <summary>Holds the times of previous operation initiations.  The <see cref="LinkedList{T}.Last">Last</see> property holds the time of the most recently initiated.</summary>
@@ -36,26 +38,38 @@ namespace ApplicationAccess.TestHarness
         protected Double targetOperationsPerSecond;
         /// <summary>The number of items to keep in member 'previousInitiationTimeWindow'.</summary>
         protected Int32 previousInitiationTimeWindowSize;
+        /// <summary>The number of times per operation iteration that the actual 'operations per second' value should be printed to the console.  Set to 0 to not print.</summary>
+        protected Int32 operationsPerSecondPrintFrequency;
+        /// <summary>The number of operations generated.</summary>
+        protected Int64 generationCounter;
+        /// <summary>The total time waited between operation triggers.</summary>
+        protected Double totalWaitTime;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.TestHarness.OperationTriggerer class.
         /// </summary>
         /// <param name="targetOperationsPerSecond">The target number of operations per second to trigger.</param>
         /// <param name="previousInitiationTimeWindowSize">The number of items to keep in member 'previousInitiationTimeWindow'.</param>
+        /// <param name="operationsPerSecondPrintFrequency">The number of times per operation iteration that the actual 'operations per second' value should be printed to the console.  Set to 0 to not print.</param>
         /// <param name="id">An optional unique id for this OperationTriggerer instance.</param>
-        public OperationTriggerer(Double targetOperationsPerSecond, Int32 previousInitiationTimeWindowSize, String id = "")
+        public OperationTriggerer(Double targetOperationsPerSecond, Int32 previousInitiationTimeWindowSize, Int32 operationsPerSecondPrintFrequency, String id = "")
             : base()
         {
             if (targetOperationsPerSecond < 0.0)
                 throw new ArgumentOutOfRangeException(nameof(targetOperationsPerSecond), $"Parameter '{nameof(targetOperationsPerSecond)}' with value {targetOperationsPerSecond} cannot be less than or equal to 0.");
-            if (previousInitiationTimeWindowSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(previousInitiationTimeWindowSize), $"Parameter '{nameof(previousInitiationTimeWindowSize)}' with value {previousInitiationTimeWindowSize} cannot be less than 0.");
-
+            if (previousInitiationTimeWindowSize < 10)
+                throw new ArgumentOutOfRangeException(nameof(previousInitiationTimeWindowSize), $"Parameter '{nameof(previousInitiationTimeWindowSize)}' with value {previousInitiationTimeWindowSize} cannot be less than 10.");
+            if (operationsPerSecondPrintFrequency < 0)
+                throw new ArgumentOutOfRangeException(nameof(operationsPerSecondPrintFrequency), $"Parameter '{nameof(operationsPerSecondPrintFrequency)}' with value {operationsPerSecondPrintFrequency} cannot be less than 0.");
 
             stopwatch = new Stopwatch();
+            stopwatchFrequncy = Stopwatch.Frequency;
             previousInitiationTimeWindow = new LinkedList<DateTime>();
             this.targetOperationsPerSecond = targetOperationsPerSecond;
             this.previousInitiationTimeWindowSize = previousInitiationTimeWindowSize;
+            this.operationsPerSecondPrintFrequency = operationsPerSecondPrintFrequency;
+            generationCounter = 0;
+            totalWaitTime = 0.0;
             base.workerThreadName = $"{this.GetType().FullName} worker thread";
             if (String.IsNullOrEmpty(id) == false)
             {
@@ -78,6 +92,31 @@ namespace ApplicationAccess.TestHarness
             stopwatch.Start();
             startTime = DateTime.UtcNow;
             base.Start();
+        }
+
+        public void NotifyOperationInitiated()
+        {
+            DateTime now = GetStopWatchUtcNow();
+            lock (previousInitiationTimeWindow)
+            {
+                previousInitiationTimeWindow.AddLast(now);
+                while (previousInitiationTimeWindow.Count > previousInitiationTimeWindowSize)
+                {
+                    previousInitiationTimeWindow.RemoveFirst();
+                }
+                generationCounter++;
+
+                if (operationsPerSecondPrintFrequency > 0)
+                {
+                    if (generationCounter % operationsPerSecondPrintFrequency == 0)
+                    {
+                        Double timeWindowTotalLength = (previousInitiationTimeWindow.Last.Value - previousInitiationTimeWindow.First.Value).TotalMilliseconds;
+                        Double averageOperationInterval = timeWindowTotalLength / Convert.ToDouble(previousInitiationTimeWindow.Count - 1);
+                        Double actualOperationsPerSecond = 1000.0 / averageOperationInterval;
+                        Console.WriteLine($"{workerThreadName}: operations per second: {actualOperationsPerSecond}");
+                    }
+                }
+            }
         }
 
         #region Private/Protected Methods
@@ -108,19 +147,48 @@ namespace ApplicationAccess.TestHarness
                 }
             }
 
-            if (waitTime < 0.0)
+            Int32 returnWaitTime = 0;
+            if (waitTime > 0.0)
             {
-                return 0;
+                returnWaitTime = Convert.ToInt32(Math.Round(waitTime));
             }
-            else
+            if (operationsPerSecondPrintFrequency > 0)
             {
-                return Convert.ToInt32(Math.Round(waitTime));
+                totalWaitTime += Math.Max(waitTime, 0.0);
+                if (generationCounter % operationsPerSecondPrintFrequency == 0)
+                {
+                    Double averageWaitTime = totalWaitTime / Convert.ToDouble(generationCounter);
+                    Console.WriteLine($"{workerThreadName}: average wait between operation triggers: {averageWaitTime}");
+                }
             }
+
+            return returnWaitTime;
         }
 
         protected DateTime GetStopWatchUtcNow()
         {
-            return startTime.AddTicks(stopwatch.ElapsedTicks);
+            if (stopwatchFrequncy == 10000000)
+            {
+                return startTime.AddTicks(stopwatch.ElapsedTicks);
+            }
+            else
+            {
+                Double stopWatchTicksPerDateTimeTick = 10000000.0 / Convert.ToDouble(stopwatchFrequncy);
+                Double elapsedDateTimeTicksDouble = stopWatchTicksPerDateTimeTick * Convert.ToDouble(stopwatch.ElapsedTicks);
+                Int64 elapsedDateTimeTicks;
+                try
+                {
+                    // Would like to not prevent overflow with a try/catch, but can't find any better way to do this
+                    //   Chance should be extremely low of ever hitting the catch block... time since starting the stopwatch would have to be > 29,000 years
+                    elapsedDateTimeTicks = Convert.ToInt64(elapsedDateTimeTicksDouble);
+                }
+                catch (OverflowException)
+                {
+                    elapsedDateTimeTicks = Int64.MaxValue;
+                }
+
+                return startTime.AddTicks(elapsedDateTimeTicks);
+            }
         }
 
         #endregion

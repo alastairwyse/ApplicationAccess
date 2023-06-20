@@ -119,9 +119,24 @@ namespace ApplicationAccess.Hosting
     }
 
     /// <summary>
-    /// Count metric which records the time taken to load the entire contents of a reader/writer node.
+    /// Interval metric which records the time taken to refresh a reader node.
     /// </summary>
-    public class ReaderWriterNodeLoadTime : ReaderNodeIntervalMetric
+    public class RefreshTime : ReaderNodeIntervalMetric
+    {
+        protected static String staticName = "RefreshTime";
+        protected static String staticDescription = "The time taken to refresh a reader node";
+
+        public RefreshTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to load the entire contents of a reader/writer node.
+    /// </summary>
+    public class ReaderWriterNodeLoadTime : IntervalMetric
     {
         protected static String staticName = "ReaderWriterNodeLoadTime";
         protected static String staticDescription = "The time taken to load the entire contents of a reader/writer node";
@@ -134,9 +149,9 @@ namespace ApplicationAccess.Hosting
     }
 
     /// <summary>
-    /// Count metric which records the time taken to load the entire contents of a writer node.
+    /// Interval metric which records the time taken to load the entire contents of a writer node.
     /// </summary>
-    public class WriterNodeLoadTime : ReaderNodeIntervalMetric
+    public class WriterNodeLoadTime : IntervalMetric
     {
         protected static String staticName = "WriterNodeLoadTime";
         protected static String staticDescription = "The time taken to load the entire contents of a writer node";

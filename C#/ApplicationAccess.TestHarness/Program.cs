@@ -127,7 +127,7 @@ namespace ApplicationAccess.TestHarness
             MetricsBufferConfiguration metricsBufferConfiguration = new MetricsBufferConfigurationReader().Read(configurationRoot.GetSection(metricsBufferConfigurationFileProperty));
             PersisterBufferFlushStrategyConfiguration persisterBufferFlushStrategyConfiguration = new PersisterBufferFlushStrategyConfigurationReader().Read(configurationRoot.GetSection(persisterBufferFlushStrategyConfigurationFileProperty));
             OperationGeneratorConfiguration operationGeneratorConfiguration = new OperationGeneratorConfigurationReader().Read(configurationRoot.GetSection(operationGeneratorConfigurationFileProperty));
-            AccessManagerConfiguration accessManagerConfiguration = new AccessManagerConfigurationReader().Read(configurationRoot.GetSection(operationGeneratorConfigurationFileProperty));
+            AccessManagerConfiguration accessManagerConfiguration = new AccessManagerConfigurationReader().Read(configurationRoot.GetSection(accessManagerConfigurationFileProperty));
             TestHarnessConfiguration testHarnessConfiguration = new TestHarnessConfigurationReader().Read(configurationRoot.GetSection(testHarnessConfigurationFileProperty));
 
             // Setup the test harness
@@ -259,6 +259,7 @@ namespace ApplicationAccess.TestHarness
                                 }
                                 // Setup TestHarness array parameters
                                 Double targetOperationsPerSecond = testHarnessConfiguration.TargetOperationsPerSecond;
+                                Int32 operationsPerSecondPrintFrequency = testHarnessConfiguration.OperationsPerSecondPrintFrequency;
                                 Int32 previousInitiationTimeWindowSize = testHarnessConfiguration.PreviousOperationInitiationTimeWindowSize;
                                 var testAccessManagerQueryProcessors = new List<IAccessManagerQueryProcessor<String, String, TestApplicationComponent, TestAccessLevel>>();
                                 var testAccessManagerEventProcessors = new List<IAccessManagerEventProcessor<String, String, TestApplicationComponent, TestAccessLevel>>();
@@ -311,7 +312,9 @@ namespace ApplicationAccess.TestHarness
                                     parameterGenerators,
                                     exceptionLoggers,
                                     stopNotifySignal, 
-                                    targetOperationsPerSecond, 
+                                    targetOperationsPerSecond,
+                                    operationsPerSecondPrintFrequency,
+                                    previousInitiationTimeWindowSize, 
                                     exceptionsPerSecondThreshold,
                                     previousExceptionOccurenceTimeWindowSize,
                                     operationLimit, 
@@ -473,6 +476,7 @@ namespace ApplicationAccess.TestHarness
 
                 // Setup TestHarness array parameters
                 Double targetOperationsPerSecond = testHarnessConfiguration.TargetOperationsPerSecond;
+                Int32 operationsPerSecondPrintFrequency = testHarnessConfiguration.OperationsPerSecondPrintFrequency;
                 Int32 previousInitiationTimeWindowSize = testHarnessConfiguration.PreviousOperationInitiationTimeWindowSize;
                 var metricsBufferFlushStrategies = new List<BufferFlushStrategyFactoryResult<IBufferProcessingStrategy>>();
                 var metricsLoggers = new List<SqlServerMetricLogger>();
@@ -642,7 +646,9 @@ namespace ApplicationAccess.TestHarness
                     parameterGenerators,
                     exceptionLoggers,
                     stopNotifySignal,
-                    targetOperationsPerSecond, 
+                    targetOperationsPerSecond,
+                    operationsPerSecondPrintFrequency,
+                    previousInitiationTimeWindowSize,
                     exceptionsPerSecondThreshold,
                     previousExceptionOccurenceTimeWindowSize,
                     operationLimit,

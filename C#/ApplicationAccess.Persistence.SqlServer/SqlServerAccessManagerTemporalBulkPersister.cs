@@ -498,7 +498,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             protected Action<String, IEnumerable<SqlParameter>> executeAction;
 
             /// <summary>
-            /// Initialises a new instance of the ApplicationMetrics.MetricLoggers.SqlServer.SqlServerMetricLogger+StoredProcedureExecutionWrapper class.
+            /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister+StoredProcedureExecutionWrapper class.
             /// </summary>
             /// <param name="executeAction"></param>
             public StoredProcedureExecutionWrapper(Action<String, IEnumerable<SqlParameter>> executeAction)

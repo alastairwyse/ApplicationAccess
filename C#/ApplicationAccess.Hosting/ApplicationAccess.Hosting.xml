@@ -319,14 +319,19 @@
             Count metric which records a reader node being refreshed with the latest data.
             </summary>
         </member>
+        <member name="T:ApplicationAccess.Hosting.RefreshTime">
+            <summary>
+            Interval metric which records the time taken to refresh a reader node.
+            </summary>
+        </member>
         <member name="T:ApplicationAccess.Hosting.ReaderWriterNodeLoadTime">
             <summary>
-            Count metric which records the time taken to load the entire contents of a reader/writer node.
+            Interval metric which records the time taken to load the entire contents of a reader/writer node.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Hosting.WriterNodeLoadTime">
             <summary>
-            Count metric which records the time taken to load the entire contents of a writer node.
+            Interval metric which records the time taken to load the entire contents of a writer node.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Hosting.ReaderNode`4">

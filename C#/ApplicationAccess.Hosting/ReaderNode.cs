@@ -359,6 +359,7 @@ namespace ApplicationAccess.Hosting
         /// </summary>
         protected void Refresh()
         {
+            Guid beginId = metricLogger.Begin(new RefreshTime());
             IList<TemporalEventBufferItemBase> updateEvents = null;
             try
             {
@@ -378,11 +379,13 @@ namespace ApplicationAccess.Hosting
                 }
                 catch (Exception e)
                 {
+                    metricLogger.CancelBegin(beginId, new RefreshTime());
                     throw new ReaderNodeRefreshException($"Failed to refresh the entire contents of the reader node.", e);
                 }
             }
             catch (Exception e)
             {
+                metricLogger.CancelBegin(beginId, new RefreshTime());
                 throw new ReaderNodeRefreshException($"Failed to retrieve latest access manager events following event '{latestEventId}' from cache.", e);
             }
 
@@ -401,6 +404,7 @@ namespace ApplicationAccess.Hosting
                     latestEventId = updateEvents[updateEvents.Count - 1].EventId;
                 }
             }
+            metricLogger.End(beginId, new RefreshTime());
             metricLogger.Increment(new RefreshOperationCompleted());
         }
 

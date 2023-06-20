@@ -90,12 +90,16 @@ namespace ApplicationAccess.Persistence
         /// <inheritdoc/>
         public IList<TemporalEventBufferItemBase> GetAllEventsSince(Guid eventId)
         {
+            var returnList = new List<TemporalEventBufferItemBase>();
+            Guid beginId = metricLogger.Begin(new CachedEventsReadTime());
             lock (cachedEvents)
             {
                 if (cachedEventsGuidIndex.ContainsKey(eventId) == false)
+                {
+                    metricLogger.CancelBegin(beginId, new CachedEventsReadTime());
                     throw new EventNotCachedException($"No event with {nameof(eventId)} '{eventId}' was found in the cache.");
-
-                var returnList = new List<TemporalEventBufferItemBase>();
+                }
+                    
                 LinkedListNode<TemporalEventBufferItemBase> currentNode = cachedEventsGuidIndex[eventId];
                 currentNode = currentNode.Next;
                 while (currentNode != null)
@@ -103,10 +107,11 @@ namespace ApplicationAccess.Persistence
                     returnList.Add(currentNode.Value);
                     currentNode = currentNode.Next;
                 }
-                metricLogger.Add(new CachedEventsRead(), returnList.Count);
-
-                return returnList;
             }
+            metricLogger.End(beginId, new CachedEventsReadTime());
+            metricLogger.Add(new CachedEventsRead(), returnList.Count);
+
+            return returnList;
         }
 
         #region Private/Protected Methods

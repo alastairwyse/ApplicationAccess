@@ -654,6 +654,21 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
+    /// Interval metric which records the time taken to cache events (i.e. to execute the PersistEvents() method).
+    /// </summary>
+    public class EventsCachingTime : IntervalMetric
+    {
+        protected static String staticName = "EventsCachingTime";
+        protected static String staticDescription = "The time taken to cache events (i.e. to execute the PersistEvents() method)";
+
+        public EventsCachingTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Amount metric which records the number of events read from the cache.
     /// </summary>
     public class CachedEventsRead : AmountMetric
@@ -662,6 +677,21 @@ namespace ApplicationAccess.Persistence
         protected static String staticDescription = "The number of events read from the cache";
 
         public CachedEventsRead()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken read events from the cache (i.e. to execute the GetAllEventsSince() method).
+    /// </summary>
+    public class CachedEventsReadTime : IntervalMetric
+    {
+        protected static String staticName = "CachedEventsReadTime";
+        protected static String staticDescription = "The time taken read events from the cache (i.e. to execute the GetAllEventsSince() method)";
+
+        public CachedEventsReadTime()
         {
             base.name = staticName;
             base.description = staticDescription;

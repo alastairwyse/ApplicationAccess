@@ -49,8 +49,8 @@ namespace ApplicationAccess.TestHarness
         {
             if (exceptionsPerSecondThreshold <= 0.0)
                 throw new ArgumentOutOfRangeException(nameof(exceptionsPerSecondThreshold), $"Parameter '{nameof(exceptionsPerSecondThreshold)}' with value {exceptionsPerSecondThreshold} cannot be less than or equal to 0.");
-            if (previousExceptionOccurenceTimeWindowSize < 2)
-                throw new ArgumentOutOfRangeException(nameof(previousExceptionOccurenceTimeWindowSize), $"Parameter '{nameof(previousExceptionOccurenceTimeWindowSize)}' with value {previousExceptionOccurenceTimeWindowSize} cannot be less than 0.");
+            if (previousExceptionOccurenceTimeWindowSize < 10)
+                throw new ArgumentOutOfRangeException(nameof(previousExceptionOccurenceTimeWindowSize), $"Parameter '{nameof(previousExceptionOccurenceTimeWindowSize)}' with value {previousExceptionOccurenceTimeWindowSize} cannot be less than 10.");
 
             knownAccessManagerExceptions = new HashSet<Type>() { typeof(ArgumentException) };
             previousExceptionOccurenceTimeWindow = new LinkedList<DateTime>();

@@ -24,6 +24,7 @@ using ApplicationAccess.Utilities;
 using NUnit.Framework;
 using NSubstitute;
 using ApplicationMetrics;
+using ApplicationAccess.Metrics;
 
 namespace ApplicationAccess.Hosting.UnitTests
 {
@@ -999,8 +1000,10 @@ namespace ApplicationAccess.Hosting.UnitTests
         public void Refresh_LoadFails()
         {
             var mockException = new Exception("Failed to load.");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             EventHandler capturedSubscriberMethod = null;
             mockRefreshStrategy.ReaderNodeRefreshed += Arg.Do<EventHandler>(eventHandler => capturedSubscriberMethod = eventHandler);
+            mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns
             (
                 // Return successfully from the initial Load() call
@@ -1017,9 +1020,11 @@ namespace ApplicationAccess.Hosting.UnitTests
                 capturedSubscriberMethod.Invoke(mockRefreshStrategy, EventArgs.Empty);
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<RefreshTime>());
             mockPersistentReader.Received(2).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
             mockEventCache.Received(1).GetAllEventsSince(returnedLoadState.Item1);
             mockMetricLogger.Received(1).Increment(Arg.Any<CacheMiss>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<RefreshTime>());
             Assert.That(e.Message, Does.StartWith("Failed to refresh the entire contents of the reader node."));
             Assert.IsInstanceOf<Exception>(e.InnerException);
             Assert.That(e.InnerException.Message, Does.StartWith("Failed to load access manager state from persistent storage."));
@@ -1029,8 +1034,10 @@ namespace ApplicationAccess.Hosting.UnitTests
         [Test]
         public void Refresh_CacheDoesntContainLatestEventId()
         {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             EventHandler capturedSubscriberMethod = null;
             mockRefreshStrategy.ReaderNodeRefreshed += Arg.Do<EventHandler>(eventHandler => capturedSubscriberMethod = eventHandler);
+            mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw new EventNotCachedException("The specified event was not cached."));
             testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
@@ -1046,8 +1053,10 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             capturedSubscriberMethod.Invoke(mockRefreshStrategy, EventArgs.Empty);
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<RefreshTime>());
             mockPersistentReader.Received(2).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
             mockEventCache.Received(1).GetAllEventsSince(returnedLoadState.Item1);
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<RefreshTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<CacheMiss>());
             var result = new List<String>(testReaderNode.Users);
             Assert.AreEqual(1, result.Count);
@@ -1058,11 +1067,13 @@ namespace ApplicationAccess.Hosting.UnitTests
         public void Refresh_CallToEventCacheFails()
         {
             var mockException = new Exception("Failure to retrieve event from cache.");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             EventHandler capturedSubscriberMethod = null;
             mockRefreshStrategy.ReaderNodeRefreshed += Arg.Do<EventHandler>(eventHandler => capturedSubscriberMethod = eventHandler);
+            mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw mockException);
-            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false);
+            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
             testReaderNode.Load(true);
 
             var e = Assert.Throws<ReaderNodeRefreshException>(delegate
@@ -1070,8 +1081,10 @@ namespace ApplicationAccess.Hosting.UnitTests
                 capturedSubscriberMethod.Invoke(mockRefreshStrategy, EventArgs.Empty);
             });
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<RefreshTime>());
             mockPersistentReader.Received(1).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
             mockEventCache.Received(1).GetAllEventsSince(returnedLoadState.Item1);
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<RefreshTime>());
             Assert.That(e.Message, Does.StartWith($"Failed to retrieve latest access manager events following event '{returnedLoadState.Item1}' from cache."));
             Assert.AreEqual(mockException, e.InnerException);
         }
@@ -1079,9 +1092,11 @@ namespace ApplicationAccess.Hosting.UnitTests
         [Test]
         public void Refresh_EventCacheReturns0Events()
         {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var testUpdateEvents = new List<TemporalEventBufferItemBase>();
             EventHandler capturedSubscriberMethod = null;
             mockRefreshStrategy.ReaderNodeRefreshed += Arg.Do<EventHandler>(eventHandler => capturedSubscriberMethod = eventHandler);
+            mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.GetAllEventsSince(returnedLoadState.Item1).Returns(testUpdateEvents);
             testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
@@ -1089,9 +1104,11 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             capturedSubscriberMethod.Invoke(mockRefreshStrategy, EventArgs.Empty);
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<RefreshTime>());
             mockPersistentReader.Received(1).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
             mockEventCache.Received(1).GetAllEventsSince(returnedLoadState.Item1);
             mockMetricLogger.Received(1).Add(Arg.Any<CachedEventsReceived>(), 0);
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<RefreshTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<RefreshOperationCompleted>());
         }
 
@@ -1100,6 +1117,7 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             const String user = "user1";
             const String entityType = "ClientAccount";
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var userEventId = Guid.Parse("625e7ff0-429a-40c8-a5d6-5c4457981522");
             DateTime userEventOccurredTime = CreateDataTimeFromString("2022-10-08 11:17:35");
             var entityTypeEventId = Guid.Parse("aca8565a-2d95-471e-8fe1-51d27024f793");
@@ -1111,6 +1129,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             };
             EventHandler capturedSubscriberMethod = null;
             mockRefreshStrategy.ReaderNodeRefreshed += Arg.Do<EventHandler>(eventHandler => capturedSubscriberMethod = eventHandler);
+            mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.GetAllEventsSince(returnedLoadState.Item1).Returns(testUpdateEvents);
             mockDateTimeProvider.UtcNow().Returns
@@ -1123,11 +1142,13 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             capturedSubscriberMethod.Invoke(mockRefreshStrategy, EventArgs.Empty);
 
+            mockMetricLogger.Received(1).Begin(Arg.Any<RefreshTime>());
             mockPersistentReader.Received(1).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
             mockEventCache.Received(1).GetAllEventsSince(returnedLoadState.Item1);
             mockMetricLogger.Received(1).Add(Arg.Any<CachedEventsReceived>(), 2);
             mockMetricLogger.Received(1).Add(Arg.Any<EventProcessingDelay>(), 1000);
             mockMetricLogger.Received(1).Add(Arg.Any<EventProcessingDelay>(), 2000);
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<RefreshTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<RefreshOperationCompleted>());
             var result = new List<String>(testReaderNode.Users);
             Assert.AreEqual(1, result.Count);

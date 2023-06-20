@@ -26,6 +26,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         protected const String loadExistingDataPropertyName = "LoadExistingData";
         protected const String threadCountPropertyName = "ThreadCount";
         protected const String targetOperationsPerSecondPropertyName = "TargetOperationsPerSecond";
+        protected const String operationsPerSecondPrintFrequencyPropertyName = "OperationsPerSecondPrintFrequency";
         protected const String previousOperationInitiationTimeWindowSizePropertyName = "PreviousOperationInitiationTimeWindowSize";
         protected const String exceptionsPerSecondThresholdPropertyName = "ExceptionsPerSecondThreshold";
         protected const String previousExceptionOccurenceTimeWindowSizePropertyName = "PreviousExceptionOccurenceTimeWindowSize";
@@ -44,6 +45,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             ThrowExceptionIfPropertyNotFound(loadExistingDataPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(threadCountPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(targetOperationsPerSecondPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(operationsPerSecondPrintFrequencyPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(previousOperationInitiationTimeWindowSizePropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(exceptionsPerSecondThresholdPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(previousExceptionOccurenceTimeWindowSizePropertyName, configurationSection);
@@ -57,6 +59,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             returnConfiguration.LoadExistingData = GetConfigurationValueAsBoolean(loadExistingDataPropertyName, configurationSection);
             returnConfiguration.ThreadCount = GetConfigurationValueAsInteger(threadCountPropertyName, configurationSection);
             returnConfiguration.TargetOperationsPerSecond = GetConfigurationValueAsDouble(targetOperationsPerSecondPropertyName, configurationSection);
+            returnConfiguration.OperationsPerSecondPrintFrequency = GetConfigurationValueAsInteger(operationsPerSecondPrintFrequencyPropertyName, configurationSection);
             returnConfiguration.PreviousOperationInitiationTimeWindowSize = GetConfigurationValueAsInteger(previousOperationInitiationTimeWindowSizePropertyName, configurationSection);
             returnConfiguration.ExceptionsPerSecondThreshold = GetConfigurationValueAsDouble(exceptionsPerSecondThresholdPropertyName, configurationSection);
             returnConfiguration.PreviousExceptionOccurenceTimeWindowSize = GetConfigurationValueAsInteger(previousExceptionOccurenceTimeWindowSizePropertyName, configurationSection);

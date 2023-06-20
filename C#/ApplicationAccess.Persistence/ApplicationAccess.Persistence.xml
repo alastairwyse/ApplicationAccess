@@ -1680,9 +1680,19 @@
             Amount metric which records the number of events cached.
             </summary>
         </member>
+        <member name="T:ApplicationAccess.Persistence.EventsCachingTime">
+            <summary>
+            Interval metric which records the time taken to cache events (i.e. to execute the PersistEvents() method).
+            </summary>
+        </member>
         <member name="T:ApplicationAccess.Persistence.CachedEventsRead">
             <summary>
             Amount metric which records the number of events read from the cache.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.CachedEventsReadTime">
+            <summary>
+            Interval metric which records the time taken read events from the cache (i.e. to execute the GetAllEventsSince() method).
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.PersistentStorageEmptyException">

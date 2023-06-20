@@ -68,6 +68,7 @@ namespace ApplicationAccess.Persistence
         /// <param name="events">The events to cache.</param>
         public void PersistEvents(IList<TemporalEventBufferItemBase> events)
         {
+            Guid beginId = metricLogger.Begin(new EventsCachingTime());
             lock (cachedEvents)
             {
                 foreach (TemporalEventBufferItemBase currentEvent in events)
@@ -76,8 +77,9 @@ namespace ApplicationAccess.Persistence
                     cachedEventsGuidIndex.Add(currentEvent.EventId, cachedEvents.Last);
                     TrimCachedEvents();
                 }
-                metricLogger.Add(new EventsCached(), events.Count);
             }
+            metricLogger.End(beginId, new EventsCachingTime());
+            metricLogger.Add(new EventsCached(), events.Count);
         }
     }
 }
