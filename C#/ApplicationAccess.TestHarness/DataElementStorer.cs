@@ -179,7 +179,7 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(users, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddUserIfNotExists(user);
+                users.Add(user);
             }));
         }
 
@@ -242,7 +242,7 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(groups, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddGroupIfNotExists(group);
+                groups.Add(group);
             }));
         }
 
@@ -323,8 +323,6 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(userToGroupMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddUserIfNotExists(user);
-                AddGroupIfNotExists(group);
                 if (userToGroupMap.ContainsKey(user) == false)
                 {
                     userToGroupMap.Add(user, new RandomlyAccessibleSet<TGroup>());
@@ -382,8 +380,6 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(groupToGroupMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddGroupIfNotExists(fromGroup);
-                AddGroupIfNotExists(toGroup);
                 if (groupToGroupMap.ContainsKey(fromGroup) == false)
                 {
                     groupToGroupMap.Add(fromGroup, new RandomlyAccessibleSet<TGroup>());
@@ -441,7 +437,6 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(userToComponentMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddUserIfNotExists(user);
                 var tuple = new Tuple<TComponent, TAccess>(applicationComponent, accessLevel);
                 if (userToComponentMap.ContainsKey(user) == false)
                 {
@@ -495,7 +490,6 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(groupToComponentMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddGroupIfNotExists(group);
                 var tuple = new Tuple<TComponent, TAccess>(applicationComponent, accessLevel);
                 if (groupToComponentMap.ContainsKey(group) == false)
                 {
@@ -549,7 +543,7 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(entities, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddEntityTypeIfNotExists(entityType);
+                entities.Add(entityType, new RandomlyAccessibleSet<String>());
             }));
         }
 
@@ -589,7 +583,6 @@ namespace ApplicationAccess.TestHarness
                     groupToEntityReverseMap.Remove(entityType);
                     Interlocked.CompareExchange(ref groupToEntityMappingCount, newgroupToEntityMappingCount, groupToEntityMappingCount);
                 }
-
                 if (entities.ContainsKey(entityType) == true)
                 {
                     Int32 newEntityCount = entityCount - entities[entityType].Count;
@@ -614,8 +607,8 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(entities, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddEntityTypeIfNotExists(entityType);
-                AddEntityIfNotExists(entityType, entity);
+                entities[entityType].Add(entity);
+                Interlocked.Increment(ref entityCount);
             }));
         }
 
@@ -667,9 +660,6 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(userToEntityMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddUserIfNotExists(user);
-                AddEntityTypeIfNotExists(entityType);
-                AddEntityIfNotExists(entityType, entity);
                 if (userToEntityMap.ContainsKey(user) == false)
                 {
                     userToEntityMap.Add(user, new RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>());
@@ -754,9 +744,6 @@ namespace ApplicationAccess.TestHarness
         {
             lockManager.AcquireLocksAndInvokeAction(groupToEntityMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                AddGroupIfNotExists(group);
-                AddEntityTypeIfNotExists(entityType);
-                AddEntityIfNotExists(entityType, entity);
                 if (groupToEntityMap.ContainsKey(group) == false)
                 {
                     groupToEntityMap.Add(group, new RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>());
@@ -859,39 +846,6 @@ namespace ApplicationAccess.TestHarness
             lockManager.RegisterLockObjectDependency(groupToComponentMap, groups);
             lockManager.RegisterLockObjectDependency(groupToEntityMap, groups);
             lockManager.RegisterLockObjectDependency(groupToEntityMap, entities);   
-        }
-
-        protected void AddUserIfNotExists(TUser user)
-        {
-            if (users.Contains(user) == false)
-            {
-                users.Add(user);
-            }
-        }
-
-        protected void AddGroupIfNotExists(TGroup group)
-        {
-            if (groups.Contains(group) == false)
-            {
-                groups.Add(group);
-            }
-        }
-
-        protected void AddEntityTypeIfNotExists(String entityType)
-        {
-            if (entities.ContainsKey(entityType) == false)
-            {
-                entities.Add(entityType, new RandomlyAccessibleSet<String>());
-            }
-        }
-
-        protected void AddEntityIfNotExists(String entityType, String entity)
-        {
-            if (entities[entityType].Contains(entity) == false)
-            {
-                entities[entityType].Add(entity);
-                Interlocked.Increment(ref entityCount);
-            }
         }
 
         #endregion

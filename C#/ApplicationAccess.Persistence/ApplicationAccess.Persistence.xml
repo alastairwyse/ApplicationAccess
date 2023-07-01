@@ -1695,6 +1695,24 @@
             Interval metric which records the time taken read events from the cache (i.e. to execute the GetAllEventsSince() method).
             </summary>
         </member>
+        <member name="T:ApplicationAccess.Persistence.NullAccessManagerTemporalBulkPersister`4">
+            <summary>
+            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> which doesn't persist any events.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <remarks>Intended for use in testing... e.g. to test a ReaderNode or ReaderWriterNode in a memory-only context.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.NullAccessManagerTemporalBulkPersister`4.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.NullAccessManagerTemporalBulkPersister class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.NullAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+            <inheritdoc/>
+        </member>
         <member name="T:ApplicationAccess.Persistence.PersistentStorageEmptyException">
             <summary>
             The exception that is thrown when an attempt is made to load or read from persistent storage which is empty.

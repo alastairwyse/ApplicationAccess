@@ -13,8 +13,8 @@
   <ItemGroup>
     <PackageReference Include="ApplicationLogging" Version="2.0.0" />
     <PackageReference Include="ApplicationLogging.Adapters.MicrosoftLoggingExtensions" Version="1.0.1" />
-    <PackageReference Include="ApplicationMetrics" Version="6.1.0" />
-    <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="2.1.0" />
+    <PackageReference Include="ApplicationMetrics" Version="6.2.0" />
+    <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="2.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 

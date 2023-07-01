@@ -29,7 +29,7 @@ namespace ApplicationAccess.TestHarness
         /// <summary>Used to accurately measure frequency of operations triggered.</summary>
         protected Stopwatch stopwatch;
         /// <summary>The <see cref="Stopwatch.Frequency"/> property value.</summary>
-        protected Int64 stopwatchFrequncy;
+        protected Int64 stopwatchFrequency;
         /// <summary>The timestamp at which the Start() method was called.</summary>
         protected DateTime startTime;
         /// <summary>Holds the times of previous operation initiations.  The <see cref="LinkedList{T}.Last">Last</see> property holds the time of the most recently initiated.</summary>
@@ -63,7 +63,7 @@ namespace ApplicationAccess.TestHarness
                 throw new ArgumentOutOfRangeException(nameof(operationsPerSecondPrintFrequency), $"Parameter '{nameof(operationsPerSecondPrintFrequency)}' with value {operationsPerSecondPrintFrequency} cannot be less than 0.");
 
             stopwatch = new Stopwatch();
-            stopwatchFrequncy = Stopwatch.Frequency;
+            stopwatchFrequency = Stopwatch.Frequency;
             previousInitiationTimeWindow = new LinkedList<DateTime>();
             this.targetOperationsPerSecond = targetOperationsPerSecond;
             this.previousInitiationTimeWindowSize = previousInitiationTimeWindowSize;
@@ -167,13 +167,13 @@ namespace ApplicationAccess.TestHarness
 
         protected DateTime GetStopWatchUtcNow()
         {
-            if (stopwatchFrequncy == 10000000)
+            if (stopwatchFrequency == 10000000)
             {
                 return startTime.AddTicks(stopwatch.ElapsedTicks);
             }
             else
             {
-                Double stopWatchTicksPerDateTimeTick = 10000000.0 / Convert.ToDouble(stopwatchFrequncy);
+                Double stopWatchTicksPerDateTimeTick = 10000000.0 / Convert.ToDouble(stopwatchFrequency);
                 Double elapsedDateTimeTicksDouble = stopWatchTicksPerDateTimeTick * Convert.ToDouble(stopwatch.ElapsedTicks);
                 Int64 elapsedDateTimeTicks;
                 try

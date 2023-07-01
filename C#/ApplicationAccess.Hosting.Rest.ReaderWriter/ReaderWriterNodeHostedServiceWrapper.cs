@@ -55,7 +55,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 
         /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the ReaderWriterNode.</summary>
         protected SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy eventBufferFlushStrategy;
-        /// <summary>Used to persist changes to and load data from the AccessManager.</summary>
+        /// <summary>Used to persist changes to, and load data from the AccessManager.</summary>
         protected SqlServerAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;

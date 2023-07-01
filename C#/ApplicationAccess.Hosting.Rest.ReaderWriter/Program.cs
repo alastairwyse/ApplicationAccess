@@ -58,7 +58,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 middlewareUtilities.AddSwaggerGenerationForAssembly(swaggerGenOptions, typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly);
             });
 
-            middlewareUtilities.SetupFileLogging(builder, "ApplicationAccessReaderWriterNodeLog");
+            // TODO: REMOVE AFTER CONTAINERIZING
+            middlewareUtilities.SetupFileLogging(builder, @"C:\Temp", "ApplicationAccessReaderWriterNodeLog");
 
             // Validate and register top level configuration items
             builder.Services.AddOptions<AccessManagerOptions>()
@@ -94,10 +95,11 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             // Register the hosted service wrapper
             if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
             {
-                builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
+                //builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
 
                 // TODO: REMOVE TEMPORARY DEBUGGING CODE
-                //builder.Services.AddHostedService<TestReaderWriterNodeHostedServiceWrapper>();
+                builder.Services.AddHostedService<NullEventPersistingReaderWriterNodeHostedServiceWrapper>();
+                //builder.Services.AddHostedService<JsonEventWritingReaderWriterNodeHostedServiceWrapper>();
             }
 
             WebApplication app = builder.Build();

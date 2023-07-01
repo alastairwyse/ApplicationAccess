@@ -58,7 +58,8 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 middlewareUtilities.AddSwaggerGenerationForAssembly(swaggerGenOptions, typeof(Rest.Controllers.EntityEventProcessorControllerBase).Assembly);
             });
 
-            middlewareUtilities.SetupFileLogging(builder, "ApplicationAccessWriterNodeLog");
+            // TODO: REMOVE AFTER CONTAINERIZING
+            middlewareUtilities.SetupFileLogging(builder, @"C:\Temp", "ApplicationAccessWriterNodeLog");
 
             // Validate and register top level configuration items
             builder.Services.AddOptions<AccessManagerOptions>()

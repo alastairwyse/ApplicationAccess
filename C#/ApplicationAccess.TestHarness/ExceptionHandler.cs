@@ -80,11 +80,8 @@ namespace ApplicationAccess.TestHarness
                         logger.Log(LogLevel.Critical, exceptionMessage, inputException);
                         throw new Exception(exceptionMessage, inputException);
                     }
-                    else
-                    {
-                        logger.Log(LogLevel.Information, "Exception occurred", inputException);
-                    }
                 }
+                logger.Log(LogLevel.Information, "Exception occurred", inputException);
             }
         }
     }

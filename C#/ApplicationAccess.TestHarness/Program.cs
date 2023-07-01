@@ -696,7 +696,7 @@ namespace ApplicationAccess.TestHarness
                         stopNotifySignal.Dispose();
                         Console.WriteLine("Flushing log4net logs...");
                         LogManager.Flush(10000);
-                        Console.WriteLine("Stopping and disposing 'operationTriggerers'...");
+                        Console.WriteLine("Testing Complete");
                     }
                 }
             }

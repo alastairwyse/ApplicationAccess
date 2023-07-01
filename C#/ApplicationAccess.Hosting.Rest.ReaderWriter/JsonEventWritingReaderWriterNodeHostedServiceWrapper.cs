@@ -29,13 +29,10 @@ using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
-    // TODO: REMOVE TEMPORARY DEBUGGING CODE
-    //   Remove this entire class
-
     /// <summary>
-    /// Variation of <see cref="ReaderWriterNodeHostedServiceWrapper"/> with metrics disabled and using the <see cref="ListAccessManagerTemporalBulkPersister{TUser, TGroup, TComponent, TAccess}"/> class for persisting events.  For concurrency testing.
+    /// Variation of <see cref="ReaderWriterNodeHostedServiceWrapper"/> with metrics disabled and using the <see cref="ListAccessManagerTemporalBulkPersister{TUser, TGroup, TComponent, TAccess}"/> class for storing persisted events before writing them to a JSON file when the service is stopped.  For concurrency and/or performance testing.
     /// </summary>
-    public class TestReaderWriterNodeHostedServiceWrapper : IHostedService
+    public class JsonEventWritingReaderWriterNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection
         protected AccessManagerOptions accessManagerOptions;
@@ -55,7 +52,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 
         /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the ReaderWriterNode.</summary>
         protected SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy eventBufferFlushStrategy;
-        /// <summary>Used to persist changes load data to/from the AccessManager.</summary>
+        /// <summary>Used to persist changes to the AccessManager.</summary>
         protected ListAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
@@ -65,9 +62,9 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         protected ReaderWriterNode<String, String, String, String> readerWriterNode;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ReaderWriter.TestReaderWriterNodeHostedServiceWrapper class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ReaderWriter.JsonEventWritingReaderWriterNodeHostedServiceWrapper class.
         /// </summary>
-        public TestReaderWriterNodeHostedServiceWrapper
+        public JsonEventWritingReaderWriterNodeHostedServiceWrapper
         (
             IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
