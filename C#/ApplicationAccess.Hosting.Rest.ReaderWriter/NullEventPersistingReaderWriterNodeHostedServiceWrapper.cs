@@ -34,9 +34,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 
         // Members passed in via dependency injection
         protected AccessManagerOptions accessManagerOptions;
-        protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
-        protected MetricLoggingOptions metricLoggingOptions;
         protected EntityEventProcessorHolder entityEventProcessorHolder;
         protected EntityQueryProcessorHolder entityQueryProcessorHolder;
         protected GroupEventProcessorHolder groupEventProcessorHolder;
@@ -65,9 +63,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         public NullEventPersistingReaderWriterNodeHostedServiceWrapper
         (
             IOptions<AccessManagerOptions> accessManagerOptions,
-            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
-            IOptions<MetricLoggingOptions> metricLoggingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
             EntityQueryProcessorHolder entityQueryProcessorHolder,
             GroupEventProcessorHolder groupEventProcessorHolder,
@@ -81,9 +77,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         )
         {
             this.accessManagerOptions = accessManagerOptions.Value;
-            this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
-            this.metricLoggingOptions = metricLoggingOptions.Value;
             this.entityEventProcessorHolder = entityEventProcessorHolder;
             this.entityQueryProcessorHolder = entityQueryProcessorHolder;
             this.groupEventProcessorHolder = groupEventProcessorHolder;
@@ -104,13 +98,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Constructing ReaderWriterNode instance...");
 
             // Initialize the ReaderWriterNode constructor parameter members from configuration
-            InitializeReaderWriterNodeConstructorParameters
-            (
-                accessManagerSqlServerConnectionOptions,
-                eventBufferFlushingOptions,
-                metricLoggingOptions,
-                loggerFactory
-            );
+            InitializeReaderWriterNodeConstructorParameters(eventBufferFlushingOptions);
 
             // Create the ReaderWriterNode
             readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, new NullTemporalPersistentReader<String, String, String, String>(), eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value);
@@ -165,13 +153,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// <summary>
         /// Initializes the 'readerWriterNode' member constructor parameter members based on the specified configuration/options objects.
         /// </summary>
-        protected void InitializeReaderWriterNodeConstructorParameters
-        (
-            AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions,
-            EventBufferFlushingOptions eventBufferFlushingOptions,
-            MetricLoggingOptions metricLoggingOptions,
-            ILoggerFactory loggerFactory
-        )
+        protected void InitializeReaderWriterNodeConstructorParameters(EventBufferFlushingOptions eventBufferFlushingOptions)
         {
             eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
             (

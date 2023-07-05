@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace ApplicationAccess.Hosting.Launcher.UnitTests
@@ -35,7 +36,90 @@ namespace ApplicationAccess.Hosting.Launcher.UnitTests
         [Test]
         public void Read_ParameterNameNotPrefixedWithDash()
         {
-            throw new NotImplementedException();
+            var testArguments = new String[]
+            {
+                "-mode", "launch", "component", "ReaderWriter", "-listenPort", "5001"
+            };
+
+            var e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
+            {
+                testArgumentReader.Read(testArguments);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Encountered unknown parameter name 'component'"));
+            Assert.AreEqual("component", e.ArgumentName);
+        }
+
+        [Test]
+        public void Read_ParameterNameNotRecognized()
+        {
+            var testArguments = new String[]
+            {
+                "-mode", "launch", "-xomponent", "ReaderWriter", "-listenPort", "5001"
+            };
+
+            var e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
+            {
+                testArgumentReader.Read(testArguments);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Encountered unknown parameter name 'xomponent'"));
+            Assert.AreEqual("xomponent", e.ArgumentName);
+        }
+
+        [Test]
+        public void Read_ParameterMissingValue()
+        {
+            var testArguments = new String[]
+            {
+                "-mode", "launch", "-component", "-port", "5001"
+            };
+
+            var e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
+            {
+                testArgumentReader.Read(testArguments);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Missing value for parameter 'component'"));
+            Assert.AreEqual("component", e.ArgumentName);
+
+
+            testArguments = new String[]
+            {
+                "-mode", "launch", "-component", "ReaderWriter", "-listenPort"
+            };
+
+            e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
+            {
+                testArgumentReader.Read(testArguments);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Missing value for parameter 'listenPort'"));
+            Assert.AreEqual("listenPort", e.ArgumentName);
+        }
+
+
+        [Test]
+        public void Read()
+        {
+            var testArguments = new String[]
+            {
+                "-mode", "launch", "-component", "ReaderWriter", "-listenPort", "5001", "-minimumLogLevel", "Warning", "-encodedJsonConfiguration", "eyJMb2dnaW5nIjp7IkxvZ0xldmVsIjp7IkRlZmF1bHQiOiJJbmZvcm1hdGlvbiJ9fX0="
+            };
+
+            Dictionary<String, String> result = testArgumentReader.Read(testArguments);
+
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.ContainsKey("mode"));
+            Assert.IsTrue(result.ContainsKey("component"));
+            Assert.IsTrue(result.ContainsKey("listenPort"));
+            Assert.IsTrue(result.ContainsKey("minimumLogLevel"));
+            Assert.IsTrue(result.ContainsKey("encodedJsonConfiguration"));
+            Assert.AreEqual("launch", result["mode"]);
+            Assert.AreEqual("ReaderWriter", result["component"]);
+            Assert.AreEqual("5001", result["listenPort"]);
+            Assert.AreEqual("Warning", result["minimumLogLevel"]);
+            Assert.AreEqual("eyJMb2dnaW5nIjp7IkxvZ0xldmVsIjp7IkRlZmF1bHQiOiJJbmZvcm1hdGlvbiJ9fX0=", result["encodedJsonConfiguration"]);
         }
     }
 }

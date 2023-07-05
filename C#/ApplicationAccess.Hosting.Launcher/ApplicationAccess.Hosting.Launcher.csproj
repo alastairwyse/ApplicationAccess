@@ -10,4 +10,8 @@
     <Description>Command line utility to launch hosted ApplicationAccess components, e.g. when they are hosted inside a Docker container.</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
 </Project>

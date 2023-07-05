@@ -155,7 +155,7 @@ namespace ApplicationAccess.TestHarness
                     catch (Exception)
                     {
                         stopSignal.Set();
-                        throw new Exception($"Exception occurred on ApplicationAccess.TestHarness.OperationExecutor instance worker thread with thread name '{base.workerThreadName}' and managed thread id {Thread.CurrentThread.ManagedThreadId}", e);
+                        throw new Exception($"Exception occurred on ApplicationAccess.TestHarness.OperationExecutor instance worker thread with thread name '{base.workerThreadName}'", e);
                     }
                 }
                 operationTriggerer.NotifyOperationInitiated();
@@ -166,8 +166,8 @@ namespace ApplicationAccess.TestHarness
         public override void Stop()
         {
             base.Stop();
-            Console.WriteLine($"ApplicationAccess.TestHarness.OperationExecutor instance with worker thread name '{base.workerThreadName}' and managed thread id {Thread.CurrentThread.ManagedThreadId} generated {emptyOperationCount} empty operation actions.");
-            Console.WriteLine($"ApplicationAccess.TestHarness.OperationExecutor instance with worker thread name '{base.workerThreadName}' and managed thread id {Thread.CurrentThread.ManagedThreadId} encountered {operationExecutionExceptionCount} exceptions during operation execution.");
+            Console.WriteLine($"{base.workerThreadName}: generated {emptyOperationCount} empty operation actions during operation execution.");
+            Console.WriteLine($"{base.workerThreadName}: encountered {operationExecutionExceptionCount} exceptions during operation execution.");
         }
     }
 }

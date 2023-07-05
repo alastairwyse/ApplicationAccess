@@ -16,9 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApplicationAccess.Hosting.Launcher
 {
@@ -35,16 +32,16 @@ namespace ApplicationAccess.Hosting.Launcher
                 String currentParameterName = arguments[i].Trim();
                 if (currentParameterName[0] != '-')
                 {
-                    throw new Exception($"Encountered unknown parameter name '{currentParameterName}'");
+                    throw new CommandLineArgumentInvalidException($"Encountered unknown parameter name '{currentParameterName}'", currentParameterName);
                 }
                 currentParameterName = currentParameterName.Substring(1);
                 if (NameConstants.AllArguments.Contains(currentParameterName) == false)
                 {
-                    throw new Exception($"Encountered unknown parameter name '{currentParameterName}'");
+                    throw new CommandLineArgumentInvalidException($"Encountered unknown parameter name '{currentParameterName}'", currentParameterName);
                 }
-                if (i == (arguments.Length - 1))
+                if (i == (arguments.Length - 1) || arguments[i + 1][0] == '-')
                 {
-                    throw new Exception($"Missing value for parameter '{currentParameterName}'");
+                    throw new CommandLineArgumentInvalidException($"Missing value for parameter '{currentParameterName}'", currentParameterName);
                 }
                 String currentParameterValue = arguments[i + 1].Trim();
                 returnDictionary.Add(currentParameterName, currentParameterValue);

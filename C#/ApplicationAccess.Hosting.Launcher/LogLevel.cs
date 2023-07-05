@@ -24,6 +24,8 @@ namespace ApplicationAccess.Hosting.Launcher
         /// <summary>General information logs including details of each HTTP request received.</summary>
         Information, 
         /// <summary>Unexpected/anomalous events, e.g. non-fatal exceptions.</summary>
-        Warning
+        Warning,
+        /// <summary>Unexpected/anomalous events which impact the continuing operation of the application.</summary>
+        Critical
     }
 }

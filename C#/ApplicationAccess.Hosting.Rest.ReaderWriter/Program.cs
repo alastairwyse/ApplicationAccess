@@ -59,7 +59,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             });
 
             // TODO: REMOVE AFTER CONTAINERIZING
-            middlewareUtilities.SetupFileLogging(builder, @"C:\Temp", "ApplicationAccessReaderWriterNodeLog");
+            //middlewareUtilities.SetupFileLogging(builder, @"C:\Temp", "ApplicationAccessReaderWriterNodeLog");
 
             // Validate and register top level configuration items
             builder.Services.AddOptions<AccessManagerOptions>()
