@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-using ApplicationAccess.Hosting.Models;
-using ApplicationAccess.Hosting.Models.Options;
-using ApplicationAccess.Hosting.Rest.Utilities;
-using ApplicationAccess.Serialization;
+using System;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Text.Json.Serialization;
+using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Rest.Utilities;
+using ApplicationAccess.Serialization;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache
 {

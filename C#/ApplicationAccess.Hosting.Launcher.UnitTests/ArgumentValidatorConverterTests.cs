@@ -232,5 +232,74 @@ namespace ApplicationAccess.Hosting.Launcher.UnitTests
             Assert.That(e.Message, Does.StartWith($"Value 'abc' is invalid for parameter 'listenPort'.  Valid values are 0-65535"));
             Assert.AreEqual("listenPort", e.ArgumentName);
         }
+
+        [Test]
+        public void Validate_ArgumentsDoesntContainModeParameter()
+        {
+            var testArguments = new Dictionary<String, String>()
+            {
+                { "listenPort", "5001" },
+                { "component", "ReaderWriterNode" }
+            };
+
+            var e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
+            {
+                testArgumentValidatorConverter.Validate(testArguments);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Missing required parameter 'mode"));
+            Assert.AreEqual("mode", e.ArgumentName);
+        }
+
+        [Test]
+        public void Validate_RequiredArgumentMissingForMode()
+        {
+            var testArguments = new Dictionary<String, String>()
+            {
+                { "mode", "Launch" },
+                { "listenPort", "5001" },
+                { "component", "ReaderWriterNode" }
+            };
+
+            var e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
+            {
+                testArgumentValidatorConverter.Validate(testArguments);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Missing required parameter for mode 'Launch' - 'minimumLogLevel'"));
+            Assert.AreEqual("minimumLogLevel", e.ArgumentName);
+
+
+            testArguments = new Dictionary<String, String>()
+            {
+                { "mode", "EncodeConfiguration" }
+            };
+
+            e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
+            {
+                testArgumentValidatorConverter.Validate(testArguments);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Missing required parameter for mode 'EncodeConfiguration' - 'configurationFilePath'"));
+            Assert.AreEqual("configurationFilePath", e.ArgumentName);
+        }
+
+        [Test]
+        public void Validate()
+        {
+            var testArguments = new Dictionary<String, String>()
+            {
+                { "mode", "Launch" },
+                { "listenPort", "5001" },
+                { "component", "ReaderWriterNode" },
+                { "minimumLogLevel", "Critical" },
+                { "encodedJsonConfiguration", "H4sIAAAAAAACCqpWUApLzClNVbJSUPIsVvAK9vdTUqgFAAAA//8=" }
+            };
+
+            Assert.DoesNotThrow(delegate
+            {
+                testArgumentValidatorConverter.Validate(testArguments);
+            });
+        }
     }
 }

@@ -29,6 +29,8 @@ namespace ApplicationAccess.Hosting.Launcher
     {
         /// <summary>Maps the name of a command line arguments to a Func which validates and converts the value of that argument to its correct type.</summary>
         protected Dictionary<String, Func<String, Object>> typeConversionOperationMap;
+        /// <summary>Map a launcher mode to a list of command line argumentswhich must be provided in that mode.</summary>
+        protected Dictionary<LauncherMode, List<String>> launcherModeDependencyMap;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Launcher.ArgumentValidatorConverter class.
@@ -37,6 +39,7 @@ namespace ApplicationAccess.Hosting.Launcher
         {
             typeConversionOperationMap = new Dictionary<String, Func<String, Object>>();
             InitializeTypeConversionOperationMap();
+            InitializeLauncherModeDependencyMap();
         }
 
         /// <summary>
@@ -58,13 +61,16 @@ namespace ApplicationAccess.Hosting.Launcher
                 // Check that the parameter name is valid
                 typeConversionOperationMap[currentArgumentAndValue.Key].Invoke(currentArgumentAndValue.Value);
             }
-
-
-            // TODO: Then also ensure dependencies are met depending on mode
-            // These are
-            // mode = 'Launch' > component, listenPort, minimumLogLevel, encodedJsonConfiguration
-            // mode = 'EncodeConfiguration' > configurationFilePath
-            // Set these up in a Dict<String, HashSet<String>>
+            // Check that the 'mode' argument has been provided
+            if (arguments.ContainsKey(NameConstants.ModeArgumentName) == false)
+                throw new CommandLineArgumentInvalidException($"Missing required parameter '{NameConstants.ModeArgumentName}''", NameConstants.ModeArgumentName);
+            // Check that the required arguments for the specified mode have been provided
+            LauncherMode launcherMode = Convert<LauncherMode>(NameConstants.ModeArgumentName, arguments[NameConstants.ModeArgumentName]);
+            foreach (String currentRequiredArgument in launcherModeDependencyMap[launcherMode])
+            {
+                if (arguments.ContainsKey(currentRequiredArgument) == false)
+                    throw new CommandLineArgumentInvalidException($"Missing required parameter for mode '{launcherMode}' - '{currentRequiredArgument}''", currentRequiredArgument);
+            }
         }
 
         /// <summary>
@@ -220,6 +226,18 @@ namespace ApplicationAccess.Hosting.Launcher
                     return argumentValue;
                 }
             );
+        }
+
+        /// <summary>
+        /// Initializes mappings in the 'launcherModeDependencyMap' member.
+        /// </summary>
+        protected void InitializeLauncherModeDependencyMap()
+        {
+            launcherModeDependencyMap = new Dictionary<LauncherMode, List<String>>()
+            {
+                { LauncherMode.Launch, new List<String>() { NameConstants.ComponentArgumentName, NameConstants.ListenPortArgumentName, NameConstants.MinimumLogLevelArgumentName, NameConstants.EncodedJsonConfigurationArgumentName } },
+                { LauncherMode.EncodeConfiguration, new List<String>() { NameConstants.ConfigurationFilePathArgumentName } }
+            };
         }
 
         /// <summary>
