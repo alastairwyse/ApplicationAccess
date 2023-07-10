@@ -15,6 +15,9 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
 
 namespace ApplicationAccess.Hosting.Launcher
 {
@@ -22,25 +25,68 @@ namespace ApplicationAccess.Hosting.Launcher
     {
         static void Main(string[] args)
         {
-            // TODO:
-            //   Read command line params... return error back to console in case of error
-            //   Should be ComponentName, Port, Base64'd config, Log level (should be warning or information)
-            //   Decode the config... look for 'appsettings-template.json'... inject the log level and other config into the file on memory and then force overwrite appsettings.json
-            //   Have 2 level options for logging... info and warning (where info will show HTTP request info)
-            //     Should be validated and replace value in Logging.LogLevel.Microsoft.AspNetCore 
-            //   Start the exe, doing the console redirect thing
-            //   ALSO - See if the name of the exe that Windows reports can be changed to be the underlying component rather than 'Launcher'
-            //     (e.g. for better cleanliness when errors appear in event viewer etc...)
-            //   Set environment (should be able to do with '--environment "Production"')
-            //     Also don't forget the port opening command line thing '--urls http://0.0.0.0:5000'
-            //   Test what happens if config is wrong etc... can I clearly see the error?
-            //   Should have a file appSettingsTemplate.json (or above with dash... figure out which is more correct) in each project with the base/default values
-            //   SOME KIND OF 'MODE' type param to either emcrypt config, OR launch a component
-            //     -mode encrypt -file C:\Temp\Somefile.jxon
-            //     -mode launch -component ReaderWriter -port 5001 -config [base64]
-            //     'mode' options should be 'encodeConfiguration' and 'launch'
+            try
+            {
+                var argumentReader = new ArgumentReader();
+                Dictionary<String, String> arguments = argumentReader.Read(args);
+                var argumentValidatorConverter = new ArgumentValidatorConverter();
+                argumentValidatorConverter.Validate(arguments);
+                // If 'mode' is 'Launch'
+                if (arguments[NameConstants.ModeArgumentName] == LauncherMode.Launch.ToString())
+                {
+                    // Launch the specified component
+                    AccessManagerComponent component = argumentValidatorConverter.Convert<AccessManagerComponent>(NameConstants.ComponentArgumentName, arguments[NameConstants.ComponentArgumentName]);
+                    var launcher = new ComponentLauncher();
+                    launcher.Launch(component, arguments);
+                }
+                // If 'mode' is 'EncodeConfiguration'
+                else if (arguments[NameConstants.ModeArgumentName] == LauncherMode.EncodeConfiguration.ToString())
+                {
+                    using (var fileStream = File.OpenRead(arguments[NameConstants.ConfigurationFilePathArgumentName]))
+                    using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
+                    {
+                        // Encode the contents of the specified file and write the result to the console
+                        String fileContents = streamReader.ReadToEnd();
+                        var encoder = new Base64StringEncoder();
+                        var encodedString = encoder.Encode(fileContents);
+                        Console.WriteLine(encodedString);
+                    }
+                }
+                else
+                {
+                    throw new Exception($"Encountered unhandled {nameof(LauncherMode)} '{arguments[NameConstants.ModeArgumentName]}'.");
+                }
+            }
+            catch (CommandLineArgumentInvalidException e)
+            {
+                Console.WriteLine($"ERROR: {e.Message}");
+                Console.WriteLine(GenerateUsageMessage());
+            }
+        }
 
-            Console.WriteLine("Hello, World!");
+        /// <summary>
+        /// Generates a 'usage' message for the launcher, to display to the user.
+        /// </summary>
+        /// <returns>The 'usage' message.</returns>
+        protected static String GenerateUsageMessage()
+        {
+            var argumentValidatorConverter = new ArgumentValidatorConverter();
+            var usageMessageStringBuilder = new StringBuilder();
+            String executableName = System.AppDomain.CurrentDomain.FriendlyName;
+            usageMessageStringBuilder.AppendLine("USAGE: ");
+            usageMessageStringBuilder.AppendLine($"  {executableName} -{NameConstants.ModeArgumentName} Launch -{NameConstants.ComponentArgumentName} [ApplicationAccess component] -{NameConstants.ListenPortArgumentName} [TCP port to listen on] -{NameConstants.MinimumLogLevelArgumentName} [log level] -{NameConstants.EncodedJsonConfigurationArgumentName} [Base64 encoded JSON configuration]");
+            usageMessageStringBuilder.AppendLine($"  {executableName} -{NameConstants.ModeArgumentName} EncodeConfiguration -{NameConstants.ConfigurationFilePathArgumentName} [path to JSON configuration to encode]");
+            usageMessageStringBuilder.AppendLine();
+            usageMessageStringBuilder.AppendLine("EXAMPLES: ");
+            usageMessageStringBuilder.AppendLine($"  {executableName} -{NameConstants.ModeArgumentName} {LauncherMode.Launch} -{NameConstants.ComponentArgumentName} {AccessManagerComponent.ReaderWriterNode} -{NameConstants.ListenPortArgumentName} 5001 -{NameConstants.MinimumLogLevelArgumentName} {LogLevel.Critical} -{NameConstants.EncodedJsonConfigurationArgumentName} H4sIAAAAAAACCqpWUApLzClNVbJSUPIsVvAK9vdTUqgFAAAA//8=");
+            usageMessageStringBuilder.AppendLine($"  {executableName} -{NameConstants.ModeArgumentName} {LauncherMode.EncodeConfiguration} C:\\Temp\\ReaderWriterNodeConfiguration.json");
+            usageMessageStringBuilder.AppendLine();
+            usageMessageStringBuilder.AppendLine("ARGUMENT VALUES: ");
+            usageMessageStringBuilder.AppendLine($"  -{NameConstants.ModeArgumentName}: {argumentValidatorConverter.StringifyEnumValues<LauncherMode>()}");
+            usageMessageStringBuilder.AppendLine($"  -{NameConstants.ComponentArgumentName}: {argumentValidatorConverter.StringifyEnumValues<AccessManagerComponent>()}");
+            usageMessageStringBuilder.AppendLine($"  -{NameConstants.MinimumLogLevelArgumentName}: {argumentValidatorConverter.StringifyEnumValues<LogLevel>()}");
+
+            return usageMessageStringBuilder.ToString();
         }
     }
 }

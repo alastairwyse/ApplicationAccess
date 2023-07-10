@@ -95,6 +95,28 @@ namespace ApplicationAccess.Hosting.Launcher
             return (T)System.Convert.ChangeType(convertedValue, returnType);
         }
 
+        /// <summary>
+        /// Returns all values of the specified enum in a comma-separated string.
+        /// </summary>
+        /// <typeparam name="TEnum">The type of enum to stringify the values of.</typeparam>
+        /// <returns>All values of the specified enum in a comma-separated string.</returns>
+        public String StringifyEnumValues<TEnum>()
+            where TEnum : struct, System.Enum
+        {
+            TEnum[] allValues = Enum.GetValues<TEnum>();
+            var returnStringBuilder = new StringBuilder();
+            for (Int32 i = 0; i < allValues.Length; i++)
+            {
+                returnStringBuilder.Append($"'{allValues[i]}'");
+                if (i < (allValues.Length - 1))
+                {
+                    returnStringBuilder.Append(", ");
+                }
+            }
+
+            return returnStringBuilder.ToString();
+        }
+
         #region Private/Protected Methods
 
         /// <summary>
@@ -212,7 +234,7 @@ namespace ApplicationAccess.Hosting.Launcher
                 {
                     try
                     {
-                        var result = File.OpenRead(argumentValue);
+                        using (var fileStream = File.OpenRead(argumentValue));
                     }
                     catch(FileNotFoundException)
                     {
@@ -238,28 +260,6 @@ namespace ApplicationAccess.Hosting.Launcher
                 { LauncherMode.Launch, new List<String>() { NameConstants.ComponentArgumentName, NameConstants.ListenPortArgumentName, NameConstants.MinimumLogLevelArgumentName, NameConstants.EncodedJsonConfigurationArgumentName } },
                 { LauncherMode.EncodeConfiguration, new List<String>() { NameConstants.ConfigurationFilePathArgumentName } }
             };
-        }
-
-        /// <summary>
-        /// Returns all values of the specified enum in a comma-separated string.
-        /// </summary>
-        /// <typeparam name="TEnum">The type of enum to stringify the values of.</typeparam>
-        /// <returns>All values of the specified enum in a comma-separated string.</returns>
-        protected String StringifyEnumValues<TEnum>()
-            where TEnum : struct, System.Enum
-        {
-            TEnum[] allValues = Enum.GetValues<TEnum>();
-            var returnStringBuilder = new StringBuilder();
-            for (Int32 i = 0; i < allValues.Length; i++)
-            {
-                returnStringBuilder.Append($"'{allValues[i]}'");
-                if (i < (allValues.Length - 1))
-                {
-                    returnStringBuilder.Append(", ");
-                }
-            }
-
-            return returnStringBuilder.ToString();
         }
 
         protected String GenerateExceptionMessageForInvalidEnumArgument<TEnum>(String argumentName, String argumentValue)

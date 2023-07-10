@@ -95,10 +95,10 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             // Register the hosted service wrapper
             if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
             {
-                //builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
+                builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
 
                 // TODO: REMOVE TEMPORARY DEBUGGING CODE
-                builder.Services.AddHostedService<NullEventPersistingReaderWriterNodeHostedServiceWrapper>();
+                //builder.Services.AddHostedService<NullEventPersistingReaderWriterNodeHostedServiceWrapper>();
                 //builder.Services.AddHostedService<JsonEventWritingReaderWriterNodeHostedServiceWrapper>();
             }
 
