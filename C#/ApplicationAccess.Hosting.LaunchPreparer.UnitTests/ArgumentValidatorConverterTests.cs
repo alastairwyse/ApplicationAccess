@@ -19,10 +19,10 @@ using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
-namespace ApplicationAccess.Hosting.Launcher.UnitTests
+namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Launcher.ArgumentValidatorConverter class.
+    /// Unit tests for the ApplicationAccess.Hosting.LaunchPreparer.ArgumentValidatorConverter class.
     /// </summary>
     public class ArgumentValidatorConverterTests
     {
@@ -61,7 +61,7 @@ namespace ApplicationAccess.Hosting.Launcher.UnitTests
         {
             var e = Assert.Throws<CommandLineArgumentInvalidException>(delegate
             {
-                testArgumentValidatorConverter.Convert<LauncherMode>("mode", "InvalidMode");
+                testArgumentValidatorConverter.Convert<LaunchPreparerMode>("mode", "InvalidMode");
             });
 
             Assert.That(e.Message, Does.StartWith("Value 'InvalidMode' is invalid for parameter 'mode'.  Valid values are 'Launch', 'EncodeConfiguration'"));
@@ -71,9 +71,9 @@ namespace ApplicationAccess.Hosting.Launcher.UnitTests
         [Test]
         public void Convert_ModeArgument()
         {
-            var result = testArgumentValidatorConverter.Convert<LauncherMode>("mode", "EncodeConfiguration");
+            var result = testArgumentValidatorConverter.Convert<LaunchPreparerMode>("mode", "EncodeConfiguration");
 
-            Assert.AreEqual(LauncherMode.EncodeConfiguration, result);
+            Assert.AreEqual(LaunchPreparerMode.EncodeConfiguration, result);
         }
 
         [Test]

@@ -19,7 +19,7 @@ using System.Text;
 using System.IO;
 using System.IO.Compression;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
     /// Compresses and encodes strings as Base64 (and performs equivalent decoding).

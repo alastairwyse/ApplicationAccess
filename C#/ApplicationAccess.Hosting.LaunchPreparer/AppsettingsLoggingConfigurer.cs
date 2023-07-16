@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
     /// Configures/sets the 'Logging' section of an application manager component's 'appsettings.json' file.
@@ -29,11 +29,11 @@ namespace ApplicationAccess.Hosting.Launcher
         protected const String loggingPropertyName = "Logging";
         protected const String logLevelPropertyName = "LogLevel";
 
-        /// <summary>Maps a launcher log level to a collection of 'appsettings.json' property paths and corresponding Microsoft.Extensions.Logging.Loglevels to be set at those paths.</summary>
+        /// <summary>Maps a LaunchPreparer log level to a collection of 'appsettings.json' property paths and corresponding Microsoft.Extensions.Logging.Loglevels to be set at those paths.</summary>
         protected Dictionary<LogLevel, IList<JsonPathAndLogLevel>> logLevelToJsonPathMap;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Launcher.AppsettingsLoggingConfigurer class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.LaunchPreparer.AppsettingsLoggingConfigurer class.
         /// </summary>
         public AppsettingsLoggingConfigurer()
         {
@@ -105,7 +105,7 @@ namespace ApplicationAccess.Hosting.Launcher
                     foreach (JsonPathAndLogLevel currentJsonPathAndLogLevel in logLevelToJsonPathMap[logLevel])
                     {
                         if (logLevelPropertyContents[currentJsonPathAndLogLevel.PropertyName] == null)
-                            throw new Exception($"Could not find '{loggingPropertyName}.{logLevelPropertyName}/{currentJsonPathAndLogLevel.PropertyName}' property within file '{appsettingsFilePath}'.");
+                            throw new Exception($"Could not find '{loggingPropertyName}.{logLevelPropertyName}.{currentJsonPathAndLogLevel.PropertyName}' property within file '{appsettingsFilePath}'.");
                         logLevelPropertyContents[currentJsonPathAndLogLevel.PropertyName] = currentJsonPathAndLogLevel.PropertyValue;
                     }
                     // Write the updated JSON back to the file
@@ -149,7 +149,7 @@ namespace ApplicationAccess.Hosting.Launcher
             }
 
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Hosting.Launcher.AppsettingsLoggingConfigurer+JsonPathAndLogLevel class.
+            /// Initialises a new instance of the ApplicationAccess.Hosting.LaunchPreparer.AppsettingsLoggingConfigurer+JsonPathAndLogLevel class.
             /// </summary>
             /// <param name="propertyName">The name of the property.</param>
             /// <param name="propertyValue">The value of the property.</param>

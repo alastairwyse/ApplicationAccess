@@ -18,10 +18,10 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace ApplicationAccess.Hosting.Launcher.UnitTests
+namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Launcher.ArgumentReader class.
+    /// Unit tests for the ApplicationAccess.Hosting.LaunchPreparer.ArgumentReader class.
     /// </summary>
     public class ArgumentReaderTests
     {

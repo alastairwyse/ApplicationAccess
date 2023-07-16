@@ -16,12 +16,12 @@
 
 using System;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
-    /// Throw when a launcher command line argument name or value is invalid.
+    /// Thrown when a LaunchPreparer command line argument name or value is invalid.
     /// </summary>
-    /// <remarks>This can be caught at the top level of the launcher and the message displayed on the command line.  Allows distinction between errors occurring because of user input, and those occurring because of an internal/unexpected error in the launcher.</remarks>
+    /// <remarks>This can be caught at the top level of the LaunchPreparer and the message displayed on the command line.  Allows distinction between errors occurring because of user input, and those occurring because of an internal/unexpected error in the launcher.</remarks>
     public class CommandLineArgumentInvalidException : Exception
     {
         /// <summary>
@@ -34,7 +34,7 @@ namespace ApplicationAccess.Hosting.Launcher
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Launcher.CommandLineArgumentInvalidException class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.LaunchPreparer.CommandLineArgumentInvalidException class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
         /// <param name="argumentName">The name of the argument which is invalid.</param>

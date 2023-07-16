@@ -16,40 +16,40 @@
 
 using System;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
-    /// Model/container class holding access manager launcher configuration.
+    /// Model/container class holding access manager launch preparer configuration.
     /// </summary>
-    public class LauncherConfiguration
+    public class LaunchPreparerConfiguration
     {
         /// <summary>The launcher mode.</summary>
-        public LauncherMode? Mode;
+        public LaunchPreparerMode? Mode;
 
         /// <summary>The component to launch.</summary>
-        /// <remarks>Only applicable in <see cref="LauncherMode.Launch">Launch</see> mode.</remarks>
+        /// <remarks>Only applicable in <see cref="LaunchPreparerMode.Launch">Launch</see> mode.</remarks>
         public AccessManagerComponent? Component;
 
         /// <summary>The TCP port the launched component should listen on.</summary>
-        /// <remarks>Only applicable in <see cref="LauncherMode.Launch">Launch</see> mode.</remarks>
+        /// <remarks>Only applicable in <see cref="LaunchPreparerMode.Launch">Launch</see> mode.</remarks>
         public Int32 ListenPort;
 
         /// <summary>The minimum level log events.</summary>
-        /// <remarks>Only applicable in <see cref="LauncherMode.Launch">Launch</see> mode.</remarks>
+        /// <remarks>Only applicable in <see cref="LaunchPreparerMode.Launch">Launch</see> mode.</remarks>
         public LogLevel? MinimumLogLevel;
 
         /// <summary>String containing the JSON comfiguration for the component to launch, encoded so it can be received as a command line parameter.</summary>
-        /// <remarks>Only applicable in <see cref="LauncherMode.Launch">Launch</see> mode.</remarks>
+        /// <remarks>Only applicable in <see cref="LaunchPreparerMode.Launch">Launch</see> mode.</remarks>
         public String EncodedJsonConfiguration;
 
         /// <summary>The full path to the JSON file containing component configuration.</summary>
-        /// <remarks>Only applicable in <see cref="LauncherMode.EncodeConfiguration">EncodeConfiguration</see> mode.</remarks>
+        /// <remarks>Only applicable in <see cref="LaunchPreparerMode.EncodeConfiguration">EncodeConfiguration</see> mode.</remarks>
         public String ConfigurationFilePath;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Launcher.LauncherConfiguration class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.LaunchPreparer.LaunchPreparerConfiguration class.
         /// </summary>
-        public LauncherConfiguration()
+        public LaunchPreparerConfiguration()
         {
             Mode = null;
             Component = null;

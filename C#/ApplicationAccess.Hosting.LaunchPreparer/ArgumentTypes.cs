@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
     /// Contains the correct types of the launder's command line arguments.
@@ -31,7 +31,7 @@ namespace ApplicationAccess.Hosting.Launcher
         {
             argumentTypes = new Dictionary<String, Type>()
             {
-                { NameConstants.ModeArgumentName, typeof(LauncherMode) },
+                { NameConstants.ModeArgumentName, typeof(LaunchPreparerMode) },
                 { NameConstants.ComponentArgumentName, typeof(AccessManagerComponent) },
                 { NameConstants.ListenPortArgumentName, typeof(UInt16) },
                 { NameConstants.MinimumLogLevelArgumentName, typeof(LogLevel) },

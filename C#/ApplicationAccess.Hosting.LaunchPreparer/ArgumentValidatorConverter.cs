@@ -20,26 +20,26 @@ using System.Text;
 using System.IO;
 using Newtonsoft.Json.Linq;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
-    /// Provides methods to validate command line arguments passed to the launcher, and to convert them to their correct data types (from strings).
+    /// Provides methods to validate command line arguments passed to the LaunchPreparer, and to convert them to their correct data types (from strings).
     /// </summary>
     public class ArgumentValidatorConverter
     {
         /// <summary>Maps the name of a command line arguments to a Func which validates and converts the value of that argument to its correct type.</summary>
         protected Dictionary<String, Func<String, Object>> typeConversionOperationMap;
-        /// <summary>Map a launcher mode to a list of command line argumentswhich must be provided in that mode.</summary>
-        protected Dictionary<LauncherMode, List<String>> launcherModeDependencyMap;
+        /// <summary>Map a LaunchPreparer mode to a list of command line argumentswhich must be provided in that mode.</summary>
+        protected Dictionary<LaunchPreparerMode, List<String>> launchPreparerModeDependencyMap;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Launcher.ArgumentValidatorConverter class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.LaunchPreparer.ArgumentValidatorConverter class.
         /// </summary>
         public ArgumentValidatorConverter()
         {
             typeConversionOperationMap = new Dictionary<String, Func<String, Object>>();
             InitializeTypeConversionOperationMap();
-            InitializeLauncherModeDependencyMap();
+            InitializeLaunchPreparerModeDependencyMap();
         }
 
         /// <summary>
@@ -63,13 +63,13 @@ namespace ApplicationAccess.Hosting.Launcher
             }
             // Check that the 'mode' argument has been provided
             if (arguments.ContainsKey(NameConstants.ModeArgumentName) == false)
-                throw new CommandLineArgumentInvalidException($"Missing required parameter '{NameConstants.ModeArgumentName}''", NameConstants.ModeArgumentName);
+                throw new CommandLineArgumentInvalidException($"Missing required parameter '{NameConstants.ModeArgumentName}'", NameConstants.ModeArgumentName);
             // Check that the required arguments for the specified mode have been provided
-            LauncherMode launcherMode = Convert<LauncherMode>(NameConstants.ModeArgumentName, arguments[NameConstants.ModeArgumentName]);
-            foreach (String currentRequiredArgument in launcherModeDependencyMap[launcherMode])
+            LaunchPreparerMode launchPreparerMode = Convert<LaunchPreparerMode>(NameConstants.ModeArgumentName, arguments[NameConstants.ModeArgumentName]);
+            foreach (String currentRequiredArgument in launchPreparerModeDependencyMap[launchPreparerMode])
             {
                 if (arguments.ContainsKey(currentRequiredArgument) == false)
-                    throw new CommandLineArgumentInvalidException($"Missing required parameter for mode '{launcherMode}' - '{currentRequiredArgument}''", currentRequiredArgument);
+                    throw new CommandLineArgumentInvalidException($"Missing required parameter for mode '{launchPreparerMode}' - '{currentRequiredArgument}''", currentRequiredArgument);
             }
         }
 
@@ -158,11 +158,11 @@ namespace ApplicationAccess.Hosting.Launcher
                 {
                     try
                     {
-                        return ConvertStringToEnum<LauncherMode>(argumentValue);
+                        return ConvertStringToEnum<LaunchPreparerMode>(argumentValue);
                     }
                     catch(Exception)
                     {
-                        String message = GenerateExceptionMessageForInvalidEnumArgument<LauncherMode>(NameConstants.ModeArgumentName, argumentValue);
+                        String message = GenerateExceptionMessageForInvalidEnumArgument<LaunchPreparerMode>(NameConstants.ModeArgumentName, argumentValue);
                         throw new CommandLineArgumentInvalidException(message, NameConstants.ModeArgumentName);
                     }
                 }
@@ -234,9 +234,13 @@ namespace ApplicationAccess.Hosting.Launcher
                 {
                     try
                     {
+                        #pragma warning disable CS0642
+
                         using (var fileStream = File.OpenRead(argumentValue));
+
+                        #pragma warning restore CS0642
                     }
-                    catch(FileNotFoundException)
+                    catch (FileNotFoundException)
                     {
                         throw new CommandLineArgumentInvalidException($"File '{argumentValue}' could not be found", NameConstants.ConfigurationFilePathArgumentName);
                     }
@@ -251,14 +255,14 @@ namespace ApplicationAccess.Hosting.Launcher
         }
 
         /// <summary>
-        /// Initializes mappings in the 'launcherModeDependencyMap' member.
+        /// Initializes mappings in the 'launchPreparerModeDependencyMap' member.
         /// </summary>
-        protected void InitializeLauncherModeDependencyMap()
+        protected void InitializeLaunchPreparerModeDependencyMap()
         {
-            launcherModeDependencyMap = new Dictionary<LauncherMode, List<String>>()
+            launchPreparerModeDependencyMap = new Dictionary<LaunchPreparerMode, List<String>>()
             {
-                { LauncherMode.Launch, new List<String>() { NameConstants.ComponentArgumentName, NameConstants.ListenPortArgumentName, NameConstants.MinimumLogLevelArgumentName, NameConstants.EncodedJsonConfigurationArgumentName } },
-                { LauncherMode.EncodeConfiguration, new List<String>() { NameConstants.ConfigurationFilePathArgumentName } }
+                { LaunchPreparerMode.Launch, new List<String>() { NameConstants.ComponentArgumentName, NameConstants.ListenPortArgumentName, NameConstants.MinimumLogLevelArgumentName, NameConstants.EncodedJsonConfigurationArgumentName } },
+                { LaunchPreparerMode.EncodeConfiguration, new List<String>() { NameConstants.ConfigurationFilePathArgumentName } }
             };
         }
 

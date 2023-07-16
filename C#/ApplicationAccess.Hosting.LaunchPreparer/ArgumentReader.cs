@@ -17,13 +17,20 @@
 using System;
 using System.Collections.Generic;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
-    /// Reads the command line arguments passed to the launcher, performing basic structure validation, and parsing them as name/value pairs.
+    /// Reads the command line arguments passed to the LaunchPreparer, performing basic structure validation, and parsing them as name/value pairs.
     /// </summary>
     public class ArgumentReader
     {
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.LaunchPreparer.ArgumentReader class.
+        /// </summary>
+        public ArgumentReader()
+        {
+        }
+
         public Dictionary<String, String> Read(String[] arguments)
         {
             var returnDictionary = new Dictionary<String, String>();

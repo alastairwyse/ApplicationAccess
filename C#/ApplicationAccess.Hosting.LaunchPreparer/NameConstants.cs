@@ -17,10 +17,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
-    /// Contains name constants used by the launcher.
+    /// Contains name constants used by the LaunchPreparer.
     /// </summary>
     public static class NameConstants
     {

@@ -19,18 +19,19 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
     /// Sets up parameters/arguments for and starts one of the access manager components as a separate process.
     /// </summary>
+    /// <remarks>This class has been deprecated since the LaunchPreparer tool stopped taking responsibility for actual launching, but will keep for now.</remarks>
     public class ComponentLauncher
     {
         /// <summary>Maps an access manager component to the name of its executable.</summary>
         protected Dictionary<AccessManagerComponent, String> componentToExecutableNameMap;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Launcher.ComponentLauncher class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.LaunchPreparer.ComponentLauncher class.
         /// </summary>
         public ComponentLauncher()
         {
@@ -57,6 +58,7 @@ namespace ApplicationAccess.Hosting.Launcher
             launchProcessStartInfo.RedirectStandardInput = true;
             launchProcessStartInfo.RedirectStandardOutput = true;
             launchProcessStartInfo.UseShellExecute = false;
+            launchProcessStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
 
             using (var launchProcess = new Process())
             {
@@ -64,9 +66,28 @@ namespace ApplicationAccess.Hosting.Launcher
                 Console.CancelKeyPress += (Object sender, ConsoleCancelEventArgs e) =>
                 {
                     // This sends a CTRL-C to the launced process
-                    launchProcess.StandardInput.WriteLine("\x3");
+                    Console.WriteLine("special key: " + e.SpecialKey);
+                    // Don't know how to close process gracefully
+                    e.Cancel = true;
+                };
+                launchProcess.OutputDataReceived += (Object sender, DataReceivedEventArgs e) =>
+                {
+                    if (String.IsNullOrEmpty(e.Data) == false)
+                    {
+                        Console.WriteLine(e.Data);
+                    }
+                };
+                launchProcess.ErrorDataReceived += (Object sender, DataReceivedEventArgs e) =>
+                {
+                    if (String.IsNullOrEmpty(e.Data) == false)
+                    {
+                        Console.WriteLine(e.Data);
+                    }
                 };
                 launchProcess.Start();
+                launchProcess.StandardInput.AutoFlush = true;
+                launchProcess.BeginOutputReadLine();
+                launchProcess.BeginErrorReadLine();
                 launchProcess.WaitForExit();
             }
         }

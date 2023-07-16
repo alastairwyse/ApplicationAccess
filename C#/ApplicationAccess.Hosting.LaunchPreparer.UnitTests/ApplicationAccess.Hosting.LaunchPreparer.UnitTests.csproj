@@ -7,7 +7,7 @@
     <Nullable>disable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Authors>Alastair Wyse</Authors>
-    <Description>Unit tests for the ApplicationAccess.Hosting.Launcher project.</Description>
+    <Description>Unit tests for the ApplicationAccess.Hosting.LaunchPreparer project.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Launcher\ApplicationAccess.Hosting.Launcher.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.LaunchPreparer\ApplicationAccess.Hosting.LaunchPreparer.csproj" />
   </ItemGroup>
 
 </Project>

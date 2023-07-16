@@ -7,7 +7,7 @@
     <Nullable>disable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Authors>Alastair Wyse</Authors>
-    <Description>Command line utility to launch hosted ApplicationAccess components, e.g. when they are hosted inside a Docker container.</Description>
+    <Description>Command line utility which prepares to launch hosted ApplicationAccess components (e.g. parameter validation, appsettings setup).  Used when the components are hosted inside Docker containers.</Description>
   </PropertyGroup>
 
   <ItemGroup>

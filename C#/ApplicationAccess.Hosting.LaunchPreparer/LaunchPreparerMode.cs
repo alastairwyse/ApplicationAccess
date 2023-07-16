@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-using System;
-
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
-    /// Represents the different modes the access manager launcher can operate in / support.
+    /// Represents the different modes the access manager launch preparer can operate in / support.
     /// </summary>
-    public enum LauncherMode
+    public enum LaunchPreparerMode
     {
-        /// <summary>Mode which starts an access manager component.</summary>
+        /// <summary>Mode which prepares for starting an access manager component.</summary>
         Launch,
         /// <summary>Mode which encodes an access manager component's JSON configuration to allow it to be passed as a command line parameter.</summary>
         EncodeConfiguration

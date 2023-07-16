@@ -17,10 +17,10 @@
 using System;
 using NUnit.Framework;
 
-namespace ApplicationAccess.Hosting.Launcher.UnitTests
+namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Launcher.Base64StringEncoder class.
+    /// Unit tests for the ApplicationAccess.Hosting.LaunchPreparer.Base64StringEncoder class.
     /// </summary>
     public class Base64StringEncoderTests
     {

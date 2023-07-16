@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-namespace ApplicationAccess.Hosting.Launcher
+namespace ApplicationAccess.Hosting.LaunchPreparer
 {
     /// <summary>
-    /// Represents a component within an access manager deployment.
+    /// The level of logging to use in the launched component.
     /// </summary>
-    public enum AccessManagerComponent
+    public enum LogLevel
     {
-        /// <summary>An event cache node.</summary>
-        EventCacheNode,
-        /// <summary>A reader node.</summary>
-        ReaderNode,
-        /// <summary>A reader/writer node.</summary>
-        ReaderWriterNode,
-        /// <summary>A writer node.</summary>
-        WriterNode
+        /// <summary>General information logs including details of each HTTP request received.</summary>
+        Information, 
+        /// <summary>Unexpected/anomalous events, e.g. non-fatal exceptions.</summary>
+        Warning,
+        /// <summary>Unexpected/anomalous events which impact the continuing operation of the application.</summary>
+        Critical
     }
 }
