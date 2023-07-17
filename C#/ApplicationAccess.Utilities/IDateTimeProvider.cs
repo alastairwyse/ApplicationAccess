@@ -23,14 +23,6 @@ namespace ApplicationAccess.Utilities
     /// </summary>
     public interface IDateTimeProvider
     {
-        // TODO: Think about removing Now() method as it's not used (as of 2022-05) and better practice is to always use UtcNow()
-
-        /// <summary>
-        /// Returns the current date and time.
-        /// </summary>
-        /// <returns>The current date and time.</returns>
-        DateTime Now();
-
         /// <summary>
         /// Returns the current date and time expressed as the Coordinated Universal Time (UTC).
         /// </summary>

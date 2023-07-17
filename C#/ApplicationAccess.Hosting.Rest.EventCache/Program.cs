@@ -67,9 +67,9 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
                 swaggerGenOptions.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
-                    Title = "ApplicationAccess Event Cache",
-                    Description = "An in-memory cache for AccessManager events"
-                });
+                    Title = "ApplicationAccess Event Cache Node",
+                    Description = "Node in a distributed/scaled deployment of ApplicationAccess which caches events"
+                }); 
             });
 
             // Validate and register top level configuration items

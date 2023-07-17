@@ -69,7 +69,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
             foreach (String currentRequiredArgument in launchPreparerModeDependencyMap[launchPreparerMode])
             {
                 if (arguments.ContainsKey(currentRequiredArgument) == false)
-                    throw new CommandLineArgumentInvalidException($"Missing required parameter for mode '{launchPreparerMode}' - '{currentRequiredArgument}''", currentRequiredArgument);
+                    throw new CommandLineArgumentInvalidException($"Missing required parameter for mode '{launchPreparerMode}' - '{currentRequiredArgument}'", currentRequiredArgument);
             }
         }
 

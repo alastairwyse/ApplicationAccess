@@ -9,9 +9,6 @@
             Returns the current date and time using the static DateTime struct.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Utilities.DefaultDateTimeProvider.Now">
-            <inheritdoc/>
-        </member>
         <member name="M:ApplicationAccess.Utilities.DefaultDateTimeProvider.UtcNow">
             <inheritdoc/>
         </member>
@@ -27,12 +24,6 @@
             <summary>
             Defines methods which returns the current date and time.
             </summary>
-        </member>
-        <member name="M:ApplicationAccess.Utilities.IDateTimeProvider.Now">
-            <summary>
-            Returns the current date and time.
-            </summary>
-            <returns>The current date and time.</returns>
         </member>
         <member name="M:ApplicationAccess.Utilities.IDateTimeProvider.UtcNow">
             <summary>
@@ -322,6 +313,9 @@
         <member name="F:ApplicationAccess.Utilities.StopwatchDateTimeProvider.stopwatch">
             <summary>Stopwatch to use for calculating the current date and time.</summary>
         </member>
+        <member name="F:ApplicationAccess.Utilities.StopwatchDateTimeProvider.stopWatchFrequency">
+            <summary>The value of the 'Frequency' property of the StopWatch object.</summary>
+        </member>
         <member name="F:ApplicationAccess.Utilities.StopwatchDateTimeProvider.stopwatchStartTime">
             <summary>The time at which the stopwatch was started.</summary>
         </member>
@@ -329,9 +323,6 @@
             <summary>
             Initialises a new instance of the ApplicationAccess.Utilities.StopwatchDateTimeProvider class.
             </summary>
-        </member>
-        <member name="M:ApplicationAccess.Utilities.StopwatchDateTimeProvider.Now">
-            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Utilities.StopwatchDateTimeProvider.UtcNow">
             <inheritdoc/>

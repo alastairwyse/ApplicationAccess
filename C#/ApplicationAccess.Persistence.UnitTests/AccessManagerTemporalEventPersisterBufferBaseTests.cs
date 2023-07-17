@@ -2081,12 +2081,6 @@ namespace ApplicationAccess.Persistence.UnitTests
                 this.dateTimeProvider = dateTimeProvider;
             }
 
-            public DateTime Now()
-            {
-                interceptor.Intercept();
-                return dateTimeProvider.Now();
-            }
-
             public DateTime UtcNow()
             {
                 interceptor.Intercept();

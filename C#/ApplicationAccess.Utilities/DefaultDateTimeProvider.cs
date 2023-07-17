@@ -24,12 +24,6 @@ namespace ApplicationAccess.Utilities
     public class DefaultDateTimeProvider : IDateTimeProvider
     {
         /// <inheritdoc/>
-        public DateTime Now()
-        {
-            return DateTime.Now;
-        }
-
-        /// <inheritdoc/>
         public DateTime UtcNow()
         {
             return DateTime.UtcNow;

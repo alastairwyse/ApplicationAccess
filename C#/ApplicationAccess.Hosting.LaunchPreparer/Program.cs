@@ -63,12 +63,11 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
                         streamWriter.Close();
                     }
 
-                    // Launch the specified component
-                    /*
+                    // Output the name of the dll used to execute the specified component
                     AccessManagerComponent component = argumentValidatorConverter.Convert<AccessManagerComponent>(NameConstants.ComponentArgumentName, arguments[NameConstants.ComponentArgumentName]);
-                    var launcher = new ComponentLauncher();
-                    launcher.Launch(component, arguments);
-                    */
+                    String dllName = ComponentToDllNameMap.GetDllNameForComponent(component);
+                    Console.WriteLine(dllName);
+                    Environment.Exit(0);
                 }
                 // If 'mode' is 'EncodeConfiguration'
                 else if (arguments[NameConstants.ModeArgumentName] == LaunchPreparerMode.EncodeConfiguration.ToString())
@@ -81,6 +80,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
                         var encoder = new Base64StringEncoder();
                         var encodedString = encoder.Encode(fileContents);
                         Console.WriteLine(encodedString);
+                        Environment.Exit(0);
                     }
                 }
                 else
@@ -92,6 +92,8 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
             {
                 Console.WriteLine($"ERROR: {e.Message}");
                 Console.WriteLine(GenerateUsageMessage());
+
+                Environment.Exit(1);
             }
         }
 

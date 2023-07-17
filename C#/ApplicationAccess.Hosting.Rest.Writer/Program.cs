@@ -50,8 +50,8 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 swaggerGenOptions.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
-                    Title = "ApplicationAccess",
-                    Description = "Provides flexible and configurable user permission and authorization management for applications"
+                    Title = "ApplicationAccess Writer Node",
+                    Description = "Node in a distributed/scaled deployment of ApplicationAccess which handles writing events that change permissions and authorizations"
                 });
 
                 // This adds swagger generation for controllers outside this project/assembly
