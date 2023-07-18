@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using ApplicationAccess.Validation;
-using ApplicationAccess.Utilities;
 using MoreComplexDataStructures;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;

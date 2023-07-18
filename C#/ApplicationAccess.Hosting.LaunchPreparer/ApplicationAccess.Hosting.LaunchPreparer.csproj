@@ -11,13 +11,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <None Remove="ApplicationAccessComponentLauncher.sh" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ApplicationAccessComponentLauncher.sh">
+    <Content Include="ApplicationAccessComponentLauncher.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>
