@@ -74,6 +74,21 @@ namespace ApplicationAccess.Hosting
     }
 
     /// <summary>
+    /// Count metric which records a when an event cache is queried, but the cache is empty.
+    /// </summary>
+    public class EventCacheEmpty : ReaderNodeCountMetric
+    {
+        protected static String staticName = "EventCacheEmpty";
+        protected static String staticDescription = "An event cache was queried, but the cache was empty";
+
+        public EventCacheEmpty()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Amount metric which records the time in milliseconds between the original occurence of an event, and when that change was processed / applied to a reader node.
     /// </summary>
     public class EventProcessingDelay : ReaderNodeCAmountMetric

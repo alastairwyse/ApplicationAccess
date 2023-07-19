@@ -170,6 +170,23 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetAllEventsSince_CacheIsEmpty()
+        {
+            mockTemporalEventBulkPersister.ClearReceivedCalls();
+            var testEventId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d46");
+            String exceptionMessage = $"The event cache is empty.";
+            mockTemporalEventQueryProcessor.When((processor) => processor.GetAllEventsSince(testEventId)).Do((callInfo) => throw new EventCacheEmptyException(exceptionMessage));
+
+            var e = Assert.Throws<EventCacheEmptyException>(delegate
+            {
+                testEventCacheClient.GetAllEventsSince(testEventId);
+            });
+
+            mockTemporalEventQueryProcessor.Received(1).GetAllEventsSince(testEventId);
+            Assert.That(e.Message, Does.StartWith(exceptionMessage));
+        }
+
+        [Test]
         public void PersistEvents()
         {
             List<TemporalEventBufferItemBase> testEvents = CreateTestEvents();

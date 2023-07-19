@@ -1090,15 +1090,16 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
-        public void Refresh_EventCacheReturns0Events()
+        public void Refresh_EventCacheIsEmpty()
         {
+            var mockException = new EventCacheEmptyException("The event cache is empty.");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var testUpdateEvents = new List<TemporalEventBufferItemBase>();
             EventHandler capturedSubscriberMethod = null;
             mockRefreshStrategy.ReaderNodeRefreshed += Arg.Do<EventHandler>(eventHandler => capturedSubscriberMethod = eventHandler);
             mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
-            mockEventCache.GetAllEventsSince(returnedLoadState.Item1).Returns(testUpdateEvents);
+            mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw mockException);
             testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
             testReaderNode.Load(true);
 
@@ -1107,7 +1108,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<RefreshTime>());
             mockPersistentReader.Received(1).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());
             mockEventCache.Received(1).GetAllEventsSince(returnedLoadState.Item1);
-            mockMetricLogger.Received(1).Add(Arg.Any<CachedEventsReceived>(), 0);
+            mockMetricLogger.Received(1).Increment(Arg.Any<EventCacheEmpty>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<RefreshTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<RefreshOperationCompleted>());
         }

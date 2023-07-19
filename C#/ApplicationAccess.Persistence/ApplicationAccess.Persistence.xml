@@ -919,6 +919,24 @@
             <param name="eventId">A unique id for the event.</param>
             <param name="eventAction">The action of the event.</param>
         </member>
+        <member name="T:ApplicationAccess.Persistence.EventCacheEmptyException">
+            <summary>
+            The exception that is thrown when a query is executed against an event cache but the cache is empty.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.EventCacheEmptyException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.EventCacheEmptyException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.EventCacheEmptyException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.EventCacheEmptyException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.EventNotCachedException">
             <summary>
             The exception that is thrown when an event which changes the structure of an access manager is requested from a cache but not found.

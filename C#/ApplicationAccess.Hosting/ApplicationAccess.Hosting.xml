@@ -304,6 +304,11 @@
             Amount metric which records the number of events received in response to a request to an event cache.
             </summary>
         </member>
+        <member name="T:ApplicationAccess.Hosting.EventCacheEmpty">
+            <summary>
+            Count metric which records a when an event cache is queried, but the cache is empty.
+            </summary>
+        </member>
         <member name="T:ApplicationAccess.Hosting.EventProcessingDelay">
             <summary>
             Amount metric which records the time in milliseconds between the original occurence of an event, and when that change was processed / applied to a reader node.

@@ -16,28 +16,29 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Hosting.Rest.Utilities
 {
     /// <summary>
-    /// The exception that is thrown when an event which changes the structure of an access manager is requested from a cache but not found.
+    /// The exception that is thrown when a service or application is not ready to handle a request.
     /// </summary>
-    public class EventNotCachedException : Exception
+    /// <remarks>Equivalent to an <see href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503">HTTP 503 status error</see>.</remarks>
+    public class ServiceUnavailableException : Exception
     {
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.EventNotCachedException class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Utilities.ServiceUnavailableException class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
-        public EventNotCachedException(String message)
+        public ServiceUnavailableException(String message)
             : base(message)
         {
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.EventNotCachedException class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Utilities.ServiceUnavailableException class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
         /// <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
-        public EventNotCachedException(String message, Exception innerException)
+        public ServiceUnavailableException(String message, Exception innerException)
             : base(message, innerException)
         {
         }

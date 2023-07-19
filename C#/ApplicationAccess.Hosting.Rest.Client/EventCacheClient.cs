@@ -196,6 +196,14 @@ namespace ApplicationAccess.Hosting.Rest.Client
                         Stream responseBody = response.Content.ReadAsStream();
                         HttpErrorResponse httpErrorResponse = DeserializeResponseBodyToHttpErrorResponse(responseBody);
                         responseBody.Position = 0;
+                        // If a 503 status was returned, throw this as an EventCacheEmptyException
+                        if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+                        {
+                            if (httpErrorResponse != null)
+                            {
+                                throw new EventCacheEmptyException(httpErrorResponse.Message);
+                            }
+                        }
                         // If a 404 status was returned, throw this as an EventNotCachedException
                         if (response.StatusCode == HttpStatusCode.NotFound)
                         {

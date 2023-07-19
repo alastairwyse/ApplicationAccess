@@ -80,7 +80,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
             {
                 return eventQueryProcessor.GetAllEventsSince(priorEventdId);
             }
-            catch(EventNotCachedException eventNotCachedException)
+            catch (EventNotCachedException eventNotCachedException)
             {
                 throw new NotFoundException(eventNotCachedException.Message, priorEventdId.ToString());
             }

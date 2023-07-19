@@ -24,6 +24,9 @@
 #     Docker-Build [-OutputFolder] <String> [-ZipFileName] <String>
 #
 # ** TODO **
+#     Compress is putting the test folder into the zip, rather than all the files in the folder
+#     Usn't unzipping on the unix side properly... runtimes folder comes up as access denied??
+#
 #     ATM need to run the below command to allow the scripts to be run (without it running 
 #     results in error '[script name] is not digitally signed. You cannot run this script on the current 
 #     system.')...

@@ -53,6 +53,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid testEventId1 = Guid.Parse("00000000-0000-0000-0000-000000000029");
             mockMetricLogger.Begin(Arg.Any<CachedEventsReadTime>()).Returns(testBeginId);
 
+            mockMetricLogger.ClearReceivedCalls();
+            testAccessManagerTemporalEventCache.AddUser("user1", Guid.Parse("00000000-0000-0000-0000-00000000002A"), DateTime.UtcNow);
+            testAccessManagerTemporalEventCache.AddUserToGroupMapping("user1", "group1", Guid.Parse("00000000-0000-0000-0000-00000000002B"), DateTime.UtcNow);
+            testAccessManagerTemporalEventCache.AddEntity("ClientAccount", "CompanyA", Guid.Parse("00000000-0000-0000-0000-00000000002C"), DateTime.UtcNow);
+
             var e = Assert.Throws<EventNotCachedException>(delegate
             {
                 testAccessManagerTemporalEventCache.GetAllEventsSince(testEventId1);
@@ -62,19 +67,21 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<CachedEventsReadTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<CachedEventsReadTime>());
             mockMetricLogger.DidNotReceive().Add(Arg.Any<CachedEventsRead>(), Arg.Any<Int64>());
+        }
 
+        [Test]
+        public void GetAllEventsSince_EventCacheIsEmpty()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testEventId1 = Guid.Parse("00000000-0000-0000-0000-000000000029");
+            mockMetricLogger.Begin(Arg.Any<CachedEventsReadTime>()).Returns(testBeginId);
 
-            mockMetricLogger.ClearReceivedCalls();
-            testAccessManagerTemporalEventCache.AddUser("user1", Guid.Parse("00000000-0000-0000-0000-00000000002A"), DateTime.UtcNow);
-            testAccessManagerTemporalEventCache.AddUserToGroupMapping("user1", "group1", Guid.Parse("00000000-0000-0000-0000-00000000002B"), DateTime.UtcNow);
-            testAccessManagerTemporalEventCache.AddEntity("ClientAccount", "CompanyA", Guid.Parse("00000000-0000-0000-0000-00000000002C"), DateTime.UtcNow);
-
-            e = Assert.Throws<EventNotCachedException>(delegate
+            var e = Assert.Throws<EventCacheEmptyException>(delegate
             {
                 testAccessManagerTemporalEventCache.GetAllEventsSince(testEventId1);
             });
 
-            Assert.That(e.Message, Does.StartWith("No event with eventId '00000000-0000-0000-0000-000000000029' was found in the cache."));
+            Assert.That(e.Message, Does.StartWith("The event cache is empty."));
             mockMetricLogger.Received(1).Begin(Arg.Any<CachedEventsReadTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<CachedEventsReadTime>());
             mockMetricLogger.DidNotReceive().Add(Arg.Any<CachedEventsRead>(), Arg.Any<Int64>());

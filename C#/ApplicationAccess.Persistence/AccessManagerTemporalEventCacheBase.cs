@@ -94,6 +94,11 @@ namespace ApplicationAccess.Persistence
             Guid beginId = metricLogger.Begin(new CachedEventsReadTime());
             lock (cachedEvents)
             {
+                if (cachedEvents.Count == 0)
+                {
+                    metricLogger.CancelBegin(beginId, new CachedEventsReadTime());
+                    throw new EventCacheEmptyException("The event cache is empty.");
+                }
                 if (cachedEventsGuidIndex.ContainsKey(eventId) == false)
                 {
                     metricLogger.CancelBegin(beginId, new CachedEventsReadTime());

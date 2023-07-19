@@ -365,6 +365,13 @@ namespace ApplicationAccess.Hosting
             {
                 updateEvents = eventCache.GetAllEventsSince(latestEventId);
             }
+            catch (EventCacheEmptyException)
+            {
+                // This will usually occur soon after starting the ReaderNode and EventCache, when no event have yet flowed through the system
+                //   In this case capture the specific exception, but don't do anything... i.e. don't Load() again, as it will just reload the exact same data that was already loaded on start
+                //   (assuming this node was created as part of a ReaderNodeHostedServiceWrapper)
+                metricLogger.Increment(new EventCacheEmpty());
+            }
             catch (EventNotCachedException)
             {
                 metricLogger.Increment(new CacheMiss());

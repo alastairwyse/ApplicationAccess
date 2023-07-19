@@ -25,6 +25,7 @@ using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Serialization;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache
 {
@@ -116,6 +117,19 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             // Add a mapping from DeserializationException to HTTP 400 error status
             exceptionToHttpStatusCodeConverter.AddMapping(typeof(DeserializationException), System.Net.HttpStatusCode.BadRequest);
             exceptionToHttpErrorResponseConverter.AddConversionFunction(typeof(DeserializationException), (Exception exception) =>
+            {
+                if (exception.TargetSite == null)
+                {
+                    return new HttpErrorResponse(exception.GetType().Name, exception.Message);
+                }
+                else
+                {
+                    return new HttpErrorResponse(exception.GetType().Name, exception.Message, exception.TargetSite.Name);
+                }
+            });
+            // Add a mapping from EventCacheEmptyException to HTTP 503 error status
+            exceptionToHttpStatusCodeConverter.AddMapping(typeof(EventCacheEmptyException), System.Net.HttpStatusCode.ServiceUnavailable);
+            exceptionToHttpErrorResponseConverter.AddConversionFunction(typeof(EventCacheEmptyException), (Exception exception) =>
             {
                 if (exception.TargetSite == null)
                 {

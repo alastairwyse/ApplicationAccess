@@ -15,14 +15,13 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ApplicationAccess.Hosting.Rest.Utilities
 {
     /// <summary>
     /// The exception that is thrown when a resource doesn't exist or could not be found.
     /// </summary>
+    /// <remarks>Equivalent to an <see href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404">HTTP 404 status error</see>.</remarks>
     public class NotFoundException : Exception
     {
         /// <summary>A unique identifier for the resource.</summary>
