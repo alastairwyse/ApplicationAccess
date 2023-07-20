@@ -15,7 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 # ------------------------------------------------------------------------------
+#
 # Script: ApplicationAccessComponentLauncher.sh
 # Description: Prepares to start and starts an ApplicationAccess hosted component.
 #   Calls the 'LaunchPreparer' utility to validate start parmaeters, and setup
@@ -48,6 +50,8 @@
 #     docker run -it --rm -p 5000:5000 -e MODE=Launch -e LISTEN_PORT=5000 -e MINIMUM_LOG_LEVEL=Warning -e ENCODED_JSON_CONFIGURATION=H4sIAAAAAAACCqpWUApLzClNVbJSUPIsVvAK9vdTUqgFAAAA//8= --name appaccess_readerwriter 792f8ef28edf
 #   'EncodeConfiguration' mode:
 #     docker run -it --rm -v /home/TestUser/AppAccessDocker/ReaderWriterSource:/ext -e MODE=EncodeConfiguration -e CONFIGURATION_FILE_PATH=/ext/appsettings.Production.json --name appaccess_readerwriter b306fbdce9e5
+#
+# ------------------------------------------------------------------------------
 
 if [ $MODE == EncodeConfiguration ]
 then
