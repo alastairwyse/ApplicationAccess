@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+#
 # NAME
 #     Docker-Build
 #
@@ -23,8 +25,11 @@
 # SYNTAX
 #     Docker-Build [-Component] <String> [-OutputFolder] <String> [-TarFileName] <String> 
 #
-# EXAMPLE
-#     .\Docker-Build.ps1 "ReaderWriter" "C:\Temp\DockerBuild" "ReaderWriter.tar"
+# EXAMPLES
+#     .\Docker-Build.ps1 "EventCache" "C:\Temp\DockerBuild\EventCache\" "EventCache.tar"
+#     .\Docker-Build.ps1 "Reader" "C:\Temp\DockerBuild\Reader\" "Reader.tar"
+#     .\Docker-Build.ps1 "ReaderWriter" "C:\Temp\DockerBuild\ReaderWriter\" "ReaderWriter.tar"
+#     .\Docker-Build.ps1 "Writer" "C:\Temp\DockerBuild\Writer\" "Writer.tar"
 #
 # NOTES / TODO
 #     Currently the below command must be executed to allow the scripts to be run (without 
@@ -33,6 +38,9 @@
 #       'Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser'
 #     This command should subsequently reverse that security bypass...
 #       'Set-ExecutionPolicy -ExecutionPolicy Undefined -Scope CurrentUser'
+#
+#     Resulting tar file can be extracted on the unix-side with the following command...
+#       tar -xf [tar filename]
 #
 
 # Read and validate input parameters
