@@ -995,9 +995,9 @@
         <member name="T:ApplicationAccess.DependencyFreeAccessManager`4">
             <summary>
             Subclass of <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> where...
-            <para>Event methods can be called successfully without first satisfying data element dependecies, e.g. the AddUserToGroupMapping() method can be used to add a user to group mapping, without first explicitly adding the user and group.</para>
-            <para>Event methods are idempotent, e.g. the AddUserToGroupMapping() method will return success if the specified mapping already exists.</para>
-            <para>The class passes any depended-on/prepended events to an instance of <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/>, e.g. if the AddUserToGroupMapping() method is called and the specified user and group do not exist, events will be passed to the <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> instance to add the user and group (in addition to them being added to the class internally).</para>
+            <para>1. Event methods can be called successfully without first satisfying data element dependecies, e.g. the AddUserToGroupMapping() method can be used to add a user to group mapping, without first explicitly adding the user and group.</para>
+            <para>2. Event methods are idempotent, e.g. the AddUserToGroupMapping() method will return success if the specified mapping already exists.</para>
+            <para>3. The class passes any depended-on/prepended events to an instance of <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/>, e.g. if the AddUserToGroupMapping() method is called and the specified user and group do not exist, events will be passed to the <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> instance to add the user and group (in addition to them being added to the class internally).</para>
             </summary>
             <typeparam name="TUser">The type of users in the application.</typeparam>
             <typeparam name="TGroup">The type of groups in the application.</typeparam>
