@@ -58,7 +58,23 @@ namespace ApplicationAccess.Utilities.UnitTests
                 testLockManager.RegisterLockObject(testLockObject2);
             });
 
-            Assert.That(e.Message, Does.StartWith("Cannot register new lock objects after the AcquireLocksAndInvokeAction() method has been called."));
+            Assert.That(e.Message, Does.StartWith("Cannot register new lock objects after the AcquireLocksAndInvokeAction() or AcquireAllLocksAndInvokeAction() methods have been called."));
+        }
+
+        [Test]
+        public void RegisterLockObject_CalledAfterAcquireAllLocksAndInvokeActionHasBeenCalled()
+        {
+            var testLockObject1 = new Object();
+            var testLockObject2 = new Object();
+            testLockManager.RegisterLockObject(testLockObject1);
+            testLockManager.AcquireAllLocksAndInvokeAction(new Action(() => { }));
+
+            var e = Assert.Throws<InvalidOperationException>(delegate
+            {
+                testLockManager.RegisterLockObject(testLockObject2);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Cannot register new lock objects after the AcquireLocksAndInvokeAction() or AcquireAllLocksAndInvokeAction() methods have been called."));
         }
 
         [Test]
@@ -713,6 +729,40 @@ namespace ApplicationAccess.Utilities.UnitTests
                 Assert.IsFalse(Monitor.IsEntered(l));
                 Assert.IsTrue(Monitor.IsEntered(m));
                 Assert.IsFalse(Monitor.IsEntered(n));
+            }));
+        }
+
+        [Test]
+        public void AcquireAllLocksAndInvokeAction()
+        {
+
+            var testLockObject1 = new Object();
+            var testLockObject2 = new Object();
+            var testLockObject3 = new Object();
+            testLockManager.RegisterLockObjects(new Object[] { testLockObject1, testLockObject2, testLockObject3 });
+
+            testLockManager.AcquireAllLocksAndInvokeAction(new Action(() =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testLockObject1));
+                Assert.IsTrue(Monitor.IsEntered(testLockObject2));
+                Assert.IsTrue(Monitor.IsEntered(testLockObject3));
+            }));
+        }
+
+        [Test]
+        public void LockObjectIsLockedByCurrentThread()
+        {
+            var testLockObject1 = new Object();
+            var testLockObject2 = new Object();
+            var testLockObject3 = new Object();
+            testLockManager.RegisterLockObjects(new Object[] { testLockObject1, testLockObject2, testLockObject3 });
+            testLockManager.RegisterLockObjectDependency(testLockObject2, testLockObject1);
+
+            testLockManager.AcquireLocksAndInvokeAction(testLockObject2, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
+            {
+                Assert.IsTrue(testLockManager.LockObjectIsLockedByCurrentThread(testLockObject1));
+                Assert.IsTrue(testLockManager.LockObjectIsLockedByCurrentThread(testLockObject2));
+                Assert.IsFalse(testLockManager.LockObjectIsLockedByCurrentThread(testLockObject3));
             }));
         }
 

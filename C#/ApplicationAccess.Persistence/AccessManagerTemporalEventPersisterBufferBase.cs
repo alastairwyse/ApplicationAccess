@@ -20,6 +20,7 @@ using ApplicationAccess.Validation;
 using MoreComplexDataStructures;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
+using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Persistence
 {
@@ -71,6 +72,8 @@ namespace ApplicationAccess.Persistence
         /// <summary>The queue used to buffer group to entity mapping events.</summary>
         protected LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>> groupToEntityMappingEventBuffer;
 
+        /// <summary>Manages acquiring locks on queues.</summary>
+        protected LockManager lockManager;
         // Separate lock objects are required.  The queues cannot be locked directly as they are reassigned whilst locked as part of the flush process
         /// <summary>Lock object for the user event queue.</summary>
         protected Object userEventBufferLock;
@@ -124,17 +127,8 @@ namespace ApplicationAccess.Persistence
             userToEntityMappingEventBuffer = new LinkedList<Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>>();
             groupToEntityMappingEventBuffer = new LinkedList<Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>>();
 
-            userEventBufferLock = new Object();
-            groupEventBufferLock = new Object();
-            userToGroupMappingEventBufferLock = new Object();
-            groupToGroupMappingEventBufferLock = new Object();
-            userToApplicationComponentAndAccessLevelMappingEventBufferLock = new Object();
-            groupToApplicationComponentAndAccessLevelMappingEventBufferLock = new Object();
-            entityTypeEventBufferLock = new Object();
-            entityEventBufferLock = new Object();
-            userToEntityMappingEventBufferLock = new Object();
-            groupToEntityMappingEventBufferLock = new Object();
-            eventSequenceNumberLock = new Object();
+            lockManager = new LockManager();
+            InitializeLockObjects();
         }
 
         /// <summary>
@@ -177,402 +171,202 @@ namespace ApplicationAccess.Persistence
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
-        public void AddUser(TUser user)
+        public virtual void AddUser(TUser user)
         {
-            Action<TUser> postValidationAction = (actionUser) =>
+            lockManager.AcquireLocksAndInvokeAction(userEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, nextSequenceNumberAndTimestamp.Item1);
-                userEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
-                metricLogger.Increment(new AddUserEventBuffered());
-                metricLogger.Set(new UserEventsBuffered(), userEventBuffer.Count);
-            };
-            lock (userEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddUser(user, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddUser(user, BufferAddUserEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveUser(TUser user)
         {
-            Action<TUser> postValidationAction = (actionUser) =>
+            lockManager.AcquireLocksAndInvokeAction(userEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, nextSequenceNumberAndTimestamp.Item1);
-                userEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
-                metricLogger.Increment(new RemoveUserEventBuffered());
-                metricLogger.Set(new UserEventsBuffered(), userEventBuffer.Count);
-            };
-            lock (userEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveUser(user, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveUser(user, BufferRemoveUserEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
-        public void AddGroup(TGroup group)
+        public virtual void AddGroup(TGroup group)
         {
-            Action<TGroup> postValidationAction = (actionGroup) =>
+            lockManager.AcquireLocksAndInvokeAction(groupEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, nextSequenceNumberAndTimestamp.Item1);
-                groupEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
-                metricLogger.Increment(new AddGroupEventBuffered());
-                metricLogger.Set(new GroupEventsBuffered(), groupEventBuffer.Count);
-            };
-            lock (groupEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddGroup(group, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddGroup(group, BufferAddGroupEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveGroup(TGroup group)
         {
-            Action<TGroup> postValidationAction = (actionGroup) =>
+            lockManager.AcquireLocksAndInvokeAction(groupEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, nextSequenceNumberAndTimestamp.Item1);
-                groupEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
-                metricLogger.Increment(new RemoveGroupEventBuffered());
-                metricLogger.Set(new GroupEventsBuffered(), groupEventBuffer.Count);
-            };
-            lock (groupEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveGroup(group, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveGroup(group, BufferRemoveGroupEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
-            Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
+            lockManager.AcquireLocksAndInvokeAction(userToGroupMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Add, user, group, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                userToGroupMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
-                metricLogger.Increment(new AddUserToGroupMappingEventBuffered());
-                metricLogger.Set(new UserToGroupMappingEventsBuffered(), userToGroupMappingEventBuffer.Count);
-            };
-            lock (userToGroupMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddUserToGroupMapping(user, group, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddUserToGroupMapping(user, group, BufferAddUserToGroupMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
-            Action<TUser, TGroup> postValidationAction = (actionUser, actionGroup) =>
+            lockManager.AcquireLocksAndInvokeAction(userToGroupMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Remove, user, group, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                userToGroupMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveUserToGroupMappingEventBuffered());
-                metricLogger.Set(new UserToGroupMappingEventsBuffered(), userToGroupMappingEventBuffer.Count);
-            };
-            lock (userToGroupMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveUserToGroupMapping(user, group, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveUserToGroupMapping(user, group, BufferRemoveUserToGroupMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-            Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
+            lockManager.AcquireLocksAndInvokeAction(groupToGroupMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                groupToGroupMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
-                metricLogger.Increment(new AddGroupToGroupMappingEventBuffered());
-                metricLogger.Set(new GroupToGroupMappingEventsBuffered(), groupToGroupMappingEventBuffer.Count);
-            };
-            lock (groupToGroupMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddGroupToGroupMapping(fromGroup, toGroup, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddGroupToGroupMapping(fromGroup, toGroup, BufferAddGroupToGroupMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-            Action<TGroup, TGroup> postValidationAction = (actionFromGroup, actionToGroup) =>
+            lockManager.AcquireLocksAndInvokeAction(groupToGroupMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                groupToGroupMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveGroupToGroupMappingEventBuffered());
-                metricLogger.Set(new GroupToGroupMappingEventsBuffered(), groupToGroupMappingEventBuffer.Count);
-            };
-            lock (groupToGroupMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveGroupToGroupMapping(fromGroup, toGroup, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveGroupToGroupMapping(fromGroup, toGroup, BufferRemoveGroupToGroupMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
+            lockManager.AcquireLocksAndInvokeAction(userToApplicationComponentAndAccessLevelMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
-                metricLogger.Increment(new AddUserToApplicationComponentAndAccessLevelMappingEventBuffered());
-                metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingEventsBuffered(), userToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
-            };
-            lock (userToApplicationComponentAndAccessLevelMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, BufferAddUserToApplicationComponentAndAccessLevelMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            Action<TUser, TComponent, TAccess> postValidationAction = (actionUser, actionApplicationComponent, actionAccessLevel) =>
+            lockManager.AcquireLocksAndInvokeAction(userToApplicationComponentAndAccessLevelMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered());
-                metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingEventsBuffered(), userToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
-            };
-            lock (userToApplicationComponentAndAccessLevelMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, BufferRemoveUserToApplicationComponentAndAccessLevelMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
+            lockManager.AcquireLocksAndInvokeAction(groupToApplicationComponentAndAccessLevelMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
-                metricLogger.Increment(new AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
-                metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingEventsBuffered(), groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
-            };
-            lock (groupToApplicationComponentAndAccessLevelMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, BufferAddGroupToApplicationComponentAndAccessLevelMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            Action<TGroup, TComponent, TAccess> postValidationAction = (actionGroup, actionApplicationComponent, actionAccessLevel) =>
+            lockManager.AcquireLocksAndInvokeAction(groupToApplicationComponentAndAccessLevelMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
-                metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingEventsBuffered(), groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
-            };
-            lock (groupToApplicationComponentAndAccessLevelMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, BufferRemoveGroupToApplicationComponentAndAccessLevelMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
-        public void AddEntityType(string entityType)
+        public virtual void AddEntityType(string entityType)
         {
-            Action<string> postValidationAction = (actionEntityType) =>
+            lockManager.AcquireLocksAndInvokeAction(entityTypeEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, nextSequenceNumberAndTimestamp.Item1);
-                entityTypeEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
-                metricLogger.Increment(new AddEntityTypeEventBuffered());
-                metricLogger.Set(new EntityTypeEventsBuffered(), entityTypeEventBuffer.Count);
-            };
-            lock (entityTypeEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddEntityType(entityType, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddEntityType(entityType, BufferAddEntityTypeEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveEntityType(string entityType)
         {
-            Action<string> postValidationAction = (actionEntityType) =>
+            lockManager.AcquireLocksAndInvokeAction(entityTypeEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, nextSequenceNumberAndTimestamp.Item1);
-                entityTypeEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
-                metricLogger.Increment(new RemoveEntityTypeEventBuffered());
-                metricLogger.Set(new EntityTypeEventsBuffered(), entityTypeEventBuffer.Count);
-            };
-            lock (entityTypeEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveEntityType(entityType, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveEntityType(entityType, BufferRemoveEntityTypeEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
-        public void AddEntity(string entityType, string entity)
+        public virtual void AddEntity(string entityType, string entity)
         {
-            Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
+            lockManager.AcquireLocksAndInvokeAction(entityEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, nextSequenceNumberAndTimestamp.Item1);
-                entityEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
-                metricLogger.Increment(new AddEntityEventBuffered());
-                metricLogger.Set(new EntityEventsBuffered(), entityEventBuffer.Count);
-            };
-            lock (entityEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddEntity(entityType, entity, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddEntity(entityType, entity, BufferAddEntityEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveEntity(string entityType, string entity)
         {
-            Action<string, string> postValidationAction = (actionEntityType, actionEntity) =>
+            lockManager.AcquireLocksAndInvokeAction(entityEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, nextSequenceNumberAndTimestamp.Item1);
-                entityEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
-                metricLogger.Increment(new RemoveEntityEventBuffered());
-                metricLogger.Set(new EntityEventsBuffered(), entityEventBuffer.Count);
-            };
-            lock (entityEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveEntity(entityType, entity, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveEntity(entityType, entity, BufferRemoveEntityEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddUserToEntityMapping(TUser user, string entityType, string entity)
         {
-            Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
+            lockManager.AcquireLocksAndInvokeAction(userToEntityMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                userToEntityMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
-                metricLogger.Increment(new AddUserToEntityMappingEventBuffered());
-                metricLogger.Set(new UserToEntityMappingEventsBuffered(), userToEntityMappingEventBuffer.Count);
-            };
-            lock (userToEntityMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddUserToEntityMapping(user, entityType, entity, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddUserToEntityMapping(user, entityType, entity, BufferAddUserToEntityMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveUserToEntityMapping(TUser user, string entityType, string entity)
         {
-            Action<TUser, string, string> postValidationAction = (actionUser, actionEntityType, actionEntity) =>
+            lockManager.AcquireLocksAndInvokeAction(userToEntityMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                userToEntityMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveUserToEntityMappingEventBuffered());
-                metricLogger.Set(new UserToEntityMappingEventsBuffered(), userToEntityMappingEventBuffer.Count);
-            };
-            lock (userToEntityMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveUserToEntityMapping(user, entityType, entity, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveUserToEntityMapping(user, entityType, entity, BufferRemoveUserToEntityMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void AddGroupToEntityMapping(TGroup group, string entityType, string entity)
         {
-            Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
+            lockManager.AcquireLocksAndInvokeAction(groupToEntityMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                groupToEntityMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
-                metricLogger.Increment(new AddGroupToEntityMappingEventBuffered());
-                metricLogger.Set(new GroupToEntityMappingEventsBuffered(), groupToEntityMappingEventBuffer.Count);
-            };
-            lock (groupToEntityMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateAddGroupToEntityMapping(group, entityType, entity, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateAddGroupToEntityMapping(group, entityType, entity, BufferAddGroupToEntityMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public void RemoveGroupToEntityMapping(TGroup group, string entityType, string entity)
         {
-            Action<TGroup, string, string> postValidationAction = (actionGroup, actionEntityType, actionEntity) =>
+            lockManager.AcquireLocksAndInvokeAction(groupToEntityMappingEventBufferLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
-                Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
-                var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
-                groupToEntityMappingEventBuffer.AddLast(bufferItem);
-                bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
-                metricLogger.Increment(new RemoveGroupToEntityMappingEventBuffered());
-                metricLogger.Set(new GroupToEntityMappingEventsBuffered(), groupToEntityMappingEventBuffer.Count);
-            };
-            lock (groupToEntityMappingEventBufferLock)
-            {
-                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveGroupToEntityMapping(group, entityType, entity, postValidationAction));
-            }
+                ThrowExceptionIfValidationFails(eventValidator.ValidateRemoveGroupToEntityMapping(group, entityType, entity, BufferRemoveGroupToEntityMappingEventAction));
+            }));
         }
 
         /// <inheritdoc/>
@@ -737,6 +531,8 @@ namespace ApplicationAccess.Persistence
 
         #region Private/Protected Methods
 
+        #region Abstract Methods
+
         /// <summary>
         /// Processes a <see cref="UserEventBufferItem{TUser}"/> stored in the buffer.
         /// </summary>
@@ -796,6 +592,36 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventBufferItem">The event to process.</param>
         protected abstract void ProcessGroupToEntityMappingEventBufferItem(GroupToEntityMappingEventBufferItem<TGroup> eventBufferItem);
+
+        #endregion
+
+        /// <summary>
+        /// Initializes the classes' lock objects and dependencies.
+        /// </summary>
+        protected virtual void InitializeLockObjects()
+        {
+            userEventBufferLock = new Object();
+            groupEventBufferLock = new Object();
+            userToGroupMappingEventBufferLock = new Object();
+            groupToGroupMappingEventBufferLock = new Object();
+            userToApplicationComponentAndAccessLevelMappingEventBufferLock = new Object();
+            groupToApplicationComponentAndAccessLevelMappingEventBufferLock = new Object();
+            entityTypeEventBufferLock = new Object();
+            entityEventBufferLock = new Object();
+            userToEntityMappingEventBufferLock = new Object();
+            groupToEntityMappingEventBufferLock = new Object();
+            eventSequenceNumberLock = new Object();
+            lockManager.RegisterLockObject(userEventBufferLock);
+            lockManager.RegisterLockObject(groupEventBufferLock);
+            lockManager.RegisterLockObject(userToGroupMappingEventBufferLock);
+            lockManager.RegisterLockObject(groupToGroupMappingEventBufferLock);
+            lockManager.RegisterLockObject(userToApplicationComponentAndAccessLevelMappingEventBufferLock);
+            lockManager.RegisterLockObject(groupToApplicationComponentAndAccessLevelMappingEventBufferLock);
+            lockManager.RegisterLockObject(entityTypeEventBufferLock);
+            lockManager.RegisterLockObject(entityEventBufferLock);
+            lockManager.RegisterLockObject(userToEntityMappingEventBufferLock);
+            lockManager.RegisterLockObject(groupToEntityMappingEventBufferLock);
+        }
 
         /// <summary>
         /// Re-throws the exception which caused validation failure, if the exception exists.
@@ -977,6 +803,9 @@ namespace ApplicationAccess.Persistence
             where TEventBuffer : LinkedList<Tuple<TEventBufferItemType, Int64>>, new()
             where TEventBufferItemType : TemporalEventBufferItemBase
         {
+            // TODO: For consistency and correctness we should be using the 'lockManager' member to do this locking, but run into issues since we have to pass a lambda to its AcquireLocks*() methods
+            //   and lambdas don't work with ref and out parameters.  Since this locking will only ever need to lock the queue/buffer whose events are being moved (we don't care about dependencies
+            //   on elements in other queues at this point), we can get away with using the 'lock' statement directly.
             lock (eventBufferLockObject)
             {
                 // If the sequence number of the first item in the event buffer is greater than parameter 'maxSequenceNumber', it means that all events were buffered after the current flush process started, and hence none of them need to be processed
@@ -1044,6 +873,371 @@ namespace ApplicationAccess.Persistence
                 nextSequenceNumbers.Insert(new SequenceNumberAndEventBuffer(eventBuffer.First.Value.Item2, eventBufferEnum));
             }
         }
+
+        #region BufferEventActions
+
+        /// <summary>Action which buffers an event to add the specified user.</summary>
+        protected Action<TUser> BufferAddUserEventAction
+        {
+            get
+            {
+                return (TUser user) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, nextSequenceNumberAndTimestamp.Item1);
+                    userEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
+                    metricLogger.Increment(new AddUserEventBuffered());
+                    metricLogger.Set(new UserEventsBuffered(), userEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified user.</summary>
+        protected Action<TUser> BufferRemoveUserEventAction
+        {
+            get
+            {
+                return (TUser user) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, nextSequenceNumberAndTimestamp.Item1);
+                    userEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
+                    metricLogger.Increment(new RemoveUserEventBuffered());
+                    metricLogger.Set(new UserEventsBuffered(), userEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified group.</summary>
+        protected Action<TGroup> BufferAddGroupEventAction
+        {
+            get
+            {
+                return (TGroup group) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, nextSequenceNumberAndTimestamp.Item1);
+                    groupEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
+                    metricLogger.Increment(new AddGroupEventBuffered());
+                    metricLogger.Set(new GroupEventsBuffered(), groupEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified group.</summary>
+        protected Action<TGroup> BufferRemoveGroupEventAction
+        {
+            get
+            {
+                return (TGroup group) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, nextSequenceNumberAndTimestamp.Item1);
+                    groupEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
+                    metricLogger.Increment(new RemoveGroupEventBuffered());
+                    metricLogger.Set(new GroupEventsBuffered(), groupEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified user to group mapping.</summary>
+        protected Action<TUser, TGroup> BufferAddUserToGroupMappingEventAction
+        {
+            get
+            {
+                return (TUser user, TGroup group) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Add, user, group, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    userToGroupMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
+                    metricLogger.Increment(new AddUserToGroupMappingEventBuffered());
+                    metricLogger.Set(new UserToGroupMappingEventsBuffered(), userToGroupMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified user to group mapping.</summary>
+        protected Action<TUser, TGroup> BufferRemoveUserToGroupMappingEventAction
+        {
+            get
+            {
+                return (TUser user, TGroup group) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Remove, user, group, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    userToGroupMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
+                    metricLogger.Increment(new RemoveUserToGroupMappingEventBuffered());
+                    metricLogger.Set(new UserToGroupMappingEventsBuffered(), userToGroupMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified group to group mapping.</summary>
+        protected Action<TGroup, TGroup> BufferAddGroupToGroupMappingEventAction
+        {
+            get
+            {
+                return (TGroup fromGroup, TGroup toGroup) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    groupToGroupMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
+                    metricLogger.Increment(new AddGroupToGroupMappingEventBuffered());
+                    metricLogger.Set(new GroupToGroupMappingEventsBuffered(), groupToGroupMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified group to group mapping.</summary>
+        protected Action<TGroup, TGroup> BufferRemoveGroupToGroupMappingEventAction
+        {
+            get
+            {
+                return (TGroup fromGroup, TGroup toGroup) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    groupToGroupMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
+                    metricLogger.Increment(new RemoveGroupToGroupMappingEventBuffered());
+                    metricLogger.Set(new GroupToGroupMappingEventsBuffered(), groupToGroupMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified user to application component and access level mapping.</summary>
+        protected Action<TUser, TComponent, TAccess> BufferAddUserToApplicationComponentAndAccessLevelMappingEventAction
+        {
+            get
+            {
+                return (TUser user, TComponent applicationComponent, TAccess accessLevel) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
+                    metricLogger.Increment(new AddUserToApplicationComponentAndAccessLevelMappingEventBuffered());
+                    metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingEventsBuffered(), userToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified user to application component and access level mapping.</summary>
+        protected Action<TUser, TComponent, TAccess> BufferRemoveUserToApplicationComponentAndAccessLevelMappingEventAction
+        {
+            get
+            {
+                return (TUser user, TComponent applicationComponent, TAccess accessLevel) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
+                    metricLogger.Increment(new RemoveUserToApplicationComponentAndAccessLevelMappingEventBuffered());
+                    metricLogger.Set(new UserToApplicationComponentAndAccessLevelMappingEventsBuffered(), userToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified group to application component and access level mapping.</summary>
+        protected Action<TGroup, TComponent, TAccess> BufferAddGroupToApplicationComponentAndAccessLevelMappingEventAction
+        {
+            get
+            {
+                return (TGroup group, TComponent applicationComponent, TAccess accessLevel) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
+                    metricLogger.Increment(new AddGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
+                    metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingEventsBuffered(), groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified group to application component and access level mapping.</summary>
+        protected Action<TGroup, TComponent, TAccess> BufferRemoveGroupToApplicationComponentAndAccessLevelMappingEventAction
+        {
+            get
+            {
+                return (TGroup group, TComponent applicationComponent, TAccess accessLevel) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
+                    metricLogger.Increment(new RemoveGroupToApplicationComponentAndAccessLevelMappingEventBuffered());
+                    metricLogger.Set(new GroupToApplicationComponentAndAccessLevelMappingEventsBuffered(), groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified entity type.</summary>
+        protected Action<String> BufferAddEntityTypeEventAction
+        {
+            get
+            {
+                return (String entityType) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, nextSequenceNumberAndTimestamp.Item1);
+                    entityTypeEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
+                    metricLogger.Increment(new AddEntityTypeEventBuffered());
+                    metricLogger.Set(new EntityTypeEventsBuffered(), entityTypeEventBuffer.Count);
+                };
+            }
+        }
+
+
+        /// <summary>Action which buffers an event to remove the specified entity type.</summary>
+        protected Action<String> BufferRemoveEntityTypeEventAction
+        {
+            get
+            {
+                return (String entityType) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, nextSequenceNumberAndTimestamp.Item1);
+                    entityTypeEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
+                    metricLogger.Increment(new RemoveEntityTypeEventBuffered());
+                    metricLogger.Set(new EntityTypeEventsBuffered(), entityTypeEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified entity.</summary>
+        protected Action<String, String> BufferAddEntityEventAction
+        {
+            get
+            {
+                return (String entityType, String entity) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, nextSequenceNumberAndTimestamp.Item1);
+                    entityEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
+                    metricLogger.Increment(new AddEntityEventBuffered());
+                    metricLogger.Set(new EntityEventsBuffered(), entityEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified entity.</summary>
+        protected Action<String, String> BufferRemoveEntityEventAction
+        {
+            get
+            {
+                return (String entityType, String entity) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, nextSequenceNumberAndTimestamp.Item1);
+                    entityEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
+                    metricLogger.Increment(new RemoveEntityEventBuffered());
+                    metricLogger.Set(new EntityEventsBuffered(), entityEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified user to entity mapping.</summary>
+        protected Action<TUser, String, String> BufferAddUserToEntityMappingEventAction
+        {
+            get
+            {
+                return (TUser user, String entityType, String entity) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    userToEntityMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
+                    metricLogger.Increment(new AddUserToEntityMappingEventBuffered());
+                    metricLogger.Set(new UserToEntityMappingEventsBuffered(), userToEntityMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified user to entity mapping.</summary>
+        protected Action<TUser, String, String> BufferRemoveUserToEntityMappingEventAction
+        {
+            get
+            {
+                return (TUser user, String entityType, String entity) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    userToEntityMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
+                    metricLogger.Increment(new RemoveUserToEntityMappingEventBuffered());
+                    metricLogger.Set(new UserToEntityMappingEventsBuffered(), userToEntityMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to add the specified group to entity mapping.</summary>
+        protected Action<TGroup, String, String> BufferAddGroupToEntityMappingEventAction
+        {
+            get
+            {
+                return (TGroup group, String entityType, String entity) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    groupToEntityMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
+                    metricLogger.Increment(new AddGroupToEntityMappingEventBuffered());
+                    metricLogger.Set(new GroupToEntityMappingEventsBuffered(), groupToEntityMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        /// <summary>Action which buffers an event to remove the specified group to entity mapping.</summary>
+        protected Action<TGroup, String, String> BufferRemoveGroupToEntityMappingEventAction
+        {
+            get
+            {
+                return (TGroup group, String entityType, String entity) =>
+                {
+                    Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
+                    var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
+                    groupToEntityMappingEventBuffer.AddLast(bufferItem);
+                    bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
+                    metricLogger.Increment(new RemoveGroupToEntityMappingEventBuffered());
+                    metricLogger.Set(new GroupToEntityMappingEventsBuffered(), groupToEntityMappingEventBuffer.Count);
+                };
+            }
+        }
+
+        #endregion
 
         #endregion
 

@@ -22,6 +22,11 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using System.Threading;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
+using System.Collections.Generic;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
@@ -123,6 +128,18 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(0);
             }
             middlewareUtilities.SetupExceptionHandler(app, errorHandlingOptions, exceptionToHttpStatusCodeConverter, exceptionToHttpErrorResponseConverter);
+
+            // TODO: Remove tripswicth test code
+            
+            exceptionToHttpStatusCodeConverter.AddMapping(typeof(ServiceUnavailableException), System.Net.HttpStatusCode.ServiceUnavailable);
+            var switchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error.");
+            Action<Exception> tripAction = (Exception tripException) =>
+            {
+                Console.WriteLine($"SWITCH HAS EEB TRIPPED due to '{tripException.Message}'");
+            };
+            app.UseTripSwitch<BufferFlushingException>(switchTrippedException, new List<Action<Exception>>() { tripAction  });
+
+            // End tripswicth test code
 
             app.UseAuthorization();
 

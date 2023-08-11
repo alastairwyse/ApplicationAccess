@@ -520,6 +520,9 @@
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.groupToEntityMappingEventBuffer">
             <summary>The queue used to buffer group to entity mapping events.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.lockManager">
+            <summary>Manages acquiring locks on queues.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.userEventBufferLock">
             <summary>Lock object for the user event queue.</summary>
         </member>
@@ -723,6 +726,11 @@
             </summary>
             <param name="eventBufferItem">The event to process.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.InitializeLockObjects">
+            <summary>
+            Initializes the classes' lock objects and dependencies.
+            </summary>
+        </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.ThrowExceptionIfValidationFails(ApplicationAccess.Validation.ValidationResult)">
             <summary>
             Re-throws the exception which caused validation failure, if the exception exists.
@@ -777,6 +785,66 @@
             <param name="eventBuffer">The event buffer to take the event from.</param>
             <param name="nextSequenceNumbers">The min-heap to add the event to.</param>
             <param name="eventBufferEnum">The enum representing the event buffer.</param>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddUserEventAction">
+            <summary>Action which buffers an event to add the specified user.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveUserEventAction">
+            <summary>Action which buffers an event to remove the specified user.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddGroupEventAction">
+            <summary>Action which buffers an event to add the specified group.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveGroupEventAction">
+            <summary>Action which buffers an event to remove the specified group.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddUserToGroupMappingEventAction">
+            <summary>Action which buffers an event to add the specified user to group mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveUserToGroupMappingEventAction">
+            <summary>Action which buffers an event to remove the specified user to group mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddGroupToGroupMappingEventAction">
+            <summary>Action which buffers an event to add the specified group to group mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveGroupToGroupMappingEventAction">
+            <summary>Action which buffers an event to remove the specified group to group mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddUserToApplicationComponentAndAccessLevelMappingEventAction">
+            <summary>Action which buffers an event to add the specified user to application component and access level mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveUserToApplicationComponentAndAccessLevelMappingEventAction">
+            <summary>Action which buffers an event to remove the specified user to application component and access level mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddGroupToApplicationComponentAndAccessLevelMappingEventAction">
+            <summary>Action which buffers an event to add the specified group to application component and access level mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveGroupToApplicationComponentAndAccessLevelMappingEventAction">
+            <summary>Action which buffers an event to remove the specified group to application component and access level mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddEntityTypeEventAction">
+            <summary>Action which buffers an event to add the specified entity type.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveEntityTypeEventAction">
+            <summary>Action which buffers an event to remove the specified entity type.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddEntityEventAction">
+            <summary>Action which buffers an event to add the specified entity.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveEntityEventAction">
+            <summary>Action which buffers an event to remove the specified entity.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddUserToEntityMappingEventAction">
+            <summary>Action which buffers an event to add the specified user to entity mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveUserToEntityMappingEventAction">
+            <summary>Action which buffers an event to remove the specified user to entity mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferAddGroupToEntityMappingEventAction">
+            <summary>Action which buffers an event to add the specified group to entity mapping.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.BufferRemoveGroupToEntityMappingEventAction">
+            <summary>Action which buffers an event to remove the specified group to entity mapping.</summary>
         </member>
         <member name="M:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBufferBase`4.Dispose">
             <summary>
@@ -834,6 +902,62 @@
             </summary>
             <param name="message">The message that describes the error.</param>
             <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4">
+            <summary>
+            Subclass of <see cref="T:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkPersisterBuffer`4"/> where...
+            <para>1. Event methods can be called successfully without first satisfying dependecies which are required by <see cref="T:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkPersisterBuffer`4"/>, e.g. the AddUserToGroupMapping() method can be used to add a user to group mapping, without first explicitly adding the user and group.</para>
+            <para>2. Event methods are idempotent, e.g. the AddUserToGroupMapping() method will return success if the specified mapping already exists.</para>
+            The class is designed to work in conjunction with an <see cref="T:ApplicationAccess.Validation.IAccessManagerEventValidator`4"/> implementation which wraps a <see cref="T:ApplicationAccess.DependencyFreeAccessManager`4"/> instance, which takes care of generating any required events to be prepended before the requested event.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer class.
+            </summary>
+            <param name="eventValidator">The validator to use to validate events.</param>
+            <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+            <param name="eventPersister">The bulk persister to use to write flushed events to permanent storage.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer class.
+            </summary>
+            <param name="eventValidator">The validator to use to validate events.</param>
+            <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+            <param name="eventPersister">The bulk persister to use to write flushed events to permanent storage.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4.#ctor(ApplicationAccess.Validation.IAccessManagerEventValidator{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IGuidProvider,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer class.
+            </summary>
+            <param name="eventValidator">The validator to use to validate events.</param>
+            <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+            <param name="eventPersister">The bulk persister to use to write flushed events to permanent storage.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="guidProvider">The provider to use for random Guids.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4.AddUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4.AddGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4.AddEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4.AddEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer`4.InitializeLockObjects">
+            <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Persistence.EntityEventBufferItem">
             <summary>

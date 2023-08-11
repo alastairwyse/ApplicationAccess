@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace ApplicationAccess.Utilities
 {
@@ -26,6 +27,10 @@ namespace ApplicationAccess.Utilities
     {
         // TODO: Allow RegisterLockObject() and RegisterLockObjects() to be called after AcquireLocksAndInvokeAction()
         //   Will need to clear the cache for that lock object, and adjust graph or 'registeredObjects' accordingly
+        //   AcquireAllLocksAndInvokeAction() 
+        //     Will need its own List<Object> to cache the full path (allLockObjectsLockPath?)
+        //     Make sure I sort the objects in that list as is done when populating lockObjectDependencyCache
+        //     Could possibly populate this by calling TraverseDependencyGraph using each item in dependsOnDepenencies (in sequence) as the start points
 
         /// <summary>All the lock objects registered in the manager.</summary>
         protected HashSet<Object> registeredObjects;
@@ -39,6 +44,8 @@ namespace ApplicationAccess.Utilities
         protected Int32 nextSequenceNumber;
         /// <summary>For a given lock object and dependency pattern, caches the objects which either depend on, or are dependent on the object, in the order the the locks should be applied.</summary>
         protected Dictionary<LockObjectAndDependencyPattern, List<Object>> lockObjectDependencyCache;
+        /// <summary>A list of all objects registered in the manager in the order which locks should be applied when locking all objects.</summary>
+        protected List<Object> allObjectsLockOrder;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Utilities.LockManager class.
@@ -51,6 +58,7 @@ namespace ApplicationAccess.Utilities
             nextSequenceNumber = 0;
             registeredObjectSequenceNumbers = new Dictionary<Object, Int32>();
             lockObjectDependencyCache = new Dictionary<LockObjectAndDependencyPattern, List<Object>>();
+            allObjectsLockOrder = null;
         }
 
         /// <summary>
@@ -63,8 +71,8 @@ namespace ApplicationAccess.Utilities
                 throw new ArgumentNullException(nameof(lockObject), $"Parameter '{nameof(lockObject)}' cannot be null.");
             if (registeredObjects.Contains(lockObject) == true)
                 throw new ArgumentException($"Parameter '{nameof(lockObject)}' has already been registered as a lock object.", nameof(lockObject));
-            if (lockObjectDependencyCache.Count > 0)
-                throw new InvalidOperationException("Cannot register new lock objects after the AcquireLocksAndInvokeAction() method has been called.");
+            if (lockObjectDependencyCache.Count > 0 || allObjectsLockOrder != null)
+                throw new InvalidOperationException("Cannot register new lock objects after the AcquireLocksAndInvokeAction() or AcquireAllLocksAndInvokeAction() methods have been called.");
 
             registeredObjects.Add(lockObject);
             registeredObjectSequenceNumbers.Add(lockObject, nextSequenceNumber);
@@ -131,8 +139,7 @@ namespace ApplicationAccess.Utilities
         /// <param name="action">The action to invoke.</param>
         public void AcquireLocksAndInvokeAction(Object lockObject, LockObjectDependencyPattern lockObjectDependencyPattern, Action action)
         {
-            if (registeredObjects.Contains(lockObject) == false)
-                throw new ArgumentException($"Object in parameter '{nameof(lockObject)}' has not been registered.", nameof(lockObject));
+            ThrowExceptionIsLockObjectParameterNotRegistered(lockObject, nameof(lockObject));
 
             // Get the set of objects to acquire locks on
             List<Object> lockObjects = null;
@@ -174,6 +181,59 @@ namespace ApplicationAccess.Utilities
 
             // Acquire locks and invoke the action
             AcquireLocksAndInvokeAction(lockObjects, 0, action);
+        }
+
+        /// <summary>
+        /// Acquires locks on the specified object and objects which it's associated with (either all objects which it depends on, or which depend on it), the invokes the specified action.
+        /// </summary>
+        /// <param name="action">The action to invoke.</param>
+        public void AcquireAllLocksAndInvokeAction(Action action)
+        {
+            if (registeredObjectSequenceNumbers.Count == 0)
+                throw new InvalidOperationException("No objects have been registered.");
+
+            // Populate member 'allObjectsLockOrder' if the method is being called for the first time
+            if (allObjectsLockOrder == null)
+            {
+                lock (lockObjectDependencyCache)
+                {
+                    if (allObjectsLockOrder == null)
+                    {
+                        // Find the highest sequence number in registeredObjectSequenceNumbers, and store them in a Dictionary keyed by sequence number
+                        Int32 maxSequenceNumber = -1;
+                        var sequenceNumberToLockObjectMap = new Dictionary<Int32, Object>();
+                        foreach (KeyValuePair<Object, Int32> currentKvp in registeredObjectSequenceNumbers)
+                        {
+                            sequenceNumberToLockObjectMap.Add(currentKvp.Value, currentKvp.Key);
+                            if (currentKvp.Value > maxSequenceNumber)
+                            {
+                                maxSequenceNumber = currentKvp.Value;
+                            }
+                        }
+                        // Populate 'allObjectsLockOrder' with lock objects in order of sequence number
+                        allObjectsLockOrder = new List<Object>();
+                        for (Int32 currentSequenceNumber = 0; currentSequenceNumber <= maxSequenceNumber; currentSequenceNumber++)
+                        {
+                            allObjectsLockOrder.Add(sequenceNumberToLockObjectMap[currentSequenceNumber]);
+                        }
+                    }
+                }
+            }
+
+            // Acquire locks and invoke the action
+            AcquireLocksAndInvokeAction(allObjectsLockOrder, 0, action);
+        }
+
+        /// <summary>
+        /// Returns true if the specified lock object is locked by the current thread.
+        /// </summary>
+        /// <param name="lockObject">The object to check.</param>
+        /// <returns>True if the object is locked by the current thread.  Otherwise, false.</returns>
+        public Boolean LockObjectIsLockedByCurrentThread(Object lockObject)
+        {
+            ThrowExceptionIsLockObjectParameterNotRegistered(lockObject, nameof(lockObject));
+
+            return Monitor.IsEntered(lockObject);
         }
 
         #region Private/Protected Methods
@@ -246,6 +306,16 @@ namespace ApplicationAccess.Utilities
                 throw new ArgumentException($"Parameter '{nameof(lockObjectDependencyPattern)}' contains unhandled {nameof(LockObjectDependencyPattern)} '{lockObjectDependencyPattern}'.");
             }
         }
+
+        #pragma warning disable 1591
+
+        protected void ThrowExceptionIsLockObjectParameterNotRegistered(Object lockObject, String lockObjectParameterName)
+        {
+            if (registeredObjects.Contains(lockObject) == false)
+                throw new ArgumentException($"Object in parameter '{lockObjectParameterName}' has not been registered.", lockObjectParameterName);
+        }
+
+        #pragma warning restore 1591
 
         #endregion
 

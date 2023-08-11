@@ -22,6 +22,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.Writer
 {

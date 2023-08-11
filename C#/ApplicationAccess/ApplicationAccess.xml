@@ -335,10 +335,7 @@
             <summary>
             Removes all items and mappings from the graph.
             </summary>
-            <remarks>
-            <para>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</para>
-            <para>Note that mutual-exclusion locks are not held whilst this method is invoked, since the method is designed to be called outside of normal operational use of the class, e.g. during a load operation when an instance of the class is being initialized.</para>
-            </remarks>
+            <remarks>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</remarks>
         </member>
         <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddUser(`0)">
             <inheritdoc/>
@@ -994,6 +991,198 @@
             </summary>
             <param name="item">The element to remove.</param>
             <returns>True if the element is successfully found and removed.  Otherwise, false. This method returns false if item is not found in the set.</returns>
+        </member>
+        <member name="T:ApplicationAccess.DependencyFreeAccessManager`4">
+            <summary>
+            Subclass of <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> where...
+            <para>Event methods can be called successfully without first satisfying data element dependecies, e.g. the AddUserToGroupMapping() method can be used to add a user to group mapping, without first explicitly adding the user and group.</para>
+            <para>Event methods are idempotent, e.g. the AddUserToGroupMapping() method will return success if the specified mapping already exists.</para>
+            <para>The class passes any depended-on/prepended events to an instance of <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/>, e.g. if the AddUserToGroupMapping() method is called and the specified user and group do not exist, events will be passed to the <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> instance to add the user and group (in addition to them being added to the class internally).</para>
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.DependencyFreeAccessManager`4.eventProcessor">
+            <summary>The event processor to pass any depended-on/prepended events to.</summary>
+        </member>
+        <member name="P:ApplicationAccess.DependencyFreeAccessManager`4.EventProcessor">
+            <summary>
+            The event processor to pass any depended-on/prepended events to.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
+            </summary>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ConcurrentDirectedGraph{`0,`1},System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
+            </summary>
+            <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
+            </summary>
+            <param name="collectionFactory">A mock collection factory.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUser(`0,System.Action{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveUser(`0,System.Action{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroup(`1,System.Action{`1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveGroup(`1,System.Action{`1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUserToGroupMapping(`0,`1,System.Action{`0,`1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveUserToGroupMapping(`0,`1,System.Action{`0,`1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroupToGroupMapping(`1,`1,System.Action{`1,`1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveGroupToGroupMapping(`1,`1,System.Action{`1,`1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Action{`0,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Action{`0,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Action{`1,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Action{`1,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntityType(System.String,System.Action{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveEntityType(System.String,System.Action{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntity(System.String,System.String,System.Action{System.String,System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveEntity(System.String,System.String,System.Action{System.String,System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Action{`1,System.String,System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Action{`1,System.String,System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUser(`0,System.Boolean)">
+            <summary>
+            Idempotently adds a user.
+            </summary>
+            <param name="user">The user to add.</param>
+            <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddGroup(`1,System.Boolean)">
+            <summary>
+            Idempotently adds a group.
+            </summary>
+            <param name="group">The group to add.</param>
+            <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntityType(System.String,System.Boolean)">
+            <summary>
+            Idempotently adds an entity type.
+            </summary>
+            <param name="entityType">The entity type to add.</param>
+            <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntity(System.String,System.String,System.Boolean)">
+            <summary>
+            Idempotently adds an entity.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity to add.</param>
+            <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
         </member>
         <member name="T:ApplicationAccess.DirectedGraph`2">
             <summary>
@@ -1861,6 +2050,75 @@
             </summary>
             <param name="message">The message that describes the error.</param>
             <param name="nonLeafVertex">The non-leaf vertex which does not exist in the graph.</param>
+        </member>
+        <member name="T:ApplicationAccess.NullAccessManagerEventProcessor`4">
+            <summary>
+            Implementation of <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> which does not process any events.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveUser(`0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveGroup(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveUserToGroupMapping(`0,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveGroupToGroupMapping(`1,`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveEntityType(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveEntity(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.NullAccessManagerEventProcessor`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+            <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.StandardCollectionFactory">
             <summary>

@@ -65,6 +65,9 @@
         <member name="F:ApplicationAccess.Utilities.LockManager.lockObjectDependencyCache">
             <summary>For a given lock object and dependency pattern, caches the objects which either depend on, or are dependent on the object, in the order the the locks should be applied.</summary>
         </member>
+        <member name="F:ApplicationAccess.Utilities.LockManager.allObjectsLockOrder">
+            <summary>A list of all objects registered in the manager in the order which locks should be applied when locking all objects.</summary>
+        </member>
         <member name="M:ApplicationAccess.Utilities.LockManager.#ctor">
             <summary>
             Initialises a new instance of the ApplicationAccess.Utilities.LockManager class.
@@ -96,6 +99,19 @@
             <param name="lockObject">The object to lock.</param>
             <param name="lockObjectDependencyPattern">Whether to additionally lock all objects on which parameter 'lockObject' depends, or all objects which depend on parameter 'lockObject'.</param>
             <param name="action">The action to invoke.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.AcquireAllLocksAndInvokeAction(System.Action)">
+            <summary>
+            Acquires locks on the specified object and objects which it's associated with (either all objects which it depends on, or which depend on it), the invokes the specified action.
+            </summary>
+            <param name="action">The action to invoke.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.LockManager.LockObjectIsLockedByCurrentThread(System.Object)">
+            <summary>
+            Returns true if the specified lock object is locked by the current thread.
+            </summary>
+            <param name="lockObject">The object to check.</param>
+            <returns>True if the object is locked by the current thread.  Otherwise, false.</returns>
         </member>
         <member name="M:ApplicationAccess.Utilities.LockManager.AcquireLocksAndInvokeAction(System.Collections.Generic.List{System.Object},System.Int32,System.Action)">
             <summary>
