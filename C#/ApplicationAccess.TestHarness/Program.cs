@@ -301,6 +301,7 @@ namespace ApplicationAccess.TestHarness
                                 Double exceptionsPerSecondThreshold = testHarnessConfiguration.ExceptionsPerSecondThreshold;
                                 Int32 previousExceptionOccurenceTimeWindowSize = testHarnessConfiguration.PreviousExceptionOccurenceTimeWindowSize;
                                 Boolean ignoreKnownAccessManagerExceptions = testHarnessConfiguration.IgnoreKnownAccessManagerExceptions;
+                                Boolean generatePrimaryAddOperations = testHarnessConfiguration.GeneratePrimaryAddOperations;
                                 Int64 operationLimit = testHarnessConfiguration.OperationLimit;
                                 using (var testHarness = new TestHarness<String, String, TestApplicationComponent, TestAccessLevel>
                                 (
@@ -318,7 +319,8 @@ namespace ApplicationAccess.TestHarness
                                     exceptionsPerSecondThreshold,
                                     previousExceptionOccurenceTimeWindowSize,
                                     operationLimit, 
-                                    ignoreKnownAccessManagerExceptions
+                                    ignoreKnownAccessManagerExceptions,
+                                    generatePrimaryAddOperations
                                 ))
                                 {
                                     metricLogger.Start();
@@ -635,6 +637,7 @@ namespace ApplicationAccess.TestHarness
                 Double exceptionsPerSecondThreshold = testHarnessConfiguration.ExceptionsPerSecondThreshold;
                 Int32 previousExceptionOccurenceTimeWindowSize = testHarnessConfiguration.PreviousExceptionOccurenceTimeWindowSize;
                 Boolean ignoreKnownAccessManagerExceptions = testHarnessConfiguration.IgnoreKnownAccessManagerExceptions;
+                Boolean generatePrimaryAddOperations = testHarnessConfiguration.GeneratePrimaryAddOperations;
                 Int64 operationLimit = testHarnessConfiguration.OperationLimit;
                 using (var testHarness = new TestHarness<String, String, TestApplicationComponent, TestAccessLevel>
                 (
@@ -652,7 +655,8 @@ namespace ApplicationAccess.TestHarness
                     exceptionsPerSecondThreshold,
                     previousExceptionOccurenceTimeWindowSize,
                     operationLimit,
-                    ignoreKnownAccessManagerExceptions
+                    ignoreKnownAccessManagerExceptions,
+                    generatePrimaryAddOperations
                 ))
                 {
                     foreach (SqlServerMetricLogger currentmetricLogger in metricsLoggers)

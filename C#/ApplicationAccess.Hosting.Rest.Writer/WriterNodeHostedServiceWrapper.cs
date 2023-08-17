@@ -31,10 +31,11 @@ using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 
 namespace ApplicationAccess.Hosting.Rest.Writer
-{    /// <summary>
-     /// Wraps an instance of <see cref="WriterNode{TUser, TGroup, TComponent, TAccess}"/> and associated components and initializes them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
-     /// </summary>
-     /// <remarks>StartAsync() constructs a <see cref="WriterNode{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
+{    
+    /// <summary>
+    /// Wraps an instance of <see cref="WriterNode{TUser, TGroup, TComponent, TAccess}"/> and associated components and initializes them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
+    /// </summary>
+    /// <remarks>StartAsync() constructs a <see cref="WriterNode{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
     public class WriterNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection

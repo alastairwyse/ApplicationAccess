@@ -71,6 +71,18 @@ namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
         }
 
         [Test]
+        public void AddConversionFunction_ExceptionOnlyOverloadAndExceptionTypeParameterNotException()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testExceptionToHttpErrorResponseConverter.AddConversionFunction(typeof(StringBuilder));
+            });
+
+            Assert.That(e.Message, Does.StartWith("Type 'System.Text.StringBuilder' specified in parameter 'exceptionType' is not assignable to 'System.Exception'."));
+            Assert.AreEqual("exceptionType", e.ParamName);
+        }
+
+        [Test]
         public void AddConversionFunction()
         {
             Func<Exception, HttpErrorResponse> exceptionHandler = (Exception exception) =>
@@ -83,6 +95,19 @@ namespace ApplicationAccess.Hosting.Rest.Utilities.UnitTests
             HttpErrorResponse result = testExceptionToHttpErrorResponseConverter.Convert(new Exception("Fake Exception"));
             Assert.AreEqual("CustomCode", result.Code);
             Assert.AreEqual("CustomeMessage", result.Message);
+            Assert.IsNull(result.Target);
+            Assert.AreEqual(0, result.Attributes.Count());
+            Assert.IsNull(result.InnerError);
+        }
+
+        [Test]
+        public void AddConversionFunction_ExceptionOnlyOverload()
+        {
+            testExceptionToHttpErrorResponseConverter.AddConversionFunction(typeof(ServiceUnavailableException));
+
+            HttpErrorResponse result = testExceptionToHttpErrorResponseConverter.Convert(new ServiceUnavailableException("Service Unavailable"));
+            Assert.AreEqual("ServiceUnavailableException", result.Code);
+            Assert.AreEqual("Service Unavailable", result.Message);
             Assert.IsNull(result.Target);
             Assert.AreEqual(0, result.Attributes.Count());
             Assert.IsNull(result.InnerError);

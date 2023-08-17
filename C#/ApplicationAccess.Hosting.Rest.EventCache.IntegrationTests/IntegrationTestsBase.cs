@@ -161,7 +161,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                 builder.ConfigureServices((IServiceCollection services) =>
                 {
                 });
-                builder.UseEnvironment(EventCache.Program.IntegrationTestingEnvironmentName);
+                builder.UseEnvironment(ApplicationInitializer.IntegrationTestingEnvironmentName);
 
                 return base.CreateHost(builder);
             }

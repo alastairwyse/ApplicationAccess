@@ -176,7 +176,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
                 builder.ConfigureServices((IServiceCollection services) =>
                 {
                 });
-                builder.UseEnvironment(ReaderWriter.Program.IntegrationTestingEnvironmentName);
+                builder.UseEnvironment(ApplicationInitializer.IntegrationTestingEnvironmentName);
 
                 return base.CreateHost(builder);
             }

@@ -28,7 +28,7 @@ namespace ApplicationAccess.Hosting.Rest
     /// A middleware that catches a specified critical exception and then either shuts down the application, or throws a specified exception on receiving any subsequent requests.
     /// </summary>
     /// <typeparam name="TTripException">The type of the critical exception which 'trips' the switch.</typeparam>
-    /// <remarks>When initialized to throw an exception after the swicth is tripped, this middleware can be used in conjunction with the <see cref="MiddlewareUtilities.SetupExceptionHandler(IApplicationBuilder, Models.Options.ErrorHandlingOptions, Utilities.ExceptionToHttpStatusCodeConverter, Utilities.ExceptionToHttpErrorResponseConverter)"/> method, to convert the thrown exception to a specified HTTP error status (e.g. <see href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503">503</see>).</remarks>
+    /// <remarks>When initialized to throw an exception after the switch is tripped, this middleware can be used in conjunction with the <see cref="MiddlewareUtilities.SetupExceptionHandler(IApplicationBuilder, Hosting.Models.Options.ErrorHandlingOptions, Utilities.ExceptionToHttpStatusCodeConverter, Utilities.ExceptionToHttpErrorResponseConverter)"/> method, to convert the thrown exception to a specified HTTP error status (e.g. <see href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503">503</see>).</remarks>
     public class TripSwitchMiddleware<TTripException> where TTripException : Exception
     {
         /// <summary>Whether the switch has been tripped.</summary>

@@ -83,8 +83,8 @@ namespace ApplicationAccess.Hosting.Rest.Utilities
         /// <summary>
         /// Adds a conversion function to the converter.
         /// </summary>
-        /// <param name="exceptionType">The type (assignable to Exception) that the conversion function converts.</param>
-        /// <param name="conversionFunction">The conversion function.  Accepts an Exception object and returns a HttpErrorResponse.</param>
+        /// <param name="exceptionType">The type (assignable to <see cref="Exception"/>) that the conversion function converts.</param>
+        /// <param name="conversionFunction">The conversion function.  Accepts an Exception object and returns a <see cref="HttpErrorResponse"/>.</param>
         /// <remarks>Note that the conversion function should not handle the exception's 'InnerException' property, nor assign to the HttpErrorResponse's 'InnerError' property.</remarks>
         public void AddConversionFunction(Type exceptionType, Func<Exception, HttpErrorResponse> conversionFunction)
         {
@@ -96,6 +96,26 @@ namespace ApplicationAccess.Hosting.Rest.Utilities
                 typeToConversionFunctionMap.Remove(exceptionType);
             }
             typeToConversionFunctionMap.Add(exceptionType, conversionFunction);
+        }
+
+        /// <summary>
+        /// Adds handling for an exception to the converter, using a default conversion function (one which populates just the <see cref="HttpErrorResponse.Code"/>, <see cref="HttpErrorResponse.Message"/> and optionally <see cref="HttpErrorResponse.Target"/> properties).
+        /// </summary>
+        /// <param name="exceptionType">The type (assignable to <see cref="Exception"/>) to convert.</param>
+        public void AddConversionFunction(Type exceptionType)
+        {
+            Func<Exception, HttpErrorResponse> conversionFunction = (Exception exception) =>
+            {
+                if (exception.TargetSite == null)
+                {
+                    return new HttpErrorResponse(exception.GetType().Name, exception.Message);
+                }
+                else
+                {
+                    return new HttpErrorResponse(exception.GetType().Name, exception.Message, exception.TargetSite.Name);
+                }
+            };
+            AddConversionFunction(exceptionType, conversionFunction);
         }
 
         /// <summary>

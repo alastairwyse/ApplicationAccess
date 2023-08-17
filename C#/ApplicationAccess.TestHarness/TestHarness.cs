@@ -48,6 +48,7 @@ namespace ApplicationAccess.TestHarness
         protected Double exceptionsPerSecondThreshold;
         protected Int32 previousExceptionOccurenceTimeWindowSize;
         protected Boolean ignoreKnownAccessManagerExceptions;
+        protected Boolean generatePrimaryAddOperations;
         protected Boolean disposed;
 
         /// <summary>
@@ -85,7 +86,8 @@ namespace ApplicationAccess.TestHarness
             Double exceptionsPerSecondThreshold,
             Int32 previousExceptionOccurenceTimeWindowSize,
             Int64 operationLimit, 
-            Boolean ignoreKnownAccessManagerExceptions
+            Boolean ignoreKnownAccessManagerExceptions,
+            Boolean generatePrimaryAddOperations
         )
         {
             if (workerThreadCount < 1)
@@ -123,6 +125,7 @@ namespace ApplicationAccess.TestHarness
             this.exceptionsPerSecondThreshold = exceptionsPerSecondThreshold;
             this.previousExceptionOccurenceTimeWindowSize = previousExceptionOccurenceTimeWindowSize;
             this.ignoreKnownAccessManagerExceptions = ignoreKnownAccessManagerExceptions;
+            this.generatePrimaryAddOperations = generatePrimaryAddOperations;
             operationCounter = new OperationCounter(operationLimit, stopSignal);
             disposed = false;
         }
@@ -148,6 +151,7 @@ namespace ApplicationAccess.TestHarness
                     exceptionsPerSecondThreshold, 
                     previousExceptionOccurenceTimeWindowSize, 
                     ignoreKnownAccessManagerExceptions, 
+                    generatePrimaryAddOperations, 
                     i.ToString()
                 );
                 currentOperationTriggerer.Counterpart = currentOperationExecutor;

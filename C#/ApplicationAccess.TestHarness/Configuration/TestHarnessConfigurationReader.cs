@@ -33,6 +33,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         protected const String ignoreKnownAccessManagerExceptionsPropertyName = "IgnoreKnownAccessManagerExceptions";
         protected const String operationLimitPropertyName = "OperationLimit";
         protected const String addOperationDelayTimePropertyName = "AddOperationDelayTime";
+        protected const String generatePrimaryAddOperationsPropertyName = "GeneratePrimaryAddOperations";
 
         public TestHarnessConfigurationReader()
         : base("Test harness")
@@ -52,6 +53,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             ThrowExceptionIfPropertyNotFound(ignoreKnownAccessManagerExceptionsPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(operationLimitPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(addOperationDelayTimePropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(generatePrimaryAddOperationsPropertyName, configurationSection);
 
             var returnConfiguration = new TestHarnessConfiguration();
 
@@ -66,6 +68,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             returnConfiguration.IgnoreKnownAccessManagerExceptions = GetConfigurationValueAsBoolean(ignoreKnownAccessManagerExceptionsPropertyName, configurationSection);
             returnConfiguration.OperationLimit = GetConfigurationValueAsInt64(operationLimitPropertyName, configurationSection);
             returnConfiguration.AddOperationDelayTime = GetConfigurationValueAsInteger(addOperationDelayTimePropertyName, configurationSection);
+            returnConfiguration.GeneratePrimaryAddOperations = GetConfigurationValueAsBoolean(generatePrimaryAddOperationsPropertyName, configurationSection);
 
             return returnConfiguration;
         }

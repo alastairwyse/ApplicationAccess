@@ -15,150 +15,78 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
-using System.Threading;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Hosting.Internal;
-using System.Collections.Generic;
 using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
     public class Program
     {
-        public static readonly String IntegrationTestingEnvironmentName = "IntegrationTesting";
-
         public static void Main(string[] args)
         {
-            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-            var middlewareUtilities = new MiddlewareUtilities();
-
-            // Add services to the container.
-            builder.Services.AddControllers()
-            // Override the default model-binding failure behaviour, to return a HttpErrorResponse object rather than the standard ProblemDetails
-            .MapModelBindingFailureToHttpErrorResponse()
-            // Return HTTP 406 (not acceptable) statuses if the 'Accept' request header does not match the controller's 'ProducesResponseType' attribute (i.e. '*/*' or 'application/json')
-            .ReturnHttpNotAcceptableOnUnsupportedAcceptHeader();
-            // Allow APIs to be versioned
-            builder.Services.SetupApiVersioning();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen((SwaggerGenOptions swaggerGenOptions) =>
+            var parameters = new ApplicationInitializerParameters()
             {
-                swaggerGenOptions.SwaggerDoc("v1", new OpenApiInfo
+                Args = args,
+                SwaggerVersionString = "v1", 
+                SwaggerApplicationName = "ApplicationAccess", 
+                SwaggerApplicationDescription = "Provides flexible and configurable user permission and authorization management for applications",
+                SwaggerGenerationAdditionalAssemblies = new List<Assembly>() 
+                { 
+                    typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly 
+                },
+                ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
-                    Version = "v1",
-                    Title = "ApplicationAccess",
-                    Description = "Provides flexible and configurable user permission and authorization management for applications"
-                });
-
-                // This adds swagger generation for controllers outside this project/assembly
-                middlewareUtilities.AddSwaggerGenerationForAssembly(swaggerGenOptions, typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly);
-            });
-
-            // TODO: REMOVE AFTER CONTAINERIZING
-            //middlewareUtilities.SetupFileLogging(builder, @"C:\Temp", "ApplicationAccessReaderWriterNodeLog");
-
-            // Validate and register top level configuration items
-            builder.Services.AddOptions<AccessManagerOptions>()
-                .Bind(builder.Configuration.GetSection(AccessManagerOptions.AccessManagerOptionsName))
-                .ValidateDataAnnotations().ValidateOnStart();
-            builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()
-                .Bind(builder.Configuration.GetSection(AccessManagerSqlServerConnectionOptions.AccessManagerSqlServerConnectionOptionsName))
-                .ValidateDataAnnotations().ValidateOnStart();
-            builder.Services.AddOptions<EventBufferFlushingOptions>()
-                .Bind(builder.Configuration.GetSection(EventBufferFlushingOptions.EventBufferFlushingOptionsName))
-                .ValidateDataAnnotations().ValidateOnStart();
-            builder.Services.AddOptions<MetricLoggingOptions>()
-                .Bind(builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName))
-                .ValidateDataAnnotations().ValidateOnStart();
-            builder.Services.AddOptions<ErrorHandlingOptions>()
-                .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
-                .ValidateDataAnnotations().ValidateOnStart();
-
-            // Validate secondary level coonfiguration items
-            ValidateSecondaryConfiguration(builder, middlewareUtilities);
-
-            // Register 'holder' classes for the interfaces that comprise IAccessManager
-            //   See notes in remarks of class UserQueryProcessorHolder for an explanation
-            builder.Services.AddSingleton<EntityEventProcessorHolder>();
-            builder.Services.AddSingleton<EntityQueryProcessorHolder>();
-            builder.Services.AddSingleton<GroupEventProcessorHolder>();
-            builder.Services.AddSingleton<GroupQueryProcessorHolder>();
-            builder.Services.AddSingleton<GroupToGroupEventProcessorHolder>();
-            builder.Services.AddSingleton<GroupToGroupQueryProcessorHolder>();
-            builder.Services.AddSingleton<UserEventProcessorHolder>();
-            builder.Services.AddSingleton<UserQueryProcessorHolder>();
-            
-            // Register the hosted service wrapper
-            if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
-            {
-                builder.Services.AddHostedService<ReaderWriterNodeHostedServiceWrapper>();
-
-                // TODO: REMOVE TEMPORARY DEBUGGING CODE
-                //builder.Services.AddHostedService<NullEventPersistingReaderWriterNodeHostedServiceWrapper>();
-                //builder.Services.AddHostedService<JsonEventWritingReaderWriterNodeHostedServiceWrapper>();
-            }
-
-            WebApplication app = builder.Build();
-            
-            // Configure the HTTP request pipeline.
-            app.UseSwagger();
-            // Setup the Swagger UI
-            app.SetupSwaggerUI(true);
-
-            // Setup custom exception handler in the application's pipeline, so that any exceptions are caught and returned from the API as HttpErrorResponse objects
-            var errorHandlingOptions = new ErrorHandlingOptions();
-            app.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName).Bind(errorHandlingOptions);
-            var exceptionToHttpStatusCodeConverter = new ExceptionToHttpStatusCodeConverter();
-            ExceptionToHttpErrorResponseConverter exceptionToHttpErrorResponseConverter = null;
-            if (errorHandlingOptions.IncludeInnerExceptions.Value == true)
-            {
-                exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter();
-            }
-            else
-            {
-                exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(0);
-            }
-            middlewareUtilities.SetupExceptionHandler(app, errorHandlingOptions, exceptionToHttpStatusCodeConverter, exceptionToHttpErrorResponseConverter);
-
-            // TODO: Remove tripswicth test code
-            
-            exceptionToHttpStatusCodeConverter.AddMapping(typeof(ServiceUnavailableException), System.Net.HttpStatusCode.ServiceUnavailable);
-            var switchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error.");
-            Action<Exception> tripAction = (Exception tripException) =>
-            {
-                Console.WriteLine($"SWITCH HAS EEB TRIPPED due to '{tripException.Message}'");
+                    builder.Services.AddOptions<AccessManagerOptions>()
+                        .Bind(builder.Configuration.GetSection(AccessManagerOptions.AccessManagerOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                    builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()
+                        .Bind(builder.Configuration.GetSection(AccessManagerSqlServerConnectionOptions.AccessManagerSqlServerConnectionOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                    builder.Services.AddOptions<EventBufferFlushingOptions>()
+                        .Bind(builder.Configuration.GetSection(EventBufferFlushingOptions.EventBufferFlushingOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                    builder.Services.AddOptions<ErrorHandlingOptions>()
+                        .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                }, 
+                ProcessorHolderTypes = new List<Type>()
+                {
+                    typeof(EntityEventProcessorHolder),
+                    typeof(EntityQueryProcessorHolder),
+                    typeof(GroupEventProcessorHolder),
+                    typeof(GroupQueryProcessorHolder),
+                    typeof(GroupToGroupEventProcessorHolder),
+                    typeof(GroupToGroupQueryProcessorHolder),
+                    typeof(UserEventProcessorHolder),
+                    typeof(UserQueryProcessorHolder)
+                }, 
+                // Add a mapping from ServiceUnavailableException to HTTP 503 error status
+                ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
+                {
+                    new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
+                },
+                ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
+                {
+                    typeof(ServiceUnavailableException)
+                },
+                // Setup TripSwitchMiddleware to trip on encounterting a BufferFlushingException
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error.")
             };
-            app.UseTripSwitch<BufferFlushingException>(switchTrippedException, new List<Action<Exception>>() { tripAction  });
 
-            // End tripswicth test code
-
-            app.UseAuthorization();
-
-            app.MapControllers();
+            var initializer = new ApplicationInitializer();
+            WebApplication app = initializer.Initialize<ReaderWriterNodeHostedServiceWrapper, BufferFlushingException>(parameters);
+            //WebApplication app = initializer.Initialize<NullEventPersistingReaderWriterNodeHostedServiceWrapper, BufferFlushingException>(parameters);
+            //WebApplication app = initializer.Initialize<JsonEventWritingReaderWriterNodeHostedServiceWrapper, BufferFlushingException>(parameters);
 
             app.Run();
-        }
-
-        /// <summary>
-        /// Validates secondary level application configuration.
-        /// </summary>
-        /// <param name="builder">The builder for the application.</param>
-        /// <param name="middlewareUtilities">The <see cref="MiddlewareUtilities"/> instance used to perform the validation.</param>
-        /// <remarks>The IConfigurationSection ValidateDataAnnotations() extension method does not recursively validate child sections of the section being validated, hence this is performed explicitly in this method for relevant IOptions pattern objects.</remarks>
-        protected static void ValidateSecondaryConfiguration(WebApplicationBuilder builder, MiddlewareUtilities middlewareUtilities)
-        {
-            // TODO: May be able to move this to a common utility class
-
-            middlewareUtilities.ValidateMetricLoggingOptions(builder);
         }
     }
 }

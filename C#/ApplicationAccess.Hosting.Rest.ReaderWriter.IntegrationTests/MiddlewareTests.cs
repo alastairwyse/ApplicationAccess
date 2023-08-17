@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
 {
@@ -29,10 +30,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
     /// </summary>
     public class MiddlewareTests : IntegrationTestsBase
     {
+        // Need to use 'Order' attribute so the TripSwitch() test is run last... after the switch is tripped, nothing works
+
         /// <summary>
         /// Tests that controller methods return a 406 status when the request 'Accept' is not '*/*' or 'application/json'.
         /// </summary>
         [Test]
+        [Order(0)]
         public void NonJsonAcceptHeader()
         {
             const String requestUrl = "api/v1/users";
@@ -54,6 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Tests that controller methods return a 405 status when and unsupported HTTP verb is requested.
         /// </summary>
         [Test]
+        [Order(0)]
         public void UnsupportedHttpMethod()
         {
             const String requestUrl = "api/v1/users";
@@ -74,6 +79,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 400 status when an <see cref="ArgumentException"/> is thrown.
         /// </summary>
         [Test]
+        [Order(0)]
         public void ArgumentExceptionMappedToHttpErrorResponse()
         {
             const String entityType = "invalidEntityType";
@@ -96,6 +102,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// </summary>
         /// <remarks>Note that this test is dependent on appsettings setting 'ErrorHandling.OverrideInternalServerErrors' being set true.</remarks>
         [Test]
+        [Order(0)]
         public void ExceptionMappedToHttpErrorResponse()
         {
             const String entityType = "ClientAccounts";
@@ -116,6 +123,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 404 status when a <see cref="NotFoundException"/> is thrown.
         /// </summary>
         [Test]
+        [Order(0)]
         public void NotFoundExceptionMappedToHttpErrorResponse()
         {
             const String entityType = "invalidEntityType";
@@ -137,6 +145,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 400 status when a required query parameter (e.g. 'includeIndirectMappings') is not provided.
         /// </summary>
         [Test]
+        [Order(0)]
         public void RequiredQueryParameterNotProvided()
         {
             const String requestUrl = "api/v1/userToGroupMappings/user/user1";
@@ -156,6 +165,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 400 status when a required query parameter (e.g. 'includeIndirectMappings') contains an invalid value.
         /// </summary>
         [Test]
+        [Order(0)]
         public void RequiredQueryParameterInvalid()
         {
             const String requestUrl = "api/v1/userToGroupMappings/user/user1?includeIndirectMappings=truu";
@@ -175,6 +185,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 400 status when an invalid API endpoint version is requested.
         /// </summary>
         [Test]
+        [Order(0)]
         public void UnsupportedApiVersion()
         {
             const String requestUrl = "api/v0/users";
@@ -185,6 +196,35 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
                 JObject jsonResponse = ConvertHttpContentToJson(response.Content);
                 AssertJsonIsHttpErrorResponse(jsonResponse, "UnsupportedApiVersion", "The HTTP resource that matches the request URI 'http://localhost/api/v0/users' does not support the API version '0'.");
                 Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Tests that the <see cref="TripSwitchMiddleware{TTripException}"/> trips correctly when the relevant exception is thrown.
+        /// </summary>
+        [Test]
+        [Order(Int32.MaxValue)]
+        public void TripSwitch()
+        {
+            const String entityType = "BusinessUnit";
+            const String requestUrl = $"api/v1/entityTypes/{entityType}/entities";
+            var mockException = new BufferFlushingException($"Exception occurred on buffer flushing worker thread at 2023-08-17 21:20:04");
+            mockEntityQueryProcessor.When((processor) => processor.GetEntities(entityType)).Do((callInfo) => throw mockException);
+
+            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            {
+
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                // BufferFlushingException should be mapped to InternalServerError
+                AssertJsonIsHttpErrorResponse(jsonResponse, "InternalServerError", "An internal server error occurred");
+                Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
+
+                // Subsequent calls should result in a ServiceUnavailableException
+
+                HttpResponseMessage response2 = client.GetAsync(requestUrl).Result;
+                jsonResponse = ConvertHttpContentToJson(response2.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, "ServiceUnavailableException", "The service is unavailable due to an interal error.");
+                Assert.AreEqual(HttpStatusCode.ServiceUnavailable, response2.StatusCode);
             }
         }
     }

@@ -36,6 +36,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         public Boolean IgnoreKnownAccessManagerExceptions;
         public Int64 OperationLimit;
         public Int32 AddOperationDelayTime;
+        public Boolean GeneratePrimaryAddOperations;
     }
 
     #pragma warning restore 0649

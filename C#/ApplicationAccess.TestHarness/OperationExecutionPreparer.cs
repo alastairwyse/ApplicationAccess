@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -29,6 +30,7 @@ namespace ApplicationAccess.TestHarness
         protected IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess> accessManagerQueryProcessor;
         protected IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> accessManagerEventProcessor;
         protected IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer;
+        protected Boolean generatePrimaryAddOperations;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.TestHarness.OperationExecutionPreparer class.
@@ -37,18 +39,21 @@ namespace ApplicationAccess.TestHarness
         /// <param name="accessManagerQueryProcessor">The <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> component of the AccessManager under test.</param>
         /// <param name="accessManagerEventProcessor">The <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> component of the AccessManager under test.</param>
         /// <param name="dataElementStorer">The <see cref="DataElementStorer{TUser, TGroup, TComponent, TAccess}"/> to run any post processes/actions against.</param>
+        /// <param name="generatePrimaryAddOperations">Whether to generate primary 'Add' operations/events against the AccessManager under test (e.g. AddUser, AddEntityType, etc...).</param>
         public OperationExecutionPreparer
         (
             IOperationParameterGenerator<TUser, TGroup, TComponent, TAccess> parameterGenerator, 
             IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess> accessManagerQueryProcessor,
             IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> accessManagerEventProcessor,
-            IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer
+            IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer,
+            Boolean generatePrimaryAddOperations
         )
         {
             this.parameterGenerator = parameterGenerator;
             this.accessManagerQueryProcessor = accessManagerQueryProcessor;
             this.accessManagerEventProcessor = accessManagerEventProcessor;
             this.dataElementStorer = dataElementStorer;
+            this.generatePrimaryAddOperations= generatePrimaryAddOperations;
         }
 
         /// <returns>A tuple containing: the actual and post execution actions prepared, and a boolean indicating whether the actions are populated (i.e. set to false if the actions are empty due to failure to generate parameters).</returns>
@@ -97,11 +102,14 @@ namespace ApplicationAccess.TestHarness
                         (
                             new PrepareExecutionReturnActions
                             (
-                                new Action(() => { accessManagerEventProcessor.AddUser(parameter); }),
-                                new Action(() =>
+                                new Action(() => 
                                 {
-                                    dataElementStorer.AddUser(parameter);
-                                })
+                                    if (generatePrimaryAddOperations == true)
+                                    {
+                                        accessManagerEventProcessor.AddUser(parameter);
+                                    }
+                                }),
+                                new Action(() => { dataElementStorer.AddUser(parameter); })
                             ),
                             true
                         );
@@ -156,7 +164,13 @@ namespace ApplicationAccess.TestHarness
                         (
                             new PrepareExecutionReturnActions
                             (
-                                new Action(() => { accessManagerEventProcessor.AddGroup(parameter); }),
+                                new Action(() => 
+                                {
+                                    if (generatePrimaryAddOperations == true)
+                                    {
+                                        accessManagerEventProcessor.AddGroup(parameter);
+                                    }
+                                }),
                                 new Action(() => { dataElementStorer.AddGroup(parameter); })
                             ),
                             true
@@ -436,7 +450,13 @@ namespace ApplicationAccess.TestHarness
                         (
                             new PrepareExecutionReturnActions
                             (
-                                new Action(() => { accessManagerEventProcessor.AddEntityType(parameter); }),
+                                new Action(() =>
+                                {
+                                    if (generatePrimaryAddOperations == true)
+                                    {
+                                        accessManagerEventProcessor.AddEntityType(parameter);
+                                    }
+                                }),
                                 new Action(() => { dataElementStorer.AddEntityType(parameter); })
                             ),
                             true
@@ -492,7 +512,13 @@ namespace ApplicationAccess.TestHarness
                         (
                             new PrepareExecutionReturnActions
                             (
-                                new Action(() => { accessManagerEventProcessor.AddEntity(parameters.Item1, parameters.Item2); }),
+                                new Action(() =>
+                                {
+                                    if (generatePrimaryAddOperations == true)
+                                    {
+                                        accessManagerEventProcessor.AddEntity(parameters.Item1, parameters.Item2);
+                                    }
+                                }),
                                 new Action(() => { dataElementStorer.AddEntity(parameters.Item1, parameters.Item2); })
                             ),
                             true

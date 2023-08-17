@@ -38,17 +38,6 @@ namespace ApplicationAccess.Hosting.Rest
     public class MiddlewareUtilities
     {
         /// <summary>
-        /// Validates <see cref="MetricLoggingOptions"/> obtained from the specified <see cref="WebApplicationBuilder"/> instance.
-        /// </summary>
-        public void ValidateMetricLoggingOptions(WebApplicationBuilder builder)
-        {
-            var metricLoggingOptions = new MetricLoggingOptions();
-            ValidateConfigurationSection(builder, metricLoggingOptions, MetricLoggingOptions.MetricLoggingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricBufferProcessing, MetricBufferProcessingOptions.MetricBufferProcessingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricsSqlServerConnection, MetricsSqlServerConnectionOptions.MetricsSqlServerConnectionOptionsName);
-        }
-
-        /// <summary>
         /// Adds swagger documentation generation for an assembly to the specified <see cref="SwaggerGenOptions"/> instance.
         /// </summary>
         /// <param name="swaggerGenOptions">The swagger generation options to add the documentation to.</param>
