@@ -16,7 +16,6 @@
 
 using System;
 using System.Threading;
-using ApplicationAccess.UnitTests;
 using ApplicationMetrics.MetricLoggers;
 using NUnit.Framework;
 using NUnit.Framework.Internal;

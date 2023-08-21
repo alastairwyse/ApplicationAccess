@@ -27,7 +27,6 @@ using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ApplicationAccess.Hosting.Rest
 {
@@ -78,6 +77,10 @@ namespace ApplicationAccess.Hosting.Rest
                 if (currentTuple.Item1.IsAssignableTo(typeof(Exception)) == false)
                     throw new ArgumentException($"Property '{nameof(parameters.ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings)}' of {nameof(parameters)} object contains type '{currentTuple.Item1.FullName}' which does not derive from '{typeof(Exception).FullName}'.", nameof(parameters.ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings));
             }
+            if (parameters.LogFilePath != null)
+            {
+                ThrowExceptionIfStringParametersPropertyIsWhitespace(parameters.LogFileNamePrefix, nameof(parameters.LogFileNamePrefix), nameof(parameters));
+            }
 
             WebApplicationBuilder builder = WebApplication.CreateBuilder(parameters.Args);
             var middlewareUtilities = new MiddlewareUtilities();
@@ -116,10 +119,6 @@ namespace ApplicationAccess.Hosting.Rest
                 }
             });
 
-            // TODO: REMOVE AFTER CONTAINERIZING
-            //
-            //middlewareUtilities.SetupFileLogging(builder, @"C:\Temp", "ApplicationAccessReaderWriterNodeLog");
-
             // Validate and register top level IOptions configuration items
             parameters.ConfigureOptionsAction.Invoke(builder);
 
@@ -144,6 +143,12 @@ namespace ApplicationAccess.Hosting.Rest
             if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
             {
                 builder.Services.AddHostedService<THostedService>();
+            }
+
+            // TODO: Consider removing to remove Serilog dependency
+            if (parameters.LogFilePath != null)
+            {
+                middlewareUtilities.SetupFileLogging(builder, parameters.LogFilePath, parameters.LogFileNamePrefix);
             }
 
             WebApplication app = builder.Build();

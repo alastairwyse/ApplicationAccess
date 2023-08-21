@@ -68,6 +68,12 @@ namespace ApplicationAccess.Hosting.Rest.Models
         /// <summary>The exception to throw on receiving any requests after the switch has been tripped, when <see cref="TripSwitchMiddleware{TTripException}"/> is enabled.</summary>
         public Exception TripSwitchTrippedException { get; set; }
 
+        /// <summary>The folder to write log files to.  If not initialized, file logging will be disabled.</summary>
+        public String LogFilePath { get; set; }
+
+        /// <summary>The prefix for log file names when file logging is enabled.</summary>
+        public String LogFileNamePrefix { get; set; }
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Models.ApplicationInitializerParameters class.
         /// </summary>
@@ -83,6 +89,9 @@ namespace ApplicationAccess.Hosting.Rest.Models
             ExceptionToHttpStatusCodeMappings = Enumerable.Empty<Tuple<Type, HttpStatusCode>>();
             ExceptionTypesMappedToStandardHttpErrorResponse = Enumerable.Empty<Type>();
             ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings = Enumerable.Empty<Tuple<Type, Func<Exception, HttpErrorResponse>>>();
+            TripSwitchTrippedException = null;
+            LogFilePath = null;
+            LogFileNamePrefix = null;
         }
     }
 }

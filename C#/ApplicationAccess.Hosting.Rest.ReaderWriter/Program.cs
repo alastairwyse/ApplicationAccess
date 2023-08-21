@@ -35,12 +35,12 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             var parameters = new ApplicationInitializerParameters()
             {
                 Args = args,
-                SwaggerVersionString = "v1", 
-                SwaggerApplicationName = "ApplicationAccess", 
+                SwaggerVersionString = "v1",
+                SwaggerApplicationName = "ApplicationAccess",
                 SwaggerApplicationDescription = "Provides flexible and configurable user permission and authorization management for applications",
-                SwaggerGenerationAdditionalAssemblies = new List<Assembly>() 
-                { 
-                    typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly 
+                SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
+                {
+                    typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly
                 },
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
@@ -56,7 +56,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     builder.Services.AddOptions<ErrorHandlingOptions>()
                         .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
-                }, 
+                },
                 ProcessorHolderTypes = new List<Type>()
                 {
                     typeof(EntityEventProcessorHolder),
@@ -67,7 +67,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     typeof(GroupToGroupQueryProcessorHolder),
                     typeof(UserEventProcessorHolder),
                     typeof(UserQueryProcessorHolder)
-                }, 
+                },
                 // Add a mapping from ServiceUnavailableException to HTTP 503 error status
                 ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
                 {
@@ -78,7 +78,10 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     typeof(ServiceUnavailableException)
                 },
                 // Setup TripSwitchMiddleware to trip on encounterting a BufferFlushingException
-                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error.")
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
+                // Optionally setup file logging
+                LogFilePath = @"C:\Temp", 
+                LogFileNamePrefix = "ApplicationAccessReaderWriterNodeLog"
             };
 
             var initializer = new ApplicationInitializer();

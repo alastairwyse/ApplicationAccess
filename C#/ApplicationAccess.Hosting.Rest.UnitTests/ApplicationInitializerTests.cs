@@ -207,6 +207,27 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             Assert.AreEqual("TripSwitchTrippedException", e.ParamName);
         }
 
+        [Test]
+        public void Constructor_FileLoggingEnabledAndLogFileNamePrefixParameterNull()
+        {
+            var testParameters = new ApplicationInitializerParameters()
+            {
+                Args = new String[] { },
+                SwaggerVersionString = "v1",
+                SwaggerApplicationName = "ApplicationAccess",
+                SwaggerApplicationDescription = "Node in a distributed/scaled deployment of ApplicationAccess which caches events",
+                LogFilePath = @"C:\Temp"
+            };
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testApplicationInitializer.Initialize<FakeHostedService>(testParameters);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Property 'LogFileNamePrefix' of parameters object cannot be null or empty."));
+            Assert.AreEqual("LogFileNamePrefix", e.ParamName);
+        }
+
         #region Nested Classes
 
         protected class FakeHostedService : IHostedService
