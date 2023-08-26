@@ -81,7 +81,7 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.Clear">
             <summary>
-            Removes all items and mappings from the graph.
+            Removes all items and mappings from the access manager.
             </summary>
             <remarks>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</remarks>
         </member>
@@ -250,27 +250,35 @@
             <returns>A collection of entities that the specified user is mapped to.</returns>
             <remarks>Putting implementation of GetUserToEntityMappings() in this method allows methods like GetEntitiesAccessibleByUser() to call this method rather than the public virtual GetUserToEntityMappings().  Calling the public virtual version from GetUserToEntityMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
         </member>
-        <member name="T:ApplicationAccess.AccessManagerBase`4.ApplicationComponentAndAccessLevel">
+        <member name="T:ApplicationAccess.ApplicationComponentAndAccessLevel`2">
             <summary>
             Container class which holds an application component and a level of access of that component.
             </summary>
+            <typeparam name="TComponent">The type of the application component.</typeparam>
+            <typeparam name="TAccess">The type of the access level.</typeparam>
         </member>
-        <member name="P:ApplicationAccess.AccessManagerBase`4.ApplicationComponentAndAccessLevel.ApplicationComponent">
+        <member name="P:ApplicationAccess.ApplicationComponentAndAccessLevel`2.ApplicationComponent">
             <summary>
             The application component.
             </summary>
         </member>
-        <member name="P:ApplicationAccess.AccessManagerBase`4.ApplicationComponentAndAccessLevel.AccessLevel">
+        <member name="P:ApplicationAccess.ApplicationComponentAndAccessLevel`2.AccessLevel">
             <summary>
             The level of access.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.AccessManagerBase`4.ApplicationComponentAndAccessLevel.#ctor(`2,`3)">
+        <member name="M:ApplicationAccess.ApplicationComponentAndAccessLevel`2.#ctor(`0,`1)">
             <summary>
             Initialises a new instance of the ApplicationAccess.AccessManager+ApplicationComponentAndAccessLevel class.
             </summary>
             <param name="applicationComponent">The application component.</param>
             <param name="accessLevel">The level of access.</param>
+        </member>
+        <member name="M:ApplicationAccess.ApplicationComponentAndAccessLevel`2.Equals(ApplicationAccess.ApplicationComponentAndAccessLevel{`0,`1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.ApplicationComponentAndAccessLevel`2.GetHashCode">
+            <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.CircularReferenceException">
             <summary>
@@ -332,10 +340,7 @@
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="M:ApplicationAccess.ConcurrentAccessManager`4.Clear">
-            <summary>
-            Removes all items and mappings from the graph.
-            </summary>
-            <remarks>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</remarks>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentAccessManager`4.AddUser(`0)">
             <inheritdoc/>

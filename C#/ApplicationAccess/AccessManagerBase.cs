@@ -34,9 +34,9 @@ namespace ApplicationAccess
         /// <summary>The DirectedGraph which stores the user to group mappings.</summary>
         protected readonly DirectedGraphBase<TUser, TGroup> userToGroupMap;
         /// <summary>A dictionary which stores mappings between a user, and application component, and a level of access to that component.</summary>
-        protected readonly IDictionary<TUser, ISet<ApplicationComponentAndAccessLevel>> userToComponentMap;
+        protected readonly IDictionary<TUser, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> userToComponentMap;
         /// <summary>A dictionary which HashSet mappings between a group, and application component, and a level of access to that component.</summary>
-        protected readonly IDictionary<TGroup, ISet<ApplicationComponentAndAccessLevel>> groupToComponentMap;
+        protected readonly IDictionary<TGroup, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> groupToComponentMap;
         /// <summary>Holds all valid entity types and values within the access manager.  The Dictionary key holds the types of all entities, and each respective value holds the valid entity values within that type (e.g. the entity type could be 'ClientAccount', and values could be the names of all client accounts).</summary>
         protected readonly IDictionary<String, ISet<String>> entities;
         /// <summary>A dictionary which stores user to entity mappings.  The value stores another dictionary whose key contains the entity type and whose value contains the name of all entities of the specified type which are mapped to the user.</summary>
@@ -88,8 +88,8 @@ namespace ApplicationAccess
         {
             this.collectionFactory = collectionFactory;
             this.userToGroupMap = userToGroupMap;
-            userToComponentMap = this.collectionFactory.GetDictionaryInstance<TUser, ISet<ApplicationComponentAndAccessLevel>>();
-            groupToComponentMap = this.collectionFactory.GetDictionaryInstance<TGroup, ISet<ApplicationComponentAndAccessLevel>>();
+            userToComponentMap = this.collectionFactory.GetDictionaryInstance<TUser, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>>();
+            groupToComponentMap = this.collectionFactory.GetDictionaryInstance<TGroup, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>>();
             entities = this.collectionFactory.GetDictionaryInstance<String, ISet<String>>();
             userToEntityMap = this.collectionFactory.GetDictionaryInstance<TUser, IDictionary<String, ISet<String>>>();
             groupToEntityMap = this.collectionFactory.GetDictionaryInstance<TGroup, IDictionary<String, ISet<String>>>();
@@ -102,7 +102,7 @@ namespace ApplicationAccess
         }
 
         /// <summary>
-        /// Removes all items and mappings from the graph.
+        /// Removes all items and mappings from the access manager.
         /// </summary>
         /// <remarks>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</remarks>
         public virtual void Clear()
@@ -363,7 +363,7 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
 
-            var componentAndAccess = new ApplicationComponentAndAccessLevel(applicationComponent, accessLevel);
+            var componentAndAccess = new ApplicationComponentAndAccessLevel<TComponent, TAccess>(applicationComponent, accessLevel);
             if (userToComponentMap.ContainsKey(user) == true)
             {
                 if (userToComponentMap[user].Contains(componentAndAccess) == true)
@@ -371,7 +371,7 @@ namespace ApplicationAccess
             }
             else
             {
-                userToComponentMap.Add(user, collectionFactory.GetSetInstance<ApplicationComponentAndAccessLevel>());
+                userToComponentMap.Add(user, collectionFactory.GetSetInstance<ApplicationComponentAndAccessLevel<TComponent, TAccess>>());
             }
             userToComponentMap[user].Add(componentAndAccess);
         }
@@ -382,10 +382,10 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
 
-            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>> componentsAndAccessInMapping);
             if (containsUser == true)
             {
-                foreach (ApplicationComponentAndAccessLevel currentPair in componentsAndAccessInMapping)
+                foreach (ApplicationComponentAndAccessLevel<TComponent, TAccess> currentPair in componentsAndAccessInMapping)
                 {
                     yield return new Tuple<TComponent, TAccess>(currentPair.ApplicationComponent, currentPair.AccessLevel);
                 }
@@ -398,7 +398,7 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsLeafVertex(user) == false)
                 ThrowUserDoesntExistException(user, nameof(user));
 
-            var componentAndAccess = new ApplicationComponentAndAccessLevel(applicationComponent, accessLevel);
+            var componentAndAccess = new ApplicationComponentAndAccessLevel<TComponent, TAccess>(applicationComponent, accessLevel);
             if (userToComponentMap.ContainsKey(user) == true && userToComponentMap[user].Contains(componentAndAccess) == true)
             {
                 userToComponentMap[user].Remove(componentAndAccess);
@@ -419,7 +419,7 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
                 ThrowGroupDoesntExistException(group, nameof(group));
 
-            var componentAndAccess = new ApplicationComponentAndAccessLevel(applicationComponent, accessLevel);
+            var componentAndAccess = new ApplicationComponentAndAccessLevel<TComponent, TAccess>(applicationComponent, accessLevel);
             if (groupToComponentMap.ContainsKey(group) == true)
             {
                 if (groupToComponentMap[group].Contains(componentAndAccess) == true)
@@ -427,7 +427,7 @@ namespace ApplicationAccess
             }
             else
             {
-                groupToComponentMap.Add(group, collectionFactory.GetSetInstance<ApplicationComponentAndAccessLevel>());
+                groupToComponentMap.Add(group, collectionFactory.GetSetInstance<ApplicationComponentAndAccessLevel<TComponent, TAccess>>());
             }
             groupToComponentMap[group].Add(componentAndAccess);
         }
@@ -438,10 +438,10 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
                 ThrowGroupDoesntExistException(group, nameof(group));
 
-            Boolean containsGroup = groupToComponentMap.TryGetValue(group, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+            Boolean containsGroup = groupToComponentMap.TryGetValue(group, out ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>> componentsAndAccessInMapping);
             if (containsGroup == true)
             {
-                foreach (ApplicationComponentAndAccessLevel currentPair in componentsAndAccessInMapping)
+                foreach (ApplicationComponentAndAccessLevel<TComponent, TAccess> currentPair in componentsAndAccessInMapping)
                 {
                     yield return new Tuple<TComponent, TAccess>(currentPair.ApplicationComponent, currentPair.AccessLevel);
                 }
@@ -454,7 +454,7 @@ namespace ApplicationAccess
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
                 ThrowGroupDoesntExistException(group, nameof(group));
 
-            var componentAndAccess = new ApplicationComponentAndAccessLevel(applicationComponent, accessLevel);
+            var componentAndAccess = new ApplicationComponentAndAccessLevel<TComponent, TAccess>(applicationComponent, accessLevel);
             if (groupToComponentMap.ContainsKey(group) == true && groupToComponentMap[group].Contains(componentAndAccess) == true)
             {
                 groupToComponentMap[group].Remove(componentAndAccess);
@@ -698,8 +698,8 @@ namespace ApplicationAccess
             {
                 return false;
             }
-            var comparisonComponentAndAccess = new ApplicationComponentAndAccessLevel(applicationComponent, accessLevel);
-            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+            var comparisonComponentAndAccess = new ApplicationComponentAndAccessLevel<TComponent, TAccess>(applicationComponent, accessLevel);
+            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>> componentsAndAccessInMapping);
             if (containsUser == true && componentsAndAccessInMapping.Contains(comparisonComponentAndAccess) == true)
             {
                 return true;
@@ -788,10 +788,10 @@ namespace ApplicationAccess
                 ThrowUserDoesntExistException(user, nameof(user));
 
             var returnComponentsAndAccessLevels = new HashSet<Tuple<TComponent, TAccess>>();
-            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+            Boolean containsUser = userToComponentMap.TryGetValue(user, out ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>> componentsAndAccessInMapping);
             if (containsUser == true)
             {
-                foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in componentsAndAccessInMapping)
+                foreach (ApplicationComponentAndAccessLevel<TComponent, TAccess> currentComponentAndAccessLevel in componentsAndAccessInMapping)
                 {
                     returnComponentsAndAccessLevels.Add(new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel));
                 }
@@ -801,7 +801,7 @@ namespace ApplicationAccess
                 Boolean containsGroup = groupToComponentMap.TryGetValue(currentGroup, out componentsAndAccessInMapping);
                 if (containsGroup == true)
                 {
-                    foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in componentsAndAccessInMapping)
+                    foreach (ApplicationComponentAndAccessLevel<TComponent, TAccess> currentComponentAndAccessLevel in componentsAndAccessInMapping)
                     {
                         var currentComponentAndAccessLevelAsTuple = new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel);
                         if (returnComponentsAndAccessLevels.Contains(currentComponentAndAccessLevelAsTuple) == false)
@@ -827,10 +827,10 @@ namespace ApplicationAccess
             var returnComponentsAndAccessLevels = new HashSet<Tuple<TComponent, TAccess>>();
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                Boolean containsGroup = groupToComponentMap.TryGetValue(currentGroup, out ISet<ApplicationComponentAndAccessLevel> componentsAndAccessInMapping);
+                Boolean containsGroup = groupToComponentMap.TryGetValue(currentGroup, out ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>> componentsAndAccessInMapping);
                 if (containsGroup == true)
                 {
-                    foreach (ApplicationComponentAndAccessLevel currentComponentAndAccessLevel in componentsAndAccessInMapping)
+                    foreach (ApplicationComponentAndAccessLevel<TComponent, TAccess> currentComponentAndAccessLevel in componentsAndAccessInMapping)
                     {
                         var currentComponentAndAccessLevelAsTuple = new Tuple<TComponent, TAccess>(currentComponentAndAccessLevel.ApplicationComponent, currentComponentAndAccessLevel.AccessLevel);
                         if (returnComponentsAndAccessLevels.Contains(currentComponentAndAccessLevelAsTuple) == false)
@@ -1212,59 +1212,6 @@ namespace ApplicationAccess
         protected void ThrowEntityDoesntExistException(String entity, String parameterName)
         {
             throw new ArgumentException($"Entity '{entity}' does not exist.", parameterName);
-        }
-
-        #endregion
-
-        #region Nested Classes
-
-        /// <summary>
-        /// Container class which holds an application component and a level of access of that component.
-        /// </summary>
-        protected class ApplicationComponentAndAccessLevel : IEquatable<ApplicationComponentAndAccessLevel>
-        {
-            protected static readonly Int32 prime1 = 7;
-            protected static readonly Int32 prime2 = 11;
-
-            protected TComponent applicationComponent;
-            protected TAccess accessLevel;
-
-            /// <summary>
-            /// The application component.
-            /// </summary>
-            public TComponent ApplicationComponent
-            {
-                get { return applicationComponent; }
-            }
-
-            /// <summary>
-            /// The level of access.
-            /// </summary>
-            public TAccess AccessLevel
-            {
-                get { return accessLevel; }
-            }
-
-            /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.AccessManager+ApplicationComponentAndAccessLevel class.
-            /// </summary>
-            /// <param name="applicationComponent">The application component.</param>
-            /// <param name="accessLevel">The level of access.</param>
-            public ApplicationComponentAndAccessLevel(TComponent applicationComponent, TAccess accessLevel)
-            {
-                this.applicationComponent = applicationComponent;
-                this.accessLevel = accessLevel;
-            }
-
-            public Boolean Equals(ApplicationComponentAndAccessLevel other)
-            {
-                return (this.applicationComponent.Equals(other.applicationComponent) && this.accessLevel.Equals(other.accessLevel));
-            }
-
-            public override Int32 GetHashCode()
-            {
-                return (prime1 * applicationComponent.GetHashCode() + prime2 * accessLevel.GetHashCode());
-            }
         }
 
         #endregion

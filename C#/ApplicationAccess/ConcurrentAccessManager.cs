@@ -78,10 +78,7 @@ namespace ApplicationAccess
             InitializeLockObjects();
         }
 
-        /// <summary>
-        /// Removes all items and mappings from the graph.
-        /// </summary>
-        /// <remarks>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</remarks>
+        /// <inheritdoc/>
         public override void Clear()
         {
             lockManager.AcquireAllLocksAndInvokeAction(new Action(() =>

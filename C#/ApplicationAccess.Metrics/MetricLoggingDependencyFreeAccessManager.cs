@@ -22,7 +22,7 @@ using ApplicationMetrics;
 namespace ApplicationAccess.Metrics
 {
     /// <summary>
-    /// A thread-safe version of the <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> class, which can be accessed and modified by multiple threads concurrently, and which logs various metrics.
+    /// A version of the <see cref="DependencyFreeAccessManager{TUser, TGroup, TComponent, TAccess}"/> class which logs various metrics.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
@@ -32,7 +32,7 @@ namespace ApplicationAccess.Metrics
     /// <para>Thread safety is implemented by using concurrent collections internally to represent the user, group, component, access level, and entity mappings (allows for concurrent read and enumeration operations), and locks to serialize modification operations.  Note that all generic type parameters must implement relevant methods to allow storing in a <see cref="System.Collections.Generic.HashSet{T}"/> (at minimum <see cref="IEquatable{T}"/> and <see cref="Object.GetHashCode">GetHashcode()</see>).  This is not enforced as a generic type contraint in order to allow the type parameters to be enums.</para>
     /// <para>Note that interval metrics are not logged for <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> methods that either return IEnumerable or perform simple lookups on HashSets or Dictionaries.  For methods returning IEnumerable, their 'work' is not done until the returned IEnumerable is iterated, so capturing an interval around just the return of the IEnumerable does not provide a realistic metric.  For methods that perform just HashSets or Dictionary lookups, the performance cost of these operations is negligible, hence capturing metrics around them does not provide much value.</para>
     /// </remarks>
-    public class MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> : ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>
+    public class MetricLoggingDependencyFreeAccessManager<TUser, TGroup, TComponent, TAccess> : DependencyFreeAccessManager<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>Interface to private and protected members of the class, used by the 'metricLoggingDecorator' member.</summary>
         protected ConcurrentAccessManagerPrivateMemberInterface<TUser, TGroup, TComponent, TAccess> privateMemberInterface;
@@ -59,12 +59,12 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager class.
+        /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingDependencyFreeAccessManager class.
         /// </summary>
         /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
-        public MetricLoggingConcurrentAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
+        public MetricLoggingDependencyFreeAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
             : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings)
         {
             // Casting should never fail, since we just newed the 'userToGroupMap' and 'MetricLogger' properties to these types.
@@ -459,47 +459,47 @@ namespace ApplicationAccess.Metrics
                 base.userToGroupMap,
                 base.userToComponentMap,
                 base.groupToComponentMap,
-                base.entities, 
+                base.entities,
                 base.Clear,
                 base.AddUser,
                 base.ContainsUser,
                 base.RemoveUser,
-                base.AddGroup, 
+                base.AddGroup,
                 base.ContainsGroup,
                 base.RemoveGroup,
                 base.AddUserToGroupMapping,
                 base.GetUserToGroupMappings,
                 base.RemoveUserToGroupMapping,
-                base.AddGroupToGroupMapping, 
+                base.AddGroupToGroupMapping,
                 base.GetGroupToGroupMappings,
                 base.RemoveGroupToGroupMapping,
-                base.AddUserToApplicationComponentAndAccessLevelMapping, 
+                base.AddUserToApplicationComponentAndAccessLevelMapping,
                 base.GetUserToApplicationComponentAndAccessLevelMappings,
                 base.RemoveUserToApplicationComponentAndAccessLevelMapping,
-                base.AddGroupToApplicationComponentAndAccessLevelMapping, 
+                base.AddGroupToApplicationComponentAndAccessLevelMapping,
                 base.GetGroupToApplicationComponentAndAccessLevelMappings,
                 base.RemoveGroupToApplicationComponentAndAccessLevelMapping,
-                base.AddEntityType, 
-                base.ContainsEntityType, 
-                base.RemoveEntityType, 
-                base.RemoveEntityType, 
-                base.AddEntity, 
-                base.GetEntities, 
-                base.ContainsEntity, 
+                base.AddEntityType,
+                base.ContainsEntityType,
+                base.RemoveEntityType,
+                base.RemoveEntityType,
+                base.AddEntity,
+                base.GetEntities,
+                base.ContainsEntity,
                 base.RemoveEntity,
-                base.RemoveEntity, 
-                base.AddUserToEntityMapping, 
+                base.RemoveEntity,
+                base.AddUserToEntityMapping,
                 base.GetUserToEntityMappings,
-                base.GetUserToEntityMappings, 
+                base.GetUserToEntityMappings,
                 base.RemoveUserToEntityMapping,
                 base.AddGroupToEntityMapping,
                 base.GetGroupToEntityMappings,
                 base.GetGroupToEntityMappings,
-                base.RemoveGroupToEntityMapping, 
-                base.HasAccessToApplicationComponent, 
-                base.HasAccessToEntity, 
-                base.GetApplicationComponentsAccessibleByUser, 
-                base.GetApplicationComponentsAccessibleByGroup, 
+                base.RemoveGroupToEntityMapping,
+                base.HasAccessToApplicationComponent,
+                base.HasAccessToEntity,
+                base.GetApplicationComponentsAccessibleByUser,
+                base.GetApplicationComponentsAccessibleByGroup,
                 base.GetEntitiesAccessibleByUser,
                 base.GetEntitiesAccessibleByUser,
                 base.GetEntitiesAccessibleByGroup,
