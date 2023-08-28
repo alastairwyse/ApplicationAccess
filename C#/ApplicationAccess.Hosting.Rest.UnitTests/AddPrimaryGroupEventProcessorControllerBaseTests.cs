@@ -25,13 +25,13 @@ using NSubstitute;
 namespace ApplicationAccess.Hosting.Rest.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Rest.Controllers.GroupEventProcessorControllerBase class.
+    /// Unit tests for the ApplicationAccess.Hosting.Rest.Controllers.AddPrimaryGroupEventProcessorControllerBase class.
     /// </summary>
-    public class GroupEventProcessorControllerBaseTests
+    public class AddPrimaryGroupEventProcessorControllerBaseTests
     {
         private IAccessManagerGroupEventProcessor<String, String, String> mockGroupEventProcessor;
         private ILogger<GroupEventProcessorControllerBase> mockLogger;
-        private GroupEventProcessorController testGroupEventProcessorController;
+        private AddPrimaryGroupEventProcessorController testAddPrimaryGroupEventProcessorController;
 
         [SetUp]
         protected void SetUp()
@@ -40,43 +40,28 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             mockLogger = Substitute.For<ILogger<GroupEventProcessorControllerBase>>();
             var groupEventProcessorHolder = new GroupEventProcessorHolder();
             groupEventProcessorHolder.GroupEventProcessor = mockGroupEventProcessor;
-            testGroupEventProcessorController = new GroupEventProcessorController(groupEventProcessorHolder, mockLogger);
+            testAddPrimaryGroupEventProcessorController = new AddPrimaryGroupEventProcessorController(groupEventProcessorHolder, mockLogger);
         }
 
         [Test]
-        public void AddGroupToApplicationComponentAndAccessLevelMapping()
+        public void AddGroup()
         {
             const String group = "group1";
-            const String applicationComponent = "Order";
-            const String accessLevel = "Create";
 
-            StatusCodeResult result = testGroupEventProcessorController.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            StatusCodeResult result = testAddPrimaryGroupEventProcessorController.AddGroup(group);
 
-            mockGroupEventProcessor.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
-            Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
-        }
-
-        [Test]
-        public void AddGroupToEntityMapping()
-        {
-            const String group = "group1";
-            const String entityType = "ClientAccount";
-            const String entity = "CompanyA";
-
-            StatusCodeResult result = testGroupEventProcessorController.AddGroupToEntityMapping(group, entityType, entity);
-
-            mockGroupEventProcessor.Received(1).AddGroupToEntityMapping(group, entityType, entity);
+            mockGroupEventProcessor.Received(1).AddGroup(group);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
         }
 
         #region Nested Classes
 
         /// <summary>
-        /// Derives from <see cref="GroupEventProcessorControllerBase"/> as it's abstract.
+        /// Derives from <see cref="AddPrimaryGroupEventProcessorController"/> as it's abstract.
         /// </summary>
-        private class GroupEventProcessorController : GroupEventProcessorControllerBase
+        private class AddPrimaryGroupEventProcessorController : AddPrimaryGroupEventProcessorControllerBase
         {
-            public GroupEventProcessorController(GroupEventProcessorHolder groupEventProcessorHolder, ILogger<GroupEventProcessorControllerBase> logger)
+            public AddPrimaryGroupEventProcessorController(GroupEventProcessorHolder groupEventProcessorHolder, ILogger<GroupEventProcessorControllerBase> logger)
                 : base(groupEventProcessorHolder, logger)
             {
             }

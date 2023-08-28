@@ -27,7 +27,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
-    [ApiExplorerSettings(GroupName = "v1")]
+    [ApiExplorerSettings(GroupName = "GroupToGroupEventProcessor")]
     public abstract class GroupToGroupEventProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerGroupToGroupEventProcessor<String> groupToGroupEventProcessor;

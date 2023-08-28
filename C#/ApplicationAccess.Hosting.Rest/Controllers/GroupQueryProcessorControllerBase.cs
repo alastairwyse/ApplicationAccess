@@ -32,7 +32,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
-    [ApiExplorerSettings(GroupName = "v1")]
+    [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
     public abstract class GroupQueryProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerGroupQueryProcessor<String, String, String> groupQueryProcessor;

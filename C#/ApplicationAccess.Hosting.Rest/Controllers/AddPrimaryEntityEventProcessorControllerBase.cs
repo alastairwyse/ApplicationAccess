@@ -18,53 +18,60 @@ using System;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controller which exposes methods on the <see cref="IAccessManagerEntityEventProcessor"/> interface (except the primary 'Add*' methods) as REST methods.
+    /// Base for controller which exposes primary 'Add*' entity event methods as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
     [ApiExplorerSettings(GroupName = "EntityEventProcessor")]
-    public abstract class EntityEventProcessorControllerBase : ControllerBase
+    public abstract class AddPrimaryEntityEventProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerEntityEventProcessor entityEventProcessor;
         protected ILogger<EntityEventProcessorControllerBase> logger;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.EntityEventProcessorControllerBase class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.AddPrimaryEntityEventProcessorControllerBase class.
         /// </summary>
-        public EntityEventProcessorControllerBase(EntityEventProcessorHolder entityEventProcessorHolder, ILogger<EntityEventProcessorControllerBase> logger)
+        public AddPrimaryEntityEventProcessorControllerBase(EntityEventProcessorHolder entityEventProcessorHolder, ILogger<EntityEventProcessorControllerBase> logger)
         {
             entityEventProcessor = entityEventProcessorHolder.EntityEventProcessor;
             this.logger = logger;
         }
 
         /// <summary>
-        /// Removes an entity type.
+        /// Adds an entity type.
         /// </summary>
-        /// <param name="entityType">The entity type to remove.</param>
-        /// <response code="200">The entity type was removed.</response>
-        [HttpDelete]
+        /// <param name="entityType">The entity type to add.</param>
+        /// <response code="201">The entity type was added.</response>
+        [HttpPost]
         [Route("entityTypes/{entityType}")]
-        public void RemoveEntityType([FromRoute] String entityType)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public StatusCodeResult AddEntityType([FromRoute] String entityType)
         {
-            entityEventProcessor.RemoveEntityType(entityType);
+            entityEventProcessor.AddEntityType(entityType);
+
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>
-        /// Removes an entity.
+        /// Adds an entity.
         /// </summary>
         /// <param name="entityType">The type of the entity.</param>
-        /// <param name="entity">The entity to remove.</param>
-        /// <response code="200">The entity was removed.</response>
-        [HttpDelete]
+        /// <param name="entity">The entity to add.</param>
+        /// <response code="201">The entity was added.</response>
+        [HttpPost]
         [Route("entityTypes/{entityType}/entities/{entity}")]
-        public void RemoveEntity([FromRoute] String entityType, [FromRoute] String entity)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public StatusCodeResult AddEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
-            entityEventProcessor.RemoveEntity(entityType, entity);
+            entityEventProcessor.AddEntity(entityType, entity);
+
+            return new StatusCodeResult(StatusCodes.Status201Created);
         }
     }
 }

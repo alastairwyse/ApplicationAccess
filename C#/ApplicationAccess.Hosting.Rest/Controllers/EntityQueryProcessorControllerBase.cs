@@ -31,7 +31,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
-    [ApiExplorerSettings(GroupName = "v1")]
+    [ApiExplorerSettings(GroupName = "EntityQueryProcessor")]
     public abstract class EntityQueryProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerEntityQueryProcessor entityQueryProcessor;

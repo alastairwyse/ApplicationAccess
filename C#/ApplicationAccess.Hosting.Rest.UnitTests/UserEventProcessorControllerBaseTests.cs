@@ -44,17 +44,6 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         }
 
         [Test]
-        public void AddUser()
-        {
-            const String user = "user1";
-
-            StatusCodeResult result = testUserEventProcessorController.AddUser(user);
-
-            mockUserEventProcessor.Received(1).AddUser(user);
-            Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
-        }
-
-        [Test]
         public void AddUserToGroupMapping()
         {
             const String user = "user1";

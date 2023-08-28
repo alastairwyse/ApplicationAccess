@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2022 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,24 +24,24 @@ using ApplicationMetrics;
 namespace ApplicationAccess.Hosting.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.ReaderWriterNode class.
+    /// Unit tests for the ApplicationAccess.Hosting.DependencyFreeReaderWriterNode class.
     /// </summary>
-    public class ReaderWriterNodeTests
+    public class DependencyFreeReaderWriterNodeTests
     {
         private IAccessManagerEventBufferFlushStrategy mockEventBufferFlushStrategy;
         private IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel> mockPersistentReader;
-        private IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
+        private IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
         private IMetricLogger mockMetricLogger;
-        private ReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testReadertWriterNode;
+        private DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testDependencyFreeReaderWriterNode;
 
         [SetUp]
         protected void SetUp()
         {
             mockEventBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
-            mockEventPersister = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
+            mockEventPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testReadertWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, false, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, false, mockMetricLogger);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testReadertWriterNode.Load(false);
+                testDependencyFreeReaderWriterNode.Load(false);
             });
 
             mockMetricLogger.Received(1).Begin(Arg.Any<ReaderWriterNodeLoadTime>());
@@ -73,7 +73,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testReadertWriterNode.Load(true);
+                testDependencyFreeReaderWriterNode.Load(true);
             });
 
             mockMetricLogger.Received(1).Begin(Arg.Any<ReaderWriterNodeLoadTime>());
@@ -92,7 +92,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testReadertWriterNode.Load(true);
+                testDependencyFreeReaderWriterNode.Load(true);
             });
 
             mockMetricLogger.Received(1).Begin(Arg.Any<ReaderWriterNodeLoadTime>());
@@ -109,7 +109,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockMetricLogger.Begin(Arg.Any<ReaderWriterNodeLoadTime>()).Returns(testBeginId);
             mockPersistentReader.When((reader) => reader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>())).Do((callInfo) => throw mockException);
 
-            testReadertWriterNode.Load(false);
+            testDependencyFreeReaderWriterNode.Load(false);
 
             mockMetricLogger.Received(1).Begin(Arg.Any<ReaderWriterNodeLoadTime>());
             mockPersistentReader.Received(1).Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>());

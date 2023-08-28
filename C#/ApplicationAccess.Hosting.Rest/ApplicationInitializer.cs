@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
@@ -27,6 +28,8 @@ using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace ApplicationAccess.Hosting.Rest
 {
@@ -112,6 +115,32 @@ namespace ApplicationAccess.Hosting.Rest
                     Description = parameters.SwaggerApplicationDescription
                 });
 
+                // Group endpoint routes together in the swagger page by their 'ApiExplorerSettings' > 'GroupName' attribute
+                //   This allows endpoints defined across multiple files too all appear in the same group
+                //   e.g. as occurs for endpoints in the 'UserEventProcessorControllerBase' and 'AddPrimaryUserEventProcessorControllerBase' controller classes
+                swaggerGenOptions.TagActionsBy((ApiDescription apiDescription) =>
+                {
+                    if (apiDescription.GroupName != null)
+                    {
+                        return new List<String> { apiDescription.GroupName };
+                    }
+                    else
+                    {
+                        var controllerActionDescriptor = (ControllerActionDescriptor)apiDescription.ActionDescriptor;
+                        if (controllerActionDescriptor != null)
+                        {
+                            throw new Exception($"'{nameof(apiDescription.GroupName)}' could not be found for controller '{controllerActionDescriptor.ControllerName}'.");
+                        }
+                        else
+                        {
+                            throw new Exception($"'{nameof(apiDescription.GroupName)}' could not be found for controller.");
+                        }
+                    }
+                });
+                // Omitting this causes only the first encountered 'ApiExplorerSettings' > 'GroupName' attribute to render in swagger
+                //   Including it renders groups defined for all controllers
+                swaggerGenOptions.DocInclusionPredicate((name, api) => { return true; });
+                
                 // This adds swagger generation for controllers outside this project/assembly
                 foreach (Assembly currentAssembly in parameters.SwaggerGenerationAdditionalAssemblies)
                 {

@@ -28,6 +28,8 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         /// <summary>A reader/writer node.</summary>
         ReaderWriterNode,
         /// <summary>A writer node.</summary>
-        WriterNode
+        WriterNode,
+        /// <summary>A dependency-free reader/writer node.</summary>
+        DependencyFreeReaderWriterNode
     }
 }

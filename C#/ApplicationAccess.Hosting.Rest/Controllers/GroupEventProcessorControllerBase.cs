@@ -27,7 +27,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
-    [ApiExplorerSettings(GroupName = "v1")]
+    [ApiExplorerSettings(GroupName = "GroupEventProcessor")]
     public abstract class GroupEventProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerGroupEventProcessor<String, String, String> groupEventProcessor;
@@ -40,21 +40,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         {
             groupEventProcessor = groupEventProcessorHolder.GroupEventProcessor;
             this.logger = logger;
-        }
-
-        /// <summary>
-        /// Adds a group.
-        /// </summary>
-        /// <param name="group">The group to add.</param>
-        /// <response code="201">The group was added.</response>
-        [HttpPost]
-        [Route("groups/{group}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public StatusCodeResult AddGroup([FromRoute] String group)
-        {
-            groupEventProcessor.AddGroup(group);
-
-            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>

@@ -22,12 +22,12 @@ using Microsoft.AspNetCore.Http;
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controller which exposes methods on the <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/> interface as REST methods.
+    /// Base for controller which exposes methods on the <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/> interface (except the primary 'Add*' methods) as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
-    [ApiExplorerSettings(GroupName = "v1")]
+    [ApiExplorerSettings(GroupName = "UserEventProcessor")]
     public abstract class UserEventProcessorControllerBase : ControllerBase
     {
         protected IAccessManagerUserEventProcessor<String, String, String, String> userEventProcessor;
@@ -40,21 +40,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         {
             userEventProcessor = userEventProcessorHolder.UserEventProcessor;
             this.logger = logger;
-        }
-
-        /// <summary>
-        /// Adds a user.
-        /// </summary>
-        /// <param name="user">The user to add.</param>
-        /// <response code="201">The user was added.</response>
-        [HttpPost]
-        [Route("users/{user}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public StatusCodeResult AddUser([FromRoute] String user)
-        {
-            userEventProcessor.AddUser(user);
-
-            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>

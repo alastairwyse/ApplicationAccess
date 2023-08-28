@@ -25,13 +25,13 @@ using NSubstitute;
 namespace ApplicationAccess.Hosting.Rest.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Rest.Controllers.EntityEventProcessorControllerBase class.
+    /// Unit tests for the ApplicationAccess.Hosting.Rest.Controllers.AddPrimaryEntityEventProcessorControllerBase class.
     /// </summary>
-    public class EntityEventProcessorControllerBaseTests
+    public class AddPrimaryEntityEventProcessorControllerBaseTests
     {
         private IAccessManagerEntityEventProcessor mockEntityEventProcessor;
         private ILogger<EntityEventProcessorControllerBase> mockLogger;
-        private EntityEventProcessorController testEntityEventProcessorController;
+        private AddPrimaryEntityEventProcessorController testAddPrimaryEntityEventProcessorController;
 
         [SetUp]
         protected void SetUp()
@@ -40,7 +40,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             mockLogger = Substitute.For<ILogger<EntityEventProcessorControllerBase>>();
             var entityEventProcessorHolder = new EntityEventProcessorHolder();
             entityEventProcessorHolder.EntityEventProcessor = mockEntityEventProcessor;
-            testEntityEventProcessorController = new EntityEventProcessorController(entityEventProcessorHolder, mockLogger);
+            testAddPrimaryEntityEventProcessorController = new AddPrimaryEntityEventProcessorController(entityEventProcessorHolder, mockLogger);
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         {
             const String entityType = "ClientAccount";
 
-            StatusCodeResult result = testEntityEventProcessorController.AddEntityType(entityType);
+            StatusCodeResult result = testAddPrimaryEntityEventProcessorController.AddEntityType(entityType);
 
             mockEntityEventProcessor.Received(1).AddEntityType(entityType);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
@@ -60,7 +60,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
 
-            StatusCodeResult result = testEntityEventProcessorController.AddEntity(entityType, entity);
+            StatusCodeResult result = testAddPrimaryEntityEventProcessorController.AddEntity(entityType, entity);
 
             mockEntityEventProcessor.Received(1).AddEntity(entityType, entity);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
@@ -69,11 +69,11 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         #region Nested Classes
 
         /// <summary>
-        /// Derives from <see cref="EntityEventProcessorControllerBase"/> as it's abstract.
+        /// Derives from <see cref="AddPrimaryEntityEventProcessorControllerBase"/> as it's abstract.
         /// </summary>
-        private class EntityEventProcessorController : EntityEventProcessorControllerBase
+        private class AddPrimaryEntityEventProcessorController : AddPrimaryEntityEventProcessorControllerBase
         {
-            public EntityEventProcessorController(EntityEventProcessorHolder entityEventProcessorHolder, ILogger<EntityEventProcessorControllerBase> logger)
+            public AddPrimaryEntityEventProcessorController(EntityEventProcessorHolder entityEventProcessorHolder, ILogger<EntityEventProcessorControllerBase> logger)
                 : base(entityEventProcessorHolder, logger)
             {
             }
