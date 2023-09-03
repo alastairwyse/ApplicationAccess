@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 
@@ -34,10 +35,8 @@ namespace ApplicationAccess.Metrics
     /// </remarks>
     public class MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> : ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>
     {
-        /// <summary>Interface to private and protected members of the class, used by the 'metricLoggingDecorator' member.</summary>
-        protected ConcurrentAccessManagerPrivateMemberInterface<TUser, TGroup, TComponent, TAccess> privateMemberInterface;
-        /// <summary>The logger for metrics.</summary>
-        protected ConcurrentAccessManagerMetricLoggingInternalDecorator<TUser, TGroup, TComponent, TAccess> metricLoggingDecorator;
+        /// <summary>Class which wraps and methods with, and generates methods that log the metrics.</summary>
+        protected ConcurrentAccessManagerMetricLogger<TUser, TGroup, TComponent, TAccess> metricLoggingWrapper;
         /// <summary>Metric mapper used by the 'userToGroupMap' DirectedGraph member, e.g. to map metrics for 'leaf vertices' to metrics for 'users'.</summary>
         protected MappingMetricLogger mappingMetricLogger;
 
@@ -49,12 +48,15 @@ namespace ApplicationAccess.Metrics
         {
             get
             {
-                return metricLoggingDecorator.MetricLoggingEnabled;
+                return metricLoggingWrapper.MetricLoggingEnabled;
             }
 
             set
             {
-                metricLoggingDecorator.MetricLoggingEnabled = value;
+                // TODO: Ideally there should be some kind of lock around these two statements, but will leave off for now
+                //   This method should only be called when the event and query methods are not being invoked (e.g. before loading contents at startup)
+                metricLoggingWrapper.MetricLoggingEnabled = value;
+                ((MetricLoggingConcurrentDirectedGraph<TUser, TGroup>)userToGroupMap).MetricLoggingEnabled = value;
             }
         }
 
@@ -65,448 +67,142 @@ namespace ApplicationAccess.Metrics
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public MetricLoggingConcurrentAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
-            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings)
+            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, false, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings)
         {
             // Casting should never fail, since we just newed the 'userToGroupMap' and 'MetricLogger' properties to these types.
             //   TODO: Find a cleaner way to do this... ideally don't want to expose the 'MetricLoggingConcurrentDirectedGraph.MetricLogger' property at all.
             mappingMetricLogger = (MappingMetricLogger)((MetricLoggingConcurrentDirectedGraph<TUser, TGroup>)userToGroupMap).MetricLogger;
+            metricLoggingWrapper = new ConcurrentAccessManagerMetricLogger<TUser, TGroup, TComponent, TAccess>(metricLogger);
             AddMappingMetricLoggerMappings();
-            InitializeMetricLoggingDecorator(metricLogger);
-        }
-
-        /// <inheritdoc/>
-        public override void Clear()
-        {
-            metricLoggingDecorator.Clear();
-        }
-
-        /// <inheritdoc/>
-        public override void AddUser(TUser user)
-        {
-            AddUser(user, (postProcessingActionUser) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddUser(TUser user, Action<TUser> postProcessingAction)
-        {
-            metricLoggingDecorator.AddUser(user, postProcessingAction);
         }
 
         /// <inheritdoc/>
         public override Boolean ContainsUser(TUser user)
         {
-            return metricLoggingDecorator.ContainsUser(user);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUser(TUser user)
-        {
-            RemoveUser(user, (postProcessingActionUser) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUser(TUser user, Action<TUser> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveUser(user, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroup(TGroup group)
-        {
-            AddGroup(group, (postProcessingActionGroup) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroup(TGroup group, Action<TGroup> postProcessingAction)
-        {
-            metricLoggingDecorator.AddGroup(group, postProcessingAction);
+            return metricLoggingWrapper.ContainsUser(user, base.ContainsUser);
         }
 
         /// <inheritdoc/>
         public override Boolean ContainsGroup(TGroup group)
         {
-            return metricLoggingDecorator.ContainsGroup(group);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroup(TGroup group)
-        {
-            RemoveGroup(group, (postProcessingActionGroup) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroup(TGroup group, Action<TGroup> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveGroup(group, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddUserToGroupMapping(TUser user, TGroup group)
-        {
-            AddUserToGroupMapping(user, group, (postProcessingActionUser, postProcessingActionGroup) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
-        {
-            metricLoggingDecorator.AddUserToGroupMapping(user, group, postProcessingAction);
+            return metricLoggingWrapper.ContainsGroup(group, base.ContainsGroup);
         }
 
         /// <inheritdoc/>
         public override HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
-            return metricLoggingDecorator.GetUserToGroupMappings(user, includeIndirectMappings);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToGroupMapping(TUser user, TGroup group)
-        {
-            RemoveUserToGroupMapping(user, group, (postProcessingActionUser, postProcessingActionGroup) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveUserToGroupMapping(user, group, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
-        {
-            AddGroupToGroupMapping(fromGroup, toGroup, (postProcessingActionFromGroup, postProcessingActionToGroup) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
-        {
-            metricLoggingDecorator.AddGroupToGroupMapping(fromGroup, toGroup, postProcessingAction);
+            return metricLoggingWrapper.GetUserToGroupMappings(user, includeIndirectMappings, base.GetUserToGroupMappings);
         }
 
         /// <inheritdoc/>
         public override HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
-            return metricLoggingDecorator.GetGroupToGroupMappings(group, includeIndirectMappings);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
-        {
-            RemoveGroupToGroupMapping(fromGroup, toGroup, (postProcessingActionFromGroup, postProcessingActionToGroup) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveGroupToGroupMapping(fromGroup, toGroup, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
-        {
-            AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, (postProcessingActionUser, postProcessingActionApplicationComponent, postProcessingActionAccessLevel) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
-        {
-            metricLoggingDecorator.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, postProcessingAction);
+            return metricLoggingWrapper.GetGroupToGroupMappings(group, includeIndirectMappings, base.GetGroupToGroupMappings);
         }
 
         /// <inheritdoc/>
         public override IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
-            return metricLoggingDecorator.GetUserToApplicationComponentAndAccessLevelMappings(user);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
-        {
-            RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, (postProcessingActionUser, postProcessingActionApplicationComponent, postProcessingActionAccessLevel) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
-        {
-            AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, (postProcessingActionGroup, postProcessingActionApplicationComponent, postProcessingActionAccessLevel) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
-        {
-            metricLoggingDecorator.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, postProcessingAction);
+            return metricLoggingWrapper.GetUserToApplicationComponentAndAccessLevelMappings(user, base.GetUserToApplicationComponentAndAccessLevelMappings);
         }
 
         /// <inheritdoc/>
         public override IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
-            return metricLoggingDecorator.GetGroupToApplicationComponentAndAccessLevelMappings(group);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
-        {
-            RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, (postProcessingActionGroup, postProcessingActionApplicationComponent, postProcessingActionAccessLevel) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddEntityType(String entityType)
-        {
-            AddEntityType(entityType, (postProcessingActionEntityType) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddEntityType(String entityType, Action<String> postProcessingAction)
-        {
-            metricLoggingDecorator.AddEntityType(entityType, postProcessingAction);
+            return metricLoggingWrapper.GetGroupToApplicationComponentAndAccessLevelMappings(group, base.GetGroupToApplicationComponentAndAccessLevelMappings);
         }
 
         /// <inheritdoc/>
         public override Boolean ContainsEntityType(String entityType)
         {
-            return metricLoggingDecorator.ContainsEntityType(entityType);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveEntityType(String entityType)
-        {
-            RemoveEntityType(entityType, (postProcessingActionEntityType) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveEntityType(String entityType, Action<String> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveEntityType(entityType, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddEntity(String entityType, String entity)
-        {
-            AddEntity(entityType, entity, (postProcessingActionEntityType, postProcessingActionEntity) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddEntity(String entityType, String entity, Action<String, String> postProcessingAction)
-        {
-            metricLoggingDecorator.AddEntity(entityType, entity, postProcessingAction);
+            return metricLoggingWrapper.ContainsEntityType(entityType, base.ContainsEntityType);
         }
 
         /// <inheritdoc/>
         public override IEnumerable<String> GetEntities(String entityType)
         {
-            return metricLoggingDecorator.GetEntities(entityType);
+            return metricLoggingWrapper.GetEntities(entityType, base.GetEntities);
         }
 
         /// <inheritdoc/>
         public override Boolean ContainsEntity(String entityType, String entity)
         {
-            return metricLoggingDecorator.ContainsEntity(entityType, entity);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveEntity(String entityType, String entity)
-        {
-            RemoveEntity(entityType, entity, (postProcessingActionEntityType, postProcessingActionEntity) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveEntity(String entityType, String entity, Action<String, String> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveEntity(entityType, entity, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddUserToEntityMapping(TUser user, String entityType, String entity)
-        {
-            AddUserToEntityMapping(user, entityType, entity, (postProcessingActionUser, postProcessingActionEntityType, postProcessingActionEntity) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
-        {
-            metricLoggingDecorator.AddUserToEntityMapping(user, entityType, entity, postProcessingAction);
+            return metricLoggingWrapper.ContainsEntity(entityType, entity, base.ContainsEntity);
         }
 
         /// <inheritdoc/>
         public override IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
-            return metricLoggingDecorator.GetUserToEntityMappings(user);
+            return metricLoggingWrapper.GetUserToEntityMappings(user, base.GetUserToEntityMappings);
         }
 
         /// <inheritdoc/>
         public override IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
-            return metricLoggingDecorator.GetUserToEntityMappings(user, entityType);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
-        {
-            RemoveUserToEntityMapping(user, entityType, entity, (postProcessingActionUser, postProcessingActionEntityType, postProcessingActionEntity) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveUserToEntityMapping(user, entityType, entity, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
-        {
-            AddGroupToEntityMapping(group, entityType, entity, (postProcessingActionGroup, postProcessingActionEntityType, postProcessingActionEntity) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
-        {
-            metricLoggingDecorator.AddGroupToEntityMapping(group, entityType, entity, postProcessingAction);
+            return metricLoggingWrapper.GetUserToEntityMappings(user, entityType, base.GetUserToEntityMappings);
         }
 
         /// <inheritdoc/>
         public override IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
-            return metricLoggingDecorator.GetGroupToEntityMappings(group);
+            return metricLoggingWrapper.GetGroupToEntityMappings(group, base.GetGroupToEntityMappings);
         }
 
         /// <inheritdoc/>
         public override IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
-            return metricLoggingDecorator.GetGroupToEntityMappings(group, entityType);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
-        {
-            RemoveGroupToEntityMapping(group, entityType, entity, (postProcessingActionGroup, postProcessingActionEntityType, postProcessingActionEntity) => { });
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
-        {
-            metricLoggingDecorator.RemoveGroupToEntityMapping(group, entityType, entity, postProcessingAction);
+            return metricLoggingWrapper.GetGroupToEntityMappings(group, entityType, base.GetGroupToEntityMappings);
         }
 
         /// <inheritdoc/>
         public override Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            return metricLoggingDecorator.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
+            return metricLoggingWrapper.HasAccessToApplicationComponent(user, applicationComponent, accessLevel, base.HasAccessToApplicationComponent);
         }
 
         /// <inheritdoc/>
         public override Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
-            return metricLoggingDecorator.HasAccessToEntity(user, entityType, entity);
+            return metricLoggingWrapper.HasAccessToEntity(user, entityType, entity, base.HasAccessToEntity);
         }
 
         /// <inheritdoc/>
         public override HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
-            return metricLoggingDecorator.GetApplicationComponentsAccessibleByUser(user);
+            return metricLoggingWrapper.GetApplicationComponentsAccessibleByUser(user, base.GetApplicationComponentsAccessibleByUser);
         }
 
         /// <inheritdoc/>
         public override HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
-            return metricLoggingDecorator.GetApplicationComponentsAccessibleByGroup(group);
+            return metricLoggingWrapper.GetApplicationComponentsAccessibleByGroup(group, base.GetApplicationComponentsAccessibleByGroup);
         }
 
         /// <inheritdoc/>
         public override HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
         {
-            return metricLoggingDecorator.GetEntitiesAccessibleByUser(user);
+            return metricLoggingWrapper.GetEntitiesAccessibleByUser(user, base.GetEntitiesAccessibleByUser);
         }
 
         /// <inheritdoc/>
         public override HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
-            return metricLoggingDecorator.GetEntitiesAccessibleByUser(user, entityType);
+            return metricLoggingWrapper.GetEntitiesAccessibleByUser(user, entityType, base.GetEntitiesAccessibleByUser);
         }
 
         /// <inheritdoc/>
         public override HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
         {
-            return metricLoggingDecorator.GetEntitiesAccessibleByGroup(group);
+            return metricLoggingWrapper.GetEntitiesAccessibleByGroup(group, base.GetEntitiesAccessibleByGroup);
         }
 
         /// <inheritdoc/>
         public override HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {
-            return metricLoggingDecorator.GetEntitiesAccessibleByGroup(group, entityType);
+            return metricLoggingWrapper.GetEntitiesAccessibleByGroup(group, entityType, base.GetEntitiesAccessibleByGroup);
         }
 
         #region Private/Protected Methods
-
-        /// <summary>
-        /// Initializes the 'metricLoggingDecorator' member.
-        /// </summary>
-        /// <param name="metricLogger">The metric logger to pass to the decorator.</param>
-        protected void InitializeMetricLoggingDecorator(IMetricLogger metricLogger)
-        {
-            privateMemberInterface = new ConcurrentAccessManagerPrivateMemberInterface<TUser, TGroup, TComponent, TAccess>
-            (
-                base.userToGroupMap,
-                base.userToComponentMap,
-                base.groupToComponentMap,
-                base.entities, 
-                base.Clear,
-                base.AddUser,
-                base.ContainsUser,
-                base.RemoveUser,
-                base.AddGroup, 
-                base.ContainsGroup,
-                base.RemoveGroup,
-                base.AddUserToGroupMapping,
-                base.GetUserToGroupMappings,
-                base.RemoveUserToGroupMapping,
-                base.AddGroupToGroupMapping, 
-                base.GetGroupToGroupMappings,
-                base.RemoveGroupToGroupMapping,
-                base.AddUserToApplicationComponentAndAccessLevelMapping, 
-                base.GetUserToApplicationComponentAndAccessLevelMappings,
-                base.RemoveUserToApplicationComponentAndAccessLevelMapping,
-                base.AddGroupToApplicationComponentAndAccessLevelMapping, 
-                base.GetGroupToApplicationComponentAndAccessLevelMappings,
-                base.RemoveGroupToApplicationComponentAndAccessLevelMapping,
-                base.AddEntityType, 
-                base.ContainsEntityType, 
-                base.RemoveEntityType, 
-                base.RemoveEntityType, 
-                base.AddEntity, 
-                base.GetEntities, 
-                base.ContainsEntity, 
-                base.RemoveEntity,
-                base.RemoveEntity, 
-                base.AddUserToEntityMapping, 
-                base.GetUserToEntityMappings,
-                base.GetUserToEntityMappings, 
-                base.RemoveUserToEntityMapping,
-                base.AddGroupToEntityMapping,
-                base.GetGroupToEntityMappings,
-                base.GetGroupToEntityMappings,
-                base.RemoveGroupToEntityMapping, 
-                base.HasAccessToApplicationComponent, 
-                base.HasAccessToEntity, 
-                base.GetApplicationComponentsAccessibleByUser, 
-                base.GetApplicationComponentsAccessibleByGroup, 
-                base.GetEntitiesAccessibleByUser,
-                base.GetEntitiesAccessibleByUser,
-                base.GetEntitiesAccessibleByGroup,
-                base.GetEntitiesAccessibleByGroup
-            );
-            metricLoggingDecorator = new ConcurrentAccessManagerMetricLoggingInternalDecorator<TUser, TGroup, TComponent, TAccess>(this, privateMemberInterface, metricLogger);
-        }
 
         /// <summary>
         /// Adds required metric class mappings to the 'mappingMetricLogger' member.
@@ -517,6 +213,153 @@ namespace ApplicationAccess.Metrics
             mappingMetricLogger.AddStatusMetricMapping(typeof(NonLeafVerticesStored), new GroupsStored());
             mappingMetricLogger.AddStatusMetricMapping(typeof(LeafToNonLeafEdgesStored), new UserToGroupMappingsStored());
             mappingMetricLogger.AddStatusMetricMapping(typeof(NonLeafToNonLeafEdgesStored), new GroupToGroupMappingsStored());
+        }
+
+        /// <inheritdoc/>
+        protected override void Clear(Action<Action> wrappingAction)
+        {
+            Action<Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateClearMetricLoggingWrappingAction(wrappingAction);
+            base.Clear(metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddUser(TUser user, Action<TUser, Action> wrappingAction)
+        {
+            Action<TUser, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddUserMetricLoggingWrappingAction(user, wrappingAction);
+            base.AddUser(user, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveUser(TUser user, Action<TUser, Action> wrappingAction)
+        {
+            Action<TUser, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveUserMetricLoggingWrappingAction(user, wrappingAction, userToComponentMap);
+            base.RemoveUser(user, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddGroup(TGroup group, Action<TGroup, Action> wrappingAction)
+        {
+            Action<TGroup, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddGroupMetricLoggingWrappingAction(group, wrappingAction);
+            base.AddGroup(group, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveGroup(TGroup group, Action<TGroup, Action> wrappingAction)
+        {
+            Action<TGroup, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveGroupMetricLoggingWrappingAction(group, wrappingAction, groupToComponentMap);
+            base.RemoveGroup(group, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
+        {
+            Action<TUser, TGroup, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddUserToGroupMappingMetricLoggingWrappingAction(user, group, wrappingAction);
+            base.AddUserToGroupMapping(user, group, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
+        {
+            Action<TUser, TGroup, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveUserToGroupMappingMetricLoggingWrappingAction(user, group, wrappingAction);
+            base.RemoveUserToGroupMapping(user, group, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
+        {
+            Action<TGroup, TGroup, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddGroupToGroupMappingMetricLoggingWrappingAction(fromGroup, toGroup, wrappingAction);
+            base.AddGroupToGroupMapping(fromGroup, toGroup, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
+        {
+            Action<TGroup, TGroup, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveGroupToGroupMappingMetricLoggingWrappingAction(fromGroup, toGroup, wrappingAction);
+            base.RemoveGroupToGroupMapping(fromGroup, toGroup, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess, Action> wrappingAction)
+        {
+            Action<TUser, TComponent, TAccess, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddUserToApplicationComponentAndAccessLevelMappingMetricLoggingWrappingAction(user, applicationComponent, accessLevel, wrappingAction);
+            base.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess, Action> wrappingAction)
+        {
+            Action<TUser, TComponent, TAccess, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveUserToApplicationComponentAndAccessLevelMappingMetricLoggingWrappingAction(user, applicationComponent, accessLevel, wrappingAction);
+            base.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
+        {
+            Action<TGroup, TComponent, TAccess, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddGroupToApplicationComponentAndAccessLevelMappingMetricLoggingWrappingAction(group, applicationComponent, accessLevel, wrappingAction);
+            base.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
+        {
+            Action<TGroup, TComponent, TAccess, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveGroupToApplicationComponentAndAccessLevelMappingMetricLoggingWrappingAction(group, applicationComponent, accessLevel, wrappingAction);
+            base.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddEntityType(String entityType, Action<String, Action> wrappingAction)
+        {
+            Action<String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddEntityTypeMetricLoggingWrappingAction(entityType, wrappingAction, entities);
+            base.AddEntityType(entityType, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveEntityType(String entityType, Action<String, Action> wrappingAction)
+        {
+            Action<String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveEntityTypeMetricLoggingWrappingAction(entityType, wrappingAction, entities, base.RemoveEntityType);
+            base.RemoveEntityType(entityType, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddEntity(String entityType, String entity, Action<String, String, Action> wrappingAction)
+        {
+            Action<String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddEntityMetricLoggingWrappingAction(entityType, entity, wrappingAction);
+            base.AddEntity(entityType, entity, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveEntity(String entityType, String entity, Action<String, String, Action> wrappingAction)
+        {
+            Action<String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveEntityMetricLoggingWrappingAction(entityType, entity, wrappingAction, base.RemoveEntity);
+            base.RemoveEntity(entityType, entity, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
+        {
+            Action<TUser, String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddUserToEntityMappingMetricLoggingWrappingAction(user, entityType, entity, wrappingAction);
+            base.AddUserToEntityMapping(user, entityType, entity, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
+        {
+            Action<TUser, String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveUserToEntityMappingMetricLoggingWrappingAction(user, entityType, entity, wrappingAction);
+            base.RemoveUserToEntityMapping(user, entityType, entity, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
+        {
+            Action<TGroup, String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddGroupToEntityMappingMetricLoggingWrappingAction(group, entityType, entity, wrappingAction);
+            base.AddGroupToEntityMapping(group, entityType, entity, metricLoggingWrappingAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
+        {
+            Action<TGroup, String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveGroupToEntityMappingMetricLoggingWrappingAction(group, entityType, entity, wrappingAction);
+            base.RemoveGroupToEntityMapping(group, entityType, entity, metricLoggingWrappingAction);
         }
 
         #endregion

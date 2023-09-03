@@ -23,17 +23,15 @@ using MoreComplexDataStructures;
 namespace ApplicationAccess.Metrics
 {
     /// <summary>
-    /// Class which logs metrics for an instance or subclass of <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> by accessing required private and protected members of the instance or subclass through a defined interface, and wrapping/decorating method calls with metric logging functionality.
+    /// Logs metrics for an instance or subclass of <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> by providing <see cref="Action"/> and <see cref="Func{T, TResult}"/> methods which can be passed to the ConcurrentAccessManager instance event methods which accept the 'wrappingAction' parameter (for the case of event methods), or by wrapping/decorating the ConcurrentAccessManager instance methods (for the case of query methods).
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    /// <remarks>This class provides a solution for wanting to have a 'MetricLogging' version of both the <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> and <see cref="DependencyFreeAccessManager{TUser, TGroup, TComponent, TAccess}"/> classes.  Metric logging functionality which wraps each of the public methods of both classes (and requires access to their private/protected members) is implemented in this class, and can be reused by 'MetricLogging' subclasses of each.</remarks>
-    public class ConcurrentAccessManagerMetricLoggingInternalDecorator<TUser, TGroup, TComponent, TAccess>
+    /// <remarks>This class provides a solution for wanting to have a 'MetricLogging' version of both the <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> and <see cref="DependencyFreeAccessManager{TUser, TGroup, TComponent, TAccess}"/> classes.  The contained Metric logging functionality can be reused by 'MetricLogging' subclasses of each.</remarks>
+    public class ConcurrentAccessManagerMetricLogger<TUser, TGroup, TComponent, TAccess>
     {
-        /*
-
         /// <summary>The number of user to application component and access level mappings in the access manager.</summary>
         protected Int32 userToApplicationComponentAndAccessLevelMappingCount;
         /// <summary>The number of group to application component and access level mappings in the access manager.</summary>
@@ -49,10 +47,6 @@ namespace ApplicationAccess.Metrics
         /// <summary>The number of group to entity mappings stored for each group.</summary>
         protected FrequencyTable<TGroup> groupToEntityMappingCountPerGroup;
 
-        /// <summary>The access manager to log metrics for.</summary>
-        protected ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> accessManager;
-        /// <summary>Interface to the private members of the 'accessManager' member.</summary>
-        protected ConcurrentAccessManagerPrivateMemberInterface<TUser, TGroup, TComponent, TAccess> accessManagerPrivateInterface;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
         /// <summary>Metric mapper used by the 'userToGroupMap' DirectedGraph member, e.g. to map metrics for 'leaf vertices' to metrics for 'users'.</summary>
@@ -63,7 +57,6 @@ namespace ApplicationAccess.Metrics
         /// <summary>
         /// Whether logging of metrics is enabled.
         /// </summary>
-        /// <remarks>Generally this would be set true, but may need to be set false in some situations (e.g. when loading contents from a database).</remarks>
         public Boolean MetricLoggingEnabled
         {
             get
@@ -74,114 +67,99 @@ namespace ApplicationAccess.Metrics
             set
             {
                 metricLoggingEnabled = value;
-                ((MetricLoggingConcurrentDirectedGraph<TUser, TGroup>)accessManagerPrivateInterface.UserToGroupMap).MetricLoggingEnabled = value;
             }
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Metrics.ConcurrentAccessManagerMetricLoggingInternalDecorator class.
+        /// Initialises a new instance of the ApplicationAccess.Metrics.ConcurrentAccessManagerMetricLogger class.
         /// </summary>
-        /// <param name="accessManager">The access manager to log metrics for.</param>
-        /// <param name="accessManagerPrivateInterface">Interface to the private members of the access manager to log metrics for.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public ConcurrentAccessManagerMetricLoggingInternalDecorator
-        (
-            ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> accessManager,
-            ConcurrentAccessManagerPrivateMemberInterface<TUser, TGroup, TComponent, TAccess> accessManagerPrivateInterface,
-            IMetricLogger metricLogger
-        )
+        public ConcurrentAccessManagerMetricLogger(IMetricLogger metricLogger)
         {
             InitializeItemAndMappingCountFields();
-            this.accessManager = accessManager;
-            this.accessManagerPrivateInterface = accessManagerPrivateInterface;
             this.metricLogger = metricLogger;
             metricLoggingEnabled = true;
         }
 
         /// <summary>
-        /// Removes all items and mappings from the access manager.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class Clear() method.
         /// </summary>
-        /// <param name="wrappingAction">An action which wraps the operation to clear the access manager, allowing arbitrary code to be run before and/or after clearing, but whilst any mutual-exclusion locks are still acquired.  Accepts 1 parameter: the action which actually clears the access manager.</param>
-        public void Clear(Action<Action> wrappingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the Clear() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<Action> GenerateClearMetricLoggingWrappingAction(Action<Action> wrappingAction)
         {
-            Action<Action> clearCountsAction = (baseAction) =>
+            return (Action baseAction) =>
             {
-                wrappingAction.Invoke(() => 
+                wrappingAction.Invoke(() =>
                 {
                     baseAction.Invoke();
-                    InitializeItemAndMappingCountFields();
                 });
+                InitializeItemAndMappingCountFields();
             };
-            accessManagerPrivateInterface.ClearWithWrappingActionMethod(clearCountsAction);
         }
 
         /// <summary>
-        /// Adds a user.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddUser() method.
         /// </summary>
         /// <param name="user">The user to add.</param>
-        /// <param name="wrappingAction">An action which wraps the operation to add the user, allowing arbitrary code to be run before and/or after adding the user, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the user being added, and the action which actually adds the user.</param>
-        public void AddUser(TUser user, Action<TUser, Action> wrappingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddUser() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TUser, Action> GenerateAddUserMetricLoggingWrappingAction(TUser user, Action<TUser, Action> wrappingAction)
         {
-            
-            Action<TUser, Action<TUser, Action>> logMetricsAction = (actionUser, baseAction) =>
+            return (TUser metricLoggingActionUser, Action baseAction) =>
             {
-                wrappingAction.Invoke(actionUser, () => 
-                {
-                    baseAction.Invoke();
-                });
+                CallAccessManagerEventProcessingMethodWithMetricLogging<UserAddTime, UserAdded>
+                (
+                    () =>
+                    {
+                        wrappingAction.Invoke(metricLoggingActionUser, () =>
+                        {
+                            baseAction.Invoke();
+                        });
+                    }
+                );
             };
-            CallAccessManagerEventProcessingMethodWithMetricLogging<TUser, UserAddTime, UserAdded>(user, logMetricsAction);
-
-            Action<TUser, Action> idempotentAddAction = (actionUser, baseAction) =>
-            {
-                // Note 'baseAction' is ignored/unused, as this class overrides the base class action with an idempotent 'Add' operation
-                wrappingAction.Invoke(actionUser, () => { AddUser(actionUser, false); });
-            };
-            accessManagerPrivateInterface.AddUserWithWrappingActionMethod(user, logMetricsAction);
-            
-            Action<TUser, Action> metricLoggingAction = (actionUser, baseAction) =>
-            {
-                Console.WriteLine("Simulate mtrics start");
-
-                wrappingAction.Invoke(actionUser, () =>
-                {
-                    baseAction.Invoke();
-                });
-
-                Console.WriteLine("Simulate mtrics end");
-            };
-            accessManagerPrivateInterface.AddUserWithWrappingActionMethod(user, metricLoggingAction);
         }
 
         /// <summary>
         /// Returns true if the specified user exists.
         /// </summary>
         /// <param name="user">The user to check for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>True if the user exists.  False otherwise.</returns>
-        public Boolean ContainsUser(TUser user)
+        public Boolean ContainsUser(TUser user, Func<TUser, Boolean> baseClassMethod)
         {
-            return CallAccessManagerQueryProcessingMethodWithMetricLogging<Boolean, ContainsUserQuery>(() => { return accessManagerPrivateInterface.ContainsUserMethod(user); });
+            return CallAccessManagerQueryProcessingMethodWithMetricLogging<Boolean, ContainsUserQuery>(() => { return baseClassMethod.Invoke(user); });
         }
 
         /// <summary>
-        /// Removes a user.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveUser() method.
         /// </summary>
         /// <param name="user">The user to remove.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the user but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveUser(TUser user, Action<TUser> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveUser() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <param name="userToComponentMap">The dictionary which stores mappings between users, application components, and levels of access, in the ConcurrentAccessManager subclass that metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TUser, Action> GenerateRemoveUserMetricLoggingWrappingAction
+        (
+            TUser user, 
+            Action<TUser, Action> wrappingAction, 
+            IDictionary<TUser, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> userToComponentMap
+           )
         {
-            Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
+            return (TUser metricLoggingActionUser, Action baseAction) =>
             {
                 Int32 newUserToApplicationComponentAndAccessLevelMappingCount = userToApplicationComponentAndAccessLevelMappingCount;
-                if (accessManagerPrivateInterface.UserToComponentMap.ContainsKey(user) == true)
+                if (userToComponentMap.ContainsKey(metricLoggingActionUser) == true)
                 {
-                    newUserToApplicationComponentAndAccessLevelMappingCount -= accessManagerPrivateInterface.UserToComponentMap[user].Count;
+                    newUserToApplicationComponentAndAccessLevelMappingCount -= userToComponentMap[metricLoggingActionUser].Count;
                 }
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserRemoveTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(user);
+                    wrappingAction.Invoke(metricLoggingActionUser, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -192,60 +170,77 @@ namespace ApplicationAccess.Metrics
                 IncrementCountMetricIfLoggingEnabled(new UserRemoved());
                 userToApplicationComponentAndAccessLevelMappingCount = newUserToApplicationComponentAndAccessLevelMappingCount;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
-                userToEntityMappingCount -= userToEntityMappingCountPerUser.GetFrequency(user);
-                if (userToEntityMappingCountPerUser.GetFrequency(user) > 0)
+                userToEntityMappingCount -= userToEntityMappingCountPerUser.GetFrequency(metricLoggingActionUser);
+                if (userToEntityMappingCountPerUser.GetFrequency(metricLoggingActionUser) > 0)
                 {
-                    userToEntityMappingCountPerUser.DecrementBy(user, userToEntityMappingCountPerUser.GetFrequency(user));
+                    userToEntityMappingCountPerUser.DecrementBy(metricLoggingActionUser, userToEntityMappingCountPerUser.GetFrequency(metricLoggingActionUser));
                 }
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
             };
-            accessManagerPrivateInterface.RemoveUserWithWrappingActionMethod(user, wrappingAction);
         }
 
         /// <summary>
-        /// Adds a group.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddGroup() method.
         /// </summary>
         /// <param name="group">The group to add.</param>
-        /// <param name="postProcessingAction">An action to invoke after adding the group but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddGroup(TGroup group, Action<TGroup> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddGroup() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TGroup, Action> GenerateAddGroupMetricLoggingWrappingAction(TGroup group, Action<TGroup, Action> wrappingAction)
         {
-            Action<TGroup, Action<TGroup, Action>> addGroupAction = (actionGroup, baseAction) =>
+            return (TGroup metricLoggingActionGroup, Action baseAction) =>
             {
-                accessManagerPrivateInterface.AddGroupWithWrappingActionMethod(group, baseAction);
-                postProcessingAction.Invoke(group);
+                CallAccessManagerEventProcessingMethodWithMetricLogging<GroupAddTime, GroupAdded>
+                (
+                    () =>
+                    {
+                        wrappingAction.Invoke(metricLoggingActionGroup, () =>
+                        {
+                            baseAction.Invoke();
+                        });
+                    }
+                );
             };
-            CallAccessManagerEventProcessingMethodWithMetricLogging<TGroup, GroupAddTime, GroupAdded>(group, addGroupAction);
         }
 
         /// <summary>
         /// Returns true if the specified group exists.
         /// </summary>
         /// <param name="group">The group to check for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>True if the group exists.  False otherwise.</returns>
-        public Boolean ContainsGroup(TGroup group)
+        public Boolean ContainsGroup(TGroup group, Func<TGroup, Boolean> baseClassMethod)
         {
-            return CallAccessManagerQueryProcessingMethodWithMetricLogging<Boolean, ContainsGroupQuery>(() => { return accessManagerPrivateInterface.ContainsGroupMethod(group); });
+            return CallAccessManagerQueryProcessingMethodWithMetricLogging<Boolean, ContainsGroupQuery>(() => { return baseClassMethod.Invoke(group); });
         }
 
         /// <summary>
-        /// Removes a group.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveGroup() method.
         /// </summary>
         /// <param name="group">The group to remove.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the group but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveGroup(TGroup group, Action<TGroup> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveGroup() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <param name="groupsToComponentMap">The dictionary which stores mappings between groups, application components, and levels of access, in the ConcurrentAccessManager subclass that metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TGroup, Action> GenerateRemoveGroupMetricLoggingWrappingAction
+        (
+            TGroup group, 
+            Action<TGroup, Action> wrappingAction,
+            IDictionary<TGroup, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> groupsToComponentMap
+        )
         {
-            Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
+            return (TGroup metricLoggingActionGroup, Action baseAction) =>
             {
                 Int32 newGroupToApplicationComponentAndAccessLevelMappingCount = groupToApplicationComponentAndAccessLevelMappingCount;
-                if (accessManagerPrivateInterface.GroupToComponentMap.ContainsKey(group) == true)
+                if (groupsToComponentMap.ContainsKey(metricLoggingActionGroup) == true)
                 {
-                    newGroupToApplicationComponentAndAccessLevelMappingCount -= accessManagerPrivateInterface.GroupToComponentMap[group].Count;
+                    newGroupToApplicationComponentAndAccessLevelMappingCount -= groupsToComponentMap[metricLoggingActionGroup].Count;
                 }
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupRemoveTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(group);
+                    wrappingAction.Invoke(metricLoggingActionGroup, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -256,58 +251,37 @@ namespace ApplicationAccess.Metrics
                 IncrementCountMetricIfLoggingEnabled(new GroupRemoved());
                 groupToApplicationComponentAndAccessLevelMappingCount = newGroupToApplicationComponentAndAccessLevelMappingCount;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
-                groupToEntityMappingCount -= groupToEntityMappingCountPerGroup.GetFrequency(group);
-                if (groupToEntityMappingCountPerGroup.GetFrequency(group) > 0)
+                groupToEntityMappingCount -= groupToEntityMappingCountPerGroup.GetFrequency(metricLoggingActionGroup);
+                if (groupToEntityMappingCountPerGroup.GetFrequency(metricLoggingActionGroup) > 0)
                 {
-                    groupToEntityMappingCountPerGroup.DecrementBy(group, groupToEntityMappingCountPerGroup.GetFrequency(group));
+                    groupToEntityMappingCountPerGroup.DecrementBy(metricLoggingActionGroup, groupToEntityMappingCountPerGroup.GetFrequency(metricLoggingActionGroup));
                 }
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
-            accessManagerPrivateInterface.RemoveGroupWithWrappingActionMethod(group, wrappingAction);
         }
 
         /// <summary>
-        /// Adds a mapping between the specified user and group.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddUserToGroupMapping() method.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
         /// <param name="group">The group in the mapping.</param>
-        /// <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the user in the mapping, the group in the mapping, and the action which actually adds the mapping.</param>
-        /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
-        public void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddUserToGroupMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TUser, TGroup, Action> GenerateAddUserToGroupMappingMetricLoggingWrappingAction(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
         {
-            
-            Action<TUser, TGroup, Action<TUser, TGroup, Action>> addUserToGroupMappingAction = (actionUser, actionGroup, baseAction) =>
+            return (TUser metricLoggingActionUser, TGroup metricLoggingActionGroup, Action baseAction) =>
             {
-                accessManagerPrivateInterface.AddUserToGroupMappingWithWrappingActionMethod(user, group, baseAction);
-                postProcessingAction.Invoke(user, group);
-            };
-            
-           
-
-            // TODO: This actually works
-            //  Only one better might be if CallAccessManagerEventProcessingMethodWithMetricLogging2 returns an action with params that can just be passed 
-            //    Straight to the AddUserToGroupMappingWithWrappingActionMethod property at the bottom
-            //    TRY THIS TOMORROW
-
-            
-            Action<TUser, TGroup, Action> metricLoggingAction = (actionUser, actionGroup, baseAction) =>
-            {
-                CallAccessManagerEventProcessingMethodWithMetricLogging2<TUser, TGroup, UserToGroupMappingAddTime, UserToGroupMappingAdded>
+                CallAccessManagerEventProcessingMethodWithMetricLogging<UserToGroupMappingAddTime, UserToGroupMappingAdded>
                 (
                     () =>
                     {
-                        wrappingAction.Invoke(actionUser, actionGroup, () =>
+                        wrappingAction.Invoke(metricLoggingActionUser, metricLoggingActionGroup, () =>
                         {
                             baseAction.Invoke();
                         });
                     }
                 );
             };
-            accessManagerPrivateInterface.AddUserToGroupMappingWithWrappingActionMethod(user, group, metricLoggingAction);
-            
-
-
-
         }
 
         /// <summary>
@@ -315,8 +289,9 @@ namespace ApplicationAccess.Metrics
         /// </summary>
         /// <param name="user">The user to retrieve the groups for.</param>
         /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those that occur via group to group mappings).</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of groups the specified user is a member of.</returns>
-        public HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
+        public HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings, Func<TUser, Boolean, HashSet<TGroup>> baseClassMethod)
         {
             HashSet<TGroup> result;
             if (includeIndirectMappings == false)
@@ -324,7 +299,7 @@ namespace ApplicationAccess.Metrics
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetUserToGroupMappingsQueryTime());
                 try
                 {
-                    result = accessManagerPrivateInterface.GetUserToGroupMappingsMethod(user, includeIndirectMappings);
+                    result = baseClassMethod.Invoke(user, includeIndirectMappings);
                 }
                 catch
                 {
@@ -339,7 +314,7 @@ namespace ApplicationAccess.Metrics
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetUserToGroupMappingsWithIndirectMappingsQueryTime());
                 try
                 {
-                    result = accessManagerPrivateInterface.GetUserToGroupMappingsMethod(user, includeIndirectMappings);
+                    result = baseClassMethod.Invoke(user, includeIndirectMappings);
                 }
                 catch
                 {
@@ -354,35 +329,51 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
-        /// Removes the mapping between the specified user and group.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveUserToGroupMapping() method.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
         /// <param name="group">The group in the mapping.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveUserToGroupMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TUser, TGroup, Action> GenerateRemoveUserToGroupMappingMetricLoggingWrappingAction(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
         {
-            Action<TUser, TGroup, Action<TUser, TGroup, Action>> removeUserToGroupMappingAction = (actionUser, actionGroup, baseAction) =>
+            return (TUser metricLoggingActionUser, TGroup metricLoggingActionGroup, Action baseAction) =>
             {
-                accessManagerPrivateInterface.RemoveUserToGroupMappingWithWrappingActionMethod(user, group, baseAction);
-                postProcessingAction.Invoke(user, group);
+                CallAccessManagerEventProcessingMethodWithMetricLogging<UserToGroupMappingRemoveTime, UserToGroupMappingRemoved>
+                (
+                    () =>
+                    {
+                        wrappingAction.Invoke(metricLoggingActionUser, metricLoggingActionGroup, () =>
+                        {
+                            baseAction.Invoke();
+                        });
+                    }
+                );
             };
-            CallAccessManagerEventProcessingMethodWithMetricLogging<TUser, TGroup, UserToGroupMappingRemoveTime, UserToGroupMappingRemoved>(user, group, removeUserToGroupMappingAction);
         }
 
         /// <summary>
-        /// Adds a mapping between the specified groups.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddGroupToGroupMapping() method.
         /// </summary>
         /// <param name="fromGroup">The 'from' group in the mapping.</param>
         /// <param name="toGroup">The 'to' group in the mapping.</param>
-        /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddGroupToGroupMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TGroup, TGroup, Action> GenerateAddGroupToGroupMappingMetricLoggingWrappingAction(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
         {
-            Action<TGroup, TGroup, Action<TGroup, TGroup, Action>> addGroupToGroupMappingAction = (actionFromGroup, actionToGroup, baseAction) =>
+            return (TGroup metricLoggingActionFromGroup, TGroup metricLoggingActionToGroup, Action baseAction) =>
             {
-                accessManagerPrivateInterface.AddGroupToGroupMappingWithWrappingActionMethod(fromGroup, toGroup, baseAction);
-                postProcessingAction.Invoke(fromGroup, toGroup);
+                CallAccessManagerEventProcessingMethodWithMetricLogging<GroupToGroupMappingAddTime, GroupToGroupMappingAdded>
+                (
+                    () =>
+                    {
+                        wrappingAction.Invoke(metricLoggingActionFromGroup, metricLoggingActionToGroup, () =>
+                        {
+                            baseAction.Invoke();
+                        });
+                    }
+                );
             };
-            CallAccessManagerEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingAddTime, GroupToGroupMappingAdded>(fromGroup, toGroup, addGroupToGroupMappingAction);
         }
 
         /// <summary>
@@ -390,8 +381,9 @@ namespace ApplicationAccess.Metrics
         /// </summary>
         /// <param name="group">The group to retrieve the mapped groups for.</param>
         /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of groups the specified group is mapped to.</returns>
-        public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
+        public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings, Func<TGroup, Boolean, HashSet<TGroup>> baseClassMethod)
         {
             HashSet<TGroup> result;
             if (includeIndirectMappings == false)
@@ -399,7 +391,7 @@ namespace ApplicationAccess.Metrics
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsQueryTime());
                 try
                 {
-                    result = accessManagerPrivateInterface.GetGroupToGroupMappingsMethod(group, includeIndirectMappings);
+                    result = baseClassMethod.Invoke(group, includeIndirectMappings);
                 }
                 catch
                 {
@@ -414,7 +406,7 @@ namespace ApplicationAccess.Metrics
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
                 try
                 {
-                    result = accessManagerPrivateInterface.GetGroupToGroupMappingsMethod(group, includeIndirectMappings);
+                    result = baseClassMethod.Invoke(group, includeIndirectMappings);
                 }
                 catch
                 {
@@ -429,37 +421,53 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
-        /// Removes the mapping between the specified groups.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveGroupToGroupMapping() method.
         /// </summary>
         /// <param name="fromGroup">The 'from' group in the mapping.</param>
         /// <param name="toGroup">The 'to' group in the mapping.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveGroupToGroupMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TGroup, TGroup, Action> GenerateRemoveGroupToGroupMappingMetricLoggingWrappingAction(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
         {
-            Action<TGroup, TGroup, Action<TGroup, TGroup, Action>> removeGroupToGroupMappingAction = (actionFromGroup, actionToGroup, baseAction) =>
+            return (TGroup metricLoggingActionFromGroup, TGroup metricLoggingActionToGroup, Action baseAction) =>
             {
-                accessManagerPrivateInterface.RemoveGroupToGroupMappingWithWrappingActionMethod(fromGroup, toGroup, baseAction);
-                postProcessingAction.Invoke(fromGroup, toGroup);
+                CallAccessManagerEventProcessingMethodWithMetricLogging<GroupToGroupMappingRemoveTime, GroupToGroupMappingRemoved>
+                (
+                    () =>
+                    {
+                        wrappingAction.Invoke(metricLoggingActionFromGroup, metricLoggingActionToGroup, () =>
+                        {
+                            baseAction.Invoke();
+                        });
+                    }
+                );
             };
-            CallAccessManagerEventProcessingMethodWithMetricLogging<TGroup, TGroup, GroupToGroupMappingRemoveTime, GroupToGroupMappingRemoved>(fromGroup, toGroup, removeGroupToGroupMappingAction);
         }
 
         /// <summary>
-        /// Adds a mapping between the specified user, application component, and level of access to that component.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddUserToApplicationComponentAndAccessLevelMapping() method.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
-        /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddUserToApplicationComponentAndAccessLevelMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TUser, TComponent, TAccess, Action> GenerateAddUserToApplicationComponentAndAccessLevelMappingMetricLoggingWrappingAction
+        (
+            TUser user, 
+            TComponent applicationComponent, 
+            TAccess accessLevel, 
+            Action<TUser, TComponent, TAccess, Action> wrappingAction)
         {
-            Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            return (TUser metricLoggingActionUser, TComponent metricLoggingActionApplicationComponent, TAccess metricLoggingActionAccessLevel, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingAddTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(user, applicationComponent, accessLevel);
+                    wrappingAction.Invoke(metricLoggingActionUser, metricLoggingActionApplicationComponent, metricLoggingActionAccessLevel, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -471,38 +479,47 @@ namespace ApplicationAccess.Metrics
                 userToApplicationComponentAndAccessLevelMappingCount++;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
             };
-            accessManagerPrivateInterface.AddUserToApplicationComponentAndAccessLevelMappingWithWrappingActionMethod(user, applicationComponent, accessLevel, wrappingAction);
         }
 
         /// <summary>
         /// Gets the application component and access level pairs that the specified user is mapped to.
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of Tuples containing the application component and access level pairs that the specified user is mapped to.</returns>
-        public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
+        public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user, Func<TUser, IEnumerable<Tuple<TComponent, TAccess>>> baseClassMethod)
         {
             return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<TComponent, TAccess>>, GetUserToApplicationComponentAndAccessLevelMappingsQuery>(() =>
             {
-                return accessManagerPrivateInterface.GetUserToApplicationComponentAndAccessLevelMappingsMethod(user);
+                return baseClassMethod.Invoke(user);
             });
         }
 
         /// <summary>
-        /// Removes a mapping between the specified user, application component, and level of access to that component.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveUserToApplicationComponentAndAccessLevelMapping() method.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveUserToApplicationComponentAndAccessLevelMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TUser, TComponent, TAccess, Action> GenerateRemoveUserToApplicationComponentAndAccessLevelMappingMetricLoggingWrappingAction
+        (
+            TUser user,
+            TComponent applicationComponent,
+            TAccess accessLevel,
+            Action<TUser, TComponent, TAccess, Action> wrappingAction
+        )
         {
-            Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            return (TUser metricLoggingActionUser, TComponent metricLoggingActionApplicationComponent, TAccess metricLoggingActionAccessLevel, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(user, applicationComponent, accessLevel);
+                    wrappingAction.Invoke(metricLoggingActionUser, metricLoggingActionApplicationComponent, metricLoggingActionAccessLevel, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -514,25 +531,33 @@ namespace ApplicationAccess.Metrics
                 userToApplicationComponentAndAccessLevelMappingCount--;
                 SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
             };
-            accessManagerPrivateInterface.RemoveUserToApplicationComponentAndAccessLevelMappingWithWrappingActionMethod(user, applicationComponent, accessLevel, wrappingAction);
         }
 
         /// <summary>
-        /// Adds a mapping between the specified group, application component, and level of access to that component.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddGroupToApplicationComponentAndAccessLevelMapping() method.
         /// </summary>
         /// <param name="group">The group in the mapping.</param>
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
-        /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>/// <inheritdoc/>
-        public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddGroupToApplicationComponentAndAccessLevelMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TGroup, TComponent, TAccess, Action> GenerateAddGroupToApplicationComponentAndAccessLevelMappingMetricLoggingWrappingAction
+        (
+            TGroup group,
+            TComponent applicationComponent,
+            TAccess accessLevel,
+            Action<TGroup, TComponent, TAccess, Action> wrappingAction
+        )
         {
-            Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            return (TGroup metricLoggingActionGroup, TComponent metricLoggingActionApplicationComponent, TAccess metricLoggingActionAccessLevel, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(group, applicationComponent, accessLevel);
+                    wrappingAction.Invoke(metricLoggingActionGroup, metricLoggingActionApplicationComponent, metricLoggingActionAccessLevel, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -544,38 +569,47 @@ namespace ApplicationAccess.Metrics
                 groupToApplicationComponentAndAccessLevelMappingCount++;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
             };
-            accessManagerPrivateInterface.AddGroupToApplicationComponentAndAccessLevelMappingWithWrappingActionMethod(group, applicationComponent, accessLevel, wrappingAction);
         }
 
         /// <summary>
         /// Gets the application component and access level pairs that the specified group is mapped to.
         /// </summary>
         /// <param name="group">The group to retrieve the mappings for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of Tuples containing the application component and access level pairs that the specified group is mapped to.</returns>
-        public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
+        public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group, Func<TGroup, IEnumerable<Tuple<TComponent, TAccess>>> baseClassMethod)
         {
             return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<TComponent, TAccess>>, GetGroupToApplicationComponentAndAccessLevelMappingsQuery>(() =>
             {
-                return accessManagerPrivateInterface.GetGroupToApplicationComponentAndAccessLevelMappingsMethod(group);
+                return baseClassMethod.Invoke(group);
             });
         }
 
         /// <summary>
-        /// Removes a mapping between the specified group, application component, and level of access to that component.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveGroupToApplicationComponentAndAccessLevelMapping() method.
         /// </summary>
         /// <param name="group">The group in the mapping.</param>
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveGroupToApplicationComponentAndAccessLevelMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TGroup, TComponent, TAccess, Action> GenerateRemoveGroupToApplicationComponentAndAccessLevelMappingMetricLoggingWrappingAction
+        (
+            TGroup group,
+            TComponent applicationComponent,
+            TAccess accessLevel,
+            Action<TGroup, TComponent, TAccess, Action> wrappingAction
+        )
         {
-            Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            return (TGroup metricLoggingActionGroup, TComponent metricLoggingActionApplicationComponent, TAccess metricLoggingActionAccessLevel, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(group, applicationComponent, accessLevel);
+                    wrappingAction.Invoke(metricLoggingActionGroup, metricLoggingActionApplicationComponent, metricLoggingActionAccessLevel, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -587,23 +621,31 @@ namespace ApplicationAccess.Metrics
                 groupToApplicationComponentAndAccessLevelMappingCount--;
                 SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
             };
-            accessManagerPrivateInterface.RemoveGroupToApplicationComponentAndAccessLevelMappingWithWrappingActionMethod(group, applicationComponent, accessLevel, wrappingAction);
         }
 
         /// <summary>
-        /// Adds an entity type.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddEntityType() method.
         /// </summary>
         /// <param name="entityType">The entity type to add.</param>
-        /// <param name="postProcessingAction">An action to invoke after adding the entity type but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddEntityType(String entityType, Action<String> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddEntityType() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <param name="entities">The dictionary which stores entity types and entities, in the ConcurrentAccessManager subclass that metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<String, Action> GenerateAddEntityTypeMetricLoggingWrappingAction
+        (
+            String entityType, 
+            Action<String, Action> wrappingAction,
+            IDictionary<String, ISet<String>> entities
+        )
         {
-            Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
+            return (String metricLoggingActionEntityType, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityTypeAddTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(entityType);
+                    wrappingAction.Invoke(metricLoggingActionEntityType, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -612,29 +654,38 @@ namespace ApplicationAccess.Metrics
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new EntityTypeAddTime());
                 IncrementCountMetricIfLoggingEnabled(new EntityTypeAdded());
-                SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), accessManagerPrivateInterface.Entities.Count);
+                SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
             };
-            accessManagerPrivateInterface.AddEntityTypeWithWrappingActionMethod(entityType, wrappingAction);
         }
 
         /// <summary>
         /// Returns true if the specified entity type exists.
         /// </summary>
         /// <param name="entityType">The entity type to check for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>True if the entity type exists.  False otherwise.</returns>
-        public Boolean ContainsEntityType(String entityType)
+        public Boolean ContainsEntityType(String entityType, Func<String, Boolean> baseClassMethod)
         {
-            return CallAccessManagerQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityTypeQuery>(() => { return accessManagerPrivateInterface.ContainsEntityTypeMethod(entityType); });
+            return CallAccessManagerQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityTypeQuery>(() => { return baseClassMethod.Invoke(entityType); });
         }
 
         /// <summary>
-        /// Removes an entity type.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveEntityType() method.
         /// </summary>
         /// <param name="entityType">The entity type to remove.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the entity type but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveEntityType(String entityType, Action<String> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveEntityType() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <param name="entities">The dictionary which stores entity types and entities, in the ConcurrentAccessManager subclass that metrics are being logged for.</param>
+        /// <param name="removeEntityTypeWithPreRemovalActionsMethod">The RemoveEntityType() method overload with '*PreRemovalAction' parameters on the ConcurrentAccessManager subclass that metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<String, Action> GenerateRemoveEntityTypeMetricLoggingWrappingAction
+        (
+            String entityType, 
+            Action<String, Action> wrappingAction,
+            IDictionary<String, ISet<String>> entities, 
+            Action<String, Action<TUser, String, IEnumerable<String>, Int32>, Action<TGroup, String, IEnumerable<String>, Int32>> removeEntityTypeWithPreRemovalActionsMethod
+        )
         {
-            Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
+            return (String metricLoggingActionEntityType, Action baseAction) =>
             {
                 Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction = (preRemovalActionUser, preRemovalActionEntityType, preRemovalActionEntities, preRemovalActionCount) =>
                 {
@@ -654,15 +705,17 @@ namespace ApplicationAccess.Metrics
                 };
 
                 Int32 newEntityCount = entityCount;
-                if (accessManagerPrivateInterface.Entities.ContainsKey(entityType) == true)
+                if (entities.ContainsKey(metricLoggingActionEntityType) == true)
                 {
-                    newEntityCount -= accessManagerPrivateInterface.Entities[entityType].Count;
+                    newEntityCount -= entities[metricLoggingActionEntityType].Count;
                 }
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityTypeRemoveTime());
                 try
                 {
-                    accessManagerPrivateInterface.RemoveEntityTypeWithPreRemovalActionsMethod(entityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
-                    postProcessingAction.Invoke(entityType);
+                    wrappingAction.Invoke(metricLoggingActionEntityType, () =>
+                    {
+                        removeEntityTypeWithPreRemovalActionsMethod(metricLoggingActionEntityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
+                    });
                 }
                 catch
                 {
@@ -671,30 +724,32 @@ namespace ApplicationAccess.Metrics
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new EntityTypeRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new EntityTypeRemoved());
-                SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), accessManagerPrivateInterface.Entities.Count);
+                SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
                 entityCount = newEntityCount;
                 SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
-            accessManagerPrivateInterface.RemoveEntityTypeWithWrappingActionMethod(entityType, wrappingAction);
         }
 
         /// <summary>
-        /// Adds an entity.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddEntity() method.
         /// </summary>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity to add.</param>
-        /// <param name="postProcessingAction">An action to invoke after adding the entity but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddEntity(String entityType, String entity, Action<String, String> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddEntity() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<String, String, Action> GenerateAddEntityMetricLoggingWrappingAction(String entityType, String entity, Action<String, String, Action> wrappingAction)
         {
-            Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
+            return (String metricLoggingActionEntityType, String metricLoggingActionEntity, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityAddTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(entityType, entity);
+                    wrappingAction.Invoke(metricLoggingActionEntityType, metricLoggingActionEntity, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -706,17 +761,17 @@ namespace ApplicationAccess.Metrics
                 entityCount++;
                 SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
             };
-            accessManagerPrivateInterface.AddEntityWithWrappingActionMethod(entityType, entity, wrappingAction);
         }
 
         /// <summary>
         /// Returns all entities of the specified type.
         /// </summary>
         /// <param name="entityType">The type of the entity.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of all entities of the specified type.</returns>
-        public IEnumerable<String> GetEntities(String entityType)
+        public IEnumerable<String> GetEntities(String entityType, Func<String, IEnumerable<String>> baseClassMethod)
         {
-            return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetEntitiesQuery>(() => { return accessManagerPrivateInterface.GetEntitiesMethod(entityType); });
+            return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetEntitiesQuery>(() => { return baseClassMethod.Invoke(entityType); });
         }
 
         /// <summary>
@@ -724,21 +779,30 @@ namespace ApplicationAccess.Metrics
         /// </summary>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity to check for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>True if the entity exists.  False otherwise.</returns>
-        public Boolean ContainsEntity(String entityType, String entity)
+        public Boolean ContainsEntity(String entityType, String entity, Func<String, String, Boolean> baseClassMethod)
         {
-            return CallAccessManagerQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityQuery>(() => { return accessManagerPrivateInterface.ContainsEntityMethod(entityType, entity); });
+            return CallAccessManagerQueryProcessingMethodWithMetricLogging<Boolean, ContainsEntityQuery>(() => { return baseClassMethod.Invoke(entityType, entity); });
         }
 
         /// <summary>
-        /// Removes an entity.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveEntity() method.
         /// </summary>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity to remove.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the entity but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveEntity(String entityType, String entity, Action<String, String> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveEntity() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <param name="removeEntityWithPostRemovalActionsMethod">The RemoveEntity() method overload with '*PostRemovalAction' parameters on the ConcurrentAccessManager subclass that metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<String, String, Action> GenerateRemoveEntityMetricLoggingWrappingAction
+        (
+            String entityType, 
+            String entity, 
+            Action<String, String, Action> wrappingAction,
+            Action<String, String, Action<TUser, String, String>, Action<TGroup, String, String>> removeEntityWithPostRemovalActionsMethod
+        )
         {
-            Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
+            return (String metricLoggingActionEntityType, String metricLoggingActionEntity, Action baseAction) =>
             {
                 Action<TUser, String, String> userToEntityMappingPostRemovalAction = (postRemovalActionUser, postRemovalActionEntityType, postRemovalActionEntity) =>
                 {
@@ -754,8 +818,10 @@ namespace ApplicationAccess.Metrics
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new EntityRemoveTime());
                 try
                 {
-                    accessManagerPrivateInterface.RemoveEntityWithPostRemovalActionsMethod(entityType, entity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
-                    postProcessingAction.Invoke(entityType, entity);
+                    wrappingAction.Invoke(metricLoggingActionEntityType, metricLoggingActionEntity, () => 
+                    {
+                        removeEntityWithPostRemovalActionsMethod(metricLoggingActionEntityType, metricLoggingActionEntity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
+                    });
                 }
                 catch
                 {
@@ -769,25 +835,27 @@ namespace ApplicationAccess.Metrics
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
-            accessManagerPrivateInterface.RemoveEntityWithWrappingActionMethod(entityType, entity, wrappingAction);
         }
 
         /// <summary>
-        /// Adds a mapping between the specified user, and entity.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddUserToEntityMapping() method.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddUserToEntityMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TUser, String, String, Action> GenerateAddUserToEntityMappingMetricLoggingWrappingAction(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
         {
-            Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
+            return (TUser metricLoggingActionUser, String metricLoggingActionEntityType, String metricLoggingActionEntity, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingAddTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(user, entityType, entity);
+                    wrappingAction.Invoke(metricLoggingActionUser, metricLoggingActionEntityType , metricLoggingActionEntity, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -797,22 +865,22 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingAddTime());
                 IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingAdded());
                 userToEntityMappingCount++;
-                userToEntityMappingCountPerUser.Increment(user);
+                userToEntityMappingCountPerUser.Increment(metricLoggingActionUser);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
             };
-            accessManagerPrivateInterface.AddUserToEntityMappingWithWrappingActionMethod(user, entityType, entity, wrappingAction);
         }
 
         /// <summary>
         /// Gets the entities that the specified user is mapped to.
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of Tuples containing the entity type and entity that the specified user is mapped to.</returns>
-        public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
+        public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user, Func<TUser, IEnumerable<Tuple<String, String>>> baseClassMethod)
         {
             return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<String, String>>, GetUserToEntityMappingsForUserQuery>(() =>
             {
-                return accessManagerPrivateInterface.GetUserToEntityMappingsMethod(user);
+                return baseClassMethod.Invoke(user);
             });
         }
 
@@ -821,31 +889,35 @@ namespace ApplicationAccess.Metrics
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
         /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of entities that the specified user is mapped to.</returns>
-        public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
+        public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType, Func<TUser, String, IEnumerable<String>> baseClassMethod)
         {
             return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetUserToEntityMappingsForUserAndEntityTypeQuery>(() =>
             {
-                return accessManagerPrivateInterface.GetUserToEntityMappingsWithEntityTypeMethod(user, entityType);
+                return baseClassMethod.Invoke(user, entityType);
             });
         }
 
         /// <summary>
-        /// Removes a mapping between the specified user, and entity.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveUserToEntityMapping() method.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveUserToEntityMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TUser, String, String, Action> GenerateRemoveUserToEntityMappingMetricLoggingWrappingAction(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
         {
-            Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
+            return (TUser metricLoggingActionUser, String metricLoggingActionEntityType, String metricLoggingActionEntity, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new UserToEntityMappingRemoveTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(user, entityType, entity);
+                    wrappingAction.Invoke(metricLoggingActionUser, metricLoggingActionEntityType, metricLoggingActionEntity, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -855,28 +927,30 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new UserToEntityMappingRemoved());
                 userToEntityMappingCount--;
-                userToEntityMappingCountPerUser.Decrement(user);
+                userToEntityMappingCountPerUser.Decrement(metricLoggingActionUser);
                 SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
             };
-            accessManagerPrivateInterface.RemoveUserToEntityMappingWithPostRemovalActionsMethod(user, entityType, entity, wrappingAction);
         }
 
         /// <summary>
-        /// Adds a mapping between the specified group, and entity.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class AddGroupToEntityMapping() method.
         /// </summary>
         /// <param name="group">The group in the mapping.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="postProcessingAction">An action to invoke after adding the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
+        /// <param name="wrappingAction">>The 'wrappingAction' parameter passed to the AddGroupToEntityMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TGroup, String, String, Action> GenerateAddGroupToEntityMappingMetricLoggingWrappingAction(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
         {
-            Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
+            return (TGroup metricLoggingActionGroup, String metricLoggingActionEntityType, String metricLoggingActionEntity, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingAddTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(group, entityType, entity);
+                    wrappingAction.Invoke(metricLoggingActionGroup, metricLoggingActionEntityType, metricLoggingActionEntity, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -886,22 +960,22 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingAddTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingAdded());
                 groupToEntityMappingCount++;
-                groupToEntityMappingCountPerGroup.Increment(group);
+                groupToEntityMappingCountPerGroup.Increment(metricLoggingActionGroup);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
-            accessManagerPrivateInterface.AddGroupToEntityMappingWithWrappingActionMethod(group, entityType, entity, wrappingAction);
         }
 
         /// <summary>
         /// Gets the entities that the specified group is mapped to.
         /// </summary>
         /// <param name="group">The group to retrieve the mappings for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of Tuples containing the entity type and entity that the specified group is mapped to.</returns>
-        public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
+        public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group, Func<TGroup, IEnumerable<Tuple<String, String>>> baseClassMethod)
         {
             return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<Tuple<String, String>>, GetGroupToEntityMappingsForGroupQuery>(() =>
             {
-                return accessManagerPrivateInterface.GetGroupToEntityMappingsMethod(group);
+                return baseClassMethod.Invoke(group);
             });
         }
 
@@ -910,31 +984,35 @@ namespace ApplicationAccess.Metrics
         /// </summary>
         /// <param name="group">The group to retrieve the mappings for.</param>
         /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of entities that the specified group is mapped to.</returns>
-        public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
+        public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType, Func<TGroup, String, IEnumerable<String>> baseClassMethod)
         {
             return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<String>, GetGroupToEntityMappingsForGroupAndEntityTypeQuery>(() =>
             {
-                return accessManagerPrivateInterface.GetGroupToEntityMappingsWithEntityTypeMethod(group, entityType);
+                return baseClassMethod.Invoke(group, entityType);
             });
         }
 
         /// <summary>
-        /// Removes a mapping between the specified group, and entity.
+        /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveGroupToEntityMapping() method.
         /// </summary>
         /// <param name="group">The group in the mapping.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="postProcessingAction">An action to invoke after removing the mapping but whilst any mutual-exclusion locks are still acquired.</param>
-        public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
+        /// <param name="wrappingAction">>The 'wrappingAction' parameter passed to the RemoveGroupToEntityMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <returns>The 'wrappingAction'.</returns>
+        public Action<TGroup, String, String, Action> GenerateRemoveGroupToEntityMappingMetricLoggingWrappingAction(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
         {
-            Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
+            return (TGroup metricLoggingActionGroup, String metricLoggingActionEntityType, String metricLoggingActionEntity, Action baseAction) =>
             {
                 Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GroupToEntityMappingRemoveTime());
                 try
                 {
-                    baseAction.Invoke();
-                    postProcessingAction.Invoke(group, entityType, entity);
+                    wrappingAction.Invoke(metricLoggingActionGroup, metricLoggingActionEntityType, metricLoggingActionEntity, () =>
+                    {
+                        baseAction.Invoke();
+                    });
                 }
                 catch
                 {
@@ -944,10 +1022,9 @@ namespace ApplicationAccess.Metrics
                 EndIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingRemoved());
                 groupToEntityMappingCount--;
-                groupToEntityMappingCountPerGroup.Decrement(group);
+                groupToEntityMappingCountPerGroup.Decrement(metricLoggingActionGroup);
                 SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), userToEntityMappingCount);
             };
-            accessManagerPrivateInterface.RemoveGroupToEntityMappingWithPostRemovalActionsMethod(group, entityType, entity, wrappingAction);
         }
 
         /// <summary>
@@ -956,14 +1033,15 @@ namespace ApplicationAccess.Metrics
         /// <param name="user">The user to check for.</param>
         /// <param name="applicationComponent">The application component.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>True if the user has access the component.  False otherwise.</returns>
-        public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
+        public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel, Func<TUser, TComponent, TAccess, Boolean> baseClassMethod)
         {
             Boolean result;
             Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
             try
             {
-                result = accessManagerPrivateInterface.HasAccessToApplicationComponentMethod(user, applicationComponent, accessLevel);
+                result = baseClassMethod.Invoke(user, applicationComponent, accessLevel);
             }
             catch
             {
@@ -982,14 +1060,15 @@ namespace ApplicationAccess.Metrics
         /// <param name="user">The user to check for.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>True if the user has access the entity.  False otherwise.</returns>
-        public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
+        public Boolean HasAccessToEntity(TUser user, String entityType, String entity, Func<TUser, String, String, Boolean> baseClassMethod)
         {
             Boolean result;
             Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToEntityQueryTime());
             try
             {
-                result = accessManagerPrivateInterface.HasAccessToEntityMethod(user, entityType, entity);
+                result = baseClassMethod.Invoke(user, entityType, entity);
             }
             catch
             {
@@ -1006,14 +1085,15 @@ namespace ApplicationAccess.Metrics
         /// Gets all application components and levels of access that the specified user (or a group that the user is a member of) has access to.
         /// </summary>
         /// <param name="user">The user to retrieve the application components and levels of access for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>The application components and levels of access to those application components that the user has.</returns>
-        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
+        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user, Func<TUser, HashSet<Tuple<TComponent, TAccess>>> baseClassMethod)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
             Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByUserQueryTime());
             try
             {
-                result = accessManagerPrivateInterface.GetApplicationComponentsAccessibleByUserMethod(user);
+                result = baseClassMethod.Invoke(user);
             }
             catch
             {
@@ -1030,14 +1110,15 @@ namespace ApplicationAccess.Metrics
         /// Gets all application components and levels of access that the specified group (or group that the specified group is mapped to) has access to.
         /// </summary>
         /// <param name="group">The group to retrieve the application components and levels of access for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>The application components and levels of access to those application components that the group has.</returns>
-        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
+        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group, Func<TGroup, HashSet<Tuple<TComponent, TAccess>>> baseClassMethod)
         {
             HashSet<Tuple<TComponent, TAccess>> result;
             Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByGroupQueryTime());
             try
             {
-                result = accessManagerPrivateInterface.GetApplicationComponentsAccessibleByGroupMethod(group);
+                result = baseClassMethod.Invoke(group);
             }
             catch
             {
@@ -1054,14 +1135,15 @@ namespace ApplicationAccess.Metrics
         /// Gets all entities that the specified user (or a group that the user is a member of) has access to.
         /// </summary>
         /// <param name="user">The user to retrieve the entities for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of Tuples containing the entity type and entity that the user has access to.</returns>
-        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user, Func<TUser, HashSet<Tuple<String, String>>> baseClassMethod)
         {
             HashSet<Tuple<String, String>> result;
             Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQueryTime());
             try
             {
-                result = accessManagerPrivateInterface.GetEntitiesAccessibleByUserMethod(user);
+                result = baseClassMethod.Invoke(user);
             }
             catch
             {
@@ -1079,14 +1161,15 @@ namespace ApplicationAccess.Metrics
         /// </summary>
         /// <param name="user">The user to retrieve the entities for.</param>
         /// <param name="entityType">The type of entities to retrieve.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>The entities the user has access to.</returns>
-        public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
+        public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType, Func<TUser, String, HashSet<String>> baseClassMethod)
         {
             HashSet<String> result;
             Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByUserQueryTime());
             try
             {
-                result = accessManagerPrivateInterface.GetEntitiesAccessibleByUserWithEntityTypeMethod(user, entityType);
+                result = baseClassMethod.Invoke(user, entityType);
             }
             catch
             {
@@ -1103,14 +1186,15 @@ namespace ApplicationAccess.Metrics
         /// Gets all entities that the specified group (or group that the specified group is mapped to) has access to.
         /// </summary>
         /// <param name="group">The group to retrieve the entities for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>A collection of Tuples containing the entity type and entity that the group has access to.</returns>
-        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group, Func<TGroup, HashSet<Tuple<String, String>>> baseClassMethod)
         {
             HashSet<Tuple<String, String>> result;
             Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQueryTime());
             try
             {
-                result = accessManagerPrivateInterface.GetEntitiesAccessibleByGroupMethod(group);
+                result = baseClassMethod.Invoke(group);
             }
             catch
             {
@@ -1128,14 +1212,15 @@ namespace ApplicationAccess.Metrics
         /// </summary>
         /// <param name="group">The group to retrieve the entities for.</param>
         /// <param name="entityType">The type of entities to retrieve.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
         /// <returns>The entities the group has access to.</returns>
-        public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
+        public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType, Func<TGroup, String, HashSet<String>> baseClassMethod)
         {
             HashSet<String> result;
             Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQueryTime());
             try
             {
-                result = accessManagerPrivateInterface.GetEntitiesAccessibleByGroupWithEntityTypeMethod(group, entityType);
+                result = baseClassMethod.Invoke(group, entityType);
             }
             catch
             {
@@ -1151,7 +1236,7 @@ namespace ApplicationAccess.Metrics
         #region Private/Protected Methods
 
         /// <summary>
-        /// Initializes the class fields which store counts of items and mappings.
+        /// Initializes the fields which store counts of items and mappings.
         /// </summary>
         protected void InitializeItemAndMappingCountFields()
         {
@@ -1167,77 +1252,10 @@ namespace ApplicationAccess.Metrics
         /// <summary>
         /// Calls one of the <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> methods which implements IAccessManagerEventProcessor, wrapping the call with logging of metric events of the specified types.
         /// </summary>
-        /// <typeparam name="TEventProcessorMethodParam">The type of the parameter which is passed to the IAccessManagerEventProcessor method.</typeparam>
         /// <typeparam name="TIntervalMetric">The type of interval metric to log.</typeparam>
         /// <typeparam name="TCountMetric">The type of count metric to log.</typeparam>
-        /// <param name="parameterValue">The value of the parameter which is passed to the IAccessManagerEventProcessor method.</param>
-        /// <param name="eventProcessorMethodAction">Action which calls the access manager IAccessManagerEventProcessor method.  Accepts 2 parameters: the type of the parameter which is passed to the IAccessManagerEventProcessor method, and an inner action which performs the call to the access manager IAccessManagerEventProcessor method (and which is invoked during the invocation of the outer 'eventProcessorMethodAction').</param>
-        protected void CallAccessManagerEventProcessingMethodWithMetricLogging<TEventProcessorMethodParam, TIntervalMetric, TCountMetric>
-        (
-            TEventProcessorMethodParam parameterValue,
-            Action<TEventProcessorMethodParam, Action<TEventProcessorMethodParam, Action>> eventProcessorMethodAction
-        )
-            where TIntervalMetric : IntervalMetric, new()
-            where TCountMetric : CountMetric, new()
-        {
-            Action<TEventProcessorMethodParam, Action> wrappingAction = (actionParameter, baseAction) =>
-            {
-                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
-                try
-                {
-                    baseAction.Invoke();
-                }
-                catch
-                {
-                    CancelIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
-                    throw;
-                }
-                EndIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
-                IncrementCountMetricIfLoggingEnabled(new TCountMetric());
-            };
-            eventProcessorMethodAction.Invoke(parameterValue, wrappingAction);
-        }
-
-        /// <summary>
-        /// Calls one of the <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> methods which implements IAccessManagerEventProcessor, wrapping the call with logging of metric events of the specified types.
-        /// </summary>
-        /// <typeparam name="TEventProcessorMethodParam1">The type of the first parameter which is passed to the IAccessManagerEventProcessor method.</typeparam>
-        /// <typeparam name="TEventProcessorMethodParam1">The type of the second parameter which is passed to the IAccessManagerEventProcessor method.</typeparam>
-        /// <typeparam name="TIntervalMetric">The type of interval metric to log.</typeparam>
-        /// <typeparam name="TCountMetric">The type of count metric to log.</typeparam>
-        /// <param name="parameterValue1">The value of the first parameter which is passed to the IAccessManagerEventProcessor method.</param>
-        /// <param name="parameterValue1">The value of the second parameter which is passed to the IAccessManagerEventProcessor method.</param>
-        /// <param name="eventProcessorMethodAction">Action which calls the access manager IAccessManagerEventProcessor method.  Accepts 3 parameters: the type of the first parameter which is passed to the IAccessManagerEventProcessor method, the type of the second parameter which is passed to the IAccessManagerEventProcessor method, and an inner action which performs the call to the access manager IAccessManagerEventProcessor method (and which is invoked during the invocation of the outer 'eventProcessorMethodAction').</param>
-        protected void CallAccessManagerEventProcessingMethodWithMetricLogging<TEventProcessorMethodParam1, TEventProcessorMethodParam2, TIntervalMetric, TCountMetric>
-        (
-            TEventProcessorMethodParam1 parameterValue1,
-            TEventProcessorMethodParam2 parameterValue2,
-            Action<TEventProcessorMethodParam1, TEventProcessorMethodParam2, Action<TEventProcessorMethodParam1, TEventProcessorMethodParam2, Action>> eventProcessorMethodAction
-        )
-            where TIntervalMetric : IntervalMetric, new()
-            where TCountMetric : CountMetric, new()
-        {
-            Action<TEventProcessorMethodParam1, TEventProcessorMethodParam2, Action> wrappingAction = (actionParameter1, actionParameter2, baseAction) =>
-            {
-                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
-                try
-                {
-                    baseAction.Invoke();
-                }
-                catch
-                {
-                    CancelIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
-                    throw;
-                }
-                EndIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
-                IncrementCountMetricIfLoggingEnabled(new TCountMetric());
-            };
-            eventProcessorMethodAction.Invoke(parameterValue1, parameterValue2, wrappingAction);
-        }
-
-        // TODO: Remove temp code
-
-        protected void CallAccessManagerEventProcessingMethodWithMetricLogging2<TEventProcessorMethodParam1, TEventProcessorMethodParam2, TIntervalMetric, TCountMetric>(Action eventAction)
+        /// <param name="eventAction">Action which calls the access manager IAccessManagerEventProcessor method.</param>
+        protected void CallAccessManagerEventProcessingMethodWithMetricLogging<TIntervalMetric, TCountMetric>(Action eventAction)
             where TIntervalMetric : IntervalMetric, new()
             where TCountMetric : CountMetric, new()
         {
@@ -1253,50 +1271,6 @@ namespace ApplicationAccess.Metrics
             }
             EndIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
             IncrementCountMetricIfLoggingEnabled(new TCountMetric());
-        }
-
-        protected void CallAccessManagerEventProcessingMethodWithMetricLogging3<TEventProcessorMethodParam1, TEventProcessorMethodParam2, TIntervalMetric, TCountMetric>
-        (
-            TEventProcessorMethodParam1 param1,
-            TEventProcessorMethodParam2 param2, 
-            Action<TEventProcessorMethodParam1, TEventProcessorMethodParam2, Action> wrappingAction, 
-            Action baseAction
-        ) 
-            where TIntervalMetric : IntervalMetric, new()
-            where TCountMetric : CountMetric, new()
-        {
-            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new TIntervalMetric());
-            try
-            {
-                wrappingAction.Invoke(param1, param2, () =>
-                {
-                    baseAction.Invoke();
-                });
-            }
-            catch
-            {
-                CancelIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
-                throw;
-            }
-            EndIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
-            IncrementCountMetricIfLoggingEnabled(new TCountMetric());
-        }
-
-        public Action<TUser, TGroup, Action> AnotherTestForAddUserGroup(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
-        {
-            Action<TUser, TGroup, Action> metricLoggingAction = (TUser actionUser, TGroup actionGroup, Action baseAction) =>
-            {
-                CallAccessManagerEventProcessingMethodWithMetricLogging2<TUser, TGroup, UserToGroupMappingAddTime, UserToGroupMappingAdded>
-(               () =>
-                {
-                    wrappingAction.Invoke(actionUser, actionGroup, () =>
-                    {
-                        baseAction.Invoke();
-                    });
-                });
-            };
-
-            return metricLoggingAction;
         }
 
         /// <summary>
@@ -1391,7 +1365,5 @@ namespace ApplicationAccess.Metrics
         }
 
         #endregion
-
-        */
     }
 }

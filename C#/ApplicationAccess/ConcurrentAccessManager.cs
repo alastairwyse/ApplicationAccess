@@ -46,7 +46,7 @@ namespace ApplicationAccess
         /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public ConcurrentAccessManager(Boolean storeBidirectionalMappings)
-            : base(new ConcurrentCollectionFactory(), new ConcurrentDirectedGraph<TUser, TGroup>(false, storeBidirectionalMappings), storeBidirectionalMappings)
+            : base(new ConcurrentCollectionFactory(), new ConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, false), storeBidirectionalMappings)
         {
             lockManager = new LockManager();
             InitializeLockObjects();
@@ -72,7 +72,7 @@ namespace ApplicationAccess
         /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
         public ConcurrentAccessManager(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings)
-            : base(collectionFactory, new ConcurrentDirectedGraph<TUser, TGroup>(collectionFactory, false, storeBidirectionalMappings), storeBidirectionalMappings)
+            : base(collectionFactory, new ConcurrentDirectedGraph<TUser, TGroup>(collectionFactory, storeBidirectionalMappings, false), storeBidirectionalMappings)
         {
             lockManager = new LockManager();
             InitializeLockObjects();
@@ -81,10 +81,11 @@ namespace ApplicationAccess
         /// <inheritdoc/>
         public override void Clear()
         {
-            lockManager.AcquireAllLocksAndInvokeAction(new Action(() =>
+            Action<Action> wrappingAction = (baseAction) =>
             {
-                base.Clear();
-            }));
+                baseAction.Invoke();
+            };
+            this.Clear(wrappingAction);
         }
 
         /// <inheritdoc/>
@@ -642,12 +643,28 @@ namespace ApplicationAccess
         }
 
         /// <summary>
+        /// Removes all items and mappings from the access manager.
+        /// </summary>
+        /// <param name="wrappingAction">An action which wraps the operation to clear the access manager, allowing arbitrary code to be run before and/or after clearing, but whilst any mutual-exclusion locks are still acquired.  Accepts 1 parameter: the action which actually clears the access manager.</param>
+        /// <remarks>
+        ///   <para>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to clear the access manager.</para>
+        ///   <para>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of items and mappings stored in the access manager.</para>
+        /// </remarks>
+        protected virtual void Clear(Action<Action> wrappingAction)
+        {
+            lockManager.AcquireAllLocksAndInvokeAction(new Action(() =>
+            {
+                wrappingAction.Invoke(() => { base.Clear(); });
+            }));
+        }
+
+        /// <summary>
         /// Adds a user.
         /// </summary>
         /// <param name="user">The user to add.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the user, allowing arbitrary code to be run before and/or after adding the user, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the user being added, and the action which actually adds the user.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the user.</remarks>
-        protected void AddUser(TUser user, Action<TUser, Action> wrappingAction)
+        protected virtual void AddUser(TUser user, Action<TUser, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(usersLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -661,7 +678,7 @@ namespace ApplicationAccess
         /// <param name="user">The user to remove.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the user, allowing arbitrary code to be run before and/or after removing the user, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the user being removed, and the action which actually removes the user.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the user.</remarks>
-        protected void RemoveUser(TUser user, Action<TUser, Action> wrappingAction)
+        protected virtual void RemoveUser(TUser user, Action<TUser, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(usersLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -675,7 +692,7 @@ namespace ApplicationAccess
         /// <param name="group">The group to add.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the group, allowing arbitrary code to be run before and/or after adding the group, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the group being added, and the action which actually adds the group.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the group.</remarks>
-        protected void AddGroup(TGroup group, Action<TGroup, Action> wrappingAction)
+        protected virtual void AddGroup(TGroup group, Action<TGroup, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(groupsLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -689,7 +706,7 @@ namespace ApplicationAccess
         /// <param name="group">The group to remove.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the group, allowing arbitrary code to be run before and/or after removing the group, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the group being removed, and the action which actually removes the group.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the group.</remarks>
-        protected void RemoveGroup(TGroup group, Action<TGroup, Action> wrappingAction)
+        protected virtual void RemoveGroup(TGroup group, Action<TGroup, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(groupsLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -704,7 +721,7 @@ namespace ApplicationAccess
         /// <param name="group">The group in the mapping.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the user in the mapping, the group in the mapping, and the action which actually adds the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
-        protected void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
+        protected virtual void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(userToGroupMapLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -719,7 +736,7 @@ namespace ApplicationAccess
         /// <param name="group">The group in the mapping.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the user in the mapping, the group in the mapping, and the action which actually removes the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
-        protected void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
+        protected virtual void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(userToGroupMapLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -734,7 +751,7 @@ namespace ApplicationAccess
         /// <param name="toGroup">The 'to' group in the mapping.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' group in the mapping, the 'to' group in the mapping, and the action which actually adds the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
-        protected void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
+        protected virtual void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(groupToGroupMapLock, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -749,7 +766,7 @@ namespace ApplicationAccess
         /// <param name="toGroup">The 'to' group in the mapping.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the 'from' group in the mapping, the 'to' group in the mapping, and the action which actually removes the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
-        protected void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
+        protected virtual void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(groupToGroupMapLock, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -765,7 +782,7 @@ namespace ApplicationAccess
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the user in the mapping, the application component in the mapping, the level of access to the component, and the action which actually adds the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
-        protected void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess, Action> wrappingAction)
+        protected virtual void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(userToComponentMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -781,7 +798,7 @@ namespace ApplicationAccess
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the user in the mapping, the application component in the mapping, the level of access to the component, and the action which actually removes the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
-        protected void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess, Action> wrappingAction)
+        protected virtual void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(userToComponentMap, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -797,7 +814,7 @@ namespace ApplicationAccess
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the group in the mapping, the application component in the mapping, the level of access to the component, and the action which actually adds the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
-        protected void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
+        protected virtual void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(groupToComponentMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -813,7 +830,7 @@ namespace ApplicationAccess
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the group in the mapping, the application component in the mapping, the level of access to the component, and the action which actually removes the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
-        protected void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
+        protected virtual void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(groupToComponentMap, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -827,7 +844,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The entity type to add.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the entity type, allowing arbitrary code to be run before and/or after adding the entity type, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the entity type being added, and the action which actually adds the entity type.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the entity type.</remarks>
-        protected void AddEntityType(String entityType, Action<String, Action> wrappingAction)
+        protected virtual void AddEntityType(String entityType, Action<String, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(entities, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -841,7 +858,7 @@ namespace ApplicationAccess
         /// <param name="entityType">The entity type to remove.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the entity type, allowing arbitrary code to be run before and/or after removing the entity type, but whilst any mutual-exclusion locks are still acquired.  Accepts 2 parameters: the entity type being removed, and the action which actually removes the entity type.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the entity type.</remarks>
-        protected void RemoveEntityType(String entityType, Action<String, Action> wrappingAction)
+        protected virtual void RemoveEntityType(String entityType, Action<String, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(entities, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -856,7 +873,7 @@ namespace ApplicationAccess
         /// <param name="entity">The entity to add.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the entity, allowing arbitrary code to be run before and/or after adding the entity, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the type of the entity, the entity being added, and the action which actually adds the entity.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the entity.</remarks>
-        protected void AddEntity(String entityType, String entity, Action<String, String, Action> wrappingAction)
+        protected virtual void AddEntity(String entityType, String entity, Action<String, String, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(entities, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -871,7 +888,7 @@ namespace ApplicationAccess
         /// <param name="entity">The entity to remove.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the entity, allowing arbitrary code to be run before and/or after removing the entity, but whilst any mutual-exclusion locks are still acquired.  Accepts 3 parameters: the type of the entity, the entity being removed, and the action which actually removes the entity.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the entity.</remarks>
-        protected void RemoveEntity(String entityType, String entity, Action<String, String, Action> wrappingAction)
+        protected virtual void RemoveEntity(String entityType, String entity, Action<String, String, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(entities, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -887,7 +904,7 @@ namespace ApplicationAccess
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the user in the mapping, the type of the entity, the entity in the mapping, and the action which actually adds the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
-        protected void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
+        protected virtual void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(userToEntityMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -903,7 +920,7 @@ namespace ApplicationAccess
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the user in the mapping, the type of the entity, the entity in the mapping, and the action which actually removes the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
-        protected void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
+        protected virtual void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(userToEntityMap, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {
@@ -920,7 +937,7 @@ namespace ApplicationAccess
         /// <param name="wrappingAction">An action which wraps the operation to add the mapping, allowing arbitrary code to be run before and/or after adding the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the group in the mapping, the type of the entity, the entity in the mapping, and the action which actually adds the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to add the mapping.</remarks>
 
-        protected void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
+        protected virtual void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(groupToEntityMap, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new Action(() =>
             {
@@ -936,7 +953,7 @@ namespace ApplicationAccess
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="wrappingAction">An action which wraps the operation to remove the mapping, allowing arbitrary code to be run before and/or after removing the mapping, but whilst any mutual-exclusion locks are still acquired.  Accepts 4 parameters: the group in the mapping, the type of the entity, the entity in the mapping, and the action which actually removes the mapping.</param>
         /// <remarks>Parameter 'wrappingAction' inner Action parameter must be invoked during the invocation of the outer 'wrappingAction' in order to remove the mapping.</remarks>
-        protected void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
+        protected virtual void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
         {
             lockManager.AcquireLocksAndInvokeAction(groupToEntityMap, LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt, new Action(() =>
             {

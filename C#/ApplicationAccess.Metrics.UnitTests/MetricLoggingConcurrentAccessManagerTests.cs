@@ -33,7 +33,7 @@ namespace ApplicationAccess.Metrics.UnitTests
     public class MetricLoggingConcurrentAccessManagerTests
     {
         private IMetricLogger mockMetricLogger;
-        private ConcurrentAccessManagerMetricLoggingInternalDecoratorWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testmMetricLoggingDecorator;
+        private ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testMetricLoggingWrapper;
         private MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
        
         [SetUp]
@@ -41,14 +41,9 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             mockMetricLogger = Substitute.For<IMetricLogger>();
             testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
-            testmMetricLoggingDecorator = new ConcurrentAccessManagerMetricLoggingInternalDecoratorWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>
-            (
-                testMetricLoggingConcurrentAccessManager, 
-                testMetricLoggingConcurrentAccessManager.PrivateMemberInterface, 
-                mockMetricLogger
-            );
-            // Test version of class exposes a setter, so that the test version of the decorator can be set after construction
-            testMetricLoggingConcurrentAccessManager.MetricLoggingDecorator = testmMetricLoggingDecorator;
+            testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
+            // Test version of class exposes a setter, so that the test version of the wrapper can be set after construction
+            testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
         }
 
         [Test]
@@ -79,13 +74,13 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.Users.Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.Groups.Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToApplicationComponentAndAccessLevelMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToApplicationComponentAndAccessLevelMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.FrequencyCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.FrequencyCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.FrequencyCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.FrequencyCount);
         }
 
         [Test]
@@ -1330,7 +1325,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
         }
 
         [Test]
@@ -1349,7 +1344,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
 
@@ -1371,7 +1366,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -1386,7 +1381,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping(testUser, ApplicationScreen.Order, AccessLevel.View);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
 
@@ -1457,7 +1452,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 0);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
 
@@ -1480,7 +1475,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 0);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -1496,7 +1491,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.RemoveUserToApplicationComponentAndAccessLevelMapping(testUser, ApplicationScreen.Order, AccessLevel.View);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
 
@@ -1520,7 +1515,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
         }
 
         [Test]
@@ -1539,7 +1534,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
 
@@ -1561,7 +1556,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -1576,7 +1571,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, ApplicationScreen.Order, AccessLevel.View);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
 
@@ -1647,7 +1642,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 0);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
 
@@ -1670,7 +1665,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 0);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -1686,7 +1681,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping(testGroup, ApplicationScreen.Order, AccessLevel.View);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
         }
 
@@ -1827,10 +1822,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), 2);
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
-            Assert.AreEqual(4, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(5, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(3, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(4, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(5, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(3, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
         }
 
         [Test]
@@ -1871,10 +1866,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(2, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ClientAccount"));
 
 
@@ -1891,10 +1886,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(2, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ProductType"));
 
 
@@ -1921,11 +1916,11 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
             Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user5"));
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency("group2"));
+            Assert.AreEqual(0, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user5"));
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency("group2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ClientAccount"));
         }
 
@@ -1969,10 +1964,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(2, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ClientAccount"));
             Assert.IsTrue(postProcessingActionInvoked);
 
@@ -1991,10 +1986,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(2, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ProductType"));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -2028,7 +2023,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.RemoveEntityType("ClientAccount");
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(2, testmMetricLoggingDecorator.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.EntityCount);
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ClientAccount"));
         }
 
@@ -2036,7 +2031,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         public void RemoveEntityType_BidirectionalMappingsTrue()
         {
             testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
-            testMetricLoggingConcurrentAccessManager.MetricLoggingDecorator = testmMetricLoggingDecorator;
+            testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
 
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
@@ -2073,10 +2068,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(2, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ClientAccount"));
 
 
@@ -2093,10 +2088,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(2, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ProductType"));
 
 
@@ -2123,11 +2118,11 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
             Assert.AreEqual(7, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user5"));
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency("group2"));
+            Assert.AreEqual(0, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user5"));
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency("group2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains("ClientAccount"));
         }
 
@@ -2152,7 +2147,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<EntityAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntitiesStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.EntityCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.EntityCount);
         }
 
         [Test]
@@ -2172,7 +2167,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<EntityAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.EntityCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.EntityCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
         }
 
@@ -2195,7 +2190,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<EntityAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.EntityCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.EntityCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -2211,7 +2206,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.EntityCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.EntityCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
         }
 
@@ -2315,10 +2310,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToEntityMappingsStored>(), Arg.Any<Int64>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToEntityMappingsStored>(), Arg.Any<Int64>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(3, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(4, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(3, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(4, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
         }
 
         [Test]
@@ -2359,10 +2354,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(6, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(3, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(4, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(3, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(4, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetEntities("BusinessUnit").Contains("Marketing"));
         }
 
@@ -2406,10 +2401,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(6, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(3, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(4, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(3, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(4, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetEntities("BusinessUnit").Contains("Marketing"));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -2443,10 +2438,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.RemoveEntity("BusinessUnit", "Marketing");
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(3, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(4, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(3, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(4, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetEntities("BusinessUnit").Contains("Marketing"));
         }
 
@@ -2454,7 +2449,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         public void RemoveEntity_BidirectionalMappingsTrue()
         {
             testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
-            testMetricLoggingConcurrentAccessManager.MetricLoggingDecorator = testmMetricLoggingDecorator;
+            testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
 
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
@@ -2491,10 +2486,10 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(6, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<EntityTypesStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(3, testmMetricLoggingDecorator.EntityCount);
-            Assert.AreEqual(4, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user1"));
-            Assert.AreEqual(2, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency("user2"));
+            Assert.AreEqual(3, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(4, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user1"));
+            Assert.AreEqual(2, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency("user2"));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetEntities("BusinessUnit").Contains("Marketing"));
         }
 
@@ -2522,8 +2517,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToEntityMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToEntityMappingsStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency(testUser));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
         }
 
         [Test]
@@ -2546,8 +2541,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency(testUser));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
         }
 
@@ -2573,8 +2568,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency(testUser));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -2593,8 +2588,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping(testUser, testEntityType, testEntity);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency(testUser));
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
         }
 
@@ -2695,8 +2690,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<UserToEntityMappingRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<UserToEntityMappingsStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency(testUser));
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
         }
 
         [Test]
@@ -2720,8 +2715,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency(testUser));
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
         }
 
@@ -2748,8 +2743,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency(testUser));
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -2769,8 +2764,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.RemoveUserToEntityMapping(testUser, testEntityType, testEntity);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.UserToEntityMappingCountPerUser.GetFrequency(testUser));
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
         }
 
@@ -2798,8 +2793,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToEntityMappingAdded>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToEntityMappingsStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
         }
 
         [Test]
@@ -2822,8 +2817,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
         }
 
@@ -2849,8 +2844,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingAdded>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 1);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -2869,8 +2864,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(1, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
         }
 
@@ -2971,8 +2966,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<GroupToEntityMappingRemoved>());
             mockMetricLogger.DidNotReceive().Set(Arg.Any<GroupToEntityMappingsStored>(), Arg.Any<Int64>());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
         }
 
         [Test]
@@ -2996,8 +2991,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
         }
 
@@ -3024,8 +3019,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingRemoved>());
             mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
             Assert.IsTrue(postProcessingActionInvoked);
         }
@@ -3045,8 +3040,8 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingConcurrentAccessManager.RemoveGroupToEntityMapping(testGroup, testEntityType, testEntity);
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCount);
-            Assert.AreEqual(0, testmMetricLoggingDecorator.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
         }
 
@@ -3611,30 +3606,47 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
         }
 
+        // TODO: New tests after ConcurrentAccessManagerMetricLogger refactoring
+
+        [Test]
+        public void AddUserToGroupMapping_WrappingActionOrdering()
+        {
+            // Tests correct ordering of 'wrappingAction' method overloads for these methods...
+            // AddUser
+            // AddGroup
+            // AddUserToGroupMapping
+            // RemoveUserToGroupMapping
+            // AddGroupToGroupMapping
+            // RemoveGroupToGroupMapping
+
+            throw new NotImplementedException();
+        }
+
+        [Test]
+        public void AddUserToGroupMappingPostProcessingActionOverload_WrappingActionOrdering()
+        {
+            // This implicitly tests that wrapping action ordering is setup correctly for subclasses... so do I need a separate test for that?
+
+            throw new NotImplementedException();
+        }
+
         #region Nested Classes
 
         /// <summary>
-        /// Version of the ConcurrentAccessManagerMetricLoggingInternalDecorator class where protected members are exposed as public so that they can be unit tested.
+        /// Version of the ConcurrentAccessManagerMetricLogger class where protected members are exposed as public so that they can be unit tested.
         /// </summary>
         /// <typeparam name="TUser">The type of users in the application.</typeparam>
         /// <typeparam name="TGroup">The type of groups in the application</typeparam>
         /// <typeparam name="TComponent">The type of components in the application to control access to.</typeparam>
         /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-        private class ConcurrentAccessManagerMetricLoggingInternalDecoratorWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : ConcurrentAccessManagerMetricLoggingInternalDecorator<TUser, TGroup, TComponent, TAccess>
+        private class ConcurrentAccessManagerMetricLoggerWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : ConcurrentAccessManagerMetricLogger<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Metrics.UnitTests.MetricLoggingConcurrentAccessManagerTests+ConcurrentAccessManagerMetricLoggingInternalDecoratorWithProtectedMembers class.
+            /// Initialises a new instance of the ApplicationAccess.Metrics.UnitTests.MetricLoggingConcurrentAccessManagerTests+ConcurrentAccessManagerMetricLoggerWithProtectedMembers class.
             /// </summary>
-            /// <param name="accessManager">The access manager to log metrics for.</param>
-            /// <param name="accessManagerPrivateInterface">Interface to the private members of the access manager to log metrics for.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
-            public ConcurrentAccessManagerMetricLoggingInternalDecoratorWithProtectedMembers
-            (
-                ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> accessManager,
-                ConcurrentAccessManagerPrivateMemberInterface<TUser, TGroup, TComponent, TAccess> accessManagerPrivateInterface,
-                IMetricLogger metricLogger
-            )
-                : base(accessManager, accessManagerPrivateInterface, metricLogger)
+            public ConcurrentAccessManagerMetricLoggerWithProtectedMembers(IMetricLogger metricLogger)
+                : base(metricLogger)
             {
             }
 
@@ -3705,19 +3717,11 @@ namespace ApplicationAccess.Metrics.UnitTests
         private class MetricLoggingConcurrentAccessManagerWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>
         {
             /// <summary>
-            /// >Interface to private and protected members of the class.
-            /// </summary>
-            public ConcurrentAccessManagerPrivateMemberInterface<TUser, TGroup, TComponent, TAccess> PrivateMemberInterface
-            {
-                get { return privateMemberInterface; }
-            }
-
-            /// <summary>
             /// The logger for metrics.
             /// </summary>
-            public ConcurrentAccessManagerMetricLoggingInternalDecorator<TUser, TGroup, TComponent, TAccess> MetricLoggingDecorator
+            public ConcurrentAccessManagerMetricLogger<TUser, TGroup, TComponent, TAccess> MetricLoggingWrapper
             {
-                set { metricLoggingDecorator = value; }
+                set { metricLoggingWrapper = value; }
             }
 
             /// <summary>

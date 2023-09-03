@@ -59,13 +59,14 @@ namespace ApplicationAccess
          *     Case is similar to secondary add methods above... depending on whether we can efficiently check for existence, we either invoke 'baseAction' and swallow any exceptions, or check existence and call 'baseAction' depending on the result
          *     
          * General techniques
-         *   1) Generally we override 2x methods from ConcurrentAccessManager for each type of operation
-         *     a. The public method that's part of IAccessManager... like AddUser(TUser user)
-         *     b. The overload which takes the 'postProcessingAction' parameter
-         *     We have to override the IAccessManager overload because in ConcurrentAccessManager it invokes 'baseAction' by default, any we need to either not call 'baseAction' (e.g. in the case of primary add methods), or only call it conditionally to implement idempotency
-         *     We overide the 'postProcessingAction' overload with the actual implementation for this class... either bypassing 'baseAction' or conditionally calling 'baseAction' as described above (and then invoking the 'postProcessingAction')
+         *   1) We override protected method with 'wrappingAction' parameter from ConcurrentAccessManager for each type of operation
+         *     The general idea here is that this class and any subclasses which override ConcurrentAccessManager just keep 'chaining' their decorated functionality through this method.
+         *     The implementations are called 'inside out' as compared to the inheritance hierarchy, so even though ConcurrentAccessManager is lowest in the hierarchy, its locking functionality is called first in the 'wrappingAction' method overloads.
+         *     I.e. order of decorated functionality should be: Apply locks (ConcurrentAccessManager) > Do any event prepending and idempotency (DependencyFreeAccessManager) > Log metrics (MetricLoggingDependencyFreeAccessManager)
+         *       which moves up the inheritance hierarchy, even though the first call is from the top.
          *   2) Try to always invoke the 'baseAction' action to implement the actual underlying work... better to reuse base class functionality as much as possible (primary add methods are a case where we cannot invoke 'baseAction' as described above)
          *     This is particularly important for primary reomve methods where the base class methods do cleanup of any dependent elements
+         *   3) In all pretected methods overloads, the 'wrappingAction' should be invoked.  If it's not, functionality decorated by subclasses (e.g. metric logging) or by the method with the 'postProcessingAction' will not be run.
          */
 
         /// <summary>The event processor to pass any depended-on/prepended events to.</summary>
@@ -120,471 +121,367 @@ namespace ApplicationAccess
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
         }
 
-        /// <inheritdoc/>
-        public override void AddUser(TUser user)
-        {
-            Action<TUser> postProcessingAction = (actionUser) => { };
-            AddUser(user, postProcessingAction);
-        }
+        #region Private/Protected Methods
+
+        #region Base Class Overrides
 
         /// <inheritdoc/>
-        public override void AddUser(TUser user, Action<TUser> postProcessingAction)
+        protected override void AddUser(TUser user, Action<TUser, Action> wrappingAction)
         {
-            Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
+            Action<TUser, Action> idempotentAddAction = (actionUser, baseAction) =>
             {
-                AddUser(user, false);
-                postProcessingAction.Invoke(user);
+                // Note 'baseAction' is ignored/unused, as this class overrides the base class action with an idempotent 'Add' operation
+                wrappingAction.Invoke(actionUser, () => { AddUser(actionUser, false); });
             };
-            AddUser(user, wrappingAction);
+            base.AddUser(user, idempotentAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveUser(TUser user)
+        protected override void RemoveUser(TUser user, Action<TUser, Action> wrappingAction)
         {
-            Action<TUser> postProcessingAction = (actionUser) => { };
-            RemoveUser(user, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUser(TUser user, Action<TUser> postProcessingAction)
-        {
-            Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
+            Action<TUser, Action> idempotentRemoveAction = (actionUser, baseAction) =>
             {
-                if (userToGroupMap.ContainsLeafVertex(user) == true)
+                wrappingAction.Invoke(actionUser, () =>
                 {
-                    baseAction.Invoke();
-                }
-                postProcessingAction.Invoke(user);
+                    if (userToGroupMap.ContainsLeafVertex(actionUser) == true)
+                    {
+                        baseAction.Invoke();
+                    }
+                });
             };
-            RemoveUser(user, wrappingAction);
+            base.RemoveUser(user, idempotentRemoveAction);
         }
 
         /// <inheritdoc/>
-        public override void AddGroup(TGroup group)
+        protected override void AddGroup(TGroup group, Action<TGroup, Action> wrappingAction)
         {
-            Action<TGroup> postProcessingAction = (actionGroup) => { };
-            AddGroup(group, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroup(TGroup group, Action<TGroup> postProcessingAction)
-        {
-            Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
+            Action<TGroup, Action> idempotentAddAction = (actionGroup, baseAction) =>
             {
-                AddGroup(group, false);
-                postProcessingAction.Invoke(group);
+                wrappingAction.Invoke(actionGroup, () => { AddGroup(actionGroup, false); });
             };
-            AddGroup(group, wrappingAction);
+            base.AddGroup(group, idempotentAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveGroup(TGroup group)
+        protected override void RemoveGroup(TGroup group, Action<TGroup, Action> wrappingAction)
         {
-            Action<TGroup> postProcessingAction = (actionGroup) => { };
-            RemoveGroup(group, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroup(TGroup group, Action<TGroup> postProcessingAction)
-        {
-            Action<TGroup, Action> wrappingAction = (actionGroup, baseAction) =>
+            Action<TGroup, Action> idempotentRemoveAction = (actionGroup, baseAction) =>
             {
-                if (userToGroupMap.ContainsNonLeafVertex(group) == true)
+                wrappingAction.Invoke(actionGroup, () =>
                 {
-                    baseAction.Invoke();
-                }
-                postProcessingAction.Invoke(group);
+                    if (userToGroupMap.ContainsNonLeafVertex(actionGroup) == true)
+                    {
+                        baseAction.Invoke();
+                    }
+                });
             };
-            RemoveGroup(group, wrappingAction);
+            base.RemoveGroup(group, idempotentRemoveAction);
         }
-
+        
         /// <inheritdoc/>
-        public override void AddUserToGroupMapping(TUser user, TGroup group)
+        protected override void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
         {
-            Action<TUser, TGroup> postProcessingAction = (actionUser, actionGroup) => { };
-            AddUserToGroupMapping(user, group, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
-        {
-            Action<TUser, TGroup, Action> wrappingAction = (actionUser, actionGroup, baseAction) =>
+            Action<TUser, TGroup, Action> prependedAddAction = (actionUser, actionGroup, baseAction) =>
             {
-                AddUser(user, true);
-                AddGroup(group, true);
-                try
+                // Generate any prepended events before invoking 'wrappingAction', e.g. so the prepended events are not included in metric timing
+                AddUser(actionUser, true);
+                AddGroup(actionGroup, true);
+                wrappingAction.Invoke(actionUser, actionGroup, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(user, group);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            AddUserToGroupMapping(user, group, wrappingAction);
+            base.AddUserToGroupMapping(user, group, prependedAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveUserToGroupMapping(TUser user, TGroup group)
+        protected override void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup, Action> wrappingAction)
         {
-            Action<TUser, TGroup> postProcessingAction = (actionUser, actionGroup) => { };
-            RemoveUserToGroupMapping(user, group, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToGroupMapping(TUser user, TGroup group, Action<TUser, TGroup> postProcessingAction)
-        {
-            Action<TUser, TGroup, Action> wrappingAction = (actionUser, actionGroup, baseAction) =>
+            Action<TUser, TGroup, Action> idempotentRemoveAction = (actionUser, actionGroup, baseAction) =>
             {
-                try
+                wrappingAction.Invoke(actionUser, actionGroup, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(user, group);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            RemoveUserToGroupMapping(user, group, wrappingAction);
+            base.RemoveUserToGroupMapping(user, group, idempotentRemoveAction);
         }
 
         /// <inheritdoc/>
-        public override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
-        {
-            Action<TGroup, TGroup> postProcessingAction = (actionFromGroup, actionToGroup) => { };
-            AddGroupToGroupMapping(fromGroup, toGroup, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
+        protected override void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
         {
             if (fromGroup.Equals(toGroup) == true)
                 throw new ArgumentException($"Parameters '{nameof(fromGroup)}' and '{nameof(toGroup)}' cannot contain the same group.", nameof(toGroup));
 
-            Action<TGroup, TGroup, Action> wrappingAction = (actionFromGroup, actionToGroup, baseAction) =>
+            Action<TGroup, TGroup, Action> prependedAddAction = (actionFromGroup, actionToGroup, baseAction) =>
             {
-                AddGroup(fromGroup, true);
-                AddGroup(toGroup, true);
-                try
+                AddGroup(actionFromGroup, true);
+                AddGroup(actionToGroup, true);
+                wrappingAction.Invoke(actionFromGroup, actionToGroup, () =>
                 {
-                    // Would prefer to call baseAction.Invoke() here, but it doesn't allow distinguishing between NonLeafToNonLeafEdgeAlreadyExistsException (which should be swallowed to
-                    //   allow idempotency) and CircularReferenceException (which should be rethrown as it's an error case)
-                    userToGroupMap.AddNonLeafToNonLeafEdge(fromGroup, toGroup);
-                }
-                catch (NonLeafToNonLeafEdgeAlreadyExistsException<TGroup>)
-                {
-                }
-                catch (CircularReferenceException circularReferenceException)
-                {
-                    throw new ArgumentException($"A mapping between groups '{fromGroup.ToString()}' and '{toGroup.ToString()}' cannot be created as it would cause a circular reference.", nameof(toGroup), circularReferenceException);
-                }
-                postProcessingAction.Invoke(fromGroup, toGroup);
+                    try
+                    {
+                        // Would prefer to call baseAction.Invoke() here, but it doesn't allow distinguishing between NonLeafToNonLeafEdgeAlreadyExistsException (which should be swallowed to
+                        //   allow idempotency) and CircularReferenceException (which should be rethrown as it's an error case)
+                        userToGroupMap.AddNonLeafToNonLeafEdge(actionFromGroup, actionToGroup);
+                    }
+                    catch (NonLeafToNonLeafEdgeAlreadyExistsException<TGroup>)
+                    {
+                    }
+                    catch (CircularReferenceException circularReferenceException)
+                    {
+                        throw new ArgumentException($"A mapping between groups '{actionFromGroup.ToString()}' and '{actionToGroup.ToString()}' cannot be created as it would cause a circular reference.", nameof(toGroup), circularReferenceException);
+                    }
+                });
             };
-            AddGroupToGroupMapping(fromGroup, toGroup, wrappingAction);
+            base.AddGroupToGroupMapping(fromGroup, toGroup, prependedAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
+        protected override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup, Action> wrappingAction)
         {
-            Action<TGroup, TGroup> postProcessingAction = (actionFromGroup, actionToGroup) => { };
-            RemoveGroupToGroupMapping(fromGroup, toGroup, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Action<TGroup, TGroup> postProcessingAction)
-        {
-            Action<TGroup, TGroup, Action> wrappingAction = (actionFromGroup, actionToGroup, baseAction) =>
+            Action<TGroup, TGroup, Action> idempotentRemoveAction = (actionFromGroup, actionToGroup, baseAction) =>
             {
-                try
+                wrappingAction.Invoke(actionFromGroup, actionToGroup, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(fromGroup, toGroup);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            RemoveGroupToGroupMapping(fromGroup, toGroup, wrappingAction);
+            base.RemoveGroupToGroupMapping(fromGroup, toGroup, idempotentRemoveAction);
         }
 
         /// <inheritdoc/>
-        public override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
+        protected override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess, Action> wrappingAction)
         {
-            Action<TUser, TComponent, TAccess> postProcessingAction = (actionUser, actionApplicationComponent, actionAccessLevel) => { };
-            AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
-        {
-            Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            Action<TUser, TComponent, TAccess, Action> prependedAddAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                AddUser(user, true);
-                try
+                AddUser(actionUser, true);
+                wrappingAction.Invoke(actionUser, actionApplicationComponent, actionAccessLevel, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(user, applicationComponent, accessLevel);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, wrappingAction);
+            base.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, prependedAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
+        protected override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess, Action> wrappingAction)
         {
-            Action<TUser, TComponent, TAccess> postProcessingAction = (actionUser, actionApplicationComponent, actionAccessLevel) => { };
-            RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Action<TUser, TComponent, TAccess> postProcessingAction)
-        {
-            Action<TUser, TComponent, TAccess, Action> wrappingAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            Action<TUser, TComponent, TAccess, Action> idempotentRemoveAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                try
+                wrappingAction.Invoke(actionUser, actionApplicationComponent, actionAccessLevel, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(user, applicationComponent, accessLevel);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, wrappingAction);
+            base.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, idempotentRemoveAction);
         }
 
         /// <inheritdoc/>
-        public override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
+        protected override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
         {
-            Action<TGroup, TComponent, TAccess> postProcessingAction = (actionGroup, actionApplicationComponent, actionAccessLevel) => { };
-            AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
-        {
-            Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            Action<TGroup, TComponent, TAccess, Action> prependedAddAction = (actioGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                AddGroup(group, true);
-                try
+                AddGroup(actioGroup, true);
+                wrappingAction.Invoke(actioGroup, actionApplicationComponent, actionAccessLevel, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(group, applicationComponent, accessLevel);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, wrappingAction);
+            base.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, prependedAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
+        protected override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
         {
-            Action<TGroup, TComponent, TAccess> postProcessingAction = (actionGroup, actionApplicationComponent, actionAccessLevel) => { };
-            RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess> postProcessingAction)
-        {
-            Action<TGroup, TComponent, TAccess, Action> wrappingAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            Action<TGroup, TComponent, TAccess, Action> idempotentRemoveAction = (actioGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                try
+                wrappingAction.Invoke(actioGroup, actionApplicationComponent, actionAccessLevel, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(group, applicationComponent, accessLevel);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, wrappingAction);
+            base.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, idempotentRemoveAction);
         }
 
         /// <inheritdoc/>
-        public override void AddEntityType(String entityType)
+        protected override void AddEntityType(String entityType, Action<String, Action> wrappingAction)
         {
-            Action<String> postProcessingAction = (actionEntityType) => { };
-            AddEntityType(entityType, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddEntityType(String entityType, Action<String> postProcessingAction)
-        {
-            Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
+            Action<String, Action> idempotentAddAction = (actionEntityType, baseAction) =>
             {
-                AddEntityType(entityType, false);
-                postProcessingAction.Invoke(entityType);
+                wrappingAction.Invoke(actionEntityType, () => { AddEntityType(actionEntityType, false); });
             };
-            AddEntityType(entityType, wrappingAction);
+            base.AddEntityType(entityType, idempotentAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveEntityType(String entityType)
+        protected override void RemoveEntityType(String entityType, Action<String, Action> wrappingAction)
         {
-            Action<String> postProcessingAction = (actionEntityType) => { };
-            RemoveEntityType(entityType, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveEntityType(String entityType, Action<String> postProcessingAction)
-        {
-            Action<String, Action> wrappingAction = (actionEntityType, baseAction) =>
+            Action<String, Action> idempotentRemoveAction = (actionEntityType, baseAction) =>
             {
-                if (entities.ContainsKey(entityType) == true)
+                wrappingAction.Invoke(actionEntityType, () =>
                 {
-                    baseAction.Invoke();
-                }
-                postProcessingAction.Invoke(entityType);
+                    if (entities.ContainsKey(actionEntityType) == true)
+                    {
+                        baseAction.Invoke();
+                    }
+                });
             };
-            RemoveEntityType(entityType, wrappingAction);
+            base.RemoveEntityType(entityType, idempotentRemoveAction);
         }
 
         /// <inheritdoc/>
-        public override void AddEntity(String entityType, String entity)
+        protected override void AddEntity(String entityType, String entity, Action<String, String, Action> wrappingAction)
         {
-            Action<String, String> postProcessingAction = (actionEntityType, actionEntity) => { };
-            AddEntity(entityType, entity, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddEntity(String entityType, String entity, Action<String, String> postProcessingAction)
-        {
-            Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
+            Action<String, String, Action> idempotentAddAction = (actionEntityType, actionEntity, baseAction) =>
             {
-                AddEntityType(entityType, true);
-                AddEntity(entityType, entity, false);
-                postProcessingAction.Invoke(entityType, entity);
+                AddEntityType(actionEntityType, true);
+                wrappingAction.Invoke(actionEntityType, actionEntity, () => { AddEntity(actionEntityType, actionEntity, false); });
             };
-            AddEntity(entityType, entity, wrappingAction);
+            base.AddEntity(entityType, entity, idempotentAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveEntity(String entityType, String entity)
+        protected override void RemoveEntity(String entityType, String entity, Action<String, String, Action> wrappingAction)
         {
-            Action<String, String> postProcessingAction = (actionEntityType, actionEntity) => { };
-            RemoveEntity(entityType, entityType, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveEntity(String entityType, String entity, Action<String, String> postProcessingAction)
-        {
-            Action<String, String, Action> wrappingAction = (actionEntityType, actionEntity, baseAction) =>
+            Action<String, String, Action> idempotentRemoveAction = (actionEntityType, actionEntity, baseAction) =>
             {
-                if (entities.ContainsKey(entityType) == true && entities[entityType].Contains(entity) == true)
+                wrappingAction.Invoke(actionEntityType, actionEntity, () =>
                 {
-                    baseAction.Invoke();
-                }
-                postProcessingAction.Invoke(entityType, entity);
+                    if (entities.ContainsKey(actionEntityType) == true && entities[actionEntityType].Contains(actionEntity) == true)
+                    {
+                        baseAction.Invoke();
+                    }
+                });
             };
-            RemoveEntity(entityType, entity, wrappingAction);
+            base.RemoveEntity(entityType, entity, idempotentRemoveAction);
         }
-        
+
         /// <inheritdoc/>
-        public override void AddUserToEntityMapping(TUser user, String entityType, String entity)
+        protected override void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
         {
-            Action<TUser, String, String> postProcessingAction = (actionUser, actionEntityType, actionEntity) => { };
-            AddUserToEntityMapping(user, entityType, entity, postProcessingAction);
-        }
-        
-        /// <inheritdoc/>
-        public override void AddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
-        {
-            Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
+            Action<TUser, String, String, Action> prependedAddAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
-                AddUser(user, true);
-                AddEntity(entityType, entity, true);
-                try
+                AddUser(actionUser, true);
+                AddEntity(actionEntityType, actionEntity, true);
+                wrappingAction.Invoke(actionUser, actionEntityType, actionEntity, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(user, entityType, entity);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            AddUserToEntityMapping(user, entityType, entity, wrappingAction);
+            base.AddUserToEntityMapping(user, entityType, entity, prependedAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
+        protected override void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String, Action> wrappingAction)
         {
-            Action<TUser, String, String> postProcessingAction = (actionUser, actionEntityType, actionEntity) => { };
-            RemoveUserToEntityMapping(user, entityType, entity, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postProcessingAction)
-        {
-            Action<TUser, String, String, Action> wrappingAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
+            Action<TUser, String, String, Action> idempotentRemoveAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
-                try
+                wrappingAction.Invoke(actionUser, actionEntityType, actionEntity, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(user, entityType, entity);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            RemoveUserToEntityMapping(user, entityType, entity, wrappingAction);
+            base.RemoveUserToEntityMapping(user, entityType, entity, idempotentRemoveAction);
         }
 
         /// <inheritdoc/>
-        public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
+        protected override void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
         {
-            Action<TGroup, String, String> postProcessingAction = (actionGroup, actionEntityType, actionEntity) => { };
-            AddGroupToEntityMapping(group, entityType, entity, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
-        {
-            Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
+            Action<TGroup, String, String, Action> prependedAddAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {
-                AddGroup(group, true);
-                AddEntity(entityType, entity, true);
-                try
+                AddGroup(actionGroup, true);
+                AddEntity(actionEntityType, actionEntity, true);
+                wrappingAction.Invoke(actionGroup, actionEntityType, actionEntity, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(group, entityType, entity);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            AddGroupToEntityMapping(group, entityType, entity, wrappingAction);
+            base.AddGroupToEntityMapping(group, entityType, entity, prependedAddAction);
         }
 
         /// <inheritdoc/>
-        public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
+        protected override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
         {
-            Action<TGroup, String, String> postProcessingAction = (actionGroup, actionEntityType, actionEntity) => { };
-            RemoveGroupToEntityMapping(group, entityType, entity, postProcessingAction);
-        }
-
-        /// <inheritdoc/>
-        public override void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postProcessingAction)
-        {
-            Action<TGroup, String, String, Action> wrappingAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
+            Action<TGroup, String, String, Action> idempotentRemoveAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {
-                try
+                wrappingAction.Invoke(actionGroup, actionEntityType, actionEntity, () =>
                 {
-                    baseAction.Invoke();
-                }
-                catch (ArgumentException)
-                {
-                }
-                postProcessingAction.Invoke(group, entityType, entity);
+                    try
+                    {
+                        baseAction.Invoke();
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
+                });
             };
-            RemoveGroupToEntityMapping(group, entityType, entity, wrappingAction);
+            base.RemoveGroupToEntityMapping(group, entityType, entity, idempotentRemoveAction);
         }
 
-        #region Private/Protected Methods
+        #endregion
+
+        #region Idempotent 'Add' Methods for Primary Elements
 
         /// <summary>
         /// Idempotently adds a user.
@@ -655,6 +552,8 @@ namespace ApplicationAccess
                 }
             }
         }
+
+        #endregion
 
         #endregion
     }

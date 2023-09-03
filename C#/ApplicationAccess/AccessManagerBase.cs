@@ -35,7 +35,7 @@ namespace ApplicationAccess
         protected readonly DirectedGraphBase<TUser, TGroup> userToGroupMap;
         /// <summary>A dictionary which stores mappings between a user, and application component, and a level of access to that component.</summary>
         protected readonly IDictionary<TUser, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> userToComponentMap;
-        /// <summary>A dictionary which HashSet mappings between a group, and application component, and a level of access to that component.</summary>
+        /// <summary>A dictionary which stores mappings between a group, and application component, and a level of access to that component.</summary>
         protected readonly IDictionary<TGroup, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> groupToComponentMap;
         /// <summary>Holds all valid entity types and values within the access manager.  The Dictionary key holds the types of all entities, and each respective value holds the valid entity values within that type (e.g. the entity type could be 'ClientAccount', and values could be the names of all client accounts).</summary>
         protected readonly IDictionary<String, ISet<String>> entities;
