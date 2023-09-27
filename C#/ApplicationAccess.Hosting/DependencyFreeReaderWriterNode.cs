@@ -34,8 +34,6 @@ namespace ApplicationAccess.Hosting
     /// <remarks>Note that as per remarks for <see cref="MetricLoggingDependencyFreeAccessManager{TUser, TGroup, TComponent, TAccess}"/> interval metrics are not logged for <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> methods that return <see cref="IEnumerable{T}"/>, or perform simple dictionary and set lookups (e.g. <see cref="MetricLoggingDependencyFreeAccessManager{TUser, TGroup, TComponent, TAccess}.ContainsUser(TUser)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="IEnumerable{T}"/> the metric logging must wrap the code that enumerates the result.</remarks>
     public class DependencyFreeReaderWriterNode<TUser, TGroup, TComponent, TAccess> : IAccessManager<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
-        // TODO: Will need to implement IDependencyFreeAccessManager once that's built (i.e. with extra queries on groups by list)
-
         /// <summary>AccessManager instance used to store all permissions and to back the event validator.</summary>
         protected MetricLoggingDependencyFreeAccessManager<TUser, TGroup, TComponent, TAccess> dependencyFreeAccessManager;
         /// <summary>Validates events created by calls to <see cref="IAccessManagerEventProcessor{TUser, TGroup, TComponent, TAccess}"/> methods.</summary>

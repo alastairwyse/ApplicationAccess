@@ -108,9 +108,17 @@ namespace ApplicationAccess.Metrics
         /// <remarks>Since the Clear() method on HashSets and Dictionaries underlying the class are O(n) operations, performance will scale roughly with the number of vertices and edges stored in the graph.</remarks>
         public override void Clear()
         {
-            base.Clear();
-            leafToNonLeafEdgeCount = 0;
-            nonLeafToNonLeafEdgeCount = 0;
+            Action<Action> wrappingAction = (baseAction) =>
+            {
+                baseAction.Invoke();
+                leafToNonLeafEdgeCount = 0;
+                nonLeafToNonLeafEdgeCount = 0;
+                SetStatusMetricIfLoggingEnabled(new LeafVerticesStored(), leafVertices.Count);
+                SetStatusMetricIfLoggingEnabled(new NonLeafVerticesStored(), leafVertices.Count);
+                SetStatusMetricIfLoggingEnabled(new LeafToNonLeafEdgesStored(), leafVertices.Count);
+                SetStatusMetricIfLoggingEnabled(new NonLeafToNonLeafEdgesStored(), leafVertices.Count);
+            };
+            this.Clear(wrappingAction);
         }
 
         /// <summary>

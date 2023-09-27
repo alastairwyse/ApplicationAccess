@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
+using System.Text.RegularExpressions;
 
 
 namespace ApplicationAccess.UnitTests
@@ -556,6 +557,39 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void RemoveEntityTypePreRemovalActionsOverload()
+        {
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            String testUser = "user1";
+            String testGroup = "group1";
+            testDependencyFreeAccessManager.AddUser(testUser);
+            testDependencyFreeAccessManager.AddGroup(testGroup);
+            testDependencyFreeAccessManager.AddEntityType(testEntityType);
+            testDependencyFreeAccessManager.AddEntity(testEntityType, testEntity);
+            testDependencyFreeAccessManager.AddUserToEntityMapping(testUser, testEntityType, testEntity);
+            testDependencyFreeAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            Int32 userToEntityTypeMappingPreRemovalActionCallCount = 0;
+            Int32 groupToEntityTypeMappingPreRemovalActionCallCount = 0;
+            Action<String, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction = (String user, String entityType, IEnumerable<String> entities, Int32 entityCount) =>
+            {
+                userToEntityTypeMappingPreRemovalActionCallCount++;
+            };
+            Action<String, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction = (String group, String entityType, IEnumerable<String> entities, Int32 entityCount) =>
+            {
+                groupToEntityTypeMappingPreRemovalActionCallCount++;
+            };
+
+            // Test idempotency
+            testDependencyFreeAccessManager.RemoveEntityType(testEntityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
+            testDependencyFreeAccessManager.RemoveEntityType(testEntityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
+
+            Assert.IsFalse(testDependencyFreeAccessManager.EntityTypes.Contains(testEntityType));
+            Assert.AreEqual(1, userToEntityTypeMappingPreRemovalActionCallCount);
+            Assert.AreEqual(1, groupToEntityTypeMappingPreRemovalActionCallCount);
+        }
+
+        [Test]
         public void RemoveEntityType_DependenciesAreRemoved()
         {
             String testUser = "user1";
@@ -645,6 +679,41 @@ namespace ApplicationAccess.UnitTests
 
             // Test idempotency
             testDependencyFreeAccessManager.RemoveEntity(testEntityType, testEntity, postProcessingAction);
+        }
+
+
+        [Test]
+        public void RemoveEntityPostRemovalActionsOverload()
+        {
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            String testUser = "user1";
+            String testGroup = "group1";
+            testDependencyFreeAccessManager.AddUser(testUser);
+            testDependencyFreeAccessManager.AddGroup(testGroup);
+            testDependencyFreeAccessManager.AddEntityType(testEntityType);
+            testDependencyFreeAccessManager.AddEntity(testEntityType, testEntity);
+            testDependencyFreeAccessManager.AddUserToEntityMapping(testUser, testEntityType, testEntity);
+            testDependencyFreeAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            Int32 userToEntityMappingPostRemovalActionCallCount = 0;
+            Int32 groupToEntityMappingPostRemovalActionCallCount = 0;
+            Action<String, String, String> userToEntityMappingPostRemovalAction = (String user, String entityType, String entity) =>
+            {
+                userToEntityMappingPostRemovalActionCallCount++;
+            };
+            Action<String, String, String> groupToEntityMappingPostRemovalAction = (String group, String entityType, String entity) =>
+            {
+                groupToEntityMappingPostRemovalActionCallCount++;
+            };
+
+            // Test idempotency
+            testDependencyFreeAccessManager.RemoveEntity(testEntityType, testEntity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
+            testDependencyFreeAccessManager.RemoveEntity(testEntityType, testEntity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
+            testDependencyFreeAccessManager.RemoveEntity("InvalidEntityType", "InvalidEntity", userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
+
+            Assert.IsFalse(testDependencyFreeAccessManager.GetEntities(testEntityType).Contains(testEntity));
+            Assert.AreEqual(1, userToEntityMappingPostRemovalActionCallCount);
+            Assert.AreEqual(1, groupToEntityMappingPostRemovalActionCallCount);
         }
 
         [Test]
@@ -919,6 +988,29 @@ namespace ApplicationAccess.UnitTests
             public DependencyFreeAccessManagerWithProtectedMembers(Boolean storeBidirectionalMappings)
                 : base(storeBidirectionalMappings)
             {
+            }
+
+            /// <summary>
+            /// Removes an entity type.
+            /// </summary>
+            /// <param name="entityType">The entity type to remove.</param>
+            /// <param name="userToEntityTypeMappingPreRemovalAction">An action which is invoked before removing the entity type mappings for a user.  Accepts 4 parameters: the user in the mappings, the type of the entity of the mappings being removed, the entities in the mappings, and the number of entities in the mappings.</param>
+            /// <param name="groupToEntityTypeMappingPreRemovalAction">An action which is invoked before removing the entity type mappings for a group.  Accepts 4 parameters: the group in the mappings, the type of the entity of the mappings being removed, the entities in the mappings, and the number of entities in the mappings.</param>
+            public new void RemoveEntityType(String entityType, Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction, Action<TGroup, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction)
+            {
+                base.RemoveEntityType(entityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
+            }
+
+            /// <summary>
+            /// Removes an entity.
+            /// </summary>
+            /// <param name="entityType">The type of the entity.</param>
+            /// <param name="entity">The entity to remove.</param>
+            /// <param name="userToEntityMappingPostRemovalAction">An action which is invoked after removing a user to entity mapping.  Accepts 3 parameters: the user in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
+            /// <param name="groupToEntityMappingPostRemovalAction">An action which is invoked after removing a group to entity mapping.  Accepts 3 parameters: the group in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
+            public new void RemoveEntity(String entityType, String entity, Action<TUser, String, String> userToEntityMappingPostRemovalAction, Action<TGroup, String, String> groupToEntityMappingPostRemovalAction)
+            {
+                base.RemoveEntity(entityType, entity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
             }
         }
 

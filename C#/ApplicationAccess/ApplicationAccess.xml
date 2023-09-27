@@ -834,62 +834,43 @@
             <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.Clear">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddLeafVertex(`0)">
-            <summary>
-            Adds a leaf vertex to the graph.
-            </summary>
-            <param name="leafVertex">The leaf vertex to add.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveLeafVertex(`0)">
-            <summary>
-            Removes a leaf vertex from the graph.
-            </summary>
-            <param name="leafVertex">The leaf vertex to remove.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddNonLeafVertex(`1)">
-            <summary>
-            Adds a non-leaf vertex to the graph.
-            </summary>
-            <param name="nonLeafVertex">The non-leaf vertex to add.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveNonLeafVertex(`1)">
-            <summary>
-            Removes a non-leaf vertex from the graph.
-            </summary>
-            <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddLeafToNonLeafEdge(`0,`1)">
-            <summary>
-            Adds an edge to the graph between the specified leaf and non-leaf vertices.
-            </summary>
-            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
-            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveLeafToNonLeafEdge(`0,`1)">
-            <summary>
-            Removes the edge from the graph between the specified leaf and non-leaf vertices.
-            </summary>
-            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
-            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddNonLeafToNonLeafEdge(`1,`1)">
-            <summary>
-            Adds an edge to the graph between the specified non-leaf and non-leaf vertices.
-            </summary>
-            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
-            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.RemoveNonLeafToNonLeafEdge(`1,`1)">
-            <summary>
-            Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
-            </summary>
-            <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
-            <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.InitializeLockObjects">
             <summary>
             Initializes the classes' lock objects and dependencies.
             </summary>
+        </member>
+        <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.Clear(System.Action{System.Action})">
+            <summary>
+            Removes all vertices and edges from the graph.
+            </summary>
+            <param name="wrappingAction">An action which wraps the operation to clear the graph, allowing arbitrary code to be run before and/or after clearing the graph, but whilst any mutual-exclusion locks are still acquired.  Accepts 1 parameters: the action which actually clears the graph.</param>
         </member>
         <member name="M:ApplicationAccess.ConcurrentDirectedGraph`2.AddLeafVertex(`0,System.Action{`0,System.Action})">
             <summary>
@@ -1022,6 +1003,9 @@
         <member name="F:ApplicationAccess.DependencyFreeAccessManager`4.eventProcessor">
             <summary>The event processor to pass any depended-on/prepended events to.</summary>
         </member>
+        <member name="F:ApplicationAccess.DependencyFreeAccessManager`4.thrownIdempotencyExceptions">
+            <summary>Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</summary>
+        </member>
         <member name="P:ApplicationAccess.DependencyFreeAccessManager`4.EventProcessor">
             <summary>
             The event processor to pass any depended-on/prepended events to.
@@ -1032,7 +1016,7 @@
             Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
             </summary>
             <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+            <remarks>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ConcurrentDirectedGraph{`0,`1},System.Boolean)">
             <summary>
@@ -1040,14 +1024,27 @@
             </summary>
             <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
             <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+            <remarks>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean)">
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ConcurrentDirectedGraph{`0,`1},System.Boolean,System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
+            </summary>
+            <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="thrownIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
+            <remarks>
+              <para>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</para>
+              <para>Setting parameter <paramref name="thrownIdempotencyExceptions"/> to true provides a mechanism for classes which subclass or compose this class to detect when an Add* or Remove* event method is called idempotently, and adjust their logic accordingly.  For example, a metric logging subclass of this class would set the parameter to true, and cancel and metric logging if and idempotent operation exception was caught.</para>
+            </remarks>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean,System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
             </summary>
             <param name="collectionFactory">A mock collection factory.</param>
             <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="thrownIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUser(`0,System.Action{`0,System.Action})">
@@ -1092,10 +1089,17 @@
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveEntityType(System.String,System.Action{System.String,System.Action})">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveEntityType(System.String,System.Action{`0,System.String,System.Collections.Generic.IEnumerable{System.String},System.Int32},System.Action{`1,System.String,System.Collections.Generic.IEnumerable{System.String},System.Int32})">
+            <inheritdoc/>
+            <remarks>This must be called with locks provided by base <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> class set, e.g. via the <see cref="M:ApplicationAccess.ConcurrentAccessManager`4.RemoveEntityType(System.String,System.Action{System.String,System.Action})"/> method.</remarks>
+        </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddEntity(System.String,System.String,System.Action{System.String,System.String,System.Action})">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveEntity(System.String,System.String,System.Action{System.String,System.String,System.Action})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.RemoveEntity(System.String,System.String,System.Action{`0,System.String,System.String},System.Action{`1,System.String,System.String})">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUserToEntityMapping(`0,System.String,System.String,System.Action{`0,System.String,System.String,System.Action})">
@@ -1779,6 +1783,38 @@
             </summary>
             <typeparam name="T">The type of elements in the set.</typeparam>
             <returns>The ISet instance</returns>
+        </member>
+        <member name="T:ApplicationAccess.IdempotentAddOperationException">
+            <summary>
+            The exception that is thrown when an 'Add' operation or event is idempotent (i.e. does not change the object its applied to or raised against).
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.IdempotentAddOperationException.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.IdempotentAddOperationException class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.IdempotentAddOperationException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.IdempotentAddOperationException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="T:ApplicationAccess.IdempotentRemoveOperationException">
+            <summary>
+            The exception that is thrown when a 'Remove' operation or event is idempotent (i.e. does not change the object its applied to or raised against).
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.IdempotentRemoveOperationException.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.IdempotentRemoveOperationException class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.IdempotentRemoveOperationException.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.IdempotentRemoveOperationException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
         </member>
         <member name="T:ApplicationAccess.IUniqueStringifier`1">
             <summary>

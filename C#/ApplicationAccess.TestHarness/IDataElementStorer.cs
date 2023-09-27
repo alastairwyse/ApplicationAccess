@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -66,5 +67,11 @@ namespace ApplicationAccess.TestHarness
         Tuple<TUser, String, String> GetRandomUserToEntityMapping();
 
         Tuple<TGroup, String, String> GetRandomGroupToEntityMapping();
+
+        IEnumerable<TUser> GetUnmappedUsers();
+
+        IEnumerable<TGroup> GetUnmappedGroups();
+
+        IEnumerable<Tuple<String, String>> GetUnmappedEntities();
     }
 }

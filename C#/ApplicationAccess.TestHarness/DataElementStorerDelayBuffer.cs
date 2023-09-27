@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ApplicationAccess.TestHarness
 {
@@ -311,6 +312,21 @@ namespace ApplicationAccess.TestHarness
         public Tuple<TGroup, String, String> GetRandomGroupToEntityMapping()
         {
             return underlyingStorer.GetRandomGroupToEntityMapping();
+        }
+
+        public IEnumerable<TUser> GetUnmappedUsers()
+        {
+            return underlyingStorer.GetUnmappedUsers();
+        }
+
+        public IEnumerable<TGroup> GetUnmappedGroups()
+        {
+            return underlyingStorer.GetUnmappedGroups();
+        }
+
+        public IEnumerable<Tuple<String, String>> GetUnmappedEntities()
+        {
+            return underlyingStorer.GetUnmappedEntities();
         }
 
         #region Nested Classes

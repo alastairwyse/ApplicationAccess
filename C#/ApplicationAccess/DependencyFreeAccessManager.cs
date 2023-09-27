@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace ApplicationAccess
 {
@@ -67,10 +68,15 @@ namespace ApplicationAccess
          *   2) Try to always invoke the 'baseAction' action to implement the actual underlying work... better to reuse base class functionality as much as possible (primary add methods are a case where we cannot invoke 'baseAction' as described above)
          *     This is particularly important for primary reomve methods where the base class methods do cleanup of any dependent elements
          *   3) In all pretected methods overloads, the 'wrappingAction' should be invoked.  If it's not, functionality decorated by subclasses (e.g. metric logging) or by the method with the 'postProcessingAction' will not be run.
+         *   4) If member thrownIdempotencyExceptions is set true, idempotent Add* methods will throw IdempotentAddOperationException and Remove* methods will throw IdempotentRemoveOperationException.  As per constructor comments, this is so that 
+         *        subclasses or composing classes have a way of knowing that the operation was idempotent... specifically this is used in MetricLoggingDependencyFreeAccessManager to cancel any metric logging when an operation is idempotent.  Without
+         *        this mechanism MetricLoggingDependencyFreeAccessManager would have no way of knowing that an operation was idempotent, and would log metrics when the event the metric relates to didn't ossur.
          */
 
         /// <summary>The event processor to pass any depended-on/prepended events to.</summary>
         protected IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> eventProcessor;
+        /// <summary>Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</summary>
+        protected Boolean thrownIdempotencyExceptions = true;
 
         /// <summary>
         /// The event processor to pass any depended-on/prepended events to.
@@ -90,11 +96,12 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
         /// </summary>
         /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        /// <remarks>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public DependencyFreeAccessManager(Boolean storeBidirectionalMappings)
             : base(storeBidirectionalMappings)
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
+            thrownIdempotencyExceptions = false;
         }
 
         /// <summary>
@@ -102,11 +109,29 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
         /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        /// <remarks>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public DependencyFreeAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph, Boolean storeBidirectionalMappings)
             : base(concurrentDirectedGraph, storeBidirectionalMappings)
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
+            thrownIdempotencyExceptions = false;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
+        /// </summary>
+        /// <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+        /// <param name="thrownIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
+        /// <remarks>
+        ///   <para>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</para>
+        ///   <para>Setting parameter <paramref name="thrownIdempotencyExceptions"/> to true provides a mechanism for classes which subclass or compose this class to detect when an Add* or Remove* event method is called idempotently, and adjust their logic accordingly.  For example, a metric logging subclass of this class would set the parameter to true, and cancel and metric logging if and idempotent operation exception was caught.</para>
+        /// </remarks>
+        protected DependencyFreeAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph, Boolean storeBidirectionalMappings, Boolean thrownIdempotencyExceptions)
+            : base(concurrentDirectedGraph, storeBidirectionalMappings)
+        {
+            eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
+            this.thrownIdempotencyExceptions = thrownIdempotencyExceptions;
         }
 
         /// <summary>
@@ -114,11 +139,13 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="collectionFactory">A mock collection factory.</param>
         /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+        /// <param name="thrownIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public DependencyFreeAccessManager(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings)
+        public DependencyFreeAccessManager(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings, Boolean thrownIdempotencyExceptions)
             : base(collectionFactory, storeBidirectionalMappings)
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
+            this.thrownIdempotencyExceptions = thrownIdempotencyExceptions;
         }
 
         #region Private/Protected Methods
@@ -147,6 +174,11 @@ namespace ApplicationAccess
                     {
                         baseAction.Invoke();
                     }
+                    else
+                    {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
+                    }
                 });
             };
             base.RemoveUser(user, idempotentRemoveAction);
@@ -173,6 +205,11 @@ namespace ApplicationAccess
                     {
                         baseAction.Invoke();
                     }
+                    else
+                    {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
+                    }
                 });
             };
             base.RemoveGroup(group, idempotentRemoveAction);
@@ -184,8 +221,21 @@ namespace ApplicationAccess
             Action<TUser, TGroup, Action> prependedAddAction = (actionUser, actionGroup, baseAction) =>
             {
                 // Generate any prepended events before invoking 'wrappingAction', e.g. so the prepended events are not included in metric timing
-                AddUser(actionUser, true);
-                AddGroup(actionGroup, true);
+                try 
+                { 
+                    AddUser(actionUser, true); 
+                }
+                catch (IdempotentAddOperationException) 
+                {
+                    // Ignore any idempotent operation exception for the prepended events
+                }
+                try 
+                { 
+                    AddGroup(actionGroup, true); 
+                } 
+                catch (IdempotentAddOperationException) 
+                {
+                }
                 wrappingAction.Invoke(actionUser, actionGroup, () =>
                 {
                     try
@@ -194,6 +244,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentAddOperationException();
                     }
                 });
             };
@@ -213,6 +265,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
                     }
                 });
             };
@@ -227,8 +281,20 @@ namespace ApplicationAccess
 
             Action<TGroup, TGroup, Action> prependedAddAction = (actionFromGroup, actionToGroup, baseAction) =>
             {
-                AddGroup(actionFromGroup, true);
-                AddGroup(actionToGroup, true);
+                try
+                {
+                    AddGroup(actionFromGroup, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
+                try
+                {
+                    AddGroup(actionToGroup, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
                 wrappingAction.Invoke(actionFromGroup, actionToGroup, () =>
                 {
                     try
@@ -239,6 +305,8 @@ namespace ApplicationAccess
                     }
                     catch (NonLeafToNonLeafEdgeAlreadyExistsException<TGroup>)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentAddOperationException();
                     }
                     catch (CircularReferenceException circularReferenceException)
                     {
@@ -262,6 +330,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
                     }
                 });
             };
@@ -273,7 +343,13 @@ namespace ApplicationAccess
         {
             Action<TUser, TComponent, TAccess, Action> prependedAddAction = (actionUser, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                AddUser(actionUser, true);
+                try
+                {
+                    AddUser(actionUser, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
                 wrappingAction.Invoke(actionUser, actionApplicationComponent, actionAccessLevel, () =>
                 {
                     try
@@ -282,6 +358,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentAddOperationException();
                     }
                 });
             };
@@ -301,6 +379,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
                     }
                 });
             };
@@ -310,10 +390,16 @@ namespace ApplicationAccess
         /// <inheritdoc/>
         protected override void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Action<TGroup, TComponent, TAccess, Action> wrappingAction)
         {
-            Action<TGroup, TComponent, TAccess, Action> prependedAddAction = (actioGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
+            Action<TGroup, TComponent, TAccess, Action> prependedAddAction = (actionGroup, actionApplicationComponent, actionAccessLevel, baseAction) =>
             {
-                AddGroup(actioGroup, true);
-                wrappingAction.Invoke(actioGroup, actionApplicationComponent, actionAccessLevel, () =>
+                try
+                {
+                    AddGroup(actionGroup, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
+                wrappingAction.Invoke(actionGroup, actionApplicationComponent, actionAccessLevel, () =>
                 {
                     try
                     {
@@ -321,6 +407,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentAddOperationException();
                     }
                 });
             };
@@ -340,6 +428,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
                     }
                 });
             };
@@ -367,9 +457,29 @@ namespace ApplicationAccess
                     {
                         baseAction.Invoke();
                     }
+                    else
+                    {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
+                    }
                 });
             };
             base.RemoveEntityType(entityType, idempotentRemoveAction);
+        }
+
+        /// <inheritdoc/>
+        /// <remarks>This must be called with locks provided by base <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> class set, e.g. via the <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}.RemoveEntityType(string, Action{string, Action})"/> method.</remarks>
+        protected override void RemoveEntityType(String entityType, Action<TUser, String, IEnumerable<String>, Int32> userToEntityTypeMappingPreRemovalAction, Action<TGroup, String, IEnumerable<String>, Int32> groupToEntityTypeMappingPreRemovalAction)
+        {
+            if (entities.ContainsKey(entityType) == true)
+            {
+                base.RemoveEntityType(entityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
+            }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentRemoveOperationException();
+            }
         }
 
         /// <inheritdoc/>
@@ -377,8 +487,25 @@ namespace ApplicationAccess
         {
             Action<String, String, Action> idempotentAddAction = (actionEntityType, actionEntity, baseAction) =>
             {
-                AddEntityType(actionEntityType, true);
-                wrappingAction.Invoke(actionEntityType, actionEntity, () => { AddEntity(actionEntityType, actionEntity, false); });
+                try
+                {
+                    AddEntityType(actionEntityType, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
+                wrappingAction.Invoke(actionEntityType, actionEntity, () => 
+                { 
+                    try
+                    {
+                        AddEntity(actionEntityType, actionEntity, false);
+                    }
+                    catch (IdempotentAddOperationException)
+                    {
+                        if (thrownIdempotencyExceptions == true)
+                            throw;
+                    }
+                });
             };
             base.AddEntity(entityType, entity, idempotentAddAction);
         }
@@ -394,9 +521,28 @@ namespace ApplicationAccess
                     {
                         baseAction.Invoke();
                     }
+                    else
+                    {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
+                    }
                 });
             };
             base.RemoveEntity(entityType, entity, idempotentRemoveAction);
+        }
+
+        /// <inheritdoc/>
+        protected override void RemoveEntity(String entityType, String entity, Action<TUser, String, String> userToEntityMappingPostRemovalAction, Action<TGroup, String, String> groupToEntityMappingPostRemovalAction)
+        {
+            if (entities.ContainsKey(entityType) == true && entities[entityType].Contains(entity) == true)
+            {
+                base.RemoveEntity(entityType, entity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
+            }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentRemoveOperationException();
+            }
         }
 
         /// <inheritdoc/>
@@ -404,8 +550,20 @@ namespace ApplicationAccess
         {
             Action<TUser, String, String, Action> prependedAddAction = (actionUser, actionEntityType, actionEntity, baseAction) =>
             {
-                AddUser(actionUser, true);
-                AddEntity(actionEntityType, actionEntity, true);
+                try
+                {
+                    AddUser(actionUser, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
+                try
+                {
+                    AddEntity(actionEntityType, actionEntity, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
                 wrappingAction.Invoke(actionUser, actionEntityType, actionEntity, () =>
                 {
                     try
@@ -414,6 +572,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentAddOperationException();
                     }
                 });
             };
@@ -433,6 +593,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
                     }
                 });
             };
@@ -444,8 +606,20 @@ namespace ApplicationAccess
         {
             Action<TGroup, String, String, Action> prependedAddAction = (actionGroup, actionEntityType, actionEntity, baseAction) =>
             {
-                AddGroup(actionGroup, true);
-                AddEntity(actionEntityType, actionEntity, true);
+                try
+                {
+                    AddGroup(actionGroup, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
+                try
+                {
+                    AddEntity(actionEntityType, actionEntity, true);
+                }
+                catch (IdempotentAddOperationException)
+                {
+                }
                 wrappingAction.Invoke(actionGroup, actionEntityType, actionEntity, () =>
                 {
                     try
@@ -454,6 +628,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentAddOperationException();
                     }
                 });
             };
@@ -473,6 +649,8 @@ namespace ApplicationAccess
                     }
                     catch (ArgumentException)
                     {
+                        if (thrownIdempotencyExceptions == true)
+                            throw new IdempotentRemoveOperationException();
                     }
                 });
             };
@@ -488,7 +666,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="user">The user to add.</param>
         /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
-        protected void AddUser(TUser user, Boolean generateEvent)
+        protected virtual void AddUser(TUser user, Boolean generateEvent)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
             {
@@ -498,6 +676,11 @@ namespace ApplicationAccess
                     eventProcessor.AddUser(user);
                 }
             }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentAddOperationException();
+            }
         }
 
         /// <summary>
@@ -505,7 +688,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="group">The group to add.</param>
         /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
-        protected void AddGroup(TGroup group, Boolean generateEvent)
+        protected virtual void AddGroup(TGroup group, Boolean generateEvent)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
             {
@@ -515,6 +698,11 @@ namespace ApplicationAccess
                     eventProcessor.AddGroup(group);
                 }
             }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentAddOperationException();
+            }
         }
 
         /// <summary>
@@ -522,7 +710,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="entityType">The entity type to add.</param>
         /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
-        protected void AddEntityType(String entityType, Boolean generateEvent)
+        protected virtual void AddEntityType(String entityType, Boolean generateEvent)
         {
             if (entities.ContainsKey(entityType) == false)
             {
@@ -532,6 +720,11 @@ namespace ApplicationAccess
                     eventProcessor.AddEntityType(entityType);
                 }
             }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentAddOperationException();
+            }
         }
 
         /// <summary>
@@ -540,9 +733,15 @@ namespace ApplicationAccess
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity to add.</param>
         /// <param name="generateEvent">Whether to write an event to the 'eventProcessor' member.</param>
-        protected void AddEntity(String entityType, String entity, Boolean generateEvent)
+        protected virtual void AddEntity(String entityType, String entity, Boolean generateEvent)
         {
-            AddEntityType(entityType, generateEvent);
+            try
+            {
+                AddEntityType(entityType, generateEvent);
+            }
+            catch (IdempotentAddOperationException)
+            {
+            }
             if (entities[entityType].Contains(entity) == false)
             {
                 entities[entityType].Add(entity);
@@ -550,6 +749,11 @@ namespace ApplicationAccess
                 {
                     eventProcessor.AddEntity(entityType, entity);
                 }
+            }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentAddOperationException();
             }
         }
 

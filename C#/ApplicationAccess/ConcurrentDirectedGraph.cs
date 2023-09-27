@@ -83,10 +83,17 @@ namespace ApplicationAccess
             InitializeLockObjects();
         }
 
-        /// <summary>
-        /// Adds a leaf vertex to the graph.
-        /// </summary>
-        /// <param name="leafVertex">The leaf vertex to add.</param>
+        /// <inheritdoc/>
+        public override void Clear()
+        {
+            Action<Action> wrappingAction = (baseAction) =>
+            {
+                baseAction.Invoke();
+            };
+            this.Clear(wrappingAction);
+        }
+
+        /// <inheritdoc/>
         public override void AddLeafVertex(TLeaf leafVertex)
         {
             Action<TLeaf, Action> wrappingAction = (actionLeaf, baseAction) =>
@@ -96,10 +103,7 @@ namespace ApplicationAccess
             this.AddLeafVertex(leafVertex, wrappingAction);
         }
 
-        /// <summary>
-        /// Removes a leaf vertex from the graph.
-        /// </summary>
-        /// <param name="leafVertex">The leaf vertex to remove.</param>
+        /// <inheritdoc/>
         public override void RemoveLeafVertex(TLeaf leafVertex)
         {
             Action<TLeaf, Action> wrappingAction = (actionLeaf, baseAction) =>
@@ -109,10 +113,7 @@ namespace ApplicationAccess
             this.RemoveLeafVertex(leafVertex, wrappingAction);
         }
 
-        /// <summary>
-        /// Adds a non-leaf vertex to the graph.
-        /// </summary>
-        /// <param name="nonLeafVertex">The non-leaf vertex to add.</param>
+        /// <inheritdoc/>
         public override void AddNonLeafVertex(TNonLeaf nonLeafVertex)
         {
             Action<TNonLeaf, Action> wrappingAction = (actionNonLeafVertex, baseAction) =>
@@ -122,10 +123,7 @@ namespace ApplicationAccess
             this.AddNonLeafVertex(nonLeafVertex, wrappingAction);
         }
 
-        /// <summary>
-        /// Removes a non-leaf vertex from the graph.
-        /// </summary>
-        /// <param name="nonLeafVertex">The non-leaf vertex to remove.</param>
+        /// <inheritdoc/>
         public override void RemoveNonLeafVertex(TNonLeaf nonLeafVertex)
         {
             Action<TNonLeaf, Action> wrappingAction = (actionNonLeafVertex, baseAction) =>
@@ -135,11 +133,7 @@ namespace ApplicationAccess
             this.RemoveNonLeafVertex(nonLeafVertex, wrappingAction);
         }
 
-        /// <summary>
-        /// Adds an edge to the graph between the specified leaf and non-leaf vertices.
-        /// </summary>
-        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
-        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        /// <inheritdoc/>
         public override void AddLeafToNonLeafEdge(TLeaf fromVertex, TNonLeaf toVertex)
         {
             Action<TLeaf, TNonLeaf, Action> wrappingAction = (actionFromVertex, actiontTVertex, baseAction) =>
@@ -149,11 +143,7 @@ namespace ApplicationAccess
             this.AddLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
 
-        /// <summary>
-        /// Removes the edge from the graph between the specified leaf and non-leaf vertices.
-        /// </summary>
-        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
-        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        /// <inheritdoc/>
         public override void RemoveLeafToNonLeafEdge(TLeaf fromVertex, TNonLeaf toVertex)
         {
             Action<TLeaf, TNonLeaf, Action> wrappingAction = (actionFromVertex, actiontTVertex, baseAction) =>
@@ -163,11 +153,7 @@ namespace ApplicationAccess
             this.RemoveLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
 
-        /// <summary>
-        /// Adds an edge to the graph between the specified non-leaf and non-leaf vertices.
-        /// </summary>
-        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
-        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        /// <inheritdoc/>
         public override void AddNonLeafToNonLeafEdge(TNonLeaf fromVertex, TNonLeaf toVertex)
         {
             Action<TNonLeaf, TNonLeaf, Action> wrappingAction = (actionFromVertex, actiontTVertex, baseAction) =>
@@ -177,11 +163,7 @@ namespace ApplicationAccess
             this.AddNonLeafToNonLeafEdge(fromVertex, toVertex, wrappingAction);
         }
 
-        /// <summary>
-        /// Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
-        /// </summary>
-        /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
-        /// <param name="toVertex">The vertex which is the 'to' vertex of the edge connects.</param>
+        /// <inheritdoc/>
         public override void RemoveNonLeafToNonLeafEdge(TNonLeaf fromVertex, TNonLeaf toVertex)
         {
             Action<TNonLeaf, TNonLeaf, Action> wrappingAction = (actionFromVertex, actiontTVertex, baseAction) =>
@@ -209,6 +191,26 @@ namespace ApplicationAccess
             lockManager.RegisterLockObjectDependency(leafToNonLeafEdgesLock, leafVerticesLock);
             lockManager.RegisterLockObjectDependency(leafToNonLeafEdgesLock, nonLeafVerticesLock);
             lockManager.RegisterLockObjectDependency(nonLeafToNonLeafEdgesLock, nonLeafVerticesLock);
+        }
+
+        /// <summary>
+        /// Removes all vertices and edges from the graph.
+        /// </summary>
+        /// <param name="wrappingAction">An action which wraps the operation to clear the graph, allowing arbitrary code to be run before and/or after clearing the graph, but whilst any mutual-exclusion locks are still acquired.  Accepts 1 parameters: the action which actually clears the graph.</param>
+        public void Clear(Action<Action> wrappingAction)
+        {
+            Action baseAction = () =>
+            {
+                wrappingAction.Invoke(() => { base.Clear(); });
+            };
+            if (acquireLocks == false)
+            {
+                baseAction.Invoke();
+            }
+            else
+            {
+                lockManager.AcquireAllLocksAndInvokeAction(baseAction);
+            }
         }
 
         /// <summary>

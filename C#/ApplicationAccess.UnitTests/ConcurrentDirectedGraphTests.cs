@@ -114,6 +114,39 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void Clear_LocksAreSet()
+        {
+            mockSet.When(mockSet => mockSet.Clear()).Do(callInfo =>
+            {
+                Assert.IsTrue(Monitor.IsEntered(testConcurrentDirectedGraph.LeafVerticesLock));
+                Assert.IsTrue(Monitor.IsEntered(testConcurrentDirectedGraph.NonLeafVerticesLock));
+                Assert.IsTrue(Monitor.IsEntered(testConcurrentDirectedGraph.LeafToNonLeafEdgesLock));
+                Assert.IsTrue(Monitor.IsEntered(testConcurrentDirectedGraph.NonLeafToNonLeafEdgesLock));
+            });
+
+            testConcurrentDirectedGraph.Clear();
+
+            mockSet.Received(2).Clear();
+        }
+
+        [Test]
+        public void Clear_AcquireLockFalseLocksNotSet()
+        {
+            testConcurrentDirectedGraph = new ConcurrentDirectedGraphWithProtectedMembers<String, String>(mockCollectionFactory, false, false);
+            mockSet.When(mockSet => mockSet.Clear()).Do(callInfo =>
+            {
+                Assert.IsFalse(Monitor.IsEntered(testConcurrentDirectedGraph.LeafVerticesLock));
+                Assert.IsFalse(Monitor.IsEntered(testConcurrentDirectedGraph.NonLeafVerticesLock));
+                Assert.IsFalse(Monitor.IsEntered(testConcurrentDirectedGraph.LeafToNonLeafEdgesLock));
+                Assert.IsFalse(Monitor.IsEntered(testConcurrentDirectedGraph.NonLeafToNonLeafEdgesLock));
+            });
+
+            testConcurrentDirectedGraph.Clear();
+
+            mockSet.Received(2).Clear();
+        }
+
+        [Test]
         public void RemoveLeafVertex_LocksAreSet()
         {
             String testPerson = "Per1";

@@ -700,10 +700,43 @@ namespace ApplicationAccess.TestHarness
                         stopNotifySignal.Dispose();
                         Console.WriteLine("Flushing log4net logs...");
                         LogManager.Flush(10000);
+                        if (testHarnessConfiguration.GeneratePrimaryAddOperations == false)
+                        {
+                            // PrintUnmappedPrimaryElementCounts(dataElementStorer);
+                        }
+
                         Console.WriteLine("Testing Complete");
                     }
                 }
             }
+        }
+
+        protected static void PrintUnmappedPrimaryElementCounts(IDataElementStorer<String, String, TestApplicationComponent, TestAccessLevel> dataElementStorer)
+        {
+            Console.WriteLine("User count: " + dataElementStorer.UserCount);
+            Console.WriteLine("Unmapped user count: " + dataElementStorer.GetUnmappedUsers().Count());
+            foreach (String currentUnmappedUser in dataElementStorer.GetUnmappedUsers().OrderBy((user) => { return user; }))
+            {
+                Console.WriteLine(currentUnmappedUser);
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("Group count: " + dataElementStorer.GroupCount);
+            Console.WriteLine("Unmapped group count: " + dataElementStorer.GetUnmappedGroups().Count());
+            foreach (String currentUnmappedGroup in dataElementStorer.GetUnmappedGroups().OrderBy((group) => { return group; }))
+            {
+                Console.WriteLine(currentUnmappedGroup);
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("EntityType count: " + dataElementStorer.EntityTypeCount);
+            Console.WriteLine("Entity count: " + dataElementStorer.EntityCount);
+            Console.WriteLine("Unmapped entity count: " + dataElementStorer.GetUnmappedEntities().Count());
+            foreach (Tuple<String, String> currentUnmappedEntity in dataElementStorer.GetUnmappedEntities().OrderBy((entityAndType) => { return entityAndType.Item1 + entityAndType.Item2; }))
+            {
+                Console.WriteLine($"{currentUnmappedEntity.Item1}, {currentUnmappedEntity.Item2}");
+            }
+            Console.WriteLine();
         }
     }
 }

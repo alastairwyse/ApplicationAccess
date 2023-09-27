@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ApplicationAccess.Utilities;
 
@@ -822,6 +823,135 @@ namespace ApplicationAccess.TestHarness
             }));
 
             return returnTuple;
+        }
+
+        public IEnumerable<TUser> GetUnmappedUsers()
+        {
+            var unmappedUsers = new HashSet<TUser>();
+            foreach (TUser currentUser in users)
+            {
+                unmappedUsers.Add(currentUser);
+            }
+            foreach(KeyValuePair<TUser, RandomlyAccessibleSet<TGroup>> currentKvp in userToGroupMap)
+            {
+                if (currentKvp.Value.Count > 0 && unmappedUsers.Contains(currentKvp.Key))
+                {
+                    unmappedUsers.Remove(currentKvp.Key);
+                }
+            }
+            foreach (KeyValuePair<TUser, RandomlyAccessibleSet<Tuple<TComponent, TAccess>>> currentKvp in userToComponentMap)
+            {
+                if (currentKvp.Value.Count > 0 && unmappedUsers.Contains(currentKvp.Key))
+                {
+                    unmappedUsers.Remove(currentKvp.Key);
+                }
+            }
+            foreach (KeyValuePair<TUser, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> currentKvp in userToEntityMap)
+            {
+                foreach (KeyValuePair<String, RandomlyAccessibleSet<String>> currentEntityType in currentKvp.Value)
+                {
+                    if (currentEntityType.Value.Count > 0 && unmappedUsers.Contains(currentKvp.Key))
+                    {
+                        unmappedUsers.Remove(currentKvp.Key);
+                        break;
+                    }
+                }
+            }
+
+            return unmappedUsers;
+        }
+
+        public IEnumerable<TGroup> GetUnmappedGroups()
+        {
+            var unmappedGroups = new HashSet<TGroup>();
+            foreach (TGroup currentGroup in groups)
+            {
+                unmappedGroups.Add(currentGroup);
+            }
+            foreach (KeyValuePair<TGroup, RandomlyAccessibleSet<TGroup>> currentKvp in groupToGroupMap)
+            {
+                if (currentKvp.Value.Count > 0 && unmappedGroups.Contains(currentKvp.Key))
+                {
+                    unmappedGroups.Remove(currentKvp.Key);
+                }
+                foreach (TGroup currentToGroup in currentKvp.Value)
+                {
+                    if (unmappedGroups.Contains(currentToGroup))
+                    {
+                        unmappedGroups.Remove(currentToGroup);
+                    }
+                }
+            }
+            foreach (KeyValuePair<TUser, RandomlyAccessibleSet<TGroup>> currentKvp in userToGroupMap)
+            {
+                foreach (TGroup currentGroup in currentKvp.Value)
+                {
+                    if (unmappedGroups.Contains(currentGroup))
+                    {
+                        unmappedGroups.Remove(currentGroup);
+                    }
+                }
+            }
+            foreach (KeyValuePair<TGroup, RandomlyAccessibleSet<Tuple<TComponent, TAccess>>> currentKvp in groupToComponentMap)
+            {
+                if (currentKvp.Value.Count > 0 && unmappedGroups.Contains(currentKvp.Key))
+                {
+                    unmappedGroups.Remove(currentKvp.Key);
+                }
+            }
+            foreach (KeyValuePair<TGroup, RandomlyAccessibleDictionary<String, RandomlyAccessibleSet<String>>> currentKvp in groupToEntityMap)
+            {
+                foreach (KeyValuePair<String, RandomlyAccessibleSet<String>> currentEntityType in currentKvp.Value)
+                {
+                    if (currentEntityType.Value.Count > 0 && unmappedGroups.Contains(currentKvp.Key))
+                    {
+                        unmappedGroups.Remove(currentKvp.Key);
+                        break;
+                    }
+                }
+            }
+
+            return unmappedGroups;
+        }
+
+        public IEnumerable<Tuple<String, String>> GetUnmappedEntities()
+        {
+            var unmappedEntities = new HashSet<Tuple<String, String>>();
+            foreach (KeyValuePair<String, RandomlyAccessibleSet<String>> currentKvp in entities)
+            {
+                foreach (String currentEntity in currentKvp.Value)
+                {
+                    unmappedEntities.Add(new Tuple<String, String>(currentKvp.Key, currentEntity));
+                }
+            }
+            foreach (KeyValuePair<String, Dictionary<String, HashSet<TUser>>> currentKvp in userToEntityReverseMap)
+            {
+                foreach (KeyValuePair<String, HashSet<TUser>> currentEntityToUserMap in currentKvp.Value)
+                {
+                    if (unmappedEntities.Contains(new Tuple<String, String>(currentKvp.Key, currentEntityToUserMap.Key)))
+                    {
+                        if (currentEntityToUserMap.Value.Count > 0)
+                        {
+                            unmappedEntities.Remove(new Tuple<String, String>(currentKvp.Key, currentEntityToUserMap.Key));
+                        }
+                    }
+                }
+            }
+            foreach (KeyValuePair<String, Dictionary<String, HashSet<TGroup>>> currentKvp in groupToEntityReverseMap)
+            {
+                foreach (KeyValuePair<String, HashSet<TGroup>> currentEntityToGroupMap in currentKvp.Value)
+                {
+                    if (unmappedEntities.Contains(new Tuple<String, String>(currentKvp.Key, currentEntityToGroupMap.Key)))
+                    {
+                        if (currentEntityToGroupMap.Value.Count > 0)
+                        {
+                            unmappedEntities.Remove(new Tuple<String, String>(currentKvp.Key, currentEntityToGroupMap.Key));
+                        }
+                    }
+                }
+            }
+
+            return unmappedEntities;
         }
 
         #region Private/Protected Methods

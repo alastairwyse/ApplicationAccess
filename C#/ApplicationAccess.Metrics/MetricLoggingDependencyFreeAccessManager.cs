@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 
@@ -66,7 +67,7 @@ namespace ApplicationAccess.Metrics
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public MetricLoggingDependencyFreeAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
-            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, false, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings)
+            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, false, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings, true)
         {
             // Casting should never fail, since we just newed the 'userToGroupMap' and 'MetricLogger' properties to these types.
             //   TODO: Find a cleaner way to do this... ideally don't want to expose the 'MetricLoggingConcurrentDirectedGraph.MetricLogger' property at all.
@@ -214,10 +215,12 @@ namespace ApplicationAccess.Metrics
             mappingMetricLogger.AddStatusMetricMapping(typeof(NonLeafToNonLeafEdgesStored), new GroupToGroupMappingsStored());
         }
 
+        #region Base Class Methods with 'wrappingAction' Parameter Overrides
+
         /// <inheritdoc/>
         protected override void Clear(Action<Action> wrappingAction)
         {
-            Action<Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateClearMetricLoggingWrappingAction(wrappingAction);
+            Action<Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateClearMetricLoggingWrappingAction(wrappingAction, entities);
             base.Clear(metricLoggingWrappingAction);
         }
 
@@ -360,6 +363,137 @@ namespace ApplicationAccess.Metrics
             Action<TGroup, String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateRemoveGroupToEntityMappingMetricLoggingWrappingAction(group, entityType, entity, wrappingAction);
             base.RemoveGroupToEntityMapping(group, entityType, entity, metricLoggingWrappingAction);
         }
+
+        #endregion
+
+        #region Idempotent 'Add' Method Overrides for Primary Elements
+
+        /// <inheritdoc/>
+        protected override void AddUser(TUser user, Boolean generateEvent)
+        {
+            if (userToGroupMap.ContainsLeafVertex(user) == false)
+            {
+                // Parameter 'generateEvent' is only set true when these methods are called as a prepending for a secondary Add*() event
+                //   so we onyl log metrics when the prepended element doesn't already exist AND when this is called as part of prepending.
+                //   We don't log metrics when this is called as part of a non-prepended event, since that metric logging is done already 
+                //   in the 'wrappingAction' parameter overload of this method (which itself calls this method).
+                if (generateEvent == true)
+                {
+                    Action<TUser, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddUserMetricLoggingWrappingAction(user, (TUser wrappingActionUser, Action wrappingActionBaseAction) => { wrappingActionBaseAction.Invoke(); });
+                    metricLoggingWrappingAction.Invoke(user, () => { userToGroupMap.AddLeafVertex(user); });
+                }
+                else
+                {
+                    userToGroupMap.AddLeafVertex(user);
+                }
+                if (generateEvent == true)
+                {
+                    eventProcessor.AddUser(user);
+                }
+            }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentAddOperationException();
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void AddGroup(TGroup group, Boolean generateEvent)
+        {
+            if (userToGroupMap.ContainsNonLeafVertex(group) == false)
+            {
+                if (generateEvent == true)
+                {
+                    Action<TGroup, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddGroupMetricLoggingWrappingAction(group, (TGroup wrappingActionGroup, Action wrappingActionBaseAction) => { wrappingActionBaseAction.Invoke(); });
+                    metricLoggingWrappingAction.Invoke(group, () => { userToGroupMap.AddNonLeafVertex(group); });
+                }
+                else
+                {
+                    userToGroupMap.AddNonLeafVertex(group);
+                }
+                if (generateEvent == true)
+                {
+                    eventProcessor.AddGroup(group);
+                }
+            }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentAddOperationException();
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void AddEntityType(String entityType, Boolean generateEvent)
+        {
+            if (entities.ContainsKey(entityType) == false)
+            {
+                if (generateEvent == true)
+                {
+                    Action<String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddEntityTypeMetricLoggingWrappingAction
+                    (
+                        entityType,
+                        (String wrappingActionEntityType, Action wrappingActionBaseAction) => { wrappingActionBaseAction.Invoke(); },
+                        entities
+                    );
+                    metricLoggingWrappingAction.Invoke(entityType, () => { entities.Add(entityType, collectionFactory.GetSetInstance<String>()); });
+                }
+                else
+                {
+                    entities.Add(entityType, collectionFactory.GetSetInstance<String>());
+                }
+                if (generateEvent == true)
+                {
+                    eventProcessor.AddEntityType(entityType);
+                }
+            }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentAddOperationException();
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void AddEntity(String entityType, String entity, Boolean generateEvent)
+        {
+            try
+            {
+                AddEntityType(entityType, generateEvent);
+            }
+            catch (IdempotentAddOperationException)
+            {
+            }
+            if (entities[entityType].Contains(entity) == false)
+            {
+                if (generateEvent == true)
+                {
+                    Action<String, String, Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateAddEntityMetricLoggingWrappingAction
+                    (
+                        entityType,
+                        entity,
+                        (String wrappingActionEntityType, String wrappingActionEntity, Action wrappingActionBaseAction) => { wrappingActionBaseAction.Invoke(); }
+                    );
+                    metricLoggingWrappingAction.Invoke(entityType, entity, () => { entities[entityType].Add(entity); });
+                }
+                else
+                {
+                    entities[entityType].Add(entity);
+                }
+                if (generateEvent == true)
+                {
+                    eventProcessor.AddEntity(entityType, entity);
+                }
+            }
+            else
+            {
+                if (thrownIdempotencyExceptions == true)
+                    throw new IdempotentAddOperationException();
+            }
+        }
+
+        #endregion
 
         #endregion
     }

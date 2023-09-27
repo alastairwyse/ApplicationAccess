@@ -80,8 +80,8 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
                 // Setup TripSwitchMiddleware to trip on encounterting a BufferFlushingException
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
                 // Optionally setup file logging
-                //LogFilePath = @"C:\Temp", 
-                //LogFileNamePrefix = "ApplicationAccessReaderWriterNodeLog"
+                LogFilePath = @"C:\Temp\AppAccess\TestHarness", 
+                LogFileNamePrefix = "ApplicationAccessReaderWriterNodeLog"
             };
 
             var initializer = new ApplicationInitializer();

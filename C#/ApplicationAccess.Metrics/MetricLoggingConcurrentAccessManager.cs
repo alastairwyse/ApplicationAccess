@@ -218,7 +218,7 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         protected override void Clear(Action<Action> wrappingAction)
         {
-            Action<Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateClearMetricLoggingWrappingAction(wrappingAction);
+            Action<Action> metricLoggingWrappingAction = metricLoggingWrapper.GenerateClearMetricLoggingWrappingAction(wrappingAction, entities);
             base.Clear(metricLoggingWrappingAction);
         }
 

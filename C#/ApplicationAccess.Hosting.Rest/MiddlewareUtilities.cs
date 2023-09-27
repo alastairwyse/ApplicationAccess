@@ -107,7 +107,7 @@ namespace ApplicationAccess.Hosting.Rest
         /// <remarks>This has a sependency on Serilog which I want to remove, and once everything is containerized this won't be needed anyway.  Keeping for the short term as its useful for testing when running non-containerized.</remarks>
         public void SetupFileLogging(WebApplicationBuilder builder, String logFileFolder, String logFileNamePrefix)
         {
-            String logFilePath = Path.Combine("logFileFolder", $"{logFileNamePrefix}.log");
+            String logFilePath = Path.Combine(logFileFolder, $"{logFileNamePrefix}.log");
             var fileLoggingConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Warning()
                 .WriteTo.RollingFile(logFilePath);

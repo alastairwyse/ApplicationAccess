@@ -49,8 +49,6 @@ namespace ApplicationAccess.Metrics
 
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
-        /// <summary>Metric mapper used by the 'userToGroupMap' DirectedGraph member, e.g. to map metrics for 'leaf vertices' to metrics for 'users'.</summary>
-        protected MappingMetricLogger mappingMetricLogger;
         /// <summary>Whether logging of metrics is enabled.</summary>
         protected volatile Boolean metricLoggingEnabled;
 
@@ -85,8 +83,9 @@ namespace ApplicationAccess.Metrics
         /// Generates a 'wrappingAction' implementing metric logging to pass to the base class Clear() method.
         /// </summary>
         /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the Clear() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <param name="entities">The dictionary which stores entity types and entities, in the ConcurrentAccessManager subclass that metrics are being logged for.</param>
         /// <returns>The 'wrappingAction'.</returns>
-        public Action<Action> GenerateClearMetricLoggingWrappingAction(Action<Action> wrappingAction)
+        public Action<Action> GenerateClearMetricLoggingWrappingAction(Action<Action> wrappingAction, IDictionary<String, ISet<String>> entities)
         {
             return (Action baseAction) =>
             {
@@ -95,6 +94,12 @@ namespace ApplicationAccess.Metrics
                     baseAction.Invoke();
                 });
                 InitializeItemAndMappingCountFields();
+                SetStatusMetricIfLoggingEnabled(new UserToApplicationComponentAndAccessLevelMappingsStored(), userToApplicationComponentAndAccessLevelMappingCount);
+                SetStatusMetricIfLoggingEnabled(new GroupToApplicationComponentAndAccessLevelMappingsStored(), groupToApplicationComponentAndAccessLevelMappingCount);
+                SetStatusMetricIfLoggingEnabled(new EntityTypesStored(), entities.Count);
+                SetStatusMetricIfLoggingEnabled(new EntitiesStored(), entityCount);
+                SetStatusMetricIfLoggingEnabled(new UserToEntityMappingsStored(), userToEntityMappingCount);
+                SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
         }
 
@@ -161,9 +166,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new UserRemoveTime());
+                    if (typeof(IdempotentRemoveOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new UserRemoveTime());
@@ -242,9 +252,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new GroupRemoveTime());
+                    if (typeof(IdempotentRemoveOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new GroupRemoveTime());
@@ -469,9 +484,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new UserToApplicationComponentAndAccessLevelMappingAddTime());
+                    if (typeof(IdempotentAddOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new UserToApplicationComponentAndAccessLevelMappingAddTime());
@@ -521,9 +541,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
+                    if (typeof(IdempotentRemoveOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
@@ -559,9 +584,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new GroupToApplicationComponentAndAccessLevelMappingAddTime());
+                    if (typeof(IdempotentAddOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new GroupToApplicationComponentAndAccessLevelMappingAddTime());
@@ -611,9 +641,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
+                    if (typeof(IdempotentRemoveOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
@@ -647,9 +682,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new EntityTypeAddTime());
+                    if (typeof(IdempotentAddOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new EntityTypeAddTime());
@@ -717,9 +757,14 @@ namespace ApplicationAccess.Metrics
                         removeEntityTypeWithPreRemovalActionsMethod(metricLoggingActionEntityType, userToEntityTypeMappingPreRemovalAction, groupToEntityTypeMappingPreRemovalAction);
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new EntityTypeRemoveTime());
+                    if (typeof(IdempotentRemoveOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new EntityTypeRemoveTime());
@@ -751,9 +796,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new EntityAddTime());
+                    if (typeof(IdempotentAddOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new EntityAddTime());
@@ -823,9 +873,14 @@ namespace ApplicationAccess.Metrics
                         removeEntityWithPostRemovalActionsMethod(metricLoggingActionEntityType, metricLoggingActionEntity, userToEntityMappingPostRemovalAction, groupToEntityMappingPostRemovalAction);
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new EntityRemoveTime());
+                    if (typeof(IdempotentRemoveOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new EntityRemoveTime());
@@ -857,9 +912,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingAddTime());
+                    if (typeof(IdempotentAddOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingAddTime());
@@ -919,9 +979,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingRemoveTime());
+                    if (typeof(IdempotentRemoveOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new UserToEntityMappingRemoveTime());
@@ -952,9 +1017,14 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingAddTime());
+                    if (typeof(IdempotentAddOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingAddTime());
@@ -1014,16 +1084,21 @@ namespace ApplicationAccess.Metrics
                         baseAction.Invoke();
                     });
                 }
-                catch
+                catch (Exception e)
                 {
                     CancelIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingRemoveTime());
+                    if (typeof(IdempotentRemoveOperationException).IsAssignableFrom(e.GetType()) == true)
+                    {
+                        return;
+                    }
+
                     throw;
                 }
                 EndIntervalMetricIfLoggingEnabled(beginId, new GroupToEntityMappingRemoveTime());
                 IncrementCountMetricIfLoggingEnabled(new GroupToEntityMappingRemoved());
                 groupToEntityMappingCount--;
                 groupToEntityMappingCountPerGroup.Decrement(metricLoggingActionGroup);
-                SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), userToEntityMappingCount);
+                SetStatusMetricIfLoggingEnabled(new GroupToEntityMappingsStored(), groupToEntityMappingCount);
             };
         }
 
@@ -1264,9 +1339,14 @@ namespace ApplicationAccess.Metrics
             {
                 eventAction.Invoke();
             }
-            catch
+            catch (Exception e)
             {
                 CancelIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());
+                if (e is IdempotentAddOperationException || e is IdempotentRemoveOperationException)
+                {
+                    return;
+                }
+
                 throw;
             }
             EndIntervalMetricIfLoggingEnabled(beginId, new TIntervalMetric());

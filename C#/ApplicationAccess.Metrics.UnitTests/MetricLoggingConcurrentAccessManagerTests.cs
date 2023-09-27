@@ -23,15 +23,20 @@ using NSubstitute;
 using ApplicationMetrics;
 using ApplicationAccess.UnitTests;
 using MoreComplexDataStructures;
+using System.Threading;
 
 namespace ApplicationAccess.Metrics.UnitTests
 {
     /// <summary>
     /// Unit tests for the ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager class.
     /// </summary>
-    /// <remarks>Most of the functionality tested in this class is in the <see cref="ConcurrentAccessManagerMetricLoggingInternalDecorator{TUser, TGroup, TComponent, TAccess}"/> class.  Better to test it through the <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> class than in isolation, as this represents the proper real-world use case.</remarks>
+    /// <remarks>Most of the functionality tested in this class is in the <see cref="ConcurrentAccessManagerMetricLogger{TUser, TGroup, TComponent, TAccess}"/> class.  Better to test it through the <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> class than in isolation, as this represents the proper real-world use case.</remarks>
     public class MetricLoggingConcurrentAccessManagerTests
     {
+        private const String beginMetricsLoggedText = "beginMetricsLogged";
+        private const String postProcessingActionInvokedText = "postProcessingActionInvoked";
+        private const String endMetricsLoggedText = "endMetricsLogged";
+
         private IMetricLogger mockMetricLogger;
         private ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testMetricLoggingWrapper;
         private MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
@@ -72,6 +77,55 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             testMetricLoggingConcurrentAccessManager.Clear();
 
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToApplicationComponentAndAccessLevelMappingsStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingsStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<EntityTypesStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<EntitiesStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToEntityMappingsStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToEntityMappingsStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<UsersStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupsStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<UserToGroupMappingsStored>(), 0);
+            mockMetricLogger.Received(1).Set(Arg.Any<GroupToGroupMappingsStored>(), 0);
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.Users.Count());
+            Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.Groups.Count());
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.EntityCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.FrequencyCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
+            Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.FrequencyCount);
+        }
+
+        [Test]
+        public void Clear_MetricLoggingDisabled()
+        {
+            testMetricLoggingConcurrentAccessManager.MetricLoggingEnabled = false;
+            testMetricLoggingConcurrentAccessManager.AddUser("user1");
+            testMetricLoggingConcurrentAccessManager.AddUser("user2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group1");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group2");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group3");
+            testMetricLoggingConcurrentAccessManager.AddGroup("group4");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("ClientAccount");
+            testMetricLoggingConcurrentAccessManager.AddEntityType("BusinessUnit");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping("user1", "group1");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group1", "group2");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group2", "group3");
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping("group3", "group4");
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user2", ApplicationScreen.Settings, AccessLevel.Modify);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+            Assert.AreNotEqual(0, testMetricLoggingConcurrentAccessManager.Users.Count());
+            Assert.AreNotEqual(0, testMetricLoggingConcurrentAccessManager.Groups.Count());
+
+            testMetricLoggingConcurrentAccessManager.Clear();
+
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.Users.Count());
             Assert.AreEqual(0, testMetricLoggingConcurrentAccessManager.Groups.Count());
             Assert.AreEqual(0, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
@@ -151,6 +205,39 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Users.Contains(testUser));
+        }
+
+        [Test]
+        public void AddUser_WrappingActionMethodOverrideOrdering()
+        {
+            String testUser = "user1";
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<UserAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Users.Contains(testUser));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String> postProcessingAction = (user) =>
+            {
+                // Check that the user has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Users.Contains(testUser));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<UserAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -404,6 +491,47 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveUser_WrappingActionMethodOverrideOrdering()
+        {
+            String testUser = "user1";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<UserRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToGroupMapLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToComponentMap));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Users.Contains(testUser));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String> postProcessingAction = (user) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Users.Contains(testUser));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<UserRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToGroupMapLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToComponentMap));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveUser(testUser, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddGroup_ExceptionWhenAdding()
         {
             String testGroup = "group1";
@@ -471,6 +599,39 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Groups.Contains(testGroup));
+        }
+
+        [Test]
+        public void AddGroup_WrappingActionMethodOverrideOrdering()
+        {
+            String testGroup = "group1";
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<GroupAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains(testGroup));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String> postProcessingAction = (user) =>
+            {
+                // Check that the user has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Groups.Contains(testGroup));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<GroupAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -769,6 +930,47 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveGroup_WrappingActionMethodOverrideOrdering()
+        {
+            String testGroup = "group1";
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<GroupRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToGroupMapLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToComponentMap));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.Groups.Contains(testGroup));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String> postProcessingAction = (group) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.Groups.Contains(testGroup));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<GroupRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToGroupMapLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToComponentMap));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveGroup(testGroup, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddUserToGroupMapping_ExceptionWhenAdding()
         {
             String testUser = "user1";
@@ -850,6 +1052,47 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
+        }
+
+        [Test]
+        public void AddUserToGroupMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testUser = "user1";
+            String testGroup = "group1";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<UserToGroupMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToGroupMapLock));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String> postProcessingAction = (fromGroup, toGroup) =>
+            {
+                // Check that the mapping has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<UserToGroupMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToGroupMapLock));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping(testUser, testGroup, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -1038,6 +1281,44 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveUserToGroupMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testUser = "user1";
+            String testGroup = "group1";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            testMetricLoggingConcurrentAccessManager.AddUserToGroupMapping(testUser, testGroup);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<UserToGroupMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToGroupMapLock));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String> postProcessingAction = (user, group) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false).Contains(testGroup));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<UserToGroupMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToGroupMapLock));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveUserToGroupMapping(testUser, testGroup, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddGroupToGroupMapping_ExceptionWhenAdding()
         {
             String testFromGroup = "group1";
@@ -1119,6 +1400,45 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
+        }
+
+        [Test]
+        public void AddGroupToGroupMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testFromGroup = "group1";
+            String testToGroup = "group2"; 
+            testMetricLoggingConcurrentAccessManager.AddGroup(testFromGroup);
+            testMetricLoggingConcurrentAccessManager.AddGroup(testToGroup);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<GroupToGroupMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToGroupMapLock));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String> postProcessingAction = (fromGroup, toGroup) =>
+            {
+                // Check that the mapping has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<GroupToGroupMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToGroupMapLock));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping(testFromGroup, testToGroup, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -1306,6 +1626,44 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveGroupToGroupMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testFromGroup = "group1";
+            String testToGroup = "group2";
+            testMetricLoggingConcurrentAccessManager.AddGroup(testFromGroup);
+            testMetricLoggingConcurrentAccessManager.AddGroup(testToGroup);
+            testMetricLoggingConcurrentAccessManager.AddGroupToGroupMapping(testFromGroup, testToGroup);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<GroupToGroupMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToGroupMapLock));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String> postProcessingAction = (fromGroup, toGroup) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testFromGroup, false).Contains(testToGroup));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<GroupToGroupMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToGroupMapLock));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveGroupToGroupMapping(testFromGroup, testToGroup, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddUserToApplicationComponentAndAccessLevelMapping_ExceptionWhenAdding()
         {
             String testUser = "user1";
@@ -1383,6 +1741,43 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingWrapper.UserToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
+        }
+
+        [Test]
+        public void AddUserToApplicationComponentAndAccessLevelMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testUser = "user1"; 
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToComponentMap));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, ApplicationScreen, AccessLevel> postProcessingAction = (user, applicationComponent, accessLevel) =>
+            {
+                // Check that the mapping has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<UserToApplicationComponentAndAccessLevelMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToComponentMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping(testUser, ApplicationScreen.Order, AccessLevel.View, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -1496,6 +1891,42 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testUser = "user1";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            testMetricLoggingConcurrentAccessManager.AddUserToApplicationComponentAndAccessLevelMapping(testUser, ApplicationScreen.Order, AccessLevel.Modify);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToComponentMap));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.Modify)));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, ApplicationScreen, AccessLevel> postProcessingAction = (user, applicationComponent, accessLevel) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(testUser).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.Modify)));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToComponentMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveUserToApplicationComponentAndAccessLevelMapping(testUser, ApplicationScreen.Order, AccessLevel.Modify, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddGroupToApplicationComponentAndAccessLevelMapping_ExceptionWhenAdding()
         {
             String testGroup = "group1";
@@ -1573,6 +2004,43 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingWrapper.GroupToApplicationComponentAndAccessLevelMappingCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
+        }
+
+        [Test]
+        public void AddGroupToApplicationComponentAndAccessLevelMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testGroup = "group1";
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToComponentMap));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, ApplicationScreen, AccessLevel> postProcessingAction = (group, applicationComponent, accessLevel) =>
+            {
+                // Check that the mapping has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.View)));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToComponentMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, ApplicationScreen.Order, AccessLevel.View, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -1686,6 +2154,42 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveGroupToApplicationComponentAndAccessLevelMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testGroup = "group1";
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            testMetricLoggingConcurrentAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, ApplicationScreen.Order, AccessLevel.Modify);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToComponentMap));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.Modify)));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, ApplicationScreen, AccessLevel> postProcessingAction = (group, applicationComponent, accessLevel) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(testGroup).Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.Modify)));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToComponentMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping(testGroup, ApplicationScreen.Order, AccessLevel.Modify, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddEntityType_ExceptionWhenAdding()
         {
             String testEntityType = "ClientAccount";
@@ -1753,6 +2257,39 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains(testEntityType));
+        }
+
+        [Test]
+        public void AddEntityType_WrappingActionMethodOverrideOrdering()
+        {
+            String testEntityType = "ClientAccount";
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<EntityTypeAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains(testEntityType));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String> postProcessingAction = (user) =>
+            {
+                // Check that the user has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains(testEntityType));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<EntityTypeAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -2127,6 +2664,45 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveEntityType_WrappingActionMethodOverrideOrdering()
+        {
+            String testEntityType = "ClientAccount";
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<EntityTypeRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains(testEntityType));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String> postProcessingAction = (entityType) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.EntityTypes.Contains(testEntityType));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<EntityTypeRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveEntityType(testEntityType, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddEntity_ExceptionWhenAdding()
         {
             String testEntityType = "ClientAccount";
@@ -2208,6 +2784,42 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, testMetricLoggingWrapper.EntityCount);
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
+        }
+
+        [Test]
+        public void AddEntity_WrappingActionMethodOverrideOrdering()
+        {
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<EntityAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String> postProcessingAction = (entityType, entity) =>
+            {
+                // Check that the entity has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<EntityAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -2494,6 +3106,47 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveEntity_WrappingActionMethodOverrideOrdering()
+        {
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<EntityRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String> postProcessingAction = (testEntityType, testEntity) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetEntities(testEntityType).Contains(testEntity));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<EntityRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveEntity(testEntityType, testEntity, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddUserToEntityMapping_ExceptionWhenAdding()
         {
             String testUser = "user1";
@@ -2591,6 +3244,49 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingWrapper.UserToEntityMappingCountPerUser.GetFrequency(testUser));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
+        }
+
+        [Test]
+        public void AddUserToEntityMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<UserToEntityMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String, String> postProcessingAction = (user, entityType, entity) =>
+            {
+                // Check that the mapping has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser).Contains(new Tuple<String, String>(testEntityType, testEntity)));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<UserToEntityMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UsersLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping(testUser, testEntityType, testEntity, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -2770,6 +3466,46 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void RemoveUserToEntityMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testMetricLoggingConcurrentAccessManager.AddUser(testUser);
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            testMetricLoggingConcurrentAccessManager.AddUserToEntityMapping(testUser, testEntityType, testEntity);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<UserToEntityMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser, testEntityType).Contains(testEntity));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String, String> postProcessingAction = (user, testEntityType, testEntity) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetUserToEntityMappings(testUser, testEntityType).Contains(testEntity));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<UserToEntityMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.UserToEntityMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveUserToEntityMapping(testUser, testEntityType, testEntity, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
+        }
+
+        [Test]
         public void AddGroupToEntityMapping_ExceptionWhenAdding()
         {
             String testGroup = "group1";
@@ -2867,6 +3603,49 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCount);
             Assert.AreEqual(1, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
+        }
+
+        [Test]
+        public void AddGroupToEntityMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<GroupToEntityMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String, String> postProcessingAction = (group, entityType, entity) =>
+            {
+                // Check that the mapping has been added
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<GroupToEntityMappingAddTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupsLock));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.Entities));
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -3043,6 +3822,46 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCount);
             Assert.AreEqual(0, testMetricLoggingWrapper.GroupToEntityMappingCountPerUser.GetFrequency(testGroup));
             Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup).Contains(new Tuple<String, String>(testEntityType, testEntity)));
+        }
+
+        [Test]
+        public void RemoveGroupToEntityMapping_WrappingActionMethodOverrideOrdering()
+        {
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testMetricLoggingConcurrentAccessManager.AddGroup(testGroup);
+            testMetricLoggingConcurrentAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingConcurrentAccessManager.AddEntity(testEntityType, testEntity);
+            testMetricLoggingConcurrentAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            mockMetricLogger.ClearReceivedCalls();
+            var wrappingActionOrder = new List<String>();
+            mockMetricLogger.When((metricLogger) => metricLogger.Begin(Arg.Any<GroupToEntityMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks have been set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                Assert.IsTrue(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup, testEntityType).Contains(testEntity));
+                wrappingActionOrder.Add(beginMetricsLoggedText);
+            });
+            Action<String, String, String> postProcessingAction = (group, testEntityType, testEntity) =>
+            {
+                // Check that the user has been added
+                Assert.IsFalse(testMetricLoggingConcurrentAccessManager.GetGroupToEntityMappings(testGroup, testEntityType).Contains(testEntity));
+                wrappingActionOrder.Add(postProcessingActionInvokedText);
+            };
+            mockMetricLogger.When((metricLogger) => metricLogger.End(Arg.Any<Guid>(), Arg.Any<GroupToEntityMappingRemoveTime>())).Do((callInfo) =>
+            {
+                // Check that locks are still set
+                Assert.IsTrue(Monitor.IsEntered(testMetricLoggingConcurrentAccessManager.GroupToEntityMap));
+                wrappingActionOrder.Add(endMetricsLoggedText);
+            });
+
+            testMetricLoggingConcurrentAccessManager.RemoveGroupToEntityMapping(testGroup, testEntityType, testEntity, postProcessingAction);
+
+            Assert.AreEqual(3, wrappingActionOrder.Count);
+            Assert.AreEqual(beginMetricsLoggedText, wrappingActionOrder[0]);
+            Assert.AreEqual(postProcessingActionInvokedText, wrappingActionOrder[1]);
+            Assert.AreEqual(endMetricsLoggedText, wrappingActionOrder[2]);
         }
 
         [Test]
@@ -3606,30 +4425,6 @@ namespace ApplicationAccess.Metrics.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
         }
 
-        // TODO: New tests after ConcurrentAccessManagerMetricLogger refactoring
-
-        [Test]
-        public void AddUserToGroupMapping_WrappingActionOrdering()
-        {
-            // Tests correct ordering of 'wrappingAction' method overloads for these methods...
-            // AddUser
-            // AddGroup
-            // AddUserToGroupMapping
-            // RemoveUserToGroupMapping
-            // AddGroupToGroupMapping
-            // RemoveGroupToGroupMapping
-
-            throw new NotImplementedException();
-        }
-
-        [Test]
-        public void AddUserToGroupMappingPostProcessingActionOverload_WrappingActionOrdering()
-        {
-            // This implicitly tests that wrapping action ordering is setup correctly for subclasses... so do I need a separate test for that?
-
-            throw new NotImplementedException();
-        }
-
         #region Nested Classes
 
         /// <summary>
@@ -3716,6 +4511,60 @@ namespace ApplicationAccess.Metrics.UnitTests
         /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         private class MetricLoggingConcurrentAccessManagerWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>
         {
+            /// <summary>Lock object for the users collection.</summary>
+            public Object UsersLock
+            {
+                get { return usersLock; }
+            }
+
+            /// <summary>Lock object for the groups collection.</summary>
+            public Object GroupsLock
+            {
+                get { return groupsLock; }
+            }
+
+            /// <summary>Lock object for the user to group map.</summary>
+            public Object UserToGroupMapLock
+            {
+                get { return userToGroupMapLock; }
+            }
+
+            /// <summary>Lock object for the group to group map.</summary>
+            public Object GroupToGroupMapLock
+            {
+                get { return groupToGroupMapLock; }
+            }
+
+            /// <summary>The user to application component and access level map as an object (to check for locking).</summary>
+            public Object UserToComponentMap
+            {
+                get { return userToComponentMap; }
+            }
+
+            /// <summary>The group to application component and access level map as an object (to check for locking).</summary>
+            public Object GroupToComponentMap
+            {
+                get { return groupToComponentMap; }
+            }
+
+            /// <summary>The entities colection as an object (to check for locking).</summary>
+            public Object Entities
+            {
+                get { return entities; }
+            }
+
+            /// <summary>The user to entity map as an object (to check for locking).</summary>
+            public Object UserToEntityMap
+            {
+                get { return userToEntityMap; }
+            }
+
+            /// <summary>The group to entity map as an object (to check for locking).</summary>
+            public Object GroupToEntityMap
+            {
+                get { return groupToEntityMap; }
+            }
+
             /// <summary>
             /// The logger for metrics.
             /// </summary>
