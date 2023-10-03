@@ -755,8 +755,8 @@ namespace ApplicationAccess
             Boolean hasAccess = false;
             Func<TGroup, Boolean> vertexAction = (TGroup currentGroup) =>
             {
-                containsUser = groupToEntityMap.TryGetValue(currentGroup, out entitiesAndTypesInMapping);
-                if (containsUser == true)
+                Boolean containsGroup = groupToEntityMap.TryGetValue(currentGroup, out entitiesAndTypesInMapping);
+                if (containsGroup == true)
                 {
                     Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
                     if (containsEntity == true && entitiesInMapping.Contains(entity) == true)

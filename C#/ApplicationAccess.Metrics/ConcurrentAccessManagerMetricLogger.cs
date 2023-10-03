@@ -403,34 +403,59 @@ namespace ApplicationAccess.Metrics
             HashSet<TGroup> result;
             if (includeIndirectMappings == false)
             {
-                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsQueryTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsForGroupQueryTime());
                 try
                 {
                     result = baseClassMethod.Invoke(group, includeIndirectMappings);
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsQueryTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsForGroupQueryTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsQueryTime());
-                IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupMappingsQuery());
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsForGroupQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupMappingsForGroupQuery());
             }
             else
             {
-                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime());
                 try
                 {
                     result = baseClassMethod.Invoke(group, includeIndirectMappings);
                 }
                 catch
                 {
-                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime());
                     throw;
                 }
-                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
-                IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupMappingsWithIndirectMappingsQuery());
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery());
             }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the groups that all of the specified groups are directly and indirectly mapped to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the mapped groups for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of groups the specified groups are mapped to, and including the specified groups.</returns>
+        public HashSet<TGroup> GetGroupToGroupMappings(IEnumerable<TGroup> groups, Func<IEnumerable<TGroup>, HashSet<TGroup>> baseClassMethod)
+        {
+            HashSet<TGroup> result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupMappingsForGroupsQueryTime());
+            try
+            {
+                result = baseClassMethod.Invoke(groups);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsForGroupsQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupMappingsForGroupsQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupMappingsForGroupsQuery());
 
             return result;
         }
@@ -1113,18 +1138,45 @@ namespace ApplicationAccess.Metrics
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel, Func<TUser, TComponent, TAccess, Boolean> baseClassMethod)
         {
             Boolean result;
-            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToApplicationComponentQueryTime());
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToApplicationComponentForUserQueryTime());
             try
             {
                 result = baseClassMethod.Invoke(user, applicationComponent, accessLevel);
             }
             catch
             {
-                CancelIntervalMetricIfLoggingEnabled(beginId, new HasAccessToApplicationComponentQueryTime());
+                CancelIntervalMetricIfLoggingEnabled(beginId, new HasAccessToApplicationComponentForUserQueryTime());
                 throw;
             }
-            EndIntervalMetricIfLoggingEnabled(beginId, new HasAccessToApplicationComponentQueryTime());
-            IncrementCountMetricIfLoggingEnabled(new HasAccessToApplicationComponentQuery());
+            EndIntervalMetricIfLoggingEnabled(beginId, new HasAccessToApplicationComponentForUserQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new HasAccessToApplicationComponentForUserQuery());
+
+            return result;
+        }
+
+        /// <summary>
+        /// Checks whether any of the specified groups have access to an application component at the specified level of access.
+        /// </summary>
+        /// <param name="groups">The groups to check for.</param>
+        /// <param name="applicationComponent">The application component.</param>
+        /// <param name="accessLevel">The level of access to the component.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>True if any of the groups have access the component.  False otherwise.</returns>
+        public Boolean HasAccessToApplicationComponent(IEnumerable<TGroup> groups, TComponent applicationComponent, TAccess accessLevel, Func<IEnumerable<TGroup>, TComponent, TAccess, Boolean> baseClassMethod)
+        {
+            Boolean result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToApplicationComponentForGroupsQueryTime());
+            try
+            {
+                result = baseClassMethod.Invoke(groups, applicationComponent, accessLevel);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new HasAccessToApplicationComponentForGroupsQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new HasAccessToApplicationComponentForGroupsQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new HasAccessToApplicationComponentForGroupsQuery());
 
             return result;
         }
@@ -1140,18 +1192,45 @@ namespace ApplicationAccess.Metrics
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity, Func<TUser, String, String, Boolean> baseClassMethod)
         {
             Boolean result;
-            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToEntityQueryTime());
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToEntityForUserQueryTime());
             try
             {
                 result = baseClassMethod.Invoke(user, entityType, entity);
             }
             catch
             {
-                CancelIntervalMetricIfLoggingEnabled(beginId, new HasAccessToEntityQueryTime());
+                CancelIntervalMetricIfLoggingEnabled(beginId, new HasAccessToEntityForUserQueryTime());
                 throw;
             }
-            EndIntervalMetricIfLoggingEnabled(beginId, new HasAccessToEntityQueryTime());
-            IncrementCountMetricIfLoggingEnabled(new HasAccessToEntityQuery());
+            EndIntervalMetricIfLoggingEnabled(beginId, new HasAccessToEntityForUserQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new HasAccessToEntityForUserQuery());
+
+            return result;
+        }
+
+        /// <summary>
+        /// Checks whether any of the specified groups have access to the specified entity.
+        /// </summary>
+        /// <param name="groups">The groups to check for.</param>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>True if any of the groups have access the entity.  False otherwise.</returns>
+        public Boolean HasAccessToEntity(IEnumerable<TGroup> groups, String entityType, String entity, Func<IEnumerable<TGroup>, String, String, Boolean> baseClassMethod)
+        {
+            Boolean result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new HasAccessToEntityForGroupsQueryTime());
+            try
+            {
+                result = baseClassMethod.Invoke(groups, entityType, entity);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new HasAccessToEntityForGroupsQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new HasAccessToEntityForGroupsQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new HasAccessToEntityForGroupsQuery());
 
             return result;
         }

@@ -1022,7 +1022,7 @@ namespace ApplicationAccess.UnitTests
         // Leaf vertices   Per1 Per2  Per3 Per4  Per5 Per6  Per7
         //
         /// <summary>
-        /// Creates a sample graph representing users and groups of users in the provided graph.
+        /// Creates a sample graph representing users and groups of users in the specified graph.
         /// </summary>
         /// <param name="inputGraph">The graph to create the sample structure in.</param>
         protected void CreatePersonGroupGraph(DirectedGraph<String, String> inputGraph)

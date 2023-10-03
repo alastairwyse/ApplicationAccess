@@ -199,33 +199,33 @@ namespace ApplicationAccess.Metrics
             HashSet<TGroup> result;
             if (includeIndirectMappings == false)
             {
-                Guid beginId = metricLogger.Begin(new GetGroupToGroupMappingsQueryTime());
+                Guid beginId = metricLogger.Begin(new GetGroupToGroupMappingsForGroupQueryTime());
                 try
                 {
                     result = queryProcessor.GetGroupToGroupMappings(group, includeIndirectMappings);
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(beginId, new GetGroupToGroupMappingsQueryTime());
+                    metricLogger.CancelBegin(beginId, new GetGroupToGroupMappingsForGroupQueryTime());
                     throw;
                 }
-                metricLogger.End(beginId, new GetGroupToGroupMappingsQueryTime());
-                metricLogger.Increment(new GetGroupToGroupMappingsQuery());
+                metricLogger.End(beginId, new GetGroupToGroupMappingsForGroupQueryTime());
+                metricLogger.Increment(new GetGroupToGroupMappingsForGroupQuery());
             }
             else
             {
-                Guid beginId = metricLogger.Begin(new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
+                Guid beginId = metricLogger.Begin(new GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime());
                 try
                 {
                     result = queryProcessor.GetGroupToGroupMappings(group, includeIndirectMappings);
                 }
                 catch
                 {
-                    metricLogger.CancelBegin(beginId, new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
+                    metricLogger.CancelBegin(beginId, new GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime());
                     throw;
                 }
-                metricLogger.End(beginId, new GetGroupToGroupMappingsWithIndirectMappingsQueryTime());
-                metricLogger.Increment(new GetGroupToGroupMappingsWithIndirectMappingsQuery());
+                metricLogger.End(beginId, new GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery());
             }
 
             return result;
@@ -415,18 +415,18 @@ namespace ApplicationAccess.Metrics
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             Boolean result;
-            Guid beginId = metricLogger.Begin(new HasAccessToApplicationComponentQueryTime());
+            Guid beginId = metricLogger.Begin(new HasAccessToApplicationComponentForUserQueryTime());
             try
             {
                 result = queryProcessor.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
             }
             catch
             {
-                metricLogger.CancelBegin(beginId, new HasAccessToApplicationComponentQueryTime());
+                metricLogger.CancelBegin(beginId, new HasAccessToApplicationComponentForUserQueryTime());
                 throw;
             }
-            metricLogger.End(beginId, new HasAccessToApplicationComponentQueryTime());
-            metricLogger.Increment(new HasAccessToApplicationComponentQuery());
+            metricLogger.End(beginId, new HasAccessToApplicationComponentForUserQueryTime());
+            metricLogger.Increment(new HasAccessToApplicationComponentForUserQuery());
 
             return result;
         }
@@ -435,18 +435,18 @@ namespace ApplicationAccess.Metrics
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             Boolean result;
-            Guid beginId = metricLogger.Begin(new HasAccessToEntityQueryTime());
+            Guid beginId = metricLogger.Begin(new HasAccessToEntityForUserQueryTime());
             try
             {
                 result = queryProcessor.HasAccessToEntity(user, entityType, entity);
             }
             catch
             {
-                metricLogger.CancelBegin(beginId, new HasAccessToEntityQueryTime());
+                metricLogger.CancelBegin(beginId, new HasAccessToEntityForUserQueryTime());
                 throw;
             }
-            metricLogger.End(beginId, new HasAccessToEntityQueryTime());
-            metricLogger.Increment(new HasAccessToEntityQuery());
+            metricLogger.End(beginId, new HasAccessToEntityForUserQueryTime());
+            metricLogger.Increment(new HasAccessToEntityForUserQuery());
 
             return result;
         }

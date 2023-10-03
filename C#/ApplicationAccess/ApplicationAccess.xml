@@ -1047,6 +1047,15 @@
             <param name="thrownIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.GetGroupToGroupMappings(System.Collections.Generic.IEnumerable{`1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.HasAccessToApplicationComponent(System.Collections.Generic.IEnumerable{`1},`2,`3)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.HasAccessToEntity(System.Collections.Generic.IEnumerable{`1},System.String,System.String)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUser(`0,System.Action{`0,System.Action})">
             <inheritdoc/>
         </member>
@@ -1815,6 +1824,43 @@
             Initialises a new instance of the ApplicationAccess.IdempotentRemoveOperationException class.
             </summary>
             <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="T:ApplicationAccess.IDependencyFreeAccessManager`4">
+            <summary>
+            Defines methods to manage the access of users and groups of users to components and entities within an application, without requiring dependent elements to be explicitly created (e.g. without requiring a user to be explicitly added before a user to group mapping is added which references that user).
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.IDependencyFreeAccessManager`4.GetGroupToGroupMappings(System.Collections.Generic.IEnumerable{`1})">
+            <summary>
+            Gets the groups that all of the specified groups are directly and indirectly mapped to.
+            </summary>
+            <param name="groups">The groups to retrieve the mapped groups for.</param>
+            <returns>A collection of groups the specified groups are mapped to, and including the specified groups.</returns>
+            <remarks>Note that <see cref="T:System.ArgumentException">ArgumentExceptions</see> are not thrown if any of the groups in <paramref name="groups"/> don't exist, since it's possible that groups could exist when this method call is initiated, but could be removed by a concurrent call whilst the initial call is being processed.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.IDependencyFreeAccessManager`4.HasAccessToApplicationComponent(System.Collections.Generic.IEnumerable{`1},`2,`3)">
+            <summary>
+            Checks whether any of the specified groups have access to an application component at the specified level of access.
+            </summary>
+            <param name="groups">The groups to check for.</param>
+            <param name="applicationComponent">The application component.</param>
+            <param name="accessLevel">The level of access to the component.</param>
+            <returns>True if any of the groups have access the component.  False otherwise.</returns>
+            <remarks>Unlike the <see cref="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)">'user' parameter overload of the method</see>, this method does not check access of groups indirectly mapped from the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.IDependencyFreeAccessManager`4.HasAccessToEntity(System.Collections.Generic.IEnumerable{`1},System.String,System.String)">
+            <summary>
+            Checks whether any of the specified groups have access to the specified entity.
+            </summary>
+            <param name="groups">The groups to check for.</param>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity.</param>
+            <returns>True if any of the groups have access the entity.  False otherwise.</returns>
+            <remarks>Unlike the <see cref="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.HasAccessToEntity(`0,System.String,System.String)">'user' parameter overload of the method</see>, this method does not check access of groups indirectly mapped from the groups specified in the <paramref name="groups"/> parameter.</remarks>
         </member>
         <member name="T:ApplicationAccess.IUniqueStringifier`1">
             <summary>

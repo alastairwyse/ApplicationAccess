@@ -101,6 +101,12 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public override HashSet<TGroup> GetGroupToGroupMappings(IEnumerable<TGroup> groups)
+        {
+            return metricLoggingWrapper.GetGroupToGroupMappings(groups, base.GetGroupToGroupMappings);
+        }
+
+        /// <inheritdoc/>
         public override IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             return metricLoggingWrapper.GetUserToApplicationComponentAndAccessLevelMappings(user, base.GetUserToApplicationComponentAndAccessLevelMappings);
@@ -161,9 +167,21 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public override Boolean HasAccessToApplicationComponent(IEnumerable<TGroup> groups, TComponent applicationComponent, TAccess accessLevel)
+        {
+            return metricLoggingWrapper.HasAccessToApplicationComponent(groups, applicationComponent, accessLevel, base.HasAccessToApplicationComponent);
+        }
+
+        /// <inheritdoc/>
         public override Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
             return metricLoggingWrapper.HasAccessToEntity(user, entityType, entity, base.HasAccessToEntity);
+        }
+
+        /// <inheritdoc/>
+        public override Boolean HasAccessToEntity(IEnumerable<TGroup> groups, String entityType, String entity)
+        {
+            return metricLoggingWrapper.HasAccessToEntity(groups, entityType, entity, base.HasAccessToEntity);
         }
 
         /// <inheritdoc/>

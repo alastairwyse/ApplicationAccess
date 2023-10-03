@@ -855,14 +855,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the GetGroupToGroupMappings() method.
+    /// Count metric which records a call to the GetGroupToGroupMappings() method overload with 'group' parameter.
     /// </summary>
-    public class GetGroupToGroupMappingsQuery : QueryCountMetric
+    public class GetGroupToGroupMappingsForGroupQuery : QueryCountMetric
     {
-        protected static String staticName = "GetGroupToGroupMappingsQuery";
-        protected static String staticDescription = "A call to the GetGroupToGroupMappings() method";
+        protected static String staticName = "GetGroupToGroupMappingsForGroupQuery";
+        protected static String staticDescription = "A call to the GetGroupToGroupMappings() method overload with 'group' parameter";
 
-        public GetGroupToGroupMappingsQuery()
+        public GetGroupToGroupMappingsForGroupQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -870,14 +870,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method overload with 'group' parameter.
     /// </summary>
-    public class GetGroupToGroupMappingsWithIndirectMappingsQuery : QueryCountMetric
+    public class GetGroupToGroupMappingsForGroupQueryTime : QueryIntervalMetric
     {
-        protected static String staticName = "GetGroupToGroupMappingsWithIndirectMappingsQuery";
-        protected static String staticDescription = "A call to the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+        protected static String staticName = "GetGroupToGroupMappingsForGroupQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method overload with 'group' parameter.";
 
-        public GetGroupToGroupMappingsWithIndirectMappingsQuery()
+        public GetGroupToGroupMappingsForGroupQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -885,14 +885,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method.
+    /// Count metric which records a call to the GetGroupToGroupMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true.
     /// </summary>
-    public class GetGroupToGroupMappingsQueryTime : QueryIntervalMetric
+    public class GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery : QueryCountMetric
     {
-        protected static String staticName = "GetGroupToGroupMappingsQueryTime";
-        protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method";
+        protected static String staticName = "GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetGroupToGroupMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true";
 
-        public GetGroupToGroupMappingsQueryTime()
+        public GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -900,14 +900,44 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true.
     /// </summary>
-    public class GetGroupToGroupMappingsWithIndirectMappingsQueryTime : QueryIntervalMetric
+    public class GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime : QueryIntervalMetric
     {
-        protected static String staticName = "GetGroupToGroupMappingsWithIndirectMappingsQueryTime";
-        protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+        protected static String staticName = "GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true";
 
-        public GetGroupToGroupMappingsWithIndirectMappingsQueryTime()
+        public GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetGroupToGroupMappings() method overload with 'groups' parameter.
+    /// </summary>
+    public class GetGroupToGroupMappingsForGroupsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetGroupToGroupMappingsForGroupsQuery";
+        protected static String staticDescription = "A call to the GetGroupToGroupMappings() method overload with 'groups' parameter";
+
+        public GetGroupToGroupMappingsForGroupsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetGroupToGroupMappings() method overload with 'groups' parameter.
+    /// </summary>
+    public class GetGroupToGroupMappingsForGroupsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetGroupToGroupMappingsForGroupsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToGroupMappings() method overload with 'groups' parameter.";
+
+        public GetGroupToGroupMappingsForGroupsQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1065,12 +1095,12 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the GetUserToEntityMappingsForUser() method.
+    /// Count metric which records a call to the GetUserToEntityMappings() method overload with 'user' parameter.
     /// </summary>
     public class GetUserToEntityMappingsForUserQuery : QueryCountMetric
     {
         protected static String staticName = "GetUserToEntityMappingsForUserQuery";
-        protected static String staticDescription = "A call to the GetUserToEntityMappingsForUser() method";
+        protected static String staticDescription = "A call to the GetUserToEntityMappings() method overload with 'user' parameter";
 
         public GetUserToEntityMappingsForUserQuery()
         {
@@ -1080,12 +1110,12 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the GetUserToEntityMappingsForUser() method.
+    /// Interval metric which records the time taken to execute the GetUserToEntityMappings() method overload with 'user' parameter.
     /// </summary>
     public class GetUserToEntityMappingsForUserQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetUserToEntityMappingsForUserQueryTime";
-        protected static String staticDescription = "The time taken to execute the GetUserToEntityMappingsForUser() method";
+        protected static String staticDescription = "The time taken to execute the GetUserToEntityMappings() method overload with 'user' parameter";
 
         public GetUserToEntityMappingsForUserQueryTime()
         {
@@ -1095,12 +1125,12 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the GetUserToEntityMappingsForUserAndEntityType() method.
+    /// Count metric which records a call to the GetUserToEntityMappings() method overload with 'user' and 'entityType' parameters.
     /// </summary>
     public class GetUserToEntityMappingsForUserAndEntityTypeQuery : QueryCountMetric
     {
         protected static String staticName = "GetUserToEntityMappingsForUserAndEntityTypeQuery";
-        protected static String staticDescription = "A call to the GetUserToEntityMappingsForUserAndEntityType() method";
+        protected static String staticDescription = "A call to the GetUserToEntityMappings() method overload with 'user' and 'entityType' parameters";
 
         public GetUserToEntityMappingsForUserAndEntityTypeQuery()
         {
@@ -1110,12 +1140,12 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the GetUserToEntityMappingsForUserAndEntityType() method.
+    /// Interval metric which records the time taken to execute the GetUserToEntityMappings() method overload with 'user' and 'entityType' parameters.
     /// </summary>
     public class GetUserToEntityMappingsForUserAndEntityTypeQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetUserToEntityMappingsForUserAndEntityTypeQueryTime";
-        protected static String staticDescription = "The time taken to execute the GetUserToEntityMappingsForUserAndEntityType() method";
+        protected static String staticDescription = "The time taken to execute the GetUserToEntityMappings() method overload with 'user' and 'entityType' parameters";
 
         public GetUserToEntityMappingsForUserAndEntityTypeQueryTime()
         {
@@ -1125,12 +1155,12 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the GetGroupToEntityMappingsForGroup() method.
+    /// Count metric which records a call to the GetGroupToEntityMappings() method overload with 'group' parameter.
     /// </summary>
     public class GetGroupToEntityMappingsForGroupQuery : QueryCountMetric
     {
         protected static String staticName = "GetGroupToEntityMappingsForGroupQuery";
-        protected static String staticDescription = "A call to the GetGroupToEntityMappingsForGroup() method";
+        protected static String staticDescription = "A call to the GetGroupToEntityMappings() method overload with 'group' parameter";
 
         public GetGroupToEntityMappingsForGroupQuery()
         {
@@ -1140,12 +1170,12 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the GetGroupToEntityMappingsForGroup() method.
+    /// Interval metric which records the time taken to execute the GetGroupToEntityMappings() method overload with 'group' parameter.
     /// </summary>
     public class GetGroupToEntityMappingsForGroupQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetGroupToEntityMappingsForGroupQueryTime";
-        protected static String staticDescription = "The time taken to execute the GetGroupToEntityMappingsForGroup() method";
+        protected static String staticDescription = "The time taken to execute the GetGroupToEntityMappings() method overload with 'group' parameter";
 
         public GetGroupToEntityMappingsForGroupQueryTime()
         {
@@ -1155,12 +1185,12 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the GetGroupToEntityMappingsForGroupAndEntityType() method.
+    /// Count metric which records a call to the GetGroupToEntityMappings() method overload with 'group' and 'entityType' parameters.
     /// </summary>
     public class GetGroupToEntityMappingsForGroupAndEntityTypeQuery : QueryCountMetric
     {
         protected static String staticName = "GetGroupToEntityMappingsForGroupAndEntityTypeQuery";
-        protected static String staticDescription = "A call to the GetGroupToEntityMappingsForGroupAndEntityType() method";
+        protected static String staticDescription = "A call to the GetGroupToEntityMappings() method overload with 'group' and 'entityType' parameters";
 
         public GetGroupToEntityMappingsForGroupAndEntityTypeQuery()
         {
@@ -1170,12 +1200,12 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the GetGroupToEntityMappingsForGroupAndEntityType() method.
+    /// Interval metric which records the time taken to execute the GetGroupToEntityMappings() method overload with 'group' and 'entityType' parameters.
     /// </summary>
     public class GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime : QueryIntervalMetric
     {
         protected static String staticName = "GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime";
-        protected static String staticDescription = "The time taken to execute the GetGroupToEntityMappingsForGroupAndEntityType() method";
+        protected static String staticDescription = "The time taken to execute the GetGroupToEntityMappings() method overload with 'group' and 'entityType' parameters";
 
         public GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime()
         {
@@ -1185,14 +1215,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the HasAccessToApplicationComponent() method.
+    /// Count metric which records a call to the HasAccessToApplicationComponent() method overload with 'user' parameter.
     /// </summary>
-    public class HasAccessToApplicationComponentQuery : QueryCountMetric
+    public class HasAccessToApplicationComponentForUserQuery : QueryCountMetric
     {
-        protected static String staticName = "HasAccessToApplicationComponentQuery";
-        protected static String staticDescription = "A call to the HasAccessToApplicationComponent() method";
+        protected static String staticName = "HasAccessToApplicationComponentForUserQuery";
+        protected static String staticDescription = "A call to the HasAccessToApplicationComponent() method overload with 'user' parameter";
 
-        public HasAccessToApplicationComponentQuery()
+        public HasAccessToApplicationComponentForUserQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1200,14 +1230,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the HasAccessToApplicationComponent() method.
+    /// Interval metric which records the time taken to execute the HasAccessToApplicationComponent() method overload with 'user' parameter.
     /// </summary>
-    public class HasAccessToApplicationComponentQueryTime : QueryIntervalMetric
+    public class HasAccessToApplicationComponentForUserQueryTime : QueryIntervalMetric
     {
-        protected static String staticName = "HasAccessToApplicationComponentQueryTime";
-        protected static String staticDescription = "The time taken to execute the HasAccessToApplicationComponent() method";
+        protected static String staticName = "HasAccessToApplicationComponentForUserQueryTime";
+        protected static String staticDescription = "The time taken to execute the HasAccessToApplicationComponent() method overload with 'user' parameter";
 
-        public HasAccessToApplicationComponentQueryTime()
+        public HasAccessToApplicationComponentForUserQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1215,14 +1245,14 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the HasAccessToEntity() method.
+    /// Count metric which records a call to the HasAccessToApplicationComponent() method overload with 'groups' parameter.
     /// </summary>
-    public class HasAccessToEntityQuery : QueryCountMetric
+    public class HasAccessToApplicationComponentForGroupsQuery : QueryCountMetric
     {
-        protected static String staticName = "HasAccessToEntityQuery";
-        protected static String staticDescription = "A call to the HasAccessToEntity() method";
+        protected static String staticName = "HasAccessToApplicationComponentForGroupsQuery";
+        protected static String staticDescription = "A call to the HasAccessToApplicationComponent() method overload with 'groups' parameter";
 
-        public HasAccessToEntityQuery()
+        public HasAccessToApplicationComponentForGroupsQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1230,14 +1260,74 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to execute the HasAccessToEntity() method.
+    /// Interval metric which records the time taken to execute the HasAccessToApplicationComponent() method overload with 'groups' parameter.
     /// </summary>
-    public class HasAccessToEntityQueryTime : QueryIntervalMetric
+    public class HasAccessToApplicationComponentForGroupsQueryTime : QueryIntervalMetric
     {
-        protected static String staticName = "HasAccessToEntityQueryTime";
-        protected static String staticDescription = "The time taken to execute the HasAccessToEntity() method";
+        protected static String staticName = "HasAccessToApplicationComponentForGroupsQueryTime";
+        protected static String staticDescription = "The time taken to execute the HasAccessToApplicationComponent() method overload with 'groups' parameter";
 
-        public HasAccessToEntityQueryTime()
+        public HasAccessToApplicationComponentForGroupsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the HasAccessToEntity() method overload with 'user' parameter.
+    /// </summary>
+    public class HasAccessToEntityForUserQuery : QueryCountMetric
+    {
+        protected static String staticName = "HasAccessToEntityForUserQuery";
+        protected static String staticDescription = "A call to the HasAccessToEntity() method overload with 'user' parameter";
+
+        public HasAccessToEntityForUserQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the HasAccessToEntity() method overload with 'user' parameter.
+    /// </summary>
+    public class HasAccessToEntityForUserQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "HasAccessToEntityForUserQueryTime";
+        protected static String staticDescription = "The time taken to execute the HasAccessToEntity() method overload with 'user' parameter";
+
+        public HasAccessToEntityForUserQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the HasAccessToEntity() method overload with 'groups' parameter.
+    /// </summary>
+    public class HasAccessToEntityForGroupsQuery : QueryCountMetric
+    {
+        protected static String staticName = "HasAccessToEntityForGroupsQuery";
+        protected static String staticDescription = "A call to the HasAccessToEntity() method overload with 'groups' parameter";
+
+        public HasAccessToEntityForGroupsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the HasAccessToEntity() method overload with 'groups' parameter.
+    /// </summary>
+    public class HasAccessToEntityForGroupsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "HasAccessToEntityForGroupsQueryTime";
+        protected static String staticDescription = "The time taken to execute the HasAccessToEntity() method overload with 'groups' parameter";
+
+        public HasAccessToEntityForGroupsQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;
