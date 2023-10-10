@@ -24,7 +24,7 @@ namespace ApplicationAccess.Metrics
     /// </summary>
     /// <typeparam name="TLeaf">The type of leaf vertices.</typeparam>
     /// <typeparam name="TNonLeaf">The type of non-leaf vertices.</typeparam>
-    public class MetricLoggingConcurrentDirectedGraph<TLeaf, TNonLeaf> : ConcurrentDirectedGraph<TLeaf, TNonLeaf>
+    public class MetricLoggingConcurrentDirectedGraph<TLeaf, TNonLeaf> : ConcurrentDirectedGraph<TLeaf, TNonLeaf>, IMetricLoggingComponent
     {
         /// <summary>The number of leaf to non-leaf edges in the graph.</summary>
         protected Int32 leafToNonLeafEdgeCount;

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <Copyright>Copyright © Alastair Wyse 2023</Copyright>
+    <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
+    <Description>Classes which distribute the operation and workload of an AccessManager implementation between multiple computers.</Description>
+    <PackageReleaseNotes>First release.</PackageReleaseNotes>
+    <PackageTags>application access authorization authorisation permission permissions user group users groups distribute distributed distribution shard sharded</PackageTags>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Metrics\ApplicationAccess.Metrics.csproj" />
+  </ItemGroup>
+
+</Project>

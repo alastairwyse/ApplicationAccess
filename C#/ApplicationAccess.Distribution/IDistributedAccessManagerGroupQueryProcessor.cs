@@ -17,25 +17,16 @@
 using System;
 using System.Collections.Generic;
 
-namespace ApplicationAccess
+namespace ApplicationAccess.Distribution
 {
     /// <summary>
-    /// Defines methods to manage the access of users and groups of users to components and entities within an application, without requiring dependent elements to be explicitly created (e.g. without requiring a user to be explicitly added before a user to group mapping is added which references that user).
+    /// Defines methods which query the state of group-based structures in a distributed implementation of an AccessManager.
     /// </summary>
-    /// <typeparam name="TUser">The type of users in the application.</typeparam>
-    /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
-    /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public interface IDependencyFreeAccessManager<TUser, TGroup, TComponent, TAccess> : IAccessManager<TUser, TGroup, TComponent, TAccess>
+    public interface IDistributedAccessManagerGroupQueryProcessor<TGroup, TComponent, TAccess>
     {
-        /// <summary>
-        /// Gets the groups that all of the specified groups are directly and indirectly mapped to.
-        /// </summary>
-        /// <param name="groups">The groups to retrieve the mapped groups for.</param>
-        /// <returns>A collection of groups the specified groups are mapped to, and including the specified groups.</returns>
-        /// <remarks>Note that <see cref="ArgumentException">ArgumentExceptions</see> are not thrown if any of the groups in <paramref name="groups"/> don't exist, since it's possible that groups could exist when this method call is initiated, but could be removed by a concurrent call whilst the initial call is being processed.</remarks>
-        HashSet<TGroup> GetGroupToGroupMappings(IEnumerable<TGroup> groups);
-
         /// <summary>
         /// Checks whether any of the specified groups have access to an application component at the specified level of access.
         /// </summary>

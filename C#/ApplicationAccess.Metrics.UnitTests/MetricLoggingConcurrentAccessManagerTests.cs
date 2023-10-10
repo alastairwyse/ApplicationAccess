@@ -45,7 +45,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         protected void SetUp()
         {
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
             testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             // Test version of class exposes a setter, so that the test version of the wrapper can be set after construction
             testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
@@ -2567,7 +2567,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         [Test]
         public void RemoveEntityType_BidirectionalMappingsTrue()
         {
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
             testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
 
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -3060,7 +3060,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         [Test]
         public void RemoveEntity_BidirectionalMappingsTrue()
         {
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
             testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
 
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");

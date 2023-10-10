@@ -20,7 +20,7 @@ using System.Collections.Generic;
 namespace ApplicationAccess
 {
     /// <summary>
-    /// Defines methods which query state of user-based structures in an AccessManager implementation.
+    /// Defines methods which query the state of user-based structures in an AccessManager implementation.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>

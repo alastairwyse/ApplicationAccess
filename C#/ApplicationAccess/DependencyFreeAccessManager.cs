@@ -30,7 +30,7 @@ namespace ApplicationAccess
     /// <typeparam name="TGroup">The type of groups in the application.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class DependencyFreeAccessManager<TUser, TGroup, TComponent, TAccess> : ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>, IDependencyFreeAccessManager<TUser, TGroup, TComponent, TAccess>
+    public class DependencyFreeAccessManager<TUser, TGroup, TComponent, TAccess> : ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>
     {
         /*
          * -- General Explanation of Implementation Techniques Used in This Class --
@@ -147,72 +147,6 @@ namespace ApplicationAccess
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
             this.thrownIdempotencyExceptions = thrownIdempotencyExceptions;
-        }
-
-        /// <inheritdoc/>
-        public virtual HashSet<TGroup> GetGroupToGroupMappings(IEnumerable<TGroup> groups)
-        {
-            var returnGroups = new HashSet<TGroup>();
-            foreach (TGroup currentGroup in groups)
-            {
-                if (returnGroups.Contains(currentGroup) == false)
-                {
-                    Func<TGroup, Boolean> vertexAction = (TGroup currentTraversalGroup) =>
-                    {
-                        if ((returnGroups.Contains(currentTraversalGroup) == false))
-                        {
-                            returnGroups.Add(currentTraversalGroup);
-                        }
-
-                        return true;
-                    };
-                    try
-                    {
-                        userToGroupMap.TraverseFromNonLeaf(currentGroup, vertexAction);
-                    }
-                    catch (NonLeafVertexNotFoundException<TGroup>)
-                    {
-                        // Ignore and continue if 'currentGroup' doesn't exist in the group
-                    }
-                }
-            }
-
-            return returnGroups;
-        }
-
-        /// <inheritdoc/>
-        public virtual Boolean HasAccessToApplicationComponent(IEnumerable<TGroup> groups, TComponent applicationComponent, TAccess accessLevel)
-        {
-            var comparisonComponentAndAccess = new ApplicationComponentAndAccessLevel<TComponent, TAccess>(applicationComponent, accessLevel);
-            foreach (TGroup currentGroup in groups)
-            {
-                Boolean containsUser = groupToComponentMap.TryGetValue(currentGroup, out ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>> componentsAndAccessInMapping);
-                if (containsUser == true && componentsAndAccessInMapping.Contains(comparisonComponentAndAccess) == true)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <inheritdoc/>
-        public virtual Boolean HasAccessToEntity(IEnumerable<TGroup> groups, String entityType, String entity)
-        {
-            foreach (TGroup currentGroup in groups)
-            {
-                Boolean containsGroup = groupToEntityMap.TryGetValue(currentGroup, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
-                if (containsGroup == true)
-                {
-                    Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
-                    if (containsEntity == true && entitiesInMapping.Contains(entity) == true)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         #region Private/Protected Methods

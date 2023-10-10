@@ -15,19 +15,10 @@
  */
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using ApplicationAccess.Hosting.Models.Options;
-using ApplicationAccess.Persistence;
-using ApplicationAccess.Persistence.SqlServer;
-using Microsoft.Data.SqlClient;
+using ApplicationAccess.Metrics;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ApplicationLogging;
-using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
-using ApplicationMetrics.MetricLoggers;
-using ApplicationMetrics.MetricLoggers.SqlServer;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
@@ -35,34 +26,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     /// Wraps an instance of <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> and associated components and initializes them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
     /// </summary>
     /// <remarks>StartAsync() constructs a <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
-    public class ReaderWriterNodeHostedServiceWrapper : IHostedService
+    public class ReaderWriterNodeHostedServiceWrapper 
+        : ReaderWriterNodeHostedServiceWrapperBase<ReaderWriterNode<String, String, String, String>, MetricLoggingConcurrentAccessManager<String, String, String, String>>
     {
-        // Members passed in via dependency injection
-        protected AccessManagerOptions accessManagerOptions;
-        protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
-        protected EventBufferFlushingOptions eventBufferFlushingOptions;
-        protected MetricLoggingOptions metricLoggingOptions;
-        protected EntityEventProcessorHolder entityEventProcessorHolder;
-        protected EntityQueryProcessorHolder entityQueryProcessorHolder;
-        protected GroupEventProcessorHolder groupEventProcessorHolder;
-        protected GroupQueryProcessorHolder groupQueryProcessorHolder;
-        protected GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder;
-        protected GroupToGroupQueryProcessorHolder groupToGroupQueryProcessorHolder;
-        protected UserEventProcessorHolder userEventProcessorHolder;
-        protected UserQueryProcessorHolder userQueryProcessorHolder;
-        protected ILoggerFactory loggerFactory;
-        protected ILogger<ReaderWriterNodeHostedServiceWrapper> logger;
-
-        /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the ReaderWriterNode.</summary>
-        protected SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy eventBufferFlushStrategy;
-        /// <summary>Used to persist changes to, and load data from the AccessManager.</summary>
-        protected SqlServerAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
-        /// <summary>The buffer processing for the logger for metrics.</summary>
-        protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
-        /// <summary>The logger for metrics.</summary>
-        protected SqlServerMetricLogger metricLogger;
-        /// <summary>The <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
-        protected ReaderWriterNode<String, String, String, String> readerWriterNode;
+        /// <inheritdoc/>
+        protected override String SqlServerMetricLoggerCategoryName 
+        {
+            get { return "ApplicationAccessReaderWriterNode"; }
+        }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ReaderWriter.ReaderWriterNodeHostedServiceWrapper class.
@@ -84,228 +55,40 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             ILoggerFactory loggerFactory,
             ILogger<ReaderWriterNodeHostedServiceWrapper> logger
         )
-        {
-            this.accessManagerOptions = accessManagerOptions.Value;
-            this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
-            this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
-            this.metricLoggingOptions = metricLoggingOptions.Value;
-            this.entityEventProcessorHolder = entityEventProcessorHolder;
-            this.entityQueryProcessorHolder = entityQueryProcessorHolder;
-            this.groupEventProcessorHolder = groupEventProcessorHolder;
-            this.groupQueryProcessorHolder = groupQueryProcessorHolder;
-            this.groupToGroupEventProcessorHolder = groupToGroupEventProcessorHolder;
-            this.groupToGroupQueryProcessorHolder = groupToGroupQueryProcessorHolder;
-            this.userEventProcessorHolder = userEventProcessorHolder;
-            this.userQueryProcessorHolder = userQueryProcessorHolder; 
-            this.loggerFactory = loggerFactory;
-            this.logger = logger;
-        }
-
-        /// <inheritdoc/>
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            logger.LogInformation($"Starting {nameof(ReaderWriterNodeHostedServiceWrapper)}...");
-
-            logger.LogInformation($"Constructing ReaderWriterNode instance...");
-
-            // Initialize the ReaderWriterNode constructor parameter members from configuration
-            InitializeReaderWriterNodeConstructorParameters
-            (
-                accessManagerSqlServerConnectionOptions,
-                eventBufferFlushingOptions,
-                metricLoggingOptions,
-                loggerFactory
-            );
-
-            // Create the ReaderWriterNode
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
-            {
-                readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value);
-            }
-            else
-            {
-                readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
-            }
-
-            // Set the ReaderWriterNode on the 'holder' classes
-            entityEventProcessorHolder.EntityEventProcessor = readerWriterNode;
-            entityQueryProcessorHolder.EntityQueryProcessor = readerWriterNode;
-            groupEventProcessorHolder.GroupEventProcessor = readerWriterNode;
-            groupQueryProcessorHolder.GroupQueryProcessor = readerWriterNode;
-            groupToGroupEventProcessorHolder.GroupToGroupEventProcessor = readerWriterNode;
-            groupToGroupQueryProcessorHolder.GroupToGroupQueryProcessor = readerWriterNode;
-            userEventProcessorHolder.UserEventProcessor = readerWriterNode;
-            userQueryProcessorHolder.UserQueryProcessor = readerWriterNode;
-
-            logger.LogInformation($"Completed constructing ReaderWriterNode instance.");
-
-            // Start buffer flushing/processing
-            logger.LogInformation($"Starting {nameof(eventBufferFlushStrategy)}...");
-            eventBufferFlushStrategy.Start();
-            logger.LogInformation($"Completed starting {nameof(eventBufferFlushStrategy)}.");
-            // Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
-            {
-                logger.LogInformation($"Starting {nameof(metricLogger)}...");
-                metricLogger.Start();
-                logger.LogInformation($"Completed starting {nameof(metricLogger)}.");
-            }
-            // Load the current state of the readerWriterNode from storage
-            logger.LogInformation($"Loading data into {nameof(readerWriterNode)}...");
-            readerWriterNode.Load(false);
-            logger.LogInformation($"Completed loading data into {nameof(readerWriterNode)}.");
-            
-            logger.LogInformation($"Completed starting {nameof(ReaderWriterNodeHostedServiceWrapper)}.");
-
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            logger.LogInformation($"Stopping {nameof(ReaderWriterNodeHostedServiceWrapper)}...");
-
-            // Stop and clear buffer flushing/processing
-            logger.LogInformation($"Stopping {nameof(eventBufferFlushStrategy)}...");
-            eventBufferFlushStrategy.Stop();
-            logger.LogInformation($"Completed stopping {nameof(eventBufferFlushStrategy)}.");
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
-            {
-                logger.LogInformation($"Stopping {nameof(metricLogger)}...");
-                metricLogger.Stop();
-                logger.LogInformation($"Completed stopping {nameof(metricLogger)}.");
-            }
-            logger.LogInformation($"Disposing objects...");
-            eventBufferFlushStrategy.Dispose();
-            eventPersister.Dispose();
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
-            {
-                metricLoggerBufferProcessingStrategy.Dispose();
-                metricLogger.Dispose();
-            }
-            readerWriterNode.Dispose();
-            logger.LogInformation($"Completed disposing objects.");
-
-            logger.LogInformation($"Completed stopping {nameof(ReaderWriterNodeHostedServiceWrapper)}.");
-
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Initializes the 'readerWriterNode' member constructor parameter members based on the specified configuration/options objects.
-        /// </summary>
-        protected void InitializeReaderWriterNodeConstructorParameters
+            :base
         (
-            AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions,
-            EventBufferFlushingOptions eventBufferFlushingOptions,
-            MetricLoggingOptions metricLoggingOptions,
-            ILoggerFactory loggerFactory
+            accessManagerOptions,
+            accessManagerSqlServerConnectionOptions,
+            eventBufferFlushingOptions,
+            metricLoggingOptions,
+            entityEventProcessorHolder,
+            entityQueryProcessorHolder,
+            groupEventProcessorHolder,
+            groupQueryProcessorHolder,
+            groupToGroupEventProcessorHolder,
+            groupToGroupQueryProcessorHolder,
+            userEventProcessorHolder,
+            userQueryProcessorHolder,
+            loggerFactory,
+            logger
         )
         {
-            String sqlServerMetricLoggerCategoryName = "ApplicationAccessReaderWriterNode";
-            if (metricLoggingOptions.MetricCategorySuffix != "")
-            {
-                sqlServerMetricLoggerCategoryName = $"{sqlServerMetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
-            }
-
-            var accessManagerConnectionStringBuilder = new SqlConnectionStringBuilder();
-            accessManagerConnectionStringBuilder.DataSource = accessManagerSqlServerConnectionOptions.DataSource;
-            // TODO: Need to enable this once I find a way to inject cert details etc into
-            accessManagerConnectionStringBuilder.Encrypt = false;
-            accessManagerConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
-            accessManagerConnectionStringBuilder.InitialCatalog = accessManagerSqlServerConnectionOptions.InitialCatalog;
-            accessManagerConnectionStringBuilder.UserID = accessManagerSqlServerConnectionOptions.UserId;
-            accessManagerConnectionStringBuilder.Password = accessManagerSqlServerConnectionOptions.Password;
-            String accessManagerConnectionString = accessManagerConnectionStringBuilder.ConnectionString;
-            IApplicationLogger eventPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
-            (
-                loggerFactory.CreateLogger<SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>>()
-            );
-
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
-            {
-                eventPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
-                (
-                    accessManagerConnectionString,
-                    accessManagerSqlServerConnectionOptions.RetryCount,
-                    accessManagerSqlServerConnectionOptions.RetryInterval,
-                    accessManagerSqlServerConnectionOptions.OperationTimeout, 
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    eventPersisterLogger
-                );
-                eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
-                (
-                    eventBufferFlushingOptions.BufferSizeLimit,
-                    eventBufferFlushingOptions.FlushLoopInterval
-                );
-            }
-            else
-            {
-                MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                switch (metricBufferProcessingOptions.BufferProcessingStrategy)
-                {
-                    case MetricBufferProcessingStrategyImplementation.SizeLimitedBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new SizeLimitedBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit);
-                        break;
-                    case MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new LoopingWorkerThreadBufferProcessor(metricBufferProcessingOptions.DequeueOperationLoopInterval);
-                        break;
-                    case MetricBufferProcessingStrategyImplementation.SizeLimitedLoopingWorkerThreadHybridBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit, metricBufferProcessingOptions.DequeueOperationLoopInterval);
-                        break;
-                    default:
-                        throw new Exception($"Encountered unhandled {nameof(MetricBufferProcessingStrategyImplementation)} '{metricBufferProcessingOptions.BufferProcessingStrategy}' while attempting to create {nameof(ReaderWriterNode<String, String, String, String>)} constructor parameters.");
-                }
-                MetricsSqlServerConnectionOptions metricsSqlServerConnectionOptions = metricLoggingOptions.MetricsSqlServerConnection;
-                var metricsConnectionStringBuilder = new SqlConnectionStringBuilder();
-                metricsConnectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;
-                // TODO: Need to enable this once I find a way to inject cert details etc into
-                metricsConnectionStringBuilder.Encrypt = false;
-                metricsConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
-                metricsConnectionStringBuilder.InitialCatalog = metricsSqlServerConnectionOptions.InitialCatalog;
-                metricsConnectionStringBuilder.UserID = metricsSqlServerConnectionOptions.UserId;
-                metricsConnectionStringBuilder.Password = metricsSqlServerConnectionOptions.Password;
-                String metricsConnectionString = metricsConnectionStringBuilder.ConnectionString;
-                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
-                (
-                    loggerFactory.CreateLogger<SqlServerMetricLogger>()
-                );
-                metricLogger = new SqlServerMetricLogger
-                (
-                    sqlServerMetricLoggerCategoryName,
-                    metricsConnectionString,
-                    metricsSqlServerConnectionOptions.RetryCount,
-                    metricsSqlServerConnectionOptions.RetryInterval,
-                    metricsSqlServerConnectionOptions.OperationTimeout, 
-                    metricLoggerBufferProcessingStrategy, 
-                    IntervalMetricBaseTimeUnit.Nanosecond, 
-                    true,
-                    metricLoggerLogger
-                );
-                eventPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
-                (
-                    accessManagerConnectionString,
-                    accessManagerSqlServerConnectionOptions.RetryCount,
-                    accessManagerSqlServerConnectionOptions.RetryInterval,
-                    accessManagerSqlServerConnectionOptions.OperationTimeout,
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    new StringUniqueStringifier(),
-                    eventPersisterLogger,
-                    metricLogger
-                );
-                eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
-                (
-                    eventBufferFlushingOptions.BufferSizeLimit,
-                    eventBufferFlushingOptions.FlushLoopInterval,
-                    metricLogger
-                );
-
-            }
         }
+
+        #region Private/Protected Methods
+
+        /// <inheritdoc/>
+        protected override ReaderWriterNode<String, String, String, String> InitializeReaderWriterNode()
+        {
+            return new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value);
+        }
+
+        /// <inheritdoc/>
+        protected override ReaderWriterNode<String, String, String, String> InitializeReaderWriterNodeWithMetricLogging()
+        {
+            return new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
+        }
+
+        #endregion
     }
 }

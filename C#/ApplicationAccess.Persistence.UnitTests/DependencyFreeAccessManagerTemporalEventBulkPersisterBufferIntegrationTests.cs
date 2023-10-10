@@ -49,8 +49,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockGuidProvider = Substitute.For<IGuidProvider>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
-            testAccessManager = new DependencyFreeAccessManager<string, string, ApplicationScreen, AccessLevel>(true);
-            testEventValidator = new ConcurrentAccessManagerEventValidator<string, string, ApplicationScreen, AccessLevel>(testAccessManager);
+            testAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true);
+            testEventValidator = new ConcurrentAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(testAccessManager);
             testEventBulkPersisterBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(testEventValidator, mockBufferFlushStrategy, mockEventPersister, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
             // Set the PersisterBuffer on the AccessManager to complete the 'loop back'
             testAccessManager.EventProcessor = testEventBulkPersisterBuffer;

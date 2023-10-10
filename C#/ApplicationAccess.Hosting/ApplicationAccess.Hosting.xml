@@ -188,35 +188,35 @@
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
             <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingDependencyFreeAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingDependencyFreeAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
         </member>
-        <member name="F:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.dependencyFreeAccessManager">
-            <summary>AccessManager instance used to store all permissions and to back the event validator.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.eventValidator">
-            <summary>Validates events created by calls to <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> methods.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.eventBuffer">
-            <summary>Buffers events events created by calls to <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> methods.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.eventBufferFlushStrategy">
-            <summary>Flush strategy for the event buffer.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.persistentReader">
-            <summary>Used to load the complete state of the AccessManager instance.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.metricLogger">
-            <summary>The logger for metrics.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.disposed">
-            <summary>Indicates whether the object has been disposed.</summary>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
             <summary>
-            Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNode class.
+            Initialises a new instance of the ApplicationAccess.Hosting.DependencyFreeReaderWriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.DependencyFreeReaderWriterNode class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.DependencyFreeReaderWriterNode class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
             <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
         <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
@@ -230,161 +230,124 @@
             <param name="metricLogger">The logger for metrics.</param>
             <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.Load(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.InitializeAccessManager(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.DistributedReaderNode`4">
             <summary>
-            Loads the latest state of the AccessManager from persistent storage.
+            A node in a distributed ApplicationAccess hosting environment which allows reading permissions and authorizations for an application.
             </summary>
-            <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
         </member>
-        <member name="P:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.Users">
-            <inheritdoc/>
-        </member>
-        <member name="P:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.Groups">
-            <inheritdoc/>
-        </member>
-        <member name="P:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.EntityTypes">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.ContainsUser(`0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.ContainsGroup(`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetUserToGroupMappings(`0,System.Boolean)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetGroupToGroupMappings(`1,System.Boolean)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.ContainsEntityType(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetEntities(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.ContainsEntity(System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetUserToEntityMappings(`0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetUserToEntityMappings(`0,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetGroupToEntityMappings(`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetGroupToEntityMappings(`1,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.HasAccessToApplicationComponent(`0,`2,`3)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.HasAccessToEntity(`0,System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetApplicationComponentsAccessibleByUser(`0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetApplicationComponentsAccessibleByGroup(`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetEntitiesAccessibleByUser(`0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetEntitiesAccessibleByUser(`0,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetEntitiesAccessibleByGroup(`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.GetEntitiesAccessibleByGroup(`1,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddUser(`0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveUser(`0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddGroup(`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveGroup(`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddUserToGroupMapping(`0,`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveUserToGroupMapping(`0,`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddGroupToGroupMapping(`1,`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveGroupToGroupMapping(`1,`1)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddEntityType(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveEntityType(System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddEntity(System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveEntity(System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddUserToEntityMapping(`0,System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.AddGroupToEntityMapping(`1,System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
             <summary>
-            Initializes members which are common between all constructors.
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedReaderNode class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedReaderNode class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedReaderNode class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.GetGroupToGroupMappings(System.Collections.Generic.IEnumerable{`1})">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.HasAccessToApplicationComponent(System.Collections.Generic.IEnumerable{`1},`2,`3)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.HasAccessToEntity(System.Collections.Generic.IEnumerable{`1},System.String,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.InitializeAccessManager">
+            <inheritdoc/>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.DistributedWriterNode`4">
+            <summary>
+            A node in a distributed ApplicationAccess hosting environment which allows writing permissions and authorizations for an application.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedWriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.Dispose">
+        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
             <summary>
-            Releases the unmanaged resources used by the DependencyFreeReaderWriterNode.
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedWriterNode class.
             </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.Dispose(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
             <summary>
-            Provides a method to free unmanaged resources used by this class.
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedWriterNode class.
             </summary>
-            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedWriterNode class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.InitializeAccessManager(System.Boolean)">
+            <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy">
             <summary>
@@ -557,36 +520,6 @@
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
             <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
         </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.refreshStrategy">
-            <summary>The strategy/methodology to use to refresh the contents of the reader node.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.eventCache">
-            <summary>Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.persistentReader">
-            <summary>Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.storeBidirectionalMappings">
-            <summary>Whether to store bidirectional mappings between elements.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.accessManager">
-            <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.dateTimeProvider">
-            <summary>The provider to use for the current date and time.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.metricLogger">
-            <summary>The logger for metrics.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.latestEventId">
-            <summary>The id of the most recent event which changed the AccessManager.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.refreshedEventHandler">
-            <summary>The delegate which handles an <see cref="E:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy.ReaderNodeRefreshed">ReaderNodeRefreshed</see> event.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNode`4.disposed">
-            <summary>Indicates whether the object has been disposed.</summary>
-        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
@@ -620,119 +553,202 @@
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
-        <member name="P:ApplicationAccess.Hosting.ReaderNode`4.Users">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.InitializeAccessManager">
+            <inheritdoc/>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.ReaderNodeBase`5">
+            <summary>
+            Base for nodes in a multi-reader, single-writer ApplicationAccess hosting environment which allow reading permissions and authorizations for an application.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <typeparam name="TAccessManager">The subclass of <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> which should be used to store the permissions and authorizations.</typeparam>
+            <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.refreshStrategy">
+            <summary>The strategy/methodology to use to refresh the contents of the reader node.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.eventCache">
+            <summary>Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.persistentReader">
+            <summary>Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.storeBidirectionalMappings">
+            <summary>Whether to store bidirectional mappings between elements.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.concurrentAccessManager">
+            <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.dateTimeProvider">
+            <summary>The provider to use for the current date and time.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.latestEventId">
+            <summary>The id of the most recent event which changed the AccessManager.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.refreshedEventHandler">
+            <summary>The delegate which handles an <see cref="E:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy.ReaderNodeRefreshed">ReaderNodeRefreshed</see> event.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeBase class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeBase class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeBase class.
+            </summary>
+            <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
+            <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
+            <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="dateTimeProvider">The provider to use for the current date and time.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderNodeBase`5.Users">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="P:ApplicationAccess.Hosting.ReaderNode`4.Groups">
+        <member name="P:ApplicationAccess.Hosting.ReaderNodeBase`5.Groups">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="P:ApplicationAccess.Hosting.ReaderNode`4.EntityTypes">
+        <member name="P:ApplicationAccess.Hosting.ReaderNodeBase`5.EntityTypes">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.ContainsUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.ContainsUser(`0)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.ContainsGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.ContainsGroup(`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToGroupMappings(`0,System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetUserToGroupMappings(`0,System.Boolean)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToGroupMappings(`1,System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToGroupMappings(`1,System.Boolean)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.ContainsEntityType(System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.ContainsEntityType(System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntities(System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetEntities(System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.ContainsEntity(System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.ContainsEntity(System.String,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToEntityMappings(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetUserToEntityMappings(`0)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetUserToEntityMappings(`0,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetUserToEntityMappings(`0,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToEntityMappings(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToEntityMappings(`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetGroupToEntityMappings(`1,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToEntityMappings(`1,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.HasAccessToApplicationComponent(`0,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.HasAccessToApplicationComponent(`0,`2,`3)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.HasAccessToEntity(`0,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.HasAccessToEntity(`0,System.String,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetApplicationComponentsAccessibleByUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetApplicationComponentsAccessibleByUser(`0)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetApplicationComponentsAccessibleByGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetApplicationComponentsAccessibleByGroup(`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetEntitiesAccessibleByUser(`0)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByUser(`0,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetEntitiesAccessibleByUser(`0,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetEntitiesAccessibleByGroup(`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.GetEntitiesAccessibleByGroup(`1,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetEntitiesAccessibleByGroup(`1,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Load(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.Load(System.Boolean)">
             <summary>
             Loads all permissions and authorizations from persistent storage.
             </summary>
             <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Refresh">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.InitializeAccessManager">
+            <summary>
+            Initializes a new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance used for underlying storage of permissions and authorizations.
+            </summary>
+            <returns>A new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.Refresh">
             <summary>
             Refreshes/updates the contents of the AccessManager by first attempting to retrieve any events occurring after the one stored in 'latestEventId' and applying them to the AccessManager instance, or by reading the entire latest state from persistent storage if the event retrieval fails.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Dispose">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.Dispose">
             <summary>
             Releases the unmanaged resources used by the ReaderNode.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.Dispose(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.Dispose(System.Boolean)">
             <summary>
             Provides a method to free unmanaged resources used by this class.
             </summary>
@@ -766,27 +782,6 @@
             <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
             <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.concurrentAccessManager">
-            <summary>AccessManager instance used to store all permissions and to back the event validator.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.eventValidator">
-            <summary>Validates events created by calls to <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> methods.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.eventBuffer">
-            <summary>Buffers events events created by calls to <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> methods.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.eventBufferFlushStrategy">
-            <summary>Flush strategy for the event buffer.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.persistentReader">
-            <summary>Used to load the complete state of the AccessManager instance.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.metricLogger">
-            <summary>The logger for metrics.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderWriterNode`4.disposed">
-            <summary>Indicates whether the object has been disposed.</summary>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
             <summary>
@@ -830,157 +825,242 @@
             <param name="metricLogger">The logger for metrics.</param>
             <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.Load(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.InitializeAccessManager(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.ReaderWriterNodeBase`5">
+            <summary>
+            Base for nodes in a single-reader, single-writer ApplicationAccess hosting environment which handle both reading and writing of permissions and authorizations for an application.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <typeparam name="TAccessManager">The subclass of <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> which should be used to read and write the permissions and authorizations.</typeparam>
+            <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.concurrentAccessManager">
+            <summary>The AccessManager instance used to store all permissions and back the event validator.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.eventValidator">
+            <summary>Validates events created by calls to <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> methods.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.eventBuffer">
+            <summary>Buffers events events created by calls to <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4"/> methods.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.eventBufferFlushStrategy">
+            <summary>Flush strategy for the event buffer.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.persistentReader">
+            <summary>Used to load the complete state of the AccessManager instance.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Load(System.Boolean)">
             <summary>
             Loads the latest state of the AccessManager from persistent storage.
             </summary>
             <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
         </member>
-        <member name="P:ApplicationAccess.Hosting.ReaderWriterNode`4.Users">
+        <member name="P:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Users">
             <inheritdoc/>
         </member>
-        <member name="P:ApplicationAccess.Hosting.ReaderWriterNode`4.Groups">
+        <member name="P:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Groups">
             <inheritdoc/>
         </member>
-        <member name="P:ApplicationAccess.Hosting.ReaderWriterNode`4.EntityTypes">
+        <member name="P:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.EntityTypes">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.ContainsUser(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.ContainsGroup(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToGroupMappings(`0,System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetUserToGroupMappings(`0,System.Boolean)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToGroupMappings(`1,System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToGroupMappings(`1,System.Boolean)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsEntityType(System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.ContainsEntityType(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntities(System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetEntities(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.ContainsEntity(System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.ContainsEntity(System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToEntityMappings(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetUserToEntityMappings(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetUserToEntityMappings(`0,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetUserToEntityMappings(`0,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToEntityMappings(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToEntityMappings(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetGroupToEntityMappings(`1,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToEntityMappings(`1,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.HasAccessToApplicationComponent(`0,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.HasAccessToApplicationComponent(`0,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.HasAccessToEntity(`0,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.HasAccessToEntity(`0,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetApplicationComponentsAccessibleByUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetApplicationComponentsAccessibleByUser(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetApplicationComponentsAccessibleByGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetApplicationComponentsAccessibleByGroup(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetEntitiesAccessibleByUser(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByUser(`0,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetEntitiesAccessibleByUser(`0,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetEntitiesAccessibleByGroup(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.GetEntitiesAccessibleByGroup(`1,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetEntitiesAccessibleByGroup(`1,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddUser(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveUser(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddGroup(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveGroup(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddUserToGroupMapping(`0,`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddUserToGroupMapping(`0,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveUserToGroupMapping(`0,`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveUserToGroupMapping(`0,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddGroupToGroupMapping(`1,`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddGroupToGroupMapping(`1,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveGroupToGroupMapping(`1,`1)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveGroupToGroupMapping(`1,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddEntityType(System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddEntityType(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveEntityType(System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveEntityType(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddEntity(System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddEntity(System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveEntity(System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveEntity(System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddUserToEntityMapping(`0,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddUserToEntityMapping(`0,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveUserToEntityMapping(`0,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.AddGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
             <summary>
             Initializes members which are common between all constructors.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.Dispose">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.InitializeAccessManager(System.Boolean)">
             <summary>
-            Releases the unmanaged resources used by the ReaderWriterNode.
+            Initializes a new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance used to read and write the permissions and authorizations.
+            </summary>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <returns>The new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the ReaderWriterNodeBase.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.Dispose(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Dispose(System.Boolean)">
             <summary>
             Provides a method to free unmanaged resources used by this class.
             </summary>
@@ -1022,27 +1102,6 @@
             <typeparam name="TGroup">The type of groups in the application.</typeparam>
             <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.WriterNode`4.concurrentAccessManager">
-            <summary>AccessManager instance which backs the event validator.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventValidator">
-            <summary>Validates events passed to the event buffer.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventBuffer">
-            <summary>Buffers events which change the AccessManager, writing them to the <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> instance and the event cache.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.WriterNode`4.eventBufferFlushStrategy">
-            <summary>Flush strategy for the event buffer.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.WriterNode`4.persistentReader">
-            <summary>Used to load the complete state of the AccessManager instance.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.WriterNode`4.metricLogger">
-            <summary>The logger for metrics.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Hosting.WriterNode`4.disposed">
-            <summary>Indicates whether the object has been disposed.</summary>
         </member>
         <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
             <summary>
@@ -1090,73 +1149,153 @@
             <param name="metricLogger">The logger for metrics.</param>
             <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Load(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.InitializeAccessManager(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.WriterNodeBase`5">
+            <summary>
+            Base for nodes in a multi-reader, single-writer ApplicationAccess hosting environment which allow writing permissions and authorizations for an application.
+            </summary>
+            <typeparam name="TUser">The type of users in the application.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application.</typeparam>
+            <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <typeparam name="TAccessManager">The subclass of <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> which should be used to write the permissions and authorizations.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.concurrentAccessManager">
+            <summary>AccessManager instance which backs the event validator.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.eventValidator">
+            <summary>Validates events passed to the event buffer.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.eventBuffer">
+            <summary>Buffers events which change the AccessManager, writing them to the <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4"/> instance and the event cache.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.eventBufferFlushStrategy">
+            <summary>Flush strategy for the event buffer.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.persistentReader">
+            <summary>Used to load the complete state of the AccessManager instance.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
+            </summary>
+            <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
+            <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
+            <param name="eventPersister">Used to persist changes to the AccessManager.</param>
+            <param name="eventCache">Cache for events which change the AccessManager.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.Load(System.Boolean)">
             <summary>
             Loads the latest state of the AccessManager from persistent storage.
             </summary>
             <param name="throwExceptionIfStorageIsEmpty">When set true an exception will be thrown in the case that the persistent storage is empty.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddUser(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveUser(`0)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveUser(`0)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddGroup(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroup(`1)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveGroup(`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUserToGroupMapping(`0,`1)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddUserToGroupMapping(`0,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveUserToGroupMapping(`0,`1)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveUserToGroupMapping(`0,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddGroupToGroupMapping(`1,`1)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddGroupToGroupMapping(`1,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroupToGroupMapping(`1,`1)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveGroupToGroupMapping(`1,`1)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddEntityType(System.String)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddEntityType(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveEntityType(System.String)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveEntityType(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddEntity(System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddEntity(System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveEntity(System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveEntity(System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddUserToEntityMapping(`0,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddUserToEntityMapping(`0,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveUserToEntityMapping(`0,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.AddGroupToEntityMapping(`1,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.AddGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
             <summary>
             Initializes members which are common between all constructors.
             </summary>
@@ -1164,12 +1303,19 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Dispose">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.InitializeAccessManager(System.Boolean)">
             <summary>
-            Releases the unmanaged resources used by the WriterNode.
+            Initializes a new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance used for underlying writing/storage of permissions and authorizations.
+            </summary>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <returns>The new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the WriterNodeBase.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.Dispose(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.Dispose(System.Boolean)">
             <summary>
             Provides a method to free unmanaged resources used by this class.
             </summary>

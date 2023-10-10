@@ -120,49 +120,49 @@ namespace ApplicationAccess.Validation
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateAddEntityType(string entityType, Action<string> postValidationAction)
+        public ValidationResult ValidateAddEntityType(String entityType, Action<String> postValidationAction)
         {
             return InvokeActionAndWrapResponse(() => { concurrentAccessManager.AddEntityType(entityType, postValidationAction); });
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateRemoveEntityType(string entityType, Action<string> postValidationAction)
+        public ValidationResult ValidateRemoveEntityType(String entityType, Action<String> postValidationAction)
         {
             return InvokeActionAndWrapResponse(() => { concurrentAccessManager.RemoveEntityType(entityType, postValidationAction); });
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateAddEntity(string entityType, string entity, Action<string, string> postValidationAction)
+        public ValidationResult ValidateAddEntity(String entityType, String entity, Action<String, String> postValidationAction)
         {
             return InvokeActionAndWrapResponse(() => { concurrentAccessManager.AddEntity(entityType, entity, postValidationAction); });
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateRemoveEntity(string entityType, string entity, Action<string, string> postValidationAction)
+        public ValidationResult ValidateRemoveEntity(String entityType, String entity, Action<String, String> postValidationAction)
         {
             return InvokeActionAndWrapResponse(() => { concurrentAccessManager.RemoveEntity(entityType, entity, postValidationAction); });
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateAddUserToEntityMapping(TUser user, string entityType, string entity, Action<TUser, string, string> postValidationAction)
+        public ValidationResult ValidateAddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postValidationAction)
         {
             return InvokeActionAndWrapResponse(() => { concurrentAccessManager.AddUserToEntityMapping(user, entityType, entity, postValidationAction); });
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateRemoveUserToEntityMapping(TUser user, string entityType, string entity, Action<TUser, string, string> postValidationAction)
+        public ValidationResult ValidateRemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postValidationAction)
         {
             return InvokeActionAndWrapResponse(() => { concurrentAccessManager.RemoveUserToEntityMapping(user, entityType, entity, postValidationAction); });
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateAddGroupToEntityMapping(TGroup group, string entityType, string entity, Action<TGroup, string, string> postValidationAction)
+        public ValidationResult ValidateAddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postValidationAction)
         {
             return InvokeActionAndWrapResponse(() => { concurrentAccessManager.AddGroupToEntityMapping(group, entityType, entity, postValidationAction); });
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateRemoveGroupToEntityMapping(TGroup group, string entityType, string entity, Action<TGroup, string, string> postValidationAction)
+        public ValidationResult ValidateRemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postValidationAction)
         {
             return InvokeActionAndWrapResponse(() => { concurrentAccessManager.RemoveGroupToEntityMapping(group, entityType, entity, postValidationAction); });
         }

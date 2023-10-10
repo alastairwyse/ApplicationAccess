@@ -50,7 +50,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
-            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
         }
 
         [Test]
@@ -1012,7 +1012,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 callnfo => { throw mockException; }
             );
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw new EventNotCachedException("The specified event was not cached."));
-            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger); 
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger); 
             testReaderNode.Load(true);
 
             var e = Assert.Throws<ReaderNodeRefreshException>(delegate
@@ -1040,7 +1040,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw new EventNotCachedException("The specified event was not cached."));
-            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
             testReaderNode.Load(true);
             const String user = "user1";
             var loadAction = new Action<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>((accessManager) =>
@@ -1073,7 +1073,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw mockException);
-            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
             testReaderNode.Load(true);
 
             var e = Assert.Throws<ReaderNodeRefreshException>(delegate
@@ -1100,7 +1100,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockMetricLogger.Begin(Arg.Any<RefreshTime>()).Returns(testBeginId);
             mockPersistentReader.Load(Arg.Any<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>()).Returns(returnedLoadState);
             mockEventCache.When((eventCache) => eventCache.GetAllEventsSince(returnedLoadState.Item1)).Do((callInfo) => throw mockException);
-            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
             testReaderNode.Load(true);
 
             capturedSubscriberMethod.Invoke(mockRefreshStrategy, EventArgs.Empty);
@@ -1138,7 +1138,7 @@ namespace ApplicationAccess.Hosting.UnitTests
                 CreateDataTimeFromString("2022-10-08 11:17:36"),
                 CreateDataTimeFromString("2022-10-08 11:18:01")
             );
-            testReaderNode = new ReaderNode<string, string, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger, mockDateTimeProvider);
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger, mockDateTimeProvider);
             testReaderNode.Load(true);
 
             capturedSubscriberMethod.Invoke(mockRefreshStrategy, EventArgs.Empty);

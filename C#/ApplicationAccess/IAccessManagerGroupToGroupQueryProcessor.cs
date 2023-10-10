@@ -20,7 +20,7 @@ using System.Collections.Generic;
 namespace ApplicationAccess
 {
     /// <summary>
-    /// Defines methods which query state of group to group mapping structures in an AccessManager implementation.
+    /// Defines methods which query the state of group to group mapping structures in an AccessManager implementation.
     /// </summary>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     public interface IAccessManagerGroupToGroupQueryProcessor<TGroup>

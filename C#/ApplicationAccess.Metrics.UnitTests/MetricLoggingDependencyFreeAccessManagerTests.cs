@@ -53,7 +53,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockEventProcessor = Substitute.For<IAccessManagerEventProcessor<String, String, ApplicationScreen, AccessLevel>>();
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManagerWithProtectedMembers<string, string, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
             testMetricLoggingDependencyFreeAccessManager.EventProcessor = mockEventProcessor;
             testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             // Test version of class exposes a setter, so that the test version of the decorator can be set after construction
@@ -1144,49 +1144,6 @@ namespace ApplicationAccess.Metrics.UnitTests
         public void GetGroupToGroupMappingsGroupsOverload_ExceptionWhenQuerying()
         {
             // TODO: Find a way to test this.  Currently I can't see a way to make the method throw an exception due to ignoring of invalid groups.
-        }
-
-        [Test]
-        public void GetGroupToGroupMappingsGroupsOverload()
-        {
-            var testGroups = new List<String>() { "Grp1", "Grp4" };
-            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping("Grp1", "Grp3");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping("Grp1", "Grp4");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping("Grp2", "Grp3");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping("Grp2", "Grp4");
-            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupsQueryTime>()).Returns(testBeginId);
-            mockMetricLogger.ClearReceivedCalls();
-
-            HashSet<String> result = testMetricLoggingDependencyFreeAccessManager.GetGroupToGroupMappings(testGroups);
-
-            Assert.AreEqual(3, result.Count);
-            Assert.IsTrue(result.Contains("Grp1"));
-            Assert.IsTrue(result.Contains("Grp3"));
-            Assert.IsTrue(result.Contains("Grp4"));
-            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsForGroupsQueryTime>());
-            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupMappingsForGroupsQueryTime>());
-            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsForGroupsQuery>());
-            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
-        }
-
-        [Test]
-        public void GetGroupToGroupMappingsGroupsOverload_MetricLoggingDisabled()
-        {
-            testMetricLoggingDependencyFreeAccessManager.MetricLoggingEnabled = false;
-            var testGroups = new List<String>() { "Grp1", "Grp4" };
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping("Grp1", "Grp3");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping("Grp1", "Grp4");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping("Grp2", "Grp3");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping("Grp2", "Grp4");
-
-            HashSet<String> result = testMetricLoggingDependencyFreeAccessManager.GetGroupToGroupMappings(testGroups);
-
-            Assert.AreEqual(3, result.Count);
-            Assert.IsTrue(result.Contains("Grp1"));
-            Assert.IsTrue(result.Contains("Grp3"));
-            Assert.IsTrue(result.Contains("Grp4"));
-            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2436,47 +2393,6 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
-        public void HasAccessToApplicationComponentGroupsOverload_ExceptionWhenQuerying()
-        {
-            // TODO: Find a way to test this.  Currently I can't see a way to make the method throw an exception due to ignoring of invalid elements.
-        }
-
-        [Test]
-        public void HasAccessToApplicationComponentGroupsOverload()
-        {
-            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group1");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group2");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group3");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Delete);
-            mockMetricLogger.Begin(Arg.Any<HasAccessToApplicationComponentForGroupsQueryTime>()).Returns(testBeginId);
-            mockMetricLogger.ClearReceivedCalls();
-
-            Boolean result = testMetricLoggingDependencyFreeAccessManager.HasAccessToApplicationComponent(new List<String>() { "group1", "group2", "group3" }, ApplicationScreen.ManageProducts, AccessLevel.Delete);
-
-            Assert.IsTrue(result);
-            mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToApplicationComponentForGroupsQueryTime>());
-            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToApplicationComponentForGroupsQueryTime>());
-            mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToApplicationComponentForGroupsQuery>());
-            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
-        }
-
-        [Test]
-        public void HasAccessToApplicationComponentGroupsOverload_MetricLoggingDisabled()
-        {
-            testMetricLoggingDependencyFreeAccessManager.MetricLoggingEnabled = false;
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group1");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group2");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group3");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Delete);
-
-            Boolean result = testMetricLoggingDependencyFreeAccessManager.HasAccessToApplicationComponent(new List<String>() { "group1", "group2", "group3" }, ApplicationScreen.ManageProducts, AccessLevel.Delete);
-
-            Assert.IsTrue(result);
-            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
-        }
-
-        [Test]
         public void HasAccessToEntityUserOverload()
         {
             String testUser = "user1";
@@ -2500,55 +2416,6 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToEntityForUserQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToEntityForUserQuery>());
             Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
-        }
-
-        [Test]
-        public void HasAccessToEntityGroupsOverload_ExceptionWhenQuerying()
-        {
-            // TODO: Find a way to test this.  Currently I can't see a way to make the method throw an exception due to ignoring of invalid elements.
-        }
-
-        [Test]
-        public void HasAccessToEntityGroupsOverload()
-        {
-            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group1");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group2");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group3");
-            testMetricLoggingDependencyFreeAccessManager.AddEntityType("ClientAccount");
-            testMetricLoggingDependencyFreeAccessManager.AddEntity("ClientAccount", "CompanyA");
-            testMetricLoggingDependencyFreeAccessManager.AddEntity("ClientAccount", "CompanyB");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
-            mockMetricLogger.Begin(Arg.Any<HasAccessToEntityForGroupsQueryTime>()).Returns(testBeginId);
-            mockMetricLogger.ClearReceivedCalls();
-
-            Boolean result = testMetricLoggingDependencyFreeAccessManager.HasAccessToEntity(new List<String>() { "group1", "group2", "group3" }, "ClientAccount", "CompanyB");
-
-            Assert.IsTrue(result); 
-            mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToEntityForGroupsQueryTime>());
-            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToEntityForGroupsQueryTime>());
-            mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToEntityForGroupsQuery>());
-            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
-        }
-
-        [Test]
-        public void HasAccessToEntityGroupsOverload_MetricLoggingDisabled()
-        {
-            testMetricLoggingDependencyFreeAccessManager.MetricLoggingEnabled = false;
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group1");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group2");
-            testMetricLoggingDependencyFreeAccessManager.AddGroup("group3");
-            testMetricLoggingDependencyFreeAccessManager.AddEntityType("ClientAccount");
-            testMetricLoggingDependencyFreeAccessManager.AddEntity("ClientAccount", "CompanyA");
-            testMetricLoggingDependencyFreeAccessManager.AddEntity("ClientAccount", "CompanyB");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
-            testMetricLoggingDependencyFreeAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
-
-            Boolean result = testMetricLoggingDependencyFreeAccessManager.HasAccessToEntity(new List<String>() { "group1", "group2", "group3" }, "ClientAccount", "CompanyB");
-
-            Assert.IsTrue(result);
-            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -2744,7 +2611,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             {
                 wrappingActionOrder.Add(postEventProcessingActionInvokedText);
             };
-            var testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManagerWithOverriddenEventMethod<string, string, ApplicationScreen, AccessLevel>(false, mockMetricLogger, preEventProcessingAction, postEventProcessingAction);
+            var testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManagerWithOverriddenEventMethod<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger, preEventProcessingAction, postEventProcessingAction);
             testMetricLoggingDependencyFreeAccessManager.EventProcessor = mockEventProcessor;
             testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             // Test version of class exposes a setter, so that the test version of the decorator can be set after construction

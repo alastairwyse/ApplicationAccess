@@ -17,7 +17,7 @@
 namespace ApplicationAccess
 {
     /// <summary>
-    /// Defines methods which query state/structure of an AccessManager implementation.
+    /// Defines methods which query the state/structure of an AccessManager implementation.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>

@@ -105,7 +105,6 @@ namespace ApplicationAccess
         /// <param name="postProcessingAction">An action to invoke after adding the user but whilst any mutual-exclusion locks are still acquired.</param>
         public virtual void AddUser(TUser user, Action<TUser> postProcessingAction)
         {
-
             Action<TUser, Action> wrappingAction = (actionUser, baseAction) =>
             {
                 baseAction.Invoke();

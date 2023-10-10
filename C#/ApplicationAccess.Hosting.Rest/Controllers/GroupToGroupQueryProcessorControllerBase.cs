@@ -46,7 +46,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         }
 
         /// <summary>
-        ///Gets the groups that the specified group is mapped to.
+        /// Gets the groups that the specified group is mapped to.
         /// </summary>
         /// <param name="group">The group to retrieve the mapped groups for.</param>
         /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>

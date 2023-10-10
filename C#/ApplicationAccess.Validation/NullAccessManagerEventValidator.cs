@@ -119,56 +119,56 @@ namespace ApplicationAccess.Validation
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateAddEntityType(string entityType, Action<string> postValidationAction)
+        public ValidationResult ValidateAddEntityType(String entityType, Action<String> postValidationAction)
         {
             postValidationAction.Invoke(entityType);
             return new ValidationResult(true);
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateRemoveEntityType(string entityType, Action<string> postValidationAction)
+        public ValidationResult ValidateRemoveEntityType(String entityType, Action<String> postValidationAction)
         {
             postValidationAction.Invoke(entityType);
             return new ValidationResult(true);
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateAddEntity(string entityType, string entity, Action<string, string> postValidationAction)
+        public ValidationResult ValidateAddEntity(String entityType, String entity, Action<String, String> postValidationAction)
         {
             postValidationAction.Invoke(entityType, entity);
             return new ValidationResult(true);
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateRemoveEntity(string entityType, string entity, Action<string, string> postValidationAction)
+        public ValidationResult ValidateRemoveEntity(String entityType, String entity, Action<String, String> postValidationAction)
         {
             postValidationAction.Invoke(entityType, entity);
             return new ValidationResult(true);
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateAddUserToEntityMapping(TUser user, string entityType, string entity, Action<TUser, string, string> postValidationAction)
+        public ValidationResult ValidateAddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postValidationAction)
         {
             postValidationAction.Invoke(user, entityType, entity);
             return new ValidationResult(true);
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateRemoveUserToEntityMapping(TUser user, string entityType, string entity, Action<TUser, string, string> postValidationAction)
+        public ValidationResult ValidateRemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postValidationAction)
         {
             postValidationAction.Invoke(user, entityType, entity);
             return new ValidationResult(true);
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateAddGroupToEntityMapping(TGroup group, string entityType, string entity, Action<TGroup, string, string> postValidationAction)
+        public ValidationResult ValidateAddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postValidationAction)
         {
             postValidationAction.Invoke(group, entityType, entity);
             return new ValidationResult(true);
         }
 
         /// <inheritdoc/>
-        public ValidationResult ValidateRemoveGroupToEntityMapping(TGroup group, string entityType, string entity, Action<TGroup, string, string> postValidationAction)
+        public ValidationResult ValidateRemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postValidationAction)
         {
             postValidationAction.Invoke(group, entityType, entity);
             return new ValidationResult(true);

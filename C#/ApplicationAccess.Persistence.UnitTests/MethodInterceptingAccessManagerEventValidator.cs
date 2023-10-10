@@ -116,49 +116,49 @@ namespace ApplicationAccess.Persistence.UnitTests
             return nullAccessManagerEventValidator.ValidateRemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, postValidationAction);
         }
 
-        public ValidationResult ValidateAddEntityType(string entityType, Action<string> postValidationAction)
+        public ValidationResult ValidateAddEntityType(String entityType, Action<String> postValidationAction)
         {
             interceptor.Intercept();
             return nullAccessManagerEventValidator.ValidateAddEntityType(entityType, postValidationAction);
         }
 
-        public ValidationResult ValidateRemoveEntityType(string entityType, Action<string> postValidationAction)
+        public ValidationResult ValidateRemoveEntityType(String entityType, Action<String> postValidationAction)
         {
             interceptor.Intercept();
             return nullAccessManagerEventValidator.ValidateRemoveEntityType(entityType, postValidationAction);
         }
 
-        public ValidationResult ValidateAddEntity(string entityType, string entity, Action<string, string> postValidationAction)
+        public ValidationResult ValidateAddEntity(String entityType, String entity, Action<String, String> postValidationAction)
         {
             interceptor.Intercept();
             return nullAccessManagerEventValidator.ValidateAddEntity(entityType, entity, postValidationAction);
         }
 
-        public ValidationResult ValidateRemoveEntity(string entityType, string entity, Action<string, string> postValidationAction)
+        public ValidationResult ValidateRemoveEntity(String entityType, String entity, Action<String, String> postValidationAction)
         {
             interceptor.Intercept();
             return nullAccessManagerEventValidator.ValidateRemoveEntity(entityType, entity, postValidationAction);
         }
 
-        public ValidationResult ValidateAddUserToEntityMapping(TUser user, string entityType, string entity, Action<TUser, string, string> postValidationAction)
+        public ValidationResult ValidateAddUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postValidationAction)
         {
             interceptor.Intercept();
             return nullAccessManagerEventValidator.ValidateAddUserToEntityMapping(user, entityType, entity, postValidationAction);
         }
 
-        public ValidationResult ValidateRemoveUserToEntityMapping(TUser user, string entityType, string entity, Action<TUser, string, string> postValidationAction)
+        public ValidationResult ValidateRemoveUserToEntityMapping(TUser user, String entityType, String entity, Action<TUser, String, String> postValidationAction)
         {
             interceptor.Intercept();
             return nullAccessManagerEventValidator.ValidateRemoveUserToEntityMapping(user, entityType, entity, postValidationAction);
         }
 
-        public ValidationResult ValidateAddGroupToEntityMapping(TGroup group, string entityType, string entity, Action<TGroup, string, string> postValidationAction)
+        public ValidationResult ValidateAddGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postValidationAction)
         {
             interceptor.Intercept();
             return nullAccessManagerEventValidator.ValidateAddGroupToEntityMapping(group, entityType, entity, postValidationAction);
         }
 
-        public ValidationResult ValidateRemoveGroupToEntityMapping(TGroup group, string entityType, string entity, Action<TGroup, string, string> postValidationAction)
+        public ValidationResult ValidateRemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Action<TGroup, String, String> postValidationAction)
         {
             interceptor.Intercept();
             return nullAccessManagerEventValidator.ValidateRemoveGroupToEntityMapping(group, entityType, entity, postValidationAction);

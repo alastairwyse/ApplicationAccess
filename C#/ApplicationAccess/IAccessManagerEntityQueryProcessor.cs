@@ -20,7 +20,7 @@ using System.Collections.Generic;
 namespace ApplicationAccess
 {
     /// <summary>
-    ///  Defines methods which query state of entity-based structures in an AccessManager implementation.
+    ///  Defines methods which query the state of entity-based structures in an AccessManager implementation.
     /// </summary>
     public interface IAccessManagerEntityQueryProcessor
     {
