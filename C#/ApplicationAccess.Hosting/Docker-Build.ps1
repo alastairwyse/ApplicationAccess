@@ -45,7 +45,7 @@
 
 # Read and validate input parameters
 Param (
-[Parameter(Position=0, Mandatory=$True, HelpMessage="Enter the component to build (''Reader'', ''Writer'', ''ReaderWriter'', or ''EventCache'')")]
+[Parameter(Position=0, Mandatory=$True, HelpMessage="Enter the component to build (''Reader'', ''Writer'', ''ReaderWriter'', ''EventCache'', ''DependencyFreeReaderWriter'', ''DistributedReader'', or ''DistributedWriter'')")]
 [ValidateNotNullorEmpty()]
 [string]$Component,
 [Parameter(Position=1, Mandatory=$True, HelpMessage="Enter the build destination folder")]
@@ -71,6 +71,15 @@ elseif ($Component -eq 'Writer') {
 }
 elseif ($Component -eq 'EventCache') {
 	$componentPath = '..\ApplicationAccess.Hosting.Rest.EventCache'
+}
+elseif ($Component -eq 'DependencyFreeReaderWriter') {
+	$componentPath = '..\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter'
+}
+elseif ($Component -eq 'DistributedReader') {
+	$componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedReader'
+}
+elseif ($Component -eq 'DistributedWriter') {
+	$componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedWriter'
 }
 else {
 	throw "Argument 'Component' contains invalid value '$($Component)'"

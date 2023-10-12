@@ -30,6 +30,10 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         /// <summary>A writer node.</summary>
         WriterNode,
         /// <summary>A dependency-free reader/writer node.</summary>
-        DependencyFreeReaderWriterNode
+        DependencyFreeReaderWriterNode,
+        /// <summary>A distributed reader node.</summary>
+        DistributedReader,
+        /// <summary>A distributed writer node.</summary>
+        DistributedWriter
     }
 }

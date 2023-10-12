@@ -36,7 +36,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 Args = args,
                 SwaggerVersionString = "v1",
                 SwaggerApplicationName = "ApplicationAccess Writer Node",
-                SwaggerApplicationDescription = "Node in a distributed/scaled deployment of ApplicationAccess which handles writing events that change permissions and authorizations",
+                SwaggerApplicationDescription = "Node in a multi-reader, single-writer deployment of ApplicationAccess which handles writing events that change permissions and authorizations",
                 SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
                 {
                     typeof(Rest.Controllers.EntityEventProcessorControllerBase).Assembly

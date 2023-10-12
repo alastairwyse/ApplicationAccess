@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 namespace ApplicationAccess.Hosting.Rest.AsyncClient
 {
     /// <summary>
-    /// Defines methods which query state/structure of an AccessManager implementation as asyncronous operations.
+    /// Defines methods which query the state/structure of an AccessManager implementation as asyncronous operations.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>

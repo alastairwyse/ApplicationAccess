@@ -166,7 +166,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         #region Nested Classes
 
         /// <summary>
-        /// Subclass of <see cref="ReaderWriter.Program"/> which instantiates a hosted version of the <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> class for testing.
+        /// Subclass of <see cref="WebApplicationFactory<ReaderWriter.Program>"/> which instantiates a hosted version of the <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/> class for testing.
         /// </summary>
         protected class TestReaderWriter : WebApplicationFactory<ReaderWriter.Program>
         {

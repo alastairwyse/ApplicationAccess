@@ -33,7 +33,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 Args = args,
                 SwaggerVersionString = "v1",
                 SwaggerApplicationName = "ApplicationAccess Reader Node",
-                SwaggerApplicationDescription = "Node in a distributed/scaled deployment of ApplicationAccess which handles query/read operations",
+                SwaggerApplicationDescription = "Node in a multi-reader, single-writer deployment of ApplicationAccess which handles query/read operations",
                 SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
                 {
                     typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly
