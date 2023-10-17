@@ -319,6 +319,9 @@
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.cachedEventsGuidIndex">
             <summary>Holds the <see cref="T:System.Collections.Generic.LinkedListNode`1"/> wrapping each cached event, indexed by its <see cref="P:ApplicationAccess.Persistence.EventBufferItemBase.EventId">EventId</see> property.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.cachedEventsLock">
+            <summary>Lock object for the 'cachedEvents' member.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase`4.metricLogger">
             <summary>The logger for metrics.</summary>
         </member>

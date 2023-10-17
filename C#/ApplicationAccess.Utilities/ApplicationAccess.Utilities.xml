@@ -53,10 +53,10 @@
         <member name="F:ApplicationAccess.Utilities.LockManager.registeredObjectSequenceNumbers">
             <summary>Holds the lock order sequence number which is mapped to each registered object.</summary>
         </member>
-        <member name="F:ApplicationAccess.Utilities.LockManager.dependsOnDepenencies">
+        <member name="F:ApplicationAccess.Utilities.LockManager.dependsOnDependencies">
             <summary>The lock object dependencies, where the dictionary key object depends on the value objects.</summary>
         </member>
-        <member name="F:ApplicationAccess.Utilities.LockManager.dependedOnByDepenencies">
+        <member name="F:ApplicationAccess.Utilities.LockManager.dependedOnByDependencies">
             <summary>The lock object dependencies, where the dictionary key object is depended on by the value objects.</summary>
         </member>
         <member name="F:ApplicationAccess.Utilities.LockManager.nextSequenceNumber">

@@ -31,7 +31,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Base for amount metrics logged by the <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/> class.
     /// </summary>
-    public abstract class ReaderNodeCAmountMetric : AmountMetric
+    public abstract class ReaderNodeAmountMetric : AmountMetric
     {
     }
 
@@ -61,7 +61,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Amount metric which records the number of events received in response to a request to an event cache.
     /// </summary>
-    public class CachedEventsReceived : ReaderNodeCAmountMetric
+    public class CachedEventsReceived : ReaderNodeAmountMetric
     {
         protected static String staticName = "CachedEventsReceived";
         protected static String staticDescription = "The number of events received in response to a request to an event cache";
@@ -91,7 +91,7 @@ namespace ApplicationAccess.Hosting
     /// <summary>
     /// Amount metric which records the time in milliseconds between the original occurence of an event, and when that change was processed / applied to a reader node.
     /// </summary>
-    public class EventProcessingDelay : ReaderNodeCAmountMetric
+    public class EventProcessingDelay : ReaderNodeAmountMetric
     {
         protected static String staticName = "EventProcessingDelay";
         protected static String staticDescription = "The time in milliseconds between the original occurence of an event, and when that change was processed / applied to a reader node";

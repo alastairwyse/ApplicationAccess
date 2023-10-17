@@ -393,7 +393,7 @@ namespace ApplicationAccess.Metrics
             }
             else
             {
-                if (thrownIdempotencyExceptions == true)
+                if (throwIdempotencyExceptions == true)
                     throw new IdempotentAddOperationException();
             }
         }
@@ -419,7 +419,7 @@ namespace ApplicationAccess.Metrics
             }
             else
             {
-                if (thrownIdempotencyExceptions == true)
+                if (throwIdempotencyExceptions == true)
                     throw new IdempotentAddOperationException();
             }
         }
@@ -450,7 +450,7 @@ namespace ApplicationAccess.Metrics
             }
             else
             {
-                if (thrownIdempotencyExceptions == true)
+                if (throwIdempotencyExceptions == true)
                     throw new IdempotentAddOperationException();
             }
         }
@@ -458,12 +458,9 @@ namespace ApplicationAccess.Metrics
         /// <inheritdoc/>
         protected override void AddEntity(String entityType, String entity, Boolean generateEvent)
         {
-            try
+            if (entities.ContainsKey(entityType) == false)
             {
-                AddEntityType(entityType, generateEvent);
-            }
-            catch (IdempotentAddOperationException)
-            {
+                AddEntityType(entityType, true);
             }
             if (entities[entityType].Contains(entity) == false)
             {
@@ -488,7 +485,7 @@ namespace ApplicationAccess.Metrics
             }
             else
             {
-                if (thrownIdempotencyExceptions == true)
+                if (throwIdempotencyExceptions == true)
                     throw new IdempotentAddOperationException();
             }
         }

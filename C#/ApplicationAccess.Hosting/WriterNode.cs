@@ -18,6 +18,7 @@ using System;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Metrics;
 using ApplicationMetrics;
+using System.Collections.Generic;
 
 namespace ApplicationAccess.Hosting
 {
@@ -48,6 +49,11 @@ namespace ApplicationAccess.Hosting
             Boolean storeBidirectionalMappings
         ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, storeBidirectionalMappings)
         {
+            var eventDistributor = new AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess>
+            (
+                new List<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
+            );
+            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
         }
 
         /// <summary>
@@ -68,6 +74,11 @@ namespace ApplicationAccess.Hosting
             Boolean storeBidirectionalMappings
         ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, storeBidirectionalMappings)
         {
+            var eventDistributor = new AccessManagerTemporalEventBulkPersisterDistributor<TUser, TGroup, TComponent, TAccess>
+            (
+                new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
+            );
+            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
         }
 
         /// <summary>
@@ -90,6 +101,11 @@ namespace ApplicationAccess.Hosting
             IMetricLogger metricLogger
         ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, storeBidirectionalMappings, metricLogger)
         {
+            var eventDistributor = new AccessManagerTemporalEventPersisterDistributor<TUser, TGroup, TComponent, TAccess>
+            (
+                new List<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
+            );
+            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor, metricLogger);
         }
 
         /// <summary>
@@ -112,6 +128,11 @@ namespace ApplicationAccess.Hosting
             IMetricLogger metricLogger
         ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, storeBidirectionalMappings, metricLogger)
         {
+            var eventDistributor = new AccessManagerTemporalEventBulkPersisterDistributor<TUser, TGroup, TComponent, TAccess>
+            (
+                new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
+            );
+            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor, metricLogger);
         }
 
         #region Private/Protected Methods

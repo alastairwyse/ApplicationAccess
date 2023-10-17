@@ -1003,7 +1003,7 @@
         <member name="F:ApplicationAccess.DependencyFreeAccessManager`4.eventProcessor">
             <summary>The event processor to pass any depended-on/prepended events to.</summary>
         </member>
-        <member name="F:ApplicationAccess.DependencyFreeAccessManager`4.thrownIdempotencyExceptions">
+        <member name="F:ApplicationAccess.DependencyFreeAccessManager`4.throwIdempotencyExceptions">
             <summary>Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</summary>
         </member>
         <member name="P:ApplicationAccess.DependencyFreeAccessManager`4.EventProcessor">
@@ -1032,10 +1032,10 @@
             </summary>
             <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
             <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <param name="thrownIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
+            <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
             <remarks>
               <para>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</para>
-              <para>Setting parameter <paramref name="thrownIdempotencyExceptions"/> to true provides a mechanism for classes which subclass or compose this class to detect when an Add* or Remove* event method is called idempotently, and adjust their logic accordingly.  For example, a metric logging subclass of this class would set the parameter to true, and cancel and metric logging if and idempotent operation exception was caught.</para>
+              <para>Setting parameter <paramref name="throwIdempotencyExceptions"/> to true provides a mechanism for classes which subclass or compose this class to detect when an Add* or Remove* event method is called idempotently, and adjust their logic accordingly.  For example, a metric logging subclass of this class would set the parameter to true, and cancel and metric logging if and idempotent operation exception was caught.</para>
             </remarks>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean,System.Boolean)">
@@ -1044,7 +1044,7 @@
             </summary>
             <param name="collectionFactory">A mock collection factory.</param>
             <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <param name="thrownIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
+            <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUser(`0,System.Action{`0,System.Action})">

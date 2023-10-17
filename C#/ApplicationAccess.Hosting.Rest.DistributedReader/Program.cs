@@ -65,6 +65,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
                     typeof(DistributedGroupQueryProcessorHolder),
                     typeof(DistributedGroupToGroupQueryProcessorHolder)
                 }
+
+                ,
+                // Optionally setup file logging
+                LogFilePath = @"C:\Temp\AppAccess\TestHarness",
+                LogFileNamePrefix = "ApplicationAccessDistributedReaderNodeLog"
             };
 
             var initializer = new ApplicationInitializer();

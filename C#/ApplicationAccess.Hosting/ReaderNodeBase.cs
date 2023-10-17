@@ -95,11 +95,15 @@ namespace ApplicationAccess.Hosting
         public ReaderNodeBase(IReaderNodeRefreshStrategy refreshStrategy, IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess> eventCache, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader, Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
             : this(refreshStrategy, eventCache, persistentReader, storeBidirectionalMappings)
         {
+            // Below inclusion filter outputs only ReaderNode specific metrics, and standard query count and interval metrics (i.e. not event metrics)
+            //   Reason for this is that event metrics are only generated when the node refreshes... i.e. they don't capture the actual timing of when
+            //   those events occurred (that's captured in the WriterNode), nor do they accurately represent the duration of them (again captured in
+            //   the WriterNode).  Hence capturing just query count and interval metrics gives a sufficient picture of the activity of the ReaderNode.
             this.metricLogger = new MetricLoggerBaseTypeInclusionFilter
             (
                 metricLogger,
-                new List<Type>() { typeof(ReaderNodeCountMetric) },
-                new List<Type>() { typeof(ReaderNodeCAmountMetric) },
+                new List<Type>() { typeof(ReaderNodeCountMetric), typeof(QueryCountMetric) },
+                new List<Type>() { typeof(ReaderNodeAmountMetric) },
                 Enumerable.Empty<Type>(),
                 new List<Type>() { typeof(ReaderNodeIntervalMetric), typeof(QueryIntervalMetric) }
             );

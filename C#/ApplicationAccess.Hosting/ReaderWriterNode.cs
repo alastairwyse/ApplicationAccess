@@ -49,6 +49,7 @@ namespace ApplicationAccess.Hosting
             Boolean storeBidirectionalMappings
         ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, storeBidirectionalMappings)
         {
+            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister);
         }
 
         /// <summary>
@@ -67,6 +68,7 @@ namespace ApplicationAccess.Hosting
             Boolean storeBidirectionalMappings
         ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, storeBidirectionalMappings)
         {
+            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister);
         }
 
         /// <summary>
@@ -87,6 +89,7 @@ namespace ApplicationAccess.Hosting
             IMetricLogger metricLogger
         ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, storeBidirectionalMappings, metricLogger)
         {
+            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister, metricLogger);
         }
 
         /// <summary>
@@ -107,6 +110,7 @@ namespace ApplicationAccess.Hosting
             IMetricLogger metricLogger
         ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, storeBidirectionalMappings, metricLogger)
         {
+            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister, metricLogger);
         }
 
         #region Private/Protected Methods

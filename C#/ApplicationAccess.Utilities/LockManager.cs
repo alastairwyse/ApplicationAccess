@@ -27,19 +27,17 @@ namespace ApplicationAccess.Utilities
     {
         // TODO: Allow RegisterLockObject() and RegisterLockObjects() to be called after AcquireLocksAndInvokeAction()
         //   Will need to clear the cache for that lock object, and adjust graph or 'registeredObjects' accordingly
-        //   AcquireAllLocksAndInvokeAction() 
-        //     Will need its own List<Object> to cache the full path (allLockObjectsLockPath?)
-        //     Make sure I sort the objects in that list as is done when populating lockObjectDependencyCache
-        //     Could possibly populate this by calling TraverseDependencyGraph using each item in dependsOnDepenencies (in sequence) as the start points
+        // Change to ensure foreach on values of dependsOnDependencies and dependedOnByDependencies will always iterate in the same order
+        //   Can likely use SortedSet with an IComparable implementation using registeredObjectSequenceNumbers for this
 
         /// <summary>All the lock objects registered in the manager.</summary>
         protected HashSet<Object> registeredObjects;
         /// <summary>Holds the lock order sequence number which is mapped to each registered object.</summary>
         protected Dictionary<Object, Int32> registeredObjectSequenceNumbers;
         /// <summary>The lock object dependencies, where the dictionary key object depends on the value objects.</summary>
-        protected Dictionary<Object, HashSet<Object>> dependsOnDepenencies;
+        protected Dictionary<Object, HashSet<Object>> dependsOnDependencies;
         /// <summary>The lock object dependencies, where the dictionary key object is depended on by the value objects.</summary>
-        protected Dictionary<Object, HashSet<Object>> dependedOnByDepenencies;
+        protected Dictionary<Object, HashSet<Object>> dependedOnByDependencies;
         /// <summary>A sequence number used to denote the order in which a lock should be acquired on an object.</summary>
         protected Int32 nextSequenceNumber;
         /// <summary>For a given lock object and dependency pattern, caches the objects which either depend on, or are dependent on the object, in the order the the locks should be applied.</summary>
@@ -53,8 +51,8 @@ namespace ApplicationAccess.Utilities
         public LockManager()
         {
             registeredObjects = new HashSet<Object>();
-            dependsOnDepenencies = new Dictionary<Object, HashSet<Object>>();
-            dependedOnByDepenencies = new Dictionary<Object, HashSet<Object>>();
+            dependsOnDependencies = new Dictionary<Object, HashSet<Object>>();
+            dependedOnByDependencies = new Dictionary<Object, HashSet<Object>>();
             nextSequenceNumber = 0;
             registeredObjectSequenceNumbers = new Dictionary<Object, Int32>();
             lockObjectDependencyCache = new Dictionary<LockObjectAndDependencyPattern, List<Object>>();
@@ -110,7 +108,7 @@ namespace ApplicationAccess.Utilities
                 throw new ArgumentException($"Parameter '{nameof(dependencyFromObject)}' has not been registered.", nameof(dependencyFromObject));
             if (registeredObjects.Contains(dependencyToObject) == false)
                 throw new ArgumentException($"Parameter '{nameof(dependencyToObject)}' has not been registered.", nameof(dependencyToObject));
-            if (dependsOnDepenencies.ContainsKey(dependencyFromObject) == true && dependsOnDepenencies[dependencyFromObject].Contains(dependencyToObject) == true)
+            if (dependsOnDependencies.ContainsKey(dependencyFromObject) == true && dependsOnDependencies[dependencyFromObject].Contains(dependencyToObject) == true)
                 throw new ArgumentException($"A dependency already exists from object in parameter '{nameof(dependencyFromObject)}' to object in parameter '{nameof(dependencyToObject)}'.", nameof(dependencyToObject));
             Action<Object> circularReferenceCheckAction = (Object currentLockObject) =>
             {
@@ -119,16 +117,16 @@ namespace ApplicationAccess.Utilities
             };
             TraverseDependencyGraph(dependencyToObject, LockObjectDependencyPattern.ObjectAndObjectsItDependsOn, new HashSet<Object>(), circularReferenceCheckAction);
 
-            if (dependsOnDepenencies.ContainsKey(dependencyFromObject) == false)
+            if (dependsOnDependencies.ContainsKey(dependencyFromObject) == false)
             {
-                dependsOnDepenencies.Add(dependencyFromObject, new HashSet<Object>());
+                dependsOnDependencies.Add(dependencyFromObject, new HashSet<Object>());
             }
-            dependsOnDepenencies[dependencyFromObject].Add(dependencyToObject);
-            if (dependedOnByDepenencies.ContainsKey(dependencyToObject) == false)
+            dependsOnDependencies[dependencyFromObject].Add(dependencyToObject);
+            if (dependedOnByDependencies.ContainsKey(dependencyToObject) == false)
             {
-                dependedOnByDepenencies.Add(dependencyToObject, new HashSet<Object>());
+                dependedOnByDependencies.Add(dependencyToObject, new HashSet<Object>());
             }
-            dependedOnByDepenencies[dependencyToObject].Add(dependencyFromObject);
+            dependedOnByDependencies[dependencyToObject].Add(dependencyFromObject);
         }
 
         /// <summary>
@@ -139,7 +137,7 @@ namespace ApplicationAccess.Utilities
         /// <param name="action">The action to invoke.</param>
         public void AcquireLocksAndInvokeAction(Object lockObject, LockObjectDependencyPattern lockObjectDependencyPattern, Action action)
         {
-            ThrowExceptionIsLockObjectParameterNotRegistered(lockObject, nameof(lockObject));
+            ThrowExceptionIfLockObjectParameterNotRegistered(lockObject, nameof(lockObject));
 
             // Get the set of objects to acquire locks on
             List<Object> lockObjects = null;
@@ -231,7 +229,7 @@ namespace ApplicationAccess.Utilities
         /// <returns>True if the object is locked by the current thread.  Otherwise, false.</returns>
         public Boolean LockObjectIsLockedByCurrentThread(Object lockObject)
         {
-            ThrowExceptionIsLockObjectParameterNotRegistered(lockObject, nameof(lockObject));
+            ThrowExceptionIfLockObjectParameterNotRegistered(lockObject, nameof(lockObject));
 
             return Monitor.IsEntered(lockObject);
         }
@@ -277,9 +275,9 @@ namespace ApplicationAccess.Utilities
             visitedObjects.Add(nextObject);
             if (lockObjectDependencyPattern == LockObjectDependencyPattern.ObjectAndObjectsItDependsOn)
             {
-                if (dependsOnDepenencies.ContainsKey(nextObject) == true)
+                if (dependsOnDependencies.ContainsKey(nextObject) == true)
                 {
-                    foreach (Object currentDependsOnObject in dependsOnDepenencies[nextObject])
+                    foreach (Object currentDependsOnObject in dependsOnDependencies[nextObject])
                     {
                         if (visitedObjects.Contains(currentDependsOnObject) == false)
                         {
@@ -290,9 +288,9 @@ namespace ApplicationAccess.Utilities
             }
             else if (lockObjectDependencyPattern == LockObjectDependencyPattern.ObjectAndObjectsWhichAreDependentOnIt)
             {
-                if (dependedOnByDepenencies.ContainsKey(nextObject) == true)
+                if (dependedOnByDependencies.ContainsKey(nextObject) == true)
                 {
-                    foreach (Object currentDependsOnObject in dependedOnByDepenencies[nextObject])
+                    foreach (Object currentDependsOnObject in dependedOnByDependencies[nextObject])
                     {
                         if (visitedObjects.Contains(currentDependsOnObject) == false)
                         {
@@ -309,7 +307,7 @@ namespace ApplicationAccess.Utilities
 
         #pragma warning disable 1591
 
-        protected void ThrowExceptionIsLockObjectParameterNotRegistered(Object lockObject, String lockObjectParameterName)
+        protected void ThrowExceptionIfLockObjectParameterNotRegistered(Object lockObject, String lockObjectParameterName)
         {
             if (registeredObjects.Contains(lockObject) == false)
                 throw new ArgumentException($"Object in parameter '{lockObjectParameterName}' has not been registered.", lockObjectParameterName);

@@ -69,7 +69,6 @@ namespace ApplicationAccess.Hosting
         {
             metricLogger = new NullMetricLogger();
             Initialize(eventBufferFlushStrategy, persistentReader, storeBidirectionalMappings);
-            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister);
         }
 
         /// <summary>
@@ -90,7 +89,6 @@ namespace ApplicationAccess.Hosting
         {
             metricLogger = new NullMetricLogger();
             Initialize(eventBufferFlushStrategy, persistentReader, storeBidirectionalMappings);
-            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister);
         }
 
         /// <summary>
@@ -113,7 +111,6 @@ namespace ApplicationAccess.Hosting
         {
             this.metricLogger = metricLogger;
             Initialize(eventBufferFlushStrategy, persistentReader, storeBidirectionalMappings);
-            eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister, metricLogger);
         }
 
         /// <summary>
@@ -136,7 +133,6 @@ namespace ApplicationAccess.Hosting
         {
             this.metricLogger = metricLogger;
             Initialize(eventBufferFlushStrategy, persistentReader, storeBidirectionalMappings);
-            eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister, metricLogger);
         }
 
         /// <summary>

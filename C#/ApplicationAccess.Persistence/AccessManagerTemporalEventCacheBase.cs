@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
@@ -37,6 +38,8 @@ namespace ApplicationAccess.Persistence
         protected LinkedList<TemporalEventBufferItemBase> cachedEvents;
         /// <summary>Holds the <see cref="LinkedListNode{T}"/> wrapping each cached event, indexed by its <see cref="EventBufferItemBase.EventId">EventId</see> property.</summary>
         protected Dictionary<Guid, LinkedListNode<TemporalEventBufferItemBase>> cachedEventsGuidIndex;
+        /// <summary>Lock object for the 'cachedEvents' member.</summary>
+        protected ReaderWriterLockSlim cachedEventsLock;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
         /// <summary>The provider to use for random Guids.</summary>
@@ -56,6 +59,7 @@ namespace ApplicationAccess.Persistence
             this.cachedEventCount = cachedEventCount;
             cachedEvents = new LinkedList<TemporalEventBufferItemBase>();
             cachedEventsGuidIndex = new Dictionary<Guid, LinkedListNode<TemporalEventBufferItemBase>>();
+            cachedEventsLock = new ReaderWriterLockSlim();
             metricLogger = new NullMetricLogger();
             guidProvider = new Utilities.DefaultGuidProvider();
             dateTimeProvider = new DefaultDateTimeProvider();
@@ -92,7 +96,9 @@ namespace ApplicationAccess.Persistence
         {
             var returnList = new List<TemporalEventBufferItemBase>();
             Guid beginId = metricLogger.Begin(new CachedEventsReadTime());
-            lock (cachedEvents)
+
+            cachedEventsLock.EnterReadLock();
+            try
             {
                 if (cachedEvents.Count == 0)
                 {
@@ -113,6 +119,11 @@ namespace ApplicationAccess.Persistence
                     currentNode = currentNode.Next;
                 }
             }
+            finally
+            {
+                cachedEventsLock.ExitReadLock();
+            }
+
             metricLogger.End(beginId, new CachedEventsReadTime());
             metricLogger.Add(new CachedEventsRead(), returnList.Count);
 
@@ -127,12 +138,17 @@ namespace ApplicationAccess.Persistence
         /// <param name="newEvent">The event to add.</param>
         protected void CacheEvent(TemporalEventBufferItemBase newEvent)
         {
-            lock (cachedEvents)
+            cachedEventsLock.EnterWriteLock();
+            try
             {
                 cachedEvents.AddLast(newEvent);
                 cachedEventsGuidIndex.Add(newEvent.EventId, cachedEvents.Last);
                 TrimCachedEvents();
                 metricLogger.Increment(new EventCached());
+            }
+            finally
+            {
+                cachedEventsLock.ExitWriteLock();
             }
         }
 

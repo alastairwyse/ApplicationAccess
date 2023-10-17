@@ -63,6 +63,11 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     typeof(GroupToGroupQueryProcessorHolder),
                     typeof(UserQueryProcessorHolder)
                 }
+                
+                , 
+                // Optionally setup file logging
+                LogFilePath = @"C:\Temp\AppAccess\TestHarness",
+                LogFileNamePrefix = "ApplicationAccessReaderNodeLog"
             };
 
             var initializer = new ApplicationInitializer();
