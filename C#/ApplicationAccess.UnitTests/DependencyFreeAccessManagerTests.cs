@@ -42,6 +42,76 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void Constructor_StoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
+        {
+            DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testDependencyFreeAccessManager;
+            var fieldNamePath = new List<String>() { "storeBidirectionalMappings" };
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(false), true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true), false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), true, false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), false, true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
+        }
+
+        [Test]
+        public void Constructor_ThrowIdempotencyExceptionsParameterSetCorrectlyOnComposedFields()
+        {
+            DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testDependencyFreeAccessManager;
+            var fieldNamePath = new List<String>() { "throwIdempotencyExceptions" };
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true), true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true), true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), false, true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDependencyFreeAccessManager);
+
+
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), true, false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
+        }
+
+        [Test]
         public void AddUser()
         {
             String testUser = "user1";

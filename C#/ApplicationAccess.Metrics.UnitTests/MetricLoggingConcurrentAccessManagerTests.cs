@@ -17,13 +17,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using ApplicationAccess.UnitTests;
+using ApplicationAccess.Utilities;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
 using ApplicationMetrics;
-using ApplicationAccess.UnitTests;
 using MoreComplexDataStructures;
-using System.Threading;
 
 namespace ApplicationAccess.Metrics.UnitTests
 {
@@ -49,6 +50,67 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             // Test version of class exposes a setter, so that the test version of the wrapper can be set after construction
             testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
+        }
+
+        [Test]
+        public void Constructor_StoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
+            var fieldNamePath = new List<String>() { "storeBidirectionalMappings" };
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingConcurrentAccessManager);
+
+
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingConcurrentAccessManager);
+
+
+            fieldNamePath = new List<String>() { "userToGroupMap", "storeBidirectionalMappings" };
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingConcurrentAccessManager);
+
+
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingConcurrentAccessManager);
+        }
+
+        [Test]
+        public void Constructor_MappingMetricLoggerParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
+            var fieldNamePath = new List<String>() { "mappingMetricLogger" };
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testMetricLoggingConcurrentAccessManager);
+        }
+
+        [Test]
+        public void Constructor_UserToGroupMapAcquireLocksParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
+            var fieldNamePath = new List<String>() { "userToGroupMap", "acquireLocks" };
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingConcurrentAccessManager);
+
+
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingConcurrentAccessManager);
+        }
+
+        [Test]
+        public void Constructor_UserToGroupMapMetricLoggerParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
+            var fieldNamePath = new List<String>() { "userToGroupMap", "metricLogger" };
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testMetricLoggingConcurrentAccessManager);
         }
 
         [Test]

@@ -50,7 +50,24 @@ namespace ApplicationAccess.UnitTests
         /// <param name="testObject">The object holding the field with the first field name in parameter <paramref name="fieldNamePath"/>.</param>
         public static void HasValue<TField>(IList<String> fieldNamePath, TField expectedValue, Object testObject)
         {
-            AssertionResult result = NonPublicFieldHasValue<TField>(fieldNamePath, expectedValue, testObject);
+            AssertionResult result = NonPublicFieldHasValue<TField>(fieldNamePath, expectedValue, testObject, false);
+            if (result.Result == false)
+            {
+                Assert.Fail(result.FailureDetails);
+            }
+        }
+
+        /// <summary>
+        /// Verifies whether the non-public field at the end of a sequence of fields has the specified value.
+        /// </summary>
+        /// <typeparam name="TField">The expected type of the field.</typeparam>
+        /// <param name="fieldNamePath">The 'path' of field names required to arrive at the destination field (i.e. the last element).  These are processed in order, with subsequent names being of fields of child (composed) objects, fields of child's child object, and so forth.</param>
+        /// <param name="expectedValue">The expected value of the field.</param>
+        /// <param name="testObject">The object holding the field with the first field name in parameter <paramref name="fieldNamePath"/>.</param>
+        /// <param name="allowAssignableType">Whether or not to allow the type of the field to be assignable to the type specified in parameter <typeparamref name="TField"/> rather than an exact match.  If set false an exception will be thrown if the value of the field is not the same exact type as <typeparamref name="TField"/>.  If set to true an exception will by thrown if the field is not assignable to <typeparamref name="TField"/>.</param>
+        public static void HasValue<TField>(IList<String> fieldNamePath, TField expectedValue, Object testObject, Boolean allowAssignableType)
+        {
+            AssertionResult result = NonPublicFieldHasValue<TField>(fieldNamePath, expectedValue, testObject, allowAssignableType);
             if (result.Result == false)
             {
                 Assert.Fail(result.FailureDetails);
@@ -70,7 +87,7 @@ namespace ApplicationAccess.UnitTests
         {
             try
             {
-                TField actualFieldValue = GetNonPublicFieldValueRecurse<TField>(fieldNamePath, 0, testObject);
+                TField actualFieldValue = GetNonPublicFieldValueRecurse<TField>(fieldNamePath, 0, testObject, false);
             }
             catch (Exception e)
             {
@@ -87,12 +104,13 @@ namespace ApplicationAccess.UnitTests
         /// <param name="fieldNamePath">The 'path' of field names required to arrive at the destination field (i.e. the last element).  These are processed in order, with subsequent names being of fields of child (composed) objects, fields of child's child object, and so forth.</param>
         /// <param name="expectedValue">The expected value of the field.</param>
         /// <param name="testObject">The object holding the field with the first field name in parameter <paramref name="fieldNamePath"/>.</param>
+        /// <param name="allowAssignableType">>Whether or not to allow the type of the field to be assignable to the type specified in parameter <typeparamref name="TField"/> rather than an exact match.  If set false an exception will be thrown if the value of the field is not the same exact type as <typeparamref name="TField"/>.  If set to true an exception will by thrown if the field is not assignable to <typeparamref name="TField"/>.</param>
         /// <returns>An <see cref="AssertionResult"/> containing the result.</returns>
-        private static AssertionResult NonPublicFieldHasValue<TField>(IList<String> fieldNamePath, TField expectedValue, Object testObject)
+        private static AssertionResult NonPublicFieldHasValue<TField>(IList<String> fieldNamePath, TField expectedValue, Object testObject, Boolean allowAssignableType)
         {
             try
             {
-                TField actualFieldValue = GetNonPublicFieldValueRecurse<TField>(fieldNamePath, 0, testObject);
+                TField actualFieldValue = GetNonPublicFieldValueRecurse<TField>(fieldNamePath, 0, testObject, allowAssignableType);
                 if (expectedValue.Equals(actualFieldValue) == false)
                     throw new Exception($"Expected value of field '{fieldNamePath[fieldNamePath.Count - 1]}' is '{expectedValue.ToString()}' but actual value was '{actualFieldValue.ToString()}'.");
             }
@@ -111,10 +129,11 @@ namespace ApplicationAccess.UnitTests
         /// <param name="fieldNamePath">The 'path' of field names required to arrive at the destination field (i.e. the last element).  These are processed in order, with subsequent names being of fields of child (composed) objects, fields of child's child object, and so forth.</param>
         /// <param name="fieldNamePathIndex">The index of the current field name within the <paramref name="fieldNamePath"/> parameter.</param>
         /// <param name="currentObject">The current child (composed) object.</param>
+        /// <param name="allowAssignableType">Whether or not to allow the type of the field to be assignable to the type specified in parameter <typeparamref name="TField"/> rather than an exact match.  If set false an exception will be thrown if the value of the field is not the same exact type as <typeparamref name="TField"/>.  If set to true an exception will by thrown if the field is not assignable to <typeparamref name="TField"/>.</param>
         /// <returns>The value of the specified field.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Parameter <paramref name="fieldNamePathIndex"/> was out of range.</exception>
-        /// <exception cref="ArgumentException">The field was not of the expected type <typeparamref name="TField"/>.</exception>
-        private static TField GetNonPublicFieldValueRecurse<TField>(IList<String> fieldNamePath, Int32 fieldNamePathIndex, Object currentObject)
+        /// <exception cref="ArgumentException">The field was not of (or assignable to) the expected type <typeparamref name="TField"/>.</exception>
+        private static TField GetNonPublicFieldValueRecurse<TField>(IList<String> fieldNamePath, Int32 fieldNamePathIndex, Object currentObject, Boolean allowAssignableType)
         {
             if (fieldNamePathIndex < 0)
                 throw new ArgumentOutOfRangeException(nameof(fieldNamePathIndex), $"Parameter '{nameof(fieldNamePathIndex)}' with value {fieldNamePathIndex} cannot be less than 0.");
@@ -124,14 +143,22 @@ namespace ApplicationAccess.UnitTests
             {
                 // Continue recursing
                 Object nextObject = GetNonPublicField(currentObject, fieldNamePath[fieldNamePathIndex]);
-                return GetNonPublicFieldValueRecurse<TField>(fieldNamePath, fieldNamePathIndex + 1, nextObject);
+                return GetNonPublicFieldValueRecurse<TField>(fieldNamePath, fieldNamePathIndex + 1, nextObject, allowAssignableType);
             }
             else
             {
                 // Attempt to return the field value
                 Object fieldValue = GetNonPublicField(currentObject, fieldNamePath[fieldNamePathIndex]);
-                if (fieldValue.GetType() != typeof(TField))
-                    throw new ArgumentException($"Field with name '{fieldNamePath[fieldNamePathIndex]}' was expected to be of type '{typeof(TField).FullName}' but was of type '{fieldValue.GetType().FullName}'.");
+                if (allowAssignableType == true)
+                {
+                    if (typeof(TField).IsAssignableFrom(fieldValue.GetType()) == false)
+                        throw new ArgumentException($"Field with name '{fieldNamePath[fieldNamePathIndex]}' was expected to be assignable to type '{typeof(TField).FullName}' but was not (actual type was '{fieldValue.GetType().FullName}').");
+                }
+                else
+                {
+                    if (fieldValue.GetType() != typeof(TField))
+                        throw new ArgumentException($"Field with name '{fieldNamePath[fieldNamePathIndex]}' was expected to be of type '{typeof(TField).FullName}' but was of type '{fieldValue.GetType().FullName}'.");
+                }
 
                 return (TField)fieldValue;
             }
@@ -140,19 +167,19 @@ namespace ApplicationAccess.UnitTests
         /// <summary>
         /// Attempts to retrieve a non-public field from the specified object.
         /// </summary>
-        /// <param name="currentObject">The object to retrieve the field from.</param>
+        /// <param name="inputObject">The object to retrieve the field from.</param>
         /// <param name="fieldName">The name of the field.</param>
         /// <returns>The value of the field.</returns>
         /// <exception cref="ArgumentException">The object did contain a non-public field with the specified name.</exception>
-        private static Object GetNonPublicField(Object currentObject, String fieldName)
+        private static Object GetNonPublicField(Object inputObject, String fieldName)
         {
-            FieldInfo fieldInfo = currentObject.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fieldInfo = inputObject.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
             if (fieldInfo == null)
             {
                 throw new ArgumentException($"The specified object did not contain a non-public field with name '{fieldName}'.");
             }
 
-            return fieldInfo.GetValue(currentObject);
+            return fieldInfo.GetValue(inputObject);
         }
 
         #endregion

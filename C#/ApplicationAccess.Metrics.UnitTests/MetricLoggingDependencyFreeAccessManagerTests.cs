@@ -17,14 +17,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using ApplicationAccess.UnitTests;
+using ApplicationAccess.Utilities;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
-using ApplicationMetrics;
-using ApplicationAccess.UnitTests;
-using MoreComplexDataStructures;
-using System.Threading;
 using NSubstitute.Core;
+using ApplicationMetrics;
+using MoreComplexDataStructures;
 
 namespace ApplicationAccess.Metrics.UnitTests
 {
@@ -58,6 +59,82 @@ namespace ApplicationAccess.Metrics.UnitTests
             testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             // Test version of class exposes a setter, so that the test version of the decorator can be set after construction
             testMetricLoggingDependencyFreeAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
+        }
+
+        [Test]
+        public void Constructor_StoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
+            var fieldNamePath = new List<String>() { "storeBidirectionalMappings" };
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingDependencyFreeAccessManager);
+
+
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingDependencyFreeAccessManager);
+
+
+            fieldNamePath = new List<String>() { "userToGroupMap", "storeBidirectionalMappings" };
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingDependencyFreeAccessManager);
+
+
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingDependencyFreeAccessManager);
+        }
+
+        [Test]
+        public void Constructor_MappingMetricLoggerParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
+            var fieldNamePath = new List<String>() { "mappingMetricLogger" };
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testMetricLoggingDependencyFreeAccessManager);
+        }
+
+        [Test]
+        public void Constructor_ThrowIdempotencyExceptionsParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
+            var fieldNamePath = new List<String>() { "throwIdempotencyExceptions" };
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingDependencyFreeAccessManager);
+
+
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingDependencyFreeAccessManager);
+        }
+
+        [Test]
+        public void Constructor_UserToGroupMapAcquireLocksParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
+            var fieldNamePath = new List<String>() { "userToGroupMap", "acquireLocks" };
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingDependencyFreeAccessManager);
+
+
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingDependencyFreeAccessManager);
+        }
+
+        [Test]
+        public void Constructor_UserToGroupMapMetricLoggerParameterSetCorrectlyOnComposedFields()
+        {
+            MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
+            var fieldNamePath = new List<String>() { "userToGroupMap", "metricLogger" };
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+
+            NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testMetricLoggingDependencyFreeAccessManager);
         }
 
         [Test]

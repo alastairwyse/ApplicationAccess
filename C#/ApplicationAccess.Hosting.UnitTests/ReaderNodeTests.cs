@@ -18,13 +18,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
-using ApplicationAccess.UnitTests;
+using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
 using NUnit.Framework;
 using NSubstitute;
 using ApplicationMetrics;
-using ApplicationAccess.Metrics;
 
 namespace ApplicationAccess.Hosting.UnitTests
 {
@@ -51,6 +51,52 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
             testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
+        }
+
+        [Test]
+        public void Constructor_ConcurrentAccessManagerStoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
+        {
+            ReaderNode<String, String, ApplicationScreen, AccessLevel> testReaderNode;
+            var fieldNamePath = new List<String>() { "concurrentAccessManager", "storeBidirectionalMappings" };
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testReaderNode);
+
+
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testReaderNode);
+
+
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testReaderNode);
+
+
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testReaderNode);
+        }
+
+        [Test]
+        public void Constructor_MetricLoggerParameterSetCorrectlyOnComposedFields()
+        {
+            ReaderNode<String, String, ApplicationScreen, AccessLevel> testReaderNode;
+            var fieldNamePath = new List<String>() { "metricLogger" };
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true);
+
+            NonPublicFieldAssert.IsOfType<ApplicationMetrics.MetricLoggers.NullMetricLogger>(fieldNamePath, testReaderNode);
+
+
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true, mockMetricLogger);
+
+            NonPublicFieldAssert.IsOfType<MetricLoggerBaseTypeInclusionFilter>(fieldNamePath, testReaderNode);
+
+
+            fieldNamePath = new List<String>() { "metricLogger", "filteredMetricLogger" };
+            testReaderNode = new ReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true, mockMetricLogger);
+
+            NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderNode, true);
         }
 
         [Test]

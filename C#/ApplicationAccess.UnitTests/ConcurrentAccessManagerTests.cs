@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using NSubstitute;
 
 namespace ApplicationAccess.UnitTests
 {
@@ -33,6 +34,82 @@ namespace ApplicationAccess.UnitTests
         protected void SetUp()
         {
             testConcurrentAccessManager = new ConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false);
+        }
+
+        [Test]
+        public void Constructor_StoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
+        {
+            ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testConcurrentAccessManager;
+            var fieldNamePath = new List<String>() { "storeBidirectionalMappings" };
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false);
+            
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(false), false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(false), true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testConcurrentAccessManager);
+
+
+            fieldNamePath = new List<String>() { "userToGroupMap", "storeBidirectionalMappings" };
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), false);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testConcurrentAccessManager);
+        }
+
+        [Test]
+        public void Constructor_UserToGroupMapAcquireLocksParameterSetCorrectlyOnComposedFields()
+        {
+            ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testConcurrentAccessManager;
+            var fieldNamePath = new List<String>() { "userToGroupMap", "acquireLocks" };
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true, false), true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testConcurrentAccessManager);
+
+
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), true);
+
+            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testConcurrentAccessManager);
         }
 
         [Test]

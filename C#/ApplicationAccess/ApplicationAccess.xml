@@ -1026,6 +1026,15 @@
             <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <remarks>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
+        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean,System.Boolean)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
+            </summary>
+            <param name="collectionFactory">A mock collection factory.</param>
+            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+            <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ConcurrentDirectedGraph{`0,`1},System.Boolean,System.Boolean)">
             <summary>
             Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
@@ -1037,15 +1046,6 @@
               <para>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</para>
               <para>Setting parameter <paramref name="throwIdempotencyExceptions"/> to true provides a mechanism for classes which subclass or compose this class to detect when an Add* or Remove* event method is called idempotently, and adjust their logic accordingly.  For example, a metric logging subclass of this class would set the parameter to true, and cancel and metric logging if and idempotent operation exception was caught.</para>
             </remarks>
-        </member>
-        <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.#ctor(ApplicationAccess.ICollectionFactory,System.Boolean,System.Boolean)">
-            <summary>
-            Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
-            </summary>
-            <param name="collectionFactory">A mock collection factory.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
-            <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
         <member name="M:ApplicationAccess.DependencyFreeAccessManager`4.AddUser(`0,System.Action{`0,System.Action})">
             <inheritdoc/>

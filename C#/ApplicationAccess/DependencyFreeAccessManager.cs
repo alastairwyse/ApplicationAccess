@@ -121,6 +121,20 @@ namespace ApplicationAccess
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
         /// </summary>
+        /// <param name="collectionFactory">A mock collection factory.</param>
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+        /// <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
+        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
+        public DependencyFreeAccessManager(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings, Boolean throwIdempotencyExceptions)
+            : base(collectionFactory, storeBidirectionalMappings)
+        {
+            eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
+            this.throwIdempotencyExceptions = throwIdempotencyExceptions;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
+        /// </summary>
         /// <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
         /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
@@ -130,20 +144,6 @@ namespace ApplicationAccess
         /// </remarks>
         protected DependencyFreeAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph, Boolean storeBidirectionalMappings, Boolean throwIdempotencyExceptions)
             : base(concurrentDirectedGraph, storeBidirectionalMappings)
-        {
-            eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
-            this.throwIdempotencyExceptions = throwIdempotencyExceptions;
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
-        /// </summary>
-        /// <param name="collectionFactory">A mock collection factory.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
-        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public DependencyFreeAccessManager(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings, Boolean throwIdempotencyExceptions)
-            : base(collectionFactory, storeBidirectionalMappings)
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
             this.throwIdempotencyExceptions = throwIdempotencyExceptions;
