@@ -80,8 +80,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
 
                 ,
                 // Optionally setup file logging
-                LogFilePath = @"C:\Temp\AppAccess\TestHarness",
-                LogFileNamePrefix = "ApplicationAccessDistributedWriterNodeLog"
+                //LogFilePath = @"C:\Temp\AppAccess\TestHarness",
+                //LogFileNamePrefix = "ApplicationAccessDistributedWriterNodeLog"
             };
 
             var initializer = new ApplicationInitializer();

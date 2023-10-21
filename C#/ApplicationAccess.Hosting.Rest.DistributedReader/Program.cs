@@ -68,8 +68,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
 
                 ,
                 // Optionally setup file logging
-                LogFilePath = @"C:\Temp\AppAccess\TestHarness",
-                LogFileNamePrefix = "ApplicationAccessDistributedReaderNodeLog"
+                //LogFilePath = @"C:\Temp\AppAccess\TestHarness",
+                //LogFileNamePrefix = "ApplicationAccessDistributedReaderNodeLog"
             };
 
             var initializer = new ApplicationInitializer();

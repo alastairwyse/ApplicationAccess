@@ -84,7 +84,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
                 testArgumentValidatorConverter.Convert<AccessManagerComponent>("component", "InvalidComponent");
             });
 
-            Assert.That(e.Message, Does.StartWith("Value 'InvalidComponent' is invalid for parameter 'component'.  Valid values are 'EventCacheNode', 'ReaderNode', 'ReaderWriterNode', 'WriterNode'"));
+            Assert.That(e.Message, Does.StartWith("Value 'InvalidComponent' is invalid for parameter 'component'.  Valid values are 'EventCacheNode', 'ReaderNode', 'ReaderWriterNode', 'WriterNode', 'DependencyFreeReaderWriterNode', 'DistributedReaderNode', 'DistributedWriterNode'"));
             Assert.AreEqual("component", e.ArgumentName);
         }
 
