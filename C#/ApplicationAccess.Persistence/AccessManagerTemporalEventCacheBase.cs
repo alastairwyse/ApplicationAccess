@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
@@ -30,7 +31,7 @@ namespace ApplicationAccess.Persistence
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public abstract class AccessManagerTemporalEventCacheBase<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess>
+    public abstract class AccessManagerTemporalEventCacheBase<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventQueryProcessor<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
         /// <summary>The number of events to retain on the cache.</summary>
         protected Int32 cachedEventCount;
@@ -46,6 +47,8 @@ namespace ApplicationAccess.Persistence
         protected Utilities.IGuidProvider guidProvider;
         /// <summary>The provider to use for the current date and time.</summary>
         protected Utilities.IDateTimeProvider dateTimeProvider;
+        /// <summary>Indicates whether the object has been disposed.</summary>
+        protected Boolean disposed;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerTemporalEventCacheBase class.
@@ -63,6 +66,7 @@ namespace ApplicationAccess.Persistence
             metricLogger = new NullMetricLogger();
             guidProvider = new Utilities.DefaultGuidProvider();
             dateTimeProvider = new DefaultDateTimeProvider();
+            disposed = false;
         }
 
         /// <summary>
@@ -161,6 +165,49 @@ namespace ApplicationAccess.Persistence
             {
                 cachedEventsGuidIndex.Remove(cachedEvents.First.Value.EventId);
                 cachedEvents.RemoveFirst();
+            }
+        }
+
+        #endregion
+
+        #region Finalize / Dispose Methods
+
+        /// <summary>
+        /// Releases the unmanaged resources used by the ReaderNode.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #pragma warning disable 1591
+
+        ~AccessManagerTemporalEventCacheBase()
+        {
+            Dispose(false);
+        }
+
+        #pragma warning restore 1591
+
+        /// <summary>
+        /// Provides a method to free unmanaged resources used by this class.
+        /// </summary>
+        /// <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // Free other state (managed objects).
+                    cachedEventsLock.Dispose();
+                }
+                // Free your own state (unmanaged objects).
+
+                // Set large fields to null.
+
+                disposed = true;
             }
         }
 

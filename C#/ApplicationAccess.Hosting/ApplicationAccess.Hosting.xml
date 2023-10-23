@@ -1037,6 +1037,9 @@
         <member name="F:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.metricLogger">
             <summary>The logger for metrics.</summary>
         </member>
+        <member name="F:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
         <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.TemporalEventBulkCachingNode class.
@@ -1049,6 +1052,17 @@
         </member>
         <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.GetAllEventsSince(System.Guid)">
             <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the ReaderNode.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.TemporalEventBulkCachingNode`4.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
         </member>
         <member name="T:ApplicationAccess.Hosting.WriterNode`4">
             <summary>

@@ -130,6 +130,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
                 metricLoggerBufferProcessingStrategy.Dispose();
                 metricLogger.Dispose();
             }
+            cachingNode.Dispose();
             logger.LogInformation($"Completed disposing objects.");
 
             logger.LogInformation($"Completed stopping {nameof(TemporalEventBulkCachingNodeHostedServiceWrapper)}.");

@@ -44,6 +44,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             testAccessManagerTemporalEventBulkCache = new AccessManagerTemporalEventBulkCache<String, String, ApplicationScreen, AccessLevel>(2, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
         }
 
+        [TearDown]
+        protected void TearDown()
+        {
+            testAccessManagerTemporalEventBulkCache.Dispose();
+        }
+
         [Test]
         public void PersistEvents()
         {
