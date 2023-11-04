@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
+namespace ApplicationAccess
 {
     /// <summary>
     /// Defines methods which query the state of group-based structures in a distributed AccessManager implementation as asyncronous operations.

@@ -407,7 +407,10 @@ namespace ApplicationAccess.Utilities
 
             public override Int32 GetHashCode()
             {
-                return (lockObject.GetHashCode() * prime1 + dependencyPattern.GetHashCode() * 11);
+                unchecked
+                {
+                    return (lockObject.GetHashCode() * prime1 + dependencyPattern.GetHashCode() * prime2);
+                }
             }
         }
 

@@ -14,7 +14,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ApplicationMetrics" Version="6.2.0" />
+    <PackageReference Include="MoreComplexDataStructures" Version="1.9.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Metrics\ApplicationAccess.Metrics.csproj" />
+    <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
   </ItemGroup>
 
 </Project>

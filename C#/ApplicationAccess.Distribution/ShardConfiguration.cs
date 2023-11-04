@@ -15,19 +15,22 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ApplicationAccess.Distribution
 {
     /// <summary>
     /// Model/container class holding configuration information for a single shard in a distributed AccessManager implemenetation.
     /// </summary>
-    public class ShardConfiguration : IEquatable<ShardConfiguration>
+    /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration stored in the shard configuration.</typeparam>
+    public class ShardConfiguration<TClientConfiguration> : IEquatable<ShardConfiguration<TClientConfiguration>>
+        where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration
     {
-        // TODO: ShardConfigurationSet... should also be equatable
-        //   Will need to reference IAsync client interfaces from here
-        //     Interfaces (not implementations) should be moved out of 'Rest' projects and into a more generic place (this project or plain AccessManager project).
+        /// <summary>Prime number used in calculating hash code.</summary>
+        protected const Int32 prime1 = 7;
+        /// <summary>Prime number used in calculating hash code.</summary>
+        protected const Int32 prime2 = 11;
+        /// <summary>Prime number used in calculating hash code.</summary>
+        protected const Int32 prime3 = 13;
 
         /// <summary>The type of data element managed by the shard.</summary>
         public DataElement DataElementType { get; protected set; }
@@ -38,39 +41,46 @@ namespace ApplicationAccess.Distribution
         /// <summary>The first (inclusive) in the range of hash codes of data elements the shard manages.</summary>
         public Int32 HashRangeStart { get; protected set; }
 
+        /// <summary>Configuration which can be used to instantiate a client to connect to the shard.</summary>
+        public TClientConfiguration ClientConfiguration { get; protected set; }
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.ShardConfiguration class.
         /// </summary>
         /// <param name="dataElementType">The type of data element managed by the shard.</param>
         /// <param name="operationType">The type of operation supported by the shard.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of data elements the shard manages.</param>
-        public ShardConfiguration(DataElement dataElementType, Operation operationType, Int32 hashRangeStart)
+        /// <param name="clientConfiguration">Configuration which can be used to instantiate a client to connect to the shard.</param>
+        public ShardConfiguration(DataElement dataElementType, Operation operationType, Int32 hashRangeStart, TClientConfiguration clientConfiguration)
         {
             this.DataElementType = dataElementType;
             this.OperationType = operationType;
             this.HashRangeStart = hashRangeStart;
+            this.ClientConfiguration = clientConfiguration;
         }
 
         /// <inheritdoc/>
-        public Boolean Equals(ShardConfiguration other)
+        public Boolean Equals(ShardConfiguration<TClientConfiguration> other)
         {
-            throw new NotImplementedException();
+            return
+            (
+                DataElementType == other.DataElementType && 
+                OperationType == other.OperationType && 
+                HashRangeStart == other.HashRangeStart && 
+                ClientConfiguration.Equals((TClientConfiguration)other.ClientConfiguration)
+            );
         }
 
         /// <inheritdoc/>
         public override Int32 GetHashCode()
         {
-            // Look at using that hash combiner thing
-
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override String ToString()
-        {
-            // Something user readable so that details of this shard config can be put in logging, metrics category etc...
-
-            throw new NotImplementedException();
+            return 
+            (
+                prime1 * DataElementType.GetHashCode() + 
+                prime2 * OperationType.GetHashCode() + 
+                HashRangeStart.GetHashCode() + 
+                prime3 * ClientConfiguration.GetHashCode()
+            );
         }
     }
 }

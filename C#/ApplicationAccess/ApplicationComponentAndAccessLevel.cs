@@ -69,7 +69,10 @@ namespace ApplicationAccess
         /// <inheritdoc/>
         public override Int32 GetHashCode()
         {
-            return (prime1 * applicationComponent.GetHashCode() + prime2 * accessLevel.GetHashCode());
+            unchecked
+            {
+                return (prime1 * applicationComponent.GetHashCode() + prime2 * accessLevel.GetHashCode());
+            }
         }
 
         #pragma warning restore 1591

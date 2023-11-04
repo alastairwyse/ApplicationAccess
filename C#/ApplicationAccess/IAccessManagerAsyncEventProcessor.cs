@@ -17,7 +17,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace ApplicationAccess.Hosting.Rest.AsyncClient
+namespace ApplicationAccess
 {
     /// <summary>
     /// Defines methods to process events which change the structure of an AccessManager implementation as asyncronous operations.

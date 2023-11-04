@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ApplicationAccess.Hosting.Rest.AsyncClient
+namespace ApplicationAccess
 {
     /// <summary>
     /// Defines methods which query the state/structure of an AccessManager implementation as asyncronous operations.
