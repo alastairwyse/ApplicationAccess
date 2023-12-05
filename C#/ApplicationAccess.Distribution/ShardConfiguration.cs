@@ -59,6 +59,23 @@ namespace ApplicationAccess.Distribution
             this.ClientConfiguration = clientConfiguration;
         }
 
+        /// <summary>
+        /// Returns a user-readable description of the shard configuration, primarily used to identify a client which connects to the shard with that configuration in exception messages.
+        /// </summary>
+        /// <param name="includeHashRangeStart">Whether to include details of the <see cref="HashRangeStart">HashRangeStart</see> property in the description.</param>
+        /// <returns>The description.</returns>
+        public String Describe(Boolean includeHashRangeStart)
+        {
+            if (includeHashRangeStart == true)
+            {
+                return $"{nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(HashRangeStart)} = {HashRangeStart}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
+            }    
+            else
+            {
+                return $"{nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
+            }
+        }
+
         /// <inheritdoc/>
         public Boolean Equals(ShardConfiguration<TClientConfiguration> other)
         {

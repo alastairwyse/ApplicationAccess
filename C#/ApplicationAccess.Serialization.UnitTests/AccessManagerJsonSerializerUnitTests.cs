@@ -1727,7 +1727,7 @@ namespace ApplicationAccess.Serialization.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Failed to deserialize entity '  ' of type 'ClientAccount'."));
+            Assert.That(e.Message, Does.StartWith($"Failed to deserialize entity '  ' with type 'ClientAccount'."));
             Assert.IsInstanceOf<ArgumentException>(e.InnerException);
         }
 
@@ -1951,7 +1951,7 @@ namespace ApplicationAccess.Serialization.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Failed to deserialize entity 'CompanyA' of type 'ClientAccount' in user to entity mappings."));
+            Assert.That(e.Message, Does.StartWith($"Failed to deserialize entity 'CompanyA' with type 'ClientAccount' in user to entity mappings."));
             Assert.IsAssignableFrom<ArgumentException>(e.InnerException);
         }
 
@@ -2247,7 +2247,7 @@ namespace ApplicationAccess.Serialization.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Failed to deserialize entity 'CompanyA' of type 'ClientAccount' in group to entity mappings."));
+            Assert.That(e.Message, Does.StartWith($"Failed to deserialize entity 'CompanyA' with type 'ClientAccount' in group to entity mappings."));
             Assert.IsAssignableFrom<ArgumentException>(e.InnerException);
         }
 

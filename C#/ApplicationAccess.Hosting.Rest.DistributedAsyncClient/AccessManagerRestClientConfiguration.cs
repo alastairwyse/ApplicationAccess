@@ -16,8 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using ApplicationAccess.Distribution;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
 {
     /// <summary>
     /// Model/container class holding configuration required to instantiate an AccessManager REST client.
@@ -25,17 +26,23 @@ namespace ApplicationAccess.Distribution
     public class AccessManagerRestClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<AccessManagerRestClientConfiguration>
     {
         /// <summary>The base URL for the hosted AccessManager.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</summary>
-        public String BaseUrl { get; protected set; }
+        public Uri BaseUrl { get; protected set; }
+
+        /// <inheritdoc/>
+        public String Description 
+        {
+            get
+            {
+                return $"{this.GetType().Name} {{ {nameof(BaseUrl)} = {BaseUrl.ToString()} }}";
+            }
+        }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.AccessManagerRestClientConfiguration class.
         /// </summary>
         /// <param name="baseUrl">The base URL for the hosted AccessManager.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
-        public AccessManagerRestClientConfiguration(String baseUrl)
+        public AccessManagerRestClientConfiguration(Uri baseUrl)
         {
-            if (String.IsNullOrWhiteSpace(baseUrl) == true)
-                throw new ArgumentException($"Parameter '{nameof(baseUrl)}' must contain a value.", nameof(baseUrl));
-
             BaseUrl = baseUrl;
         }
 
@@ -52,7 +59,7 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public Boolean Equals(AccessManagerRestClientConfiguration other)
         {
-            return BaseUrl == other.BaseUrl;
+            return BaseUrl.Equals(other.BaseUrl);
         }
 
         /// <inheritdoc/>

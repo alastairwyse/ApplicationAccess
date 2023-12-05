@@ -26,5 +26,10 @@ namespace ApplicationAccess.Distribution
     /// <remarks>The client instantiated from this configuration should implement <see cref="IAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/>, <see cref="IAccessManagerAsyncEventProcessor{TUser, TGroup, TComponent, TAccess}"/>, and <see cref="IDistributedAccessManagerAsyncQueryProcessor{TGroup, TComponent, TAccess}"/>.</remarks>
     public interface IDistributedAccessManagerAsyncClientConfiguration
     {
+        /// <summary>
+        /// A user-readable description of the client configuration, primarily used to identify a client created from it in exception messages.
+        /// </summary>
+        /// <remarks>Implementing classes should create the description with the classes' type name and a set of name/value pairs, similar to that produced ny a <see href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record#built-in-formatting-for-display">record type's ToString() method</see>.</remarks>
+        String Description { get; }
     }
 }

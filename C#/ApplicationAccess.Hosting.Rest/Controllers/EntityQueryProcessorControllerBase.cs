@@ -115,7 +115,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             }
             else
             {
-                throw new NotFoundException($"Entity '{entity}' of type '{entityType}' does not exist.", entity);
+                throw new NotFoundException($"Entity '{entity}' with type '{entityType}' does not exist.", entity);
             }
         }
 

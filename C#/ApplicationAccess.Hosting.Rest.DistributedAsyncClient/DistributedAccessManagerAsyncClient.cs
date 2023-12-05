@@ -34,7 +34,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class DistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess> : AccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>, IDistributedAccessManagerAsyncQueryProcessor<TGroup, TComponent, TAccess>
+    public class DistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess> : AccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>, IDistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedAsyncClient.DistributedAccessManagerAsyncClient class.

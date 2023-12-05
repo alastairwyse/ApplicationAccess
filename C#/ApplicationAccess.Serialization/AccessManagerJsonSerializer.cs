@@ -404,7 +404,7 @@ namespace ApplicationAccess.Serialization
                     }
                     catch (Exception e)
                     {
-                        throw new DeserializationException($"Failed to deserialize entity '{currentEntity}' of type '{currentKvp.Key}'.", e);
+                        throw new DeserializationException($"Failed to deserialize entity '{currentEntity}' with type '{currentKvp.Key}'.", e);
                     }
                 }
             }
@@ -442,7 +442,7 @@ namespace ApplicationAccess.Serialization
                         }
                         catch (Exception e)
                         {
-                            throw new DeserializationException($"Failed to deserialize entity '{currentEntity}' of type '{currentKvp.Key}' in user to entity mappings.", e);
+                            throw new DeserializationException($"Failed to deserialize entity '{currentEntity}' with type '{currentKvp.Key}' in user to entity mappings.", e);
                         }
                     }
                 }
@@ -481,7 +481,7 @@ namespace ApplicationAccess.Serialization
                         }
                         catch (Exception e)
                         {
-                            throw new DeserializationException($"Failed to deserialize entity '{currentEntity}' of type '{currentKvp.Key}' in group to entity mappings.", e);
+                            throw new DeserializationException($"Failed to deserialize entity '{currentEntity}' with type '{currentKvp.Key}' in group to entity mappings.", e);
                         }
                     }
                 }
@@ -531,7 +531,7 @@ namespace ApplicationAccess.Serialization
                     }
                     catch (Exception e)
                     {
-                        throw new DeserializationException($"Failed to deserialize entity '{currentEntity}' of type '{currentEntityTypeJson[entityTypePropertyName]}'.", e);
+                        throw new DeserializationException($"Failed to deserialize entity '{currentEntity}' with type '{currentEntityTypeJson[entityTypePropertyName]}'.", e);
                     }
                 }
             }

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using NUnit.Framework;
 
 namespace ApplicationAccess.Distribution.UnitTests
@@ -30,11 +31,11 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var testConfigurationItems = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5001")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:6000")),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:6000"))),
                 // Below item has same keys as 2nd item
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration("http://localhost:5000"))
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://localhost:5000")))
             };
 
             var e = Assert.Throws<ArgumentException>(delegate
@@ -51,16 +52,16 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var testConfigurationItems1 = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5001")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:6000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:7000"))
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:6000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:7000")))
             };
             var testConfigurationItems2 = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5001")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:7000"))
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:7000")))
             };
             var shardConfigurationSet1 = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(testConfigurationItems1);
             var shardConfigurationSet2 = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(testConfigurationItems2);
@@ -80,18 +81,18 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var testConfigurationItems1 = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5001")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:6000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:7000"))
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:6000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:7000")))
             };
             var testConfigurationItems2 = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5001")),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001"))),
                 // Port in below URL is different
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:6999")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:7000"))
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:6999"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:7000")))
             };
             var shardConfigurationSet1 = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(testConfigurationItems1);
             var shardConfigurationSet2 = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(testConfigurationItems2);
@@ -111,18 +112,18 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var testConfigurationItems1 = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5001")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:6000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:7000"))
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:6000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:7000")))
             };
             var testConfigurationItems2 = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
                 // Same data as 'testConfigurationItems1' but in different order
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:7000")), 
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5001")), 
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:5000")),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration("http://127.0.0.0.1:6000"))
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:7000"))), 
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001"))), 
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5000"))),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:6000")))
             };
             var shardConfigurationSet1 = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(testConfigurationItems1);
             var shardConfigurationSet2 = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(testConfigurationItems2);

@@ -17,23 +17,27 @@
 using System;
 using NUnit.Framework;
 
-namespace ApplicationAccess.Distribution.UnitTests
+namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Distribution.AccessManagerRestClientConfiguration class.
+    /// Unit tests for the ApplicationAccess.Hosting.Rest.DistributedAsyncClient.AccessManagerRestClientConfiguration class.
     /// </summary>
     public class AccessManagerRestClientConfigurationTests
     {
-        [Test]
-        public void Constructor_BaseUrlParameterWhitespace()
-        {
-            var e = Assert.Throws<ArgumentException>(delegate
-            {
-                var testAccessManagerRestClientConfiguration = new AccessManagerRestClientConfiguration(" ");
-            });
+        private AccessManagerRestClientConfiguration testAccessManagerRestClientConfiguration;
 
-            Assert.That(e.Message, Does.StartWith("Parameter 'baseUrl' must contain a value."));
-            Assert.AreEqual("baseUrl", e.ParamName);
+        [SetUp]
+        protected void SetUp()
+        {
+            testAccessManagerRestClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5001/"));
+        }
+
+        [Test]
+        public void Description()
+        {
+            String result = testAccessManagerRestClientConfiguration.Description;
+
+            Assert.AreEqual("AccessManagerRestClientConfiguration { BaseUrl = http://127.0.0.1:5001/ }", result);
         }
     }
 }

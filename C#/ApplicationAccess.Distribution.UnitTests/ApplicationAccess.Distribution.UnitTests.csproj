@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedAsyncClient\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.csproj" />
     <ProjectReference Include="..\ApplicationAccess.UnitTests\ApplicationAccess.UnitTests.csproj" />
   </ItemGroup>
 

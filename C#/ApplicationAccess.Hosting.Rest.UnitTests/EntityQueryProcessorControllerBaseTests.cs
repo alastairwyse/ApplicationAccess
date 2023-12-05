@@ -116,7 +116,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             });
 
             mockEntityQueryProcessor.Received(1).ContainsEntity(entityType, entity);
-            Assert.That(e.Message, Does.StartWith($"Entity '{entity}' of type '{entityType}' does not exist."));
+            Assert.That(e.Message, Does.StartWith($"Entity '{entity}' with type '{entityType}' does not exist."));
             Assert.AreEqual(entity, e.ResourceId);
         }
 

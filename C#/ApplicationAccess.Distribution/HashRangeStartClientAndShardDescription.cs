@@ -20,9 +20,9 @@ using MoreComplexDataStructures;
 namespace ApplicationAccess.Distribution
 {
     /// <summary>
-    /// Model/container class holding the first (inclusive) value in a range of hash codes, and an <see cref="IDistributedAccessManagerAsyncClient{TUser, TGroup, TComponent, TAccess}"/> used to connect to a shard which manages data elements in that range.  Implements <see cref="IComparable{T}"/> on the range start value, so the class can be used as the type parameter in a <see cref="WeightBalancedTree{T}"/>.
+    /// Model/container class holding the first (inclusive) value in a range of hash codes, an <see cref="IDistributedAccessManagerAsyncClient{TUser, TGroup, TComponent, TAccess}"/> used to connect to a shard which manages data elements in that range, and a description of the configuration of that shard.  Implements <see cref="IComparable{T}"/> on the range start value, so the class can be used as the type parameter in a <see cref="WeightBalancedTree{T}"/>.
     /// </summary>
-    public class HashRangeStartAndClient : IComparable<HashRangeStartAndClient>, IEquatable<HashRangeStartAndClient>
+    public class HashRangeStartClientAndShardDescription : IComparable<HashRangeStartClientAndShardDescription>, IEquatable<HashRangeStartClientAndShardDescription>
     {
         /// <summary>
         /// The hash range start value.
@@ -30,29 +30,29 @@ namespace ApplicationAccess.Distribution
         public Int32 HashRangeStart { get; protected set; }
 
         /// <summary>
-        /// The AccessManager client.
+        /// The AccessManager client and description of the configuration of the shard it connects to.
         /// </summary>
-        public IDistributedAccessManagerAsyncClient<String, String, String, String> Client { get; protected set; }
+        public DistributedClientAndShardDescription ClientAndDescription { get; protected set; }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Distribution.HashRangeStartAndClient class.
+        /// Initialises a new instance of the ApplicationAccess.Distribution.HashRangeStartClientAndShardDescription class.
         /// </summary>
         /// <param name="hashRangeStart">The hash range start value.</param>
-        /// <param name="client">The AccessManager client.</param>
-        public HashRangeStartAndClient(Int32 hashRangeStart, IDistributedAccessManagerAsyncClient<String, String, String, String> client)
+        /// <param name="clientAndDescription">The AccessManager client and description of the configuration of the shard it connects to.</param>
+        public HashRangeStartClientAndShardDescription(Int32 hashRangeStart, DistributedClientAndShardDescription clientAndDescription)
         {
             this.HashRangeStart = hashRangeStart;
-            this.Client = client;
+            this.ClientAndDescription = clientAndDescription;
         }
 
         /// <inheritdoc/>
-        public Int32 CompareTo(HashRangeStartAndClient other)
+        public Int32 CompareTo(HashRangeStartClientAndShardDescription other)
         {
             return HashRangeStart.CompareTo(other.HashRangeStart);
         }
 
         /// <inheritdoc/>
-        public Boolean Equals(HashRangeStartAndClient other)
+        public Boolean Equals(HashRangeStartClientAndShardDescription other)
         {
             return HashRangeStart == other.HashRangeStart;
         }

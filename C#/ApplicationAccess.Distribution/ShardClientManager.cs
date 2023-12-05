@@ -31,21 +31,13 @@ namespace ApplicationAccess.Distribution
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration stored in the shard configuration.</typeparam>
     /// <remarks>This class is thread safe for concurrent read opertations (e.g. method <see cref="ShardClientManager{TClientConfiguration}.GetClient(DataElement, String)">GetClient()</see>).  The <see cref="ShardClientManager{TClientConfiguration}.RefreshConfiguration(ShardConfigurationSet{TClientConfiguration})">RefreshConfiguration()</see> method however should not be called concurrently by multiple threads.</remarks>
-    public class ShardClientManager<TClientConfiguration> : IDisposable
+    public class ShardClientManager<TClientConfiguration> : IShardClientManager<TClientConfiguration>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
-        // 4. Some internal comment conering
-        //      a. why we're not exposing TUser, TGroup etc...
-        //      b. explain that we wont offer sharding for grouptogroup mapping yet. None of this is exposed externally so can easily adjust when I have a way of sharding the group/group graph
-        // 5. Metrics...
-        //      Just need count when refresh occurs
-        //      and timing
-        //      ang maybe status of how many shard config items??
-
-        /// <summary>Maps a <see cref="DataElement"/> and <see cref="Operation"/> to all clients connecting to shards which manage that data element and for operations of that type.</summary>
-        protected Dictionary<DataElementAndOperation, HashSet<IDistributedAccessManagerAsyncClient<String, String, String, String>>> dataElementAndOperationToClientMap;
-        /// <summary>Maps a <see cref="DataElement"/> and <see cref="Operation"/> to a tree which stores clients connecting to shards for that element/operation, indexed by the range of hash values that client handles.</summary>
-        protected Dictionary<DataElementAndOperation, WeightBalancedTree<HashRangeStartAndClient>> hashRangeMapToClientMap;
+        /// <summary>Maps a <see cref="DataElement"/> and <see cref="Operation"/> to all clients (and corresponding shard descriptions) connecting to shards which manage that data element and for operations of that type.</summary>
+        protected Dictionary<DataElementAndOperation, HashSet<DistributedClientAndShardDescription>> dataElementAndOperationToClientMap;
+        /// <summary>Maps a <see cref="DataElement"/> and <see cref="Operation"/> to a tree which stores clients (and corresponding shard descriptions) connecting to shards for that element/operation, indexed by the range of hash values that client handles.</summary>
+        protected Dictionary<DataElementAndOperation, WeightBalancedTree<HashRangeStartClientAndShardDescription>> hashRangeToClientMap;
         /// <summary>The current shard configuration.</summary>
         protected ShardConfigurationSet<TClientConfiguration> currentConfiguration;
         /// <summary>An <see cref="IDistributedAccessManagerAsyncClientFactory{TUser, TGroup, TComponent, TAccess}"/> instance used to create AccessManager client instances from configuration.</summary>
@@ -106,13 +98,8 @@ namespace ApplicationAccess.Distribution
             this.metricLogger = metricLogger;
         }
 
-        /// <summary>
-        /// Returns a collection of clients which connect to each unique shard managing the specified element and operation type.
-        /// </summary>
-        /// <param name="dataElement">The type of element to retrieve the clients for.</param>
-        /// <param name="operation">The type of operation to retrieve the clients for.</param>
-        /// <returns>A collection of clients which connect to each unique shard.</returns>
-        public IEnumerable<IDistributedAccessManagerAsyncClient<String, String, String, String>> GetAllClients(DataElement dataElement, Operation operation)
+        /// <inheritdoc/>
+        public IEnumerable<DistributedClientAndShardDescription> GetAllClients(DataElement dataElement, Operation operation)
         {
             var dataElementAndOperation = new DataElementAndOperation(dataElement, operation);
             configurationLock.EnterReadLock();
@@ -129,29 +116,23 @@ namespace ApplicationAccess.Distribution
             }
         }
 
-        /// <summary>
-        /// Returns a client which connects to the shard managing the specified element and operation type.
-        /// </summary>
-        /// <param name="dataElement">The type of the element.</param>
-        /// <param name="operation">The type of operation to retrieve the clients for.</param>
-        /// <param name="dataElementValue">The value of the element.</param>
-        /// <returns>The client.</returns>
-        public IDistributedAccessManagerAsyncClient<String, String, String, String> GetClient(DataElement dataElement, Operation operation, String dataElementValue)
+        /// <inheritdoc/>
+        public DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, String dataElementValue)
         {
             var dataElementAndOperation = new DataElementAndOperation(dataElement, operation);
             configurationLock.EnterReadLock();
             try
             {
-                if (hashRangeMapToClientMap.ContainsKey(dataElementAndOperation) == false)
+                if (hashRangeToClientMap.ContainsKey(dataElementAndOperation) == false)
                     throw new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{dataElement}' and {typeof(Operation).Name} '{operation}'.");
 
                 if (dataElement == DataElement.User)
                 {
-                    return GetClientForHashCode(hashRangeMapToClientMap[dataElementAndOperation], userHashCodeGenerator.GetHashCode(dataElementValue));
+                    return GetClientForHashCode(hashRangeToClientMap[dataElementAndOperation], userHashCodeGenerator.GetHashCode(dataElementValue));
                 }
                 else
                 {
-                    return GetClientForHashCode(hashRangeMapToClientMap[dataElementAndOperation], groupHashCodeGenerator.GetHashCode(dataElementValue));
+                    return GetClientForHashCode(hashRangeToClientMap[dataElementAndOperation], groupHashCodeGenerator.GetHashCode(dataElementValue));
                 }
             }
             finally
@@ -160,11 +141,7 @@ namespace ApplicationAccess.Distribution
             }
         }
 
-        /// <summary>
-        /// Refreshes the internally stored shard configuration with the specified shard configuration if the configurations differ (if they are the same, no refresh is performed).
-        /// </summary>
-        /// <param name="shardConfiguration">The shard configuration to update the manager with.</param>
-        /// <remarks>This method should not be called concurrently by multiple threads.</remarks>
+        /// <inheritdoc/>
         public void RefreshConfiguration(ShardConfigurationSet<TClientConfiguration> shardConfiguration)
         {
             if (currentConfiguration == null || (!currentConfiguration.Equals(shardConfiguration)))
@@ -175,8 +152,8 @@ namespace ApplicationAccess.Distribution
                 {
                     // Create and populate the new indexing structures
                     var configurationToClientMap = new Dictionary<TClientConfiguration, IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                    var newDataElementAndOperationToClientMap = new Dictionary<DataElementAndOperation, HashSet<IDistributedAccessManagerAsyncClient<String, String, String, String>>>();
-                    var newHashRangeMapToClientMap = new Dictionary<DataElementAndOperation, WeightBalancedTree<HashRangeStartAndClient>>();
+                    var newDataElementAndOperationToClientMap = new Dictionary<DataElementAndOperation, HashSet<DistributedClientAndShardDescription>>();
+                    var newHashRangeToClientMap = new Dictionary<DataElementAndOperation, WeightBalancedTree<HashRangeStartClientAndShardDescription>>();
 
                     foreach (ShardConfiguration<TClientConfiguration> currentShardConfigurationItem in shardConfiguration.Items)
                     {
@@ -198,22 +175,23 @@ namespace ApplicationAccess.Distribution
                             }
                             configurationToClientMap.Add(currentShardConfigurationItem.ClientConfiguration, client);
                         }
+                        var clientAndDescription = new DistributedClientAndShardDescription(client, currentShardConfigurationItem.Describe(true));
 
-                        // Populate 'newHashRangeMapToClientMap'
-                        if (newHashRangeMapToClientMap.ContainsKey(dataElementAndOperation) == false)
+                        // Populate 'newHashRangeToClientMap'
+                        if (newHashRangeToClientMap.ContainsKey(dataElementAndOperation) == false)
                         {
-                            newHashRangeMapToClientMap.Add(dataElementAndOperation, new WeightBalancedTree<HashRangeStartAndClient>());
+                            newHashRangeToClientMap.Add(dataElementAndOperation, new WeightBalancedTree<HashRangeStartClientAndShardDescription>());
                         }
-                        newHashRangeMapToClientMap[dataElementAndOperation].Add(new HashRangeStartAndClient(currentShardConfigurationItem.HashRangeStart, client));
+                        newHashRangeToClientMap[dataElementAndOperation].Add(new HashRangeStartClientAndShardDescription(currentShardConfigurationItem.HashRangeStart, clientAndDescription));
 
                         // Populate 'newDataElementAndOperationToClientMap'
                         if (newDataElementAndOperationToClientMap.ContainsKey(dataElementAndOperation) == false)
                         {
-                            newDataElementAndOperationToClientMap.Add(dataElementAndOperation, new HashSet<IDistributedAccessManagerAsyncClient<String, String, String, String>>());
+                            newDataElementAndOperationToClientMap.Add(dataElementAndOperation, new HashSet<DistributedClientAndShardDescription>());
                         }
-                        if (newDataElementAndOperationToClientMap[dataElementAndOperation].Contains(client) == false)
+                        if (newDataElementAndOperationToClientMap[dataElementAndOperation].Contains(clientAndDescription) == false)
                         {
-                            newDataElementAndOperationToClientMap[dataElementAndOperation].Add(client);
+                            newDataElementAndOperationToClientMap[dataElementAndOperation].Add(new DistributedClientAndShardDescription(client, currentShardConfigurationItem.Describe(false)));
                         }
                     }
 
@@ -222,7 +200,7 @@ namespace ApplicationAccess.Distribution
                     try
                     {
                         dataElementAndOperationToClientMap = newDataElementAndOperationToClientMap;
-                        hashRangeMapToClientMap = newHashRangeMapToClientMap;
+                        hashRangeToClientMap = newHashRangeToClientMap;
                         currentConfiguration = shardConfiguration;
                     }
                     finally
@@ -244,33 +222,33 @@ namespace ApplicationAccess.Distribution
         #region Private/Protected Methods
 
         /// <summary>
-        /// Gets the client corresponding to a given hash code from the specified tree.
+        /// Gets the client and shard description corresponding to a given hash code from the specified tree.
         /// </summary>
         /// <param name="tree">The tree to search.</param>
         /// <param name="hashCode">The hash code to search for.</param>
-        /// <returns>The client which handles the given hash code.</returns>
-        protected IDistributedAccessManagerAsyncClient<String, String, String, String> GetClientForHashCode(WeightBalancedTree<HashRangeStartAndClient> tree, Int32 hashCode)
+        /// <returns>The client which handles the given hash code, and its corresponding shard description.</returns>
+        protected DistributedClientAndShardDescription GetClientForHashCode(WeightBalancedTree<HashRangeStartClientAndShardDescription> tree, Int32 hashCode)
         {
-            if (tree.Contains(new HashRangeStartAndClient(hashCode, null)) == true)
+            if (tree.Contains(new HashRangeStartClientAndShardDescription(hashCode, null)) == true)
             {
-                return tree.Get(new HashRangeStartAndClient(hashCode, null)).Client;
+                return tree.Get(new HashRangeStartClientAndShardDescription(hashCode, null)).ClientAndDescription;
             }
             else
             {
-                Tuple<Boolean, HashRangeStartAndClient> nextGreater = tree.GetNextGreaterThan(new HashRangeStartAndClient(hashCode, null));
+                Tuple<Boolean, HashRangeStartClientAndShardDescription> nextGreater = tree.GetNextGreaterThan(new HashRangeStartClientAndShardDescription(hashCode, null));
                 if (nextGreater.Item1 == true)
                 {
-                    return nextGreater.Item2.Client;
+                    return nextGreater.Item2.ClientAndDescription;
                 }
                 else
                 {
-                    if (tree.Contains(new HashRangeStartAndClient(Int32.MinValue, null)) == true)
+                    if (tree.Contains(new HashRangeStartClientAndShardDescription(Int32.MinValue, null)) == true)
                     {
-                        return tree.Get(new HashRangeStartAndClient(Int32.MinValue, null)).Client;
+                        return tree.Get(new HashRangeStartClientAndShardDescription(Int32.MinValue, null)).ClientAndDescription;
                     }
                     else
                     {
-                        return tree.GetNextGreaterThan(new HashRangeStartAndClient(Int32.MinValue, null)).Item2.Client;
+                        return tree.GetNextGreaterThan(new HashRangeStartClientAndShardDescription(Int32.MinValue, null)).Item2.ClientAndDescription;
                     }
                 }
             }

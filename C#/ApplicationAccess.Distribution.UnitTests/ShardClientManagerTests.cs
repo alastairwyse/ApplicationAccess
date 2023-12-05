@@ -18,11 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ApplicationAccess.Distribution.Metrics;
-using MoreComplexDataStructures;
+using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
+using ApplicationAccess.Metrics;
 using NUnit.Framework;
 using NSubstitute;
+using MoreComplexDataStructures;
 using ApplicationMetrics;
-using ApplicationAccess.Metrics;
 
 namespace ApplicationAccess.Distribution.UnitTests
 {
@@ -45,7 +46,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         public void Constructor()
         {
             var testClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var testClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+            var testClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
             var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
@@ -60,22 +61,21 @@ namespace ApplicationAccess.Distribution.UnitTests
                 var dataElementAndOperation = new DataElementAndOperation(DataElement.User, Operation.Query);
                 Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap.ContainsKey(dataElementAndOperation));
                 Assert.AreEqual(1, testShardClientManager.DataElementAndOperationToClientMap[dataElementAndOperation].Count);
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[dataElementAndOperation].Contains(testClient));
-                Assert.AreEqual(1, testShardClientManager.HashRangeMapToClientMap.Count);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap.ContainsKey(dataElementAndOperation));
-                Assert.AreEqual(1, testShardClientManager.HashRangeMapToClientMap[dataElementAndOperation].Count);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap[dataElementAndOperation].Contains(new HashRangeStartAndClient(Int32.MinValue, testClient)));
-                Assert.AreEqual(testClient, testShardClientManager.HashRangeMapToClientMap[dataElementAndOperation].Get(new HashRangeStartAndClient(Int32.MinValue, null)).Client);
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[dataElementAndOperation], testClient, testShardConfiguration.Describe(false));
+                Assert.AreEqual(1, testShardClientManager.HashRangeToClientMap.Count);
+                Assert.IsTrue(testShardClientManager.HashRangeToClientMap.ContainsKey(dataElementAndOperation));
+                Assert.AreEqual(1, testShardClientManager.HashRangeToClientMap[dataElementAndOperation].Count);
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[dataElementAndOperation], Int32.MinValue, testClient, testShardConfiguration.Describe(true));
                 Assert.AreEqual(1, testShardClientManager.CurrentConfiguration.Items.Count());
                 Assert.IsTrue(testShardClientManager.CurrentConfiguration.Items.Contains(testShardConfiguration));
             }
         }
-
+        
         [Test]
         public void Constructor_MultipleShardsAssignedToOneClient()
         {
             var userQueryClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userQueryClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+            var userQueryClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
             var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQueryClientConfiguration);
             var userQuery4ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 4, userQueryClientConfiguration);
             var userQuery8ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 8, userQueryClientConfiguration);
@@ -101,28 +101,29 @@ namespace ApplicationAccess.Distribution.UnitTests
                 Assert.AreEqual(1, testShardClientManager.DataElementAndOperationToClientMap.Count);
                 Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap.ContainsKey(userQuery));
                 Assert.AreEqual(1, testShardClientManager.DataElementAndOperationToClientMap[userQuery].Count);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap.ContainsKey(userQuery));
-                Assert.AreEqual(5, testShardClientManager.HashRangeMapToClientMap[userQuery].Count);
-                Assert.AreEqual(userQueryClient, testShardClientManager.HashRangeMapToClientMap[userQuery].Get(new HashRangeStartAndClient(0, null)).Client);
-                Assert.AreEqual(userQueryClient, testShardClientManager.HashRangeMapToClientMap[userQuery].Get(new HashRangeStartAndClient(4, null)).Client);
-                Assert.AreEqual(userQueryClient, testShardClientManager.HashRangeMapToClientMap[userQuery].Get(new HashRangeStartAndClient(8, null)).Client);
-                Assert.AreEqual(userQueryClient, testShardClientManager.HashRangeMapToClientMap[userQuery].Get(new HashRangeStartAndClient(12, null)).Client);
-                Assert.AreEqual(userQueryClient, testShardClientManager.HashRangeMapToClientMap[userQuery].Get(new HashRangeStartAndClient(16, null)).Client);
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[userQuery], userQueryClient, userQuery0ShardConfiguration.Describe(false));
+                Assert.IsTrue(testShardClientManager.HashRangeToClientMap.ContainsKey(userQuery));
+                Assert.AreEqual(5, testShardClientManager.HashRangeToClientMap[userQuery].Count);
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userQuery], 0, userQueryClient, userQuery0ShardConfiguration.Describe(true));
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userQuery], 4, userQueryClient, userQuery4ShardConfiguration.Describe(true));
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userQuery], 8, userQueryClient, userQuery8ShardConfiguration.Describe(true));
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userQuery], 12, userQueryClient, userQuery12ShardConfiguration.Describe(true));
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userQuery], 16, userQueryClient, userQuery16ShardConfiguration.Describe(true));
             }
         }
-
+        
         [Test]
         public void RefreshConfiguration_ConfigurationNotChanged()
         {
             var testClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var testClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+            var testClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
             var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>() { testShardConfiguration }
             );
             var testRefreshClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var testRefreshClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+            var testRefreshClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
             var testRefreshShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
             var testRefreshShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
@@ -137,10 +138,11 @@ namespace ApplicationAccess.Distribution.UnitTests
                 mockClientFactory.Received(1).GetClient(testClientConfiguration);
                 var dataElementAndOperation = new DataElementAndOperation(DataElement.User, Operation.Query);
                 Assert.AreEqual(1, testShardClientManager.DataElementAndOperationToClientMap[dataElementAndOperation].Count);
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[dataElementAndOperation].Contains(testClient));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[dataElementAndOperation], testClient, testShardConfiguration.Describe(false));
+
             }
         }
-
+        
         [Test]
         public void RefreshConfiguration()
         {
@@ -149,35 +151,35 @@ namespace ApplicationAccess.Distribution.UnitTests
             {
                 // Setup test client and shard config
                 var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+                var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
                 var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
                 var userQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5001/");
+                var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5001/"));
                 var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
                 var userEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5002/");
+                var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5002/"));
                 var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
                 var userEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5003/");
+                var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5003/"));
                 var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
                 var groupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5004/");
+                var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5004/"));
                 var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
                 var groupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5005/");
+                var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5005/"));
                 var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
                 var groupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5006/");
+                var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5006/"));
                 var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
                 var groupEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5007/");
+                var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5007/"));
                 var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
                 var groupToGroupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5008/");
+                var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5008/"));
                 var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
                 var groupToGroupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5009/");
-                var groupToGroupEvent00ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
+                var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5009/"));
+                var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
                 var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (
                     new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
@@ -191,7 +193,7 @@ namespace ApplicationAccess.Distribution.UnitTests
                     groupEvent0ShardConfiguration,
                     groupEvent32ShardConfiguration,
                     groupToGroupQuery0ShardConfiguration,
-                    groupToGroupEvent00ShardConfiguration
+                    groupToGroupEvent0ShardConfiguration
                     }
                 );
                 mockClientFactory.GetClient(userQuery0ClientConfiguration).Returns(userQuery0Client);
@@ -227,55 +229,55 @@ namespace ApplicationAccess.Distribution.UnitTests
                 Assert.AreEqual(6, testShardClientManager.DataElementAndOperationToClientMap.Count);
                 Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap.ContainsKey(userQuery));
                 Assert.AreEqual(2, testShardClientManager.DataElementAndOperationToClientMap[userQuery].Count);
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[userQuery].Contains(userQuery0Client));
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[userQuery].Contains(userQuery32Client));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[userQuery], userQuery0Client, userQuery0ShardConfiguration.Describe(false));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[userQuery], userQuery32Client, userQuery32ShardConfiguration.Describe(false));
                 Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap.ContainsKey(userEvent));
                 Assert.AreEqual(2, testShardClientManager.DataElementAndOperationToClientMap[userEvent].Count);
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[userEvent].Contains(userEvent0Client));
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[userEvent].Contains(userEvent32Client));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[userEvent], userEvent0Client, userEvent0ShardConfiguration.Describe(false));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[userEvent], userEvent32Client, userEvent32ShardConfiguration.Describe(false));
                 Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap.ContainsKey(groupQuery));
                 Assert.AreEqual(2, testShardClientManager.DataElementAndOperationToClientMap[groupQuery].Count);
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[groupQuery].Contains(groupQuery0Client));
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[groupQuery].Contains(groupQuery32Client));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[groupQuery], groupQuery0Client, groupQuery0ShardConfiguration.Describe(false));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[groupQuery], groupQuery32Client, groupQuery32ShardConfiguration.Describe(false));
                 Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap.ContainsKey(groupEvent));
                 Assert.AreEqual(2, testShardClientManager.DataElementAndOperationToClientMap[groupEvent].Count);
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[groupEvent].Contains(groupEvent0Client));
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[groupEvent].Contains(groupEvent32Client));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[groupEvent], groupEvent0Client, groupEvent0ShardConfiguration.Describe(false));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[groupEvent], groupEvent32Client, groupEvent32ShardConfiguration.Describe(false));
                 Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap.ContainsKey(groupToGroupQuery));
                 Assert.AreEqual(1, testShardClientManager.DataElementAndOperationToClientMap[groupToGroupQuery].Count);
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[groupToGroupQuery].Contains(groupToGroupQuery0Client));
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[groupToGroupQuery], groupToGroupQuery0Client, groupToGroupQuery0ShardConfiguration.Describe(false));
                 Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap.ContainsKey(groupToGroupEvent));
                 Assert.AreEqual(1, testShardClientManager.DataElementAndOperationToClientMap[groupToGroupEvent].Count);
-                Assert.IsTrue(testShardClientManager.DataElementAndOperationToClientMap[groupToGroupEvent].Contains(groupToGroupEvent0Client));
-                // Check contents of 'hashRangeMapToClientMap'
-                Assert.AreEqual(6, testShardClientManager.HashRangeMapToClientMap.Count);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap.ContainsKey(userQuery));
-                Assert.AreEqual(2, testShardClientManager.HashRangeMapToClientMap[userQuery].Count);
-                Assert.AreEqual(userQuery0Client, testShardClientManager.HashRangeMapToClientMap[userQuery].Get(new HashRangeStartAndClient(0, null)).Client);
-                Assert.AreEqual(userQuery32Client, testShardClientManager.HashRangeMapToClientMap[userQuery].Get(new HashRangeStartAndClient(32, null)).Client);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap.ContainsKey(userEvent));
-                Assert.AreEqual(2, testShardClientManager.HashRangeMapToClientMap[userEvent].Count);
-                Assert.AreEqual(userEvent0Client, testShardClientManager.HashRangeMapToClientMap[userEvent].Get(new HashRangeStartAndClient(0, null)).Client);
-                Assert.AreEqual(userEvent32Client, testShardClientManager.HashRangeMapToClientMap[userEvent].Get(new HashRangeStartAndClient(32, null)).Client);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap.ContainsKey(groupQuery));
-                Assert.AreEqual(2, testShardClientManager.HashRangeMapToClientMap[groupQuery].Count);
-                Assert.AreEqual(groupQuery0Client, testShardClientManager.HashRangeMapToClientMap[groupQuery].Get(new HashRangeStartAndClient(0, null)).Client);
-                Assert.AreEqual(groupQuery32Client, testShardClientManager.HashRangeMapToClientMap[groupQuery].Get(new HashRangeStartAndClient(32, null)).Client);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap.ContainsKey(groupEvent));
-                Assert.AreEqual(2, testShardClientManager.HashRangeMapToClientMap[groupEvent].Count);
-                Assert.AreEqual(groupEvent0Client, testShardClientManager.HashRangeMapToClientMap[groupEvent].Get(new HashRangeStartAndClient(0, null)).Client);
-                Assert.AreEqual(groupEvent32Client, testShardClientManager.HashRangeMapToClientMap[groupEvent].Get(new HashRangeStartAndClient(32, null)).Client);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap.ContainsKey(groupToGroupQuery));
-                Assert.AreEqual(1, testShardClientManager.HashRangeMapToClientMap[groupToGroupQuery].Count);
-                Assert.AreEqual(groupToGroupQuery0Client, testShardClientManager.HashRangeMapToClientMap[groupToGroupQuery].Get(new HashRangeStartAndClient(0, null)).Client);
-                Assert.IsTrue(testShardClientManager.HashRangeMapToClientMap.ContainsKey(groupToGroupEvent));
-                Assert.AreEqual(1, testShardClientManager.HashRangeMapToClientMap[groupToGroupEvent].Count);
-                Assert.AreEqual(groupToGroupEvent0Client, testShardClientManager.HashRangeMapToClientMap[groupToGroupEvent].Get(new HashRangeStartAndClient(0, null)).Client);
+                AssertHashSetContainsClientAndDescription(testShardClientManager.DataElementAndOperationToClientMap[groupToGroupEvent], groupToGroupEvent0Client, groupToGroupEvent0ShardConfiguration.Describe(false));
+                // Check contents of 'hashRangeToClientMap'
+                Assert.AreEqual(6, testShardClientManager.HashRangeToClientMap.Count);
+                Assert.IsTrue(testShardClientManager.HashRangeToClientMap.ContainsKey(userQuery));
+                Assert.AreEqual(2, testShardClientManager.HashRangeToClientMap[userQuery].Count);
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userQuery], 0, userQuery0Client, userQuery0ShardConfiguration.Describe(true));
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userQuery], 32, userQuery32Client, userQuery32ShardConfiguration.Describe(true));
+                Assert.IsTrue(testShardClientManager.HashRangeToClientMap.ContainsKey(userEvent));
+                Assert.AreEqual(2, testShardClientManager.HashRangeToClientMap[userEvent].Count);
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userEvent], 0, userEvent0Client, userEvent0ShardConfiguration.Describe(true));
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[userEvent], 32, userEvent32Client, userEvent32ShardConfiguration.Describe(true));
+                Assert.IsTrue(testShardClientManager.HashRangeToClientMap.ContainsKey(groupQuery));
+                Assert.AreEqual(2, testShardClientManager.HashRangeToClientMap[groupQuery].Count);
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[groupQuery], 0, groupQuery0Client, groupQuery0ShardConfiguration.Describe(true));
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[groupQuery], 32, groupQuery32Client, groupQuery32ShardConfiguration.Describe(true));
+                Assert.IsTrue(testShardClientManager.HashRangeToClientMap.ContainsKey(groupEvent));
+                Assert.AreEqual(2, testShardClientManager.HashRangeToClientMap[groupEvent].Count);
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[groupEvent], 0, groupEvent0Client, groupEvent0ShardConfiguration.Describe(true));
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[groupEvent], 32, groupEvent32Client, groupEvent32ShardConfiguration.Describe(true));
+                Assert.IsTrue(testShardClientManager.HashRangeToClientMap.ContainsKey(groupToGroupQuery));
+                Assert.AreEqual(1, testShardClientManager.HashRangeToClientMap[groupToGroupQuery].Count);
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[groupToGroupQuery], 0, groupToGroupQuery0Client, groupToGroupQuery0ShardConfiguration.Describe(true));
+                Assert.IsTrue(testShardClientManager.HashRangeToClientMap.ContainsKey(groupToGroupEvent));
+                Assert.AreEqual(1, testShardClientManager.HashRangeToClientMap[groupToGroupEvent].Count);
+                AssertTreeContainsClientAndDescription(testShardClientManager.HashRangeToClientMap[groupToGroupEvent], 0, groupToGroupEvent0Client, groupToGroupEvent0ShardConfiguration.Describe(true));
                 // Check contents of 'currentConfiguration'
                 Assert.AreEqual(10, testShardClientManager.CurrentConfiguration.Items.Count());
             }
         }
-
+        
         [Test]
         public void RefreshConfiguration_MetricsLogged()
         {
@@ -285,7 +287,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             using (var testShardClientManager = new ShardClientManagerWithProtectedMembers<AccessManagerRestClientConfiguration>(testInitialShardConfigurationSet, mockClientFactory, new StringHashCodeGenerator(), new StringHashCodeGenerator(), mockMetricLogger))
             {
                 var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+                var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
                 var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
                 var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (
@@ -300,7 +302,7 @@ namespace ApplicationAccess.Distribution.UnitTests
                 mockMetricLogger.Received(1).Increment(Arg.Any<ConfigurationRefreshed>());
             }
         }
-
+        
         [Test]
         public void RefreshConfiguration_ExceptionWhenRefreshing()
         {
@@ -310,7 +312,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             using (var testShardClientManager = new ShardClientManagerWithProtectedMembers<AccessManagerRestClientConfiguration>(testInitialShardConfigurationSet, mockClientFactory, new StringHashCodeGenerator(), new StringHashCodeGenerator(), mockMetricLogger))
             {
                 var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+                var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
                 var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
                 var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (
@@ -328,40 +330,40 @@ namespace ApplicationAccess.Distribution.UnitTests
                 Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             }
         }
-
+        
         [Test]
         public void GetAllClients()
         {
             var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+            var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
             var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
             var userQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5001/");
+            var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5001/"));
             var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
             var userEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5002/");
+            var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5002/"));
             var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
             var userEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5003/");
+            var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5003/"));
             var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
             var groupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5004/");
+            var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5004/"));
             var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
             var groupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5005/");
+            var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5005/"));
             var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
             var groupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5006/");
+            var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5006/"));
             var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
             var groupEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5007/");
+            var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5007/"));
             var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
             var groupToGroupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5008/");
+            var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5008/"));
             var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
             var groupToGroupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5009/");
-            var groupToGroupEvent00ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
+            var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5009/"));
+            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
@@ -375,7 +377,7 @@ namespace ApplicationAccess.Distribution.UnitTests
                     groupEvent0ShardConfiguration,
                     groupEvent32ShardConfiguration,
                     groupToGroupQuery0ShardConfiguration,
-                    groupToGroupEvent00ShardConfiguration
+                    groupToGroupEvent0ShardConfiguration
                 }
             );
             mockClientFactory.GetClient(userQuery0ClientConfiguration).Returns(userQuery0Client);
@@ -388,65 +390,68 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockClientFactory.GetClient(groupEvent32ClientConfiguration).Returns(groupEvent32Client);
             mockClientFactory.GetClient(groupToGroupQuery0ClientConfiguration).Returns(groupToGroupQuery0Client);
             mockClientFactory.GetClient(groupToGroupEvent0ClientConfiguration).Returns(groupToGroupEvent0Client);
+            var userQuery = new DataElementAndOperation(DataElement.User, Operation.Query);
+            var groupEvent = new DataElementAndOperation(DataElement.Group, Operation.Event);
+            var groupToGroupQuery = new DataElementAndOperation(DataElement.GroupToGroupMapping, Operation.Query);
             using (var testShardClientManager = new ShardClientManagerWithProtectedMembers<AccessManagerRestClientConfiguration>(testShardConfigurationSet, mockClientFactory, new StringHashCodeGenerator(), new StringHashCodeGenerator()))
             {
 
-                var result = new HashSet<IDistributedAccessManagerAsyncClient<String, String, String, String>>(testShardClientManager.GetAllClients(DataElement.User, Operation.Query));
+                var result = new HashSet<DistributedClientAndShardDescription>(testShardClientManager.GetAllClients(DataElement.User, Operation.Query));
 
                 Assert.AreEqual(2, result.Count);
-                Assert.IsTrue(result.Contains(userQuery0Client));
-                Assert.IsTrue(result.Contains(userQuery32Client));
+                AssertHashSetContainsClientAndDescription(result, userQuery0Client, userQuery0ShardConfiguration.Describe(false));
+                AssertHashSetContainsClientAndDescription(result, userQuery32Client, userQuery32ShardConfiguration.Describe(false));
 
 
-                result = new HashSet<IDistributedAccessManagerAsyncClient<String, String, String, String>>(testShardClientManager.GetAllClients(DataElement.Group, Operation.Event));
+                result = new HashSet<DistributedClientAndShardDescription>(testShardClientManager.GetAllClients(DataElement.Group, Operation.Event));
 
                 Assert.AreEqual(2, result.Count);
-                Assert.IsTrue(result.Contains(groupEvent0Client));
-                Assert.IsTrue(result.Contains(groupEvent32Client));
+                AssertHashSetContainsClientAndDescription(result, groupEvent0Client, groupEvent0ShardConfiguration.Describe(false));
+                AssertHashSetContainsClientAndDescription(result, groupEvent32Client, groupEvent32ShardConfiguration.Describe(false));
 
 
-                result = new HashSet<IDistributedAccessManagerAsyncClient<String, String, String, String>>(testShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query));
+                result = new HashSet<DistributedClientAndShardDescription>(testShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query));
 
                 Assert.AreEqual(1, result.Count);
-                Assert.IsTrue(result.Contains(groupToGroupQuery0Client));
+                AssertHashSetContainsClientAndDescription(result, groupToGroupQuery0Client, groupToGroupQuery0ShardConfiguration.Describe(false));
             }
         }
-
+        
         [Test]
         public void GetClient()
         {
             IHashCodeGenerator<String> mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             IHashCodeGenerator<String> mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5000/");
+            var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
             var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
             var userQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5001/");
+            var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5001/"));
             var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
             var userEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5002/");
+            var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5002/"));
             var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
             var userEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5003/");
+            var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5003/"));
             var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
             var groupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5004/");
+            var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5004/"));
             var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
             var groupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5005/");
+            var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5005/"));
             var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
             var groupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5006/");
+            var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5006/"));
             var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
             var groupEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5007/");
+            var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5007/"));
             var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
             var groupToGroupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5008/");
+            var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5008/"));
             var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
             var groupToGroupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-            var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration("http://127.0.0.1:5009/");
-            var groupToGroupEvent00ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
+            var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5009/"));
+            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
@@ -460,7 +465,7 @@ namespace ApplicationAccess.Distribution.UnitTests
                     groupEvent0ShardConfiguration,
                     groupEvent32ShardConfiguration,
                     groupToGroupQuery0ShardConfiguration,
-                    groupToGroupEvent00ShardConfiguration
+                    groupToGroupEvent0ShardConfiguration
                 }
             );
             mockClientFactory.GetClient(userQuery0ClientConfiguration).Returns(userQuery0Client);
@@ -477,84 +482,168 @@ namespace ApplicationAccess.Distribution.UnitTests
             {
                 mockUserHashCodeGenerator.GetHashCode("user1").Returns(32);
 
-                IDistributedAccessManagerAsyncClient<String, String, String, String> result = testShardClientManager.GetClient(DataElement.User, Operation.Query, "user1");
+                DistributedClientAndShardDescription result = testShardClientManager.GetClient(DataElement.User, Operation.Query, "user1");
 
-                Assert.AreEqual(userQuery32Client, result);
+                Assert.AreSame(userQuery32Client, result.Client);
+                Assert.AreEqual(userQuery32ShardConfiguration.Describe(true), result.ShardConfigurationDescription);
 
 
                 mockUserHashCodeGenerator.GetHashCode("group1").Returns(Int32.MaxValue);
 
                 result = testShardClientManager.GetClient(DataElement.Group, Operation.Query, "group1");
 
-                Assert.AreEqual(groupQuery0Client, result);
+                Assert.AreSame(groupQuery0Client, result.Client);
+                Assert.AreEqual(groupQuery0ShardConfiguration.Describe(true), result.ShardConfigurationDescription);
 
 
                 mockUserHashCodeGenerator.GetHashCode("group2").Returns(1);
 
                 result = testShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Event, "group2");
 
-                Assert.AreEqual(groupToGroupEvent0Client, result);
+                Assert.AreSame(groupToGroupEvent0Client, result.Client);
+                Assert.AreEqual(groupToGroupEvent0ShardConfiguration.Describe(true), result.ShardConfigurationDescription);
             }
         }
-
+        
         [Test]
         public void GetClientForHashCode()
         {
             var testInitialShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(Enumerable.Empty<ShardConfiguration<AccessManagerRestClientConfiguration>>());
             using (var testShardClientManager = new ShardClientManagerWithProtectedMembers<AccessManagerRestClientConfiguration>(testInitialShardConfigurationSet, mockClientFactory, new StringHashCodeGenerator(), new StringHashCodeGenerator()))
             {
-                var testTree = new WeightBalancedTree<HashRangeStartAndClient>();
+                var testTree = new WeightBalancedTree<HashRangeStartClientAndShardDescription>();
                 var client1 = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var client5 = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                testTree.Add(new HashRangeStartAndClient(1, client1));
-                testTree.Add(new HashRangeStartAndClient(5, client5));
+                var client1ShardDescription = "client1ShardDescription";
+                var client5ShardDescription = "client5ShardDescription";
+                testTree.Add(new HashRangeStartClientAndShardDescription(1, new DistributedClientAndShardDescription(client1, client1ShardDescription)));
+                testTree.Add(new HashRangeStartClientAndShardDescription(5, new DistributedClientAndShardDescription(client5, client5ShardDescription)));
 
-                IDistributedAccessManagerAsyncClient<String, String, String, String> result = testShardClientManager.GetClientForHashCode(testTree, 1);
+                DistributedClientAndShardDescription result = testShardClientManager.GetClientForHashCode(testTree, 1);
 
-                Assert.AreEqual(client1, result);
+                Assert.AreSame(client1, result.Client);
+                Assert.AreEqual(client1ShardDescription, result.ShardConfigurationDescription);
 
 
                 result = testShardClientManager.GetClientForHashCode(testTree, 2);
 
-                Assert.AreEqual(client5, result);
+                Assert.AreSame(client5, result.Client);
+                Assert.AreEqual(client5ShardDescription, result.ShardConfigurationDescription);
 
 
                 result = testShardClientManager.GetClientForHashCode(testTree, 5);
 
-                Assert.AreEqual(client5, result);
+                Assert.AreSame(client5, result.Client);
+                Assert.AreEqual(client5ShardDescription, result.ShardConfigurationDescription);
 
 
                 result = testShardClientManager.GetClientForHashCode(testTree, 6);
 
-                Assert.AreEqual(client1, result);
+                Assert.AreSame(client1, result.Client);
+                Assert.AreEqual(client1ShardDescription, result.ShardConfigurationDescription);
 
 
                 var clientMin = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                testTree.Add(new HashRangeStartAndClient(Int32.MinValue, clientMin));
+                var clientMinShardDescription = "clientMinShardDescription";
+                testTree.Add(new HashRangeStartClientAndShardDescription(Int32.MinValue, new DistributedClientAndShardDescription(clientMin, clientMinShardDescription)));
 
                 result = testShardClientManager.GetClientForHashCode(testTree, 6);
 
-                Assert.AreEqual(clientMin, result);
+                Assert.AreSame(clientMin, result.Client);
+                Assert.AreEqual(clientMinShardDescription, result.ShardConfigurationDescription);
 
 
                 result = testShardClientManager.GetClientForHashCode(testTree, Int32.MinValue);
 
-                Assert.AreEqual(clientMin, result);
+                Assert.AreSame(clientMin, result.Client);
+                Assert.AreEqual(clientMinShardDescription, result.ShardConfigurationDescription);
 
 
                 var clientMax = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
-                testTree.Add(new HashRangeStartAndClient(Int32.MaxValue, clientMax));
+                var clientMaxShardDescription = "clientMaxShardDescription";
+                testTree.Add(new HashRangeStartClientAndShardDescription(Int32.MaxValue, new DistributedClientAndShardDescription(clientMax, clientMaxShardDescription)));
 
                 result = testShardClientManager.GetClientForHashCode(testTree, 6);
 
-                Assert.AreEqual(clientMax, result);
+                Assert.AreSame(clientMax, result.Client);
+                Assert.AreEqual(clientMaxShardDescription, result.ShardConfigurationDescription);
 
 
                 result = testShardClientManager.GetClientForHashCode(testTree, Int32.MaxValue);
 
-                Assert.AreEqual(clientMax, result);
+                Assert.AreSame(clientMax, result.Client);
+                Assert.AreEqual(clientMaxShardDescription, result.ShardConfigurationDescription);
             }
         }
+        
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Asserts whether a HashSet of <see cref="DistributedClientAndShardDescription"/> objects contains the specified client and shard description.
+        /// </summary>
+        /// <param name="hashSet">The HashSet of <see cref="DistributedClientAndShardDescription"/> objects</param>
+        /// <param name="client">The client to check for.</param>
+        /// <param name="shardDescription">The shard configuration description to check for.</param>
+        /// <remarks><see cref="DistributedClientAndShardDescription"/> only considers the 'Client' property in its <see cref="IEquatable{T}"/> implementation, so this method also explicity checks the 'ShardConfigurationDescription' property.</remarks>
+        private void AssertHashSetContainsClientAndDescription
+        (
+            HashSet<DistributedClientAndShardDescription> hashSet,
+            IDistributedAccessManagerAsyncClient<String, String, String, String> client, 
+            String shardDescription
+        )
+        {
+            if (hashSet.Contains(new DistributedClientAndShardDescription(client, shardDescription)) == false)
+            {
+                Assert.Fail("HashSet does not contain the specified client");
+            }
+            Func<DistributedClientAndShardDescription, Boolean> filter = (current) => 
+            {
+                return (Object.ReferenceEquals(current.Client, client));
+            };
+            IEnumerable<DistributedClientAndShardDescription> filterResults = hashSet.Where(filter);
+            if (filterResults.Count() != 1)
+            {
+                Assert.Fail("HashSet did not contain a unique item with the specified client");
+            }
+            if (filterResults.First().ShardConfigurationDescription != shardDescription)
+            {
+                Assert.Fail($"'{nameof(DistributedClientAndShardDescription.ShardConfigurationDescription)}' property was expected to be '{shardDescription}' but was '{filterResults.First().ShardConfigurationDescription}'");
+            }
+        }
+
+        /// <summary>
+        /// Asserts whether a tree of <see cref="HashRangeStartClientAndShardDescription"/> objects contains the specified client and shard description.
+        /// </summary>
+        /// <param name="tree">The tree of <see cref="HashRangeStartClientAndShardDescription"/> objects.</param>
+        /// <param name="hashRangeStart">The hash range start value for the client.</param>
+        /// <param name="client">The client to check for.</param>
+        /// <param name="shardDescription">The shard configuration description to check for.</param>
+        /// <remarks><see cref="HashRangeStartClientAndShardDescription"/> only considers the 'HashRangeStart' property in its <see cref="IComparable{T}"/> implementation, so this method also explicity checks the 'ClientAndDescription' property.</remarks>
+        private void AssertTreeContainsClientAndDescription
+        (
+            WeightBalancedTree<HashRangeStartClientAndShardDescription> tree,
+            Int32 hashRangeStart, 
+            IDistributedAccessManagerAsyncClient<String, String, String, String> client,
+            String shardDescription
+        )
+        {
+            var comparisonNodeValue = new HashRangeStartClientAndShardDescription(hashRangeStart, new DistributedClientAndShardDescription(client, shardDescription));
+            if (tree.Contains(comparisonNodeValue) == false)
+            {
+                Assert.Fail("Tree does not contain the specified hash range start value");
+            }
+            HashRangeStartClientAndShardDescription nodeValue = tree.Get(comparisonNodeValue);
+            if (nodeValue.ClientAndDescription.Client != client)
+            {
+                Assert.Fail($"Tree node with hash range start value {hashRangeStart} does not contain the specified client");
+            }
+            if (nodeValue.ClientAndDescription.ShardConfigurationDescription != shardDescription)
+            {
+                Assert.Fail($"'{nameof(DistributedClientAndShardDescription.ShardConfigurationDescription)}' property was expected to be '{shardDescription}' but was '{nodeValue.ClientAndDescription.ShardConfigurationDescription}'");
+            }
+        }
+
+        #endregion
 
         #region Nested Classes
 
@@ -577,16 +666,16 @@ namespace ApplicationAccess.Distribution.UnitTests
         private class ShardClientManagerWithProtectedMembers<TClientConfiguration> : ShardClientManager<TClientConfiguration>
             where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
         {
-            /// <summary>Maps a <see cref="DataElement"/> and <see cref="Operation"/> to all clients connecting to shards which manage that data element and for operations of that type.</summary>
-            public Dictionary<DataElementAndOperation, HashSet<IDistributedAccessManagerAsyncClient<String, String, String, String>>> DataElementAndOperationToClientMap
+            /// <summary>Maps a <see cref="DataElement"/> and <see cref="Operation"/> to all clients (and corresponding shard descriptions) connecting to shards which manage that data element and for operations of that type.</summary>
+            public Dictionary<DataElementAndOperation, HashSet<DistributedClientAndShardDescription>> DataElementAndOperationToClientMap
             {
                 get { return dataElementAndOperationToClientMap; }
             }
 
-            /// <summary>Maps a <see cref="DataElement"/> and <see cref="Operation"/> to a tree which stores clients connecting to shards for that element/operation, indexed by the range of hash values that client handles.</summary>
-            public Dictionary<DataElementAndOperation, WeightBalancedTree<HashRangeStartAndClient>> HashRangeMapToClientMap
+            /// <summary>Maps a <see cref="DataElement"/> and <see cref="Operation"/> to a tree which stores clients (and corresponding shard descriptions) connecting to shards for that element/operation, indexed by the range of hash values that client handles.</summary>
+            public Dictionary<DataElementAndOperation, WeightBalancedTree<HashRangeStartClientAndShardDescription>> HashRangeToClientMap
             {
-                get { return hashRangeMapToClientMap; }
+                get { return hashRangeToClientMap; }
             }
 
             /// <summary>The current shard configuration.</summary>
@@ -634,12 +723,12 @@ namespace ApplicationAccess.Distribution.UnitTests
             }
 
             /// <summary>
-            /// Gets the client corresponding to a given hash code from the specified tree.
+            /// Gets the client and shard description corresponding to a given hash code from the specified tree.
             /// </summary>
             /// <param name="tree">The tree to search.</param>
             /// <param name="hashCode">The hash code to search for.</param>
-            /// <returns>The client which handles the given hash code.</returns>
-            public new IDistributedAccessManagerAsyncClient<String, String, String, String> GetClientForHashCode(WeightBalancedTree<HashRangeStartAndClient> tree, Int32 hashCode)
+            /// <returns>The client which handles the given hash code, and its corresponding shard description.</returns>
+            public new DistributedClientAndShardDescription GetClientForHashCode(WeightBalancedTree<HashRangeStartClientAndShardDescription> tree, Int32 hashCode)
             {
                 return base.GetClientForHashCode(tree, hashCode);
             }
