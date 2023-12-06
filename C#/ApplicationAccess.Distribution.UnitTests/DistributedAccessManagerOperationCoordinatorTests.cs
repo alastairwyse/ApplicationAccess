@@ -18,10 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ApplicationAccess.Distribution.Metrics;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
-using ApplicationAccess.UnitTests;
 using NUnit.Framework;
 using NSubstitute;
 using ApplicationMetrics;
@@ -671,87 +669,420 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void AddUserToGroupMappingAsync()
+        public async Task AddUserToGroupMappingAsync()
         {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testUser = "user1";
+            String testGroup = "group1";
+            mockMetricLogger.Begin(Arg.Any<UserToGroupMappingAddTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
+
+            await testOperationCoordinator.AddUserToGroupMappingAsync(testUser, testGroup);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Event, testUser);
+            await clientAndDescription.Client.Received(1).AddUserToGroupMappingAsync(testUser, testGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<UserToGroupMappingAddTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToGroupMappingAddTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<UserToGroupMappingAdded>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task AddUserToGroupMappingAsync_ExceptionWhenAdding()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            var mockException = new Exception("Mock exception");
+            String testUser = "user1";
+            String testGroup = "group1";
+            mockMetricLogger.Begin(Arg.Any<UserToGroupMappingAddTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.When(client => client.AddUserToGroupMappingAsync(testUser, testGroup)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.AddUserToGroupMappingAsync(testUser, testGroup);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Event, testUser);
+            await clientAndDescription.Client.Received(1).AddUserToGroupMappingAsync(testUser, testGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<UserToGroupMappingAddTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToGroupMappingAddTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to add a mapping between user '{testUser}' and group '{testGroup}' to shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task GetUserToGroupMappingsAsync_IncludeIndirectMappingsParameterFalse()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testUser = "user1";
+            mockMetricLogger.Begin(Arg.Any<GetUserToGroupMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromResult<List<String>>(new List<String>() { "group1", "group2", "group3" }));
+
+            List<String> result = await testOperationCoordinator.GetUserToGroupMappingsAsync(testUser, false);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetUserToGroupMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsForGroupQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+        }
+
+        [Test]
+        public async Task GetUserToGroupMappingsAsync_IncludeIndirectMappingsParameterFalseExceptionWhenReading()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var mockException = new Exception("Mock exception");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testUser = "user1";
+            mockMetricLogger.Begin(Arg.Any<GetUserToGroupMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.GetUserToGroupMappingsAsync(testUser, false);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetUserToGroupMappingsQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve user to group mappings for user '{testUser}' from shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        [Ignore("Wait until implemented")]
+        public async Task GetUserToGroupMappingsAsync_IncludeIndirectMappingsParameterTrue()
+        {
+            //GetUserToGroupMappingsWithIndirectMappingsQueryTime
+
             throw new NotImplementedException();
         }
 
         [Test]
         [Ignore("Wait until implemented")]
-        public void AddUserToGroupMappingAsync_ExceptionWhenAdding()
+        public async Task GetUserToGroupMappingsAsync_IncludeIndirectMappingsParameterTrueExceptionWhenReading()
         {
             throw new NotImplementedException();
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void GetUserToGroupMappingsAsync()
+        public async Task RemoveUserToGroupMappingAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testUser = "user1";
+            String testGroup = "group1";
+            mockMetricLogger.Begin(Arg.Any<UserToGroupMappingRemoveTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
+
+            await testOperationCoordinator.RemoveUserToGroupMappingAsync(testUser, testGroup);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Event, testUser);
+            await clientAndDescription.Client.Received(1).RemoveUserToGroupMappingAsync(testUser, testGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<UserToGroupMappingRemoveTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToGroupMappingRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<UserToGroupMappingRemoved>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void GetUserToGroupMappingsAsync_ExceptionWhenReading()
+        public async Task RemoveUserToGroupMappingAsync_ExceptionWhenRemoving()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            var mockException = new Exception("Mock exception");
+            String testUser = "user1";
+            String testGroup = "group1";
+            mockMetricLogger.Begin(Arg.Any<UserToGroupMappingRemoveTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.When(client => client.RemoveUserToGroupMappingAsync(testUser, testGroup)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.RemoveUserToGroupMappingAsync(testUser, testGroup);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Event, testUser);
+            await clientAndDescription.Client.Received(1).RemoveUserToGroupMappingAsync(testUser, testGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<UserToGroupMappingRemoveTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToGroupMappingRemoveTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to remove mapping between user '{testUser}' and group '{testGroup}' from shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void RemoveUserToGroupMappingAsync()
+        public async Task AddGroupToGroupMappingAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testFromGroup = "group1";
+            String testToGroup = "group2";
+            mockMetricLogger.Begin(Arg.Any<GroupToGroupMappingAddTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup).Returns(clientAndDescription);
+
+            await testOperationCoordinator.AddGroupToGroupMappingAsync(testFromGroup, testToGroup);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup);
+            await clientAndDescription.Client.Received(1).AddGroupToGroupMappingAsync(testFromGroup, testToGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToGroupMappingAddTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToGroupMappingAddTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GroupToGroupMappingAdded>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void RemoveUserToGroupMappingAsync_ExceptionWhenRemoving()
+        public async Task AddGroupToGroupMappingAsync_ExceptionWhenAdding()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            var mockException = new Exception("Mock exception");
+            String testFromGroup = "group1";
+            String testToGroup = "group2";
+            mockMetricLogger.Begin(Arg.Any<GroupToGroupMappingAddTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.When(client => client.AddGroupToGroupMappingAsync(testFromGroup, testToGroup)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.AddGroupToGroupMappingAsync(testFromGroup, testToGroup);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup);
+            await clientAndDescription.Client.Received(1).AddGroupToGroupMappingAsync(testFromGroup, testToGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToGroupMappingAddTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToGroupMappingAddTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to add a mapping between groups '{testFromGroup}' and '{testToGroup}' to shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void AddGroupToGroupMappingAsync()
+        public async Task GetGroupToGroupMappingsAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testGroup = "group1";
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToGroupMappingsAsync(testGroup, false).Returns(Task.FromResult<List<String>>(new List<String>() { "group2", "group3", "group4" }));
+
+            List<String> result = await testOperationCoordinator.GetGroupToGroupMappingsAsync(testGroup, false);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(testGroup, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsForGroupQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+            Assert.IsTrue(result.Contains("group4"));
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void AddGroupToGroupMappingAsync_ExceptionWhenAdding()
+        public async Task GetGroupToGroupMappingsAsync_ExceptionWhenReading()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var mockException = new Exception("Mock exception");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testGroup = "group1";
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToGroupMappingsAsync(testGroup, false).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.GetGroupToGroupMappingsAsync(testGroup, false);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(testGroup, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve group to group mappings for group '{testGroup}' from shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void GetGroupToGroupMappingsAsync()
+        public async Task GetGroupToGroupMappingsAsync_IncludeIndirectMappingsParameterTrue()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testGroup = "group1";
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToGroupMappingsAsync(testGroup, true).Returns(Task.FromResult<List<String>>(new List<String>() { "group2", "group3", "group4" }));
+
+            List<String> result = await testOperationCoordinator.GetGroupToGroupMappingsAsync(testGroup, true);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(testGroup, true);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+            Assert.IsTrue(result.Contains("group4"));
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void GetGroupToGroupMappingsAsync_ExceptionWhenReading()
+        public async Task GetGroupToGroupMappingsAsync_IncludeIndirectMappingsParameterTrueExceptionWhenReading()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var mockException = new Exception("Mock exception");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testGroup = "group1";
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToGroupMappingsAsync(testGroup, true).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.GetGroupToGroupMappingsAsync(testGroup, true);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(testGroup, true);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve group to group mappings for group '{testGroup}' from shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void RemoveGroupToGroupMappingAsync()
+        public async Task RemoveGroupToGroupMappingAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testFromGroup = "group1";
+            String testToGroup = "group2";
+            mockMetricLogger.Begin(Arg.Any<GroupToGroupMappingRemoveTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup).Returns(clientAndDescription);
+
+            await testOperationCoordinator.RemoveGroupToGroupMappingAsync(testFromGroup, testToGroup);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup);
+            await clientAndDescription.Client.Received(1).RemoveGroupToGroupMappingAsync(testFromGroup, testToGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToGroupMappingRemoveTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToGroupMappingRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GroupToGroupMappingRemoved>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void RemoveGroupToGroupMappingAsync_ExceptionWhenRemoving()
+        public async Task RemoveGroupToGroupMappingAsync_ExceptionWhenRemoving()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            var mockException = new Exception("Mock exception");
+            String testFromGroup = "group1";
+            String testToGroup = "group2";
+            mockMetricLogger.Begin(Arg.Any<GroupToGroupMappingRemoveTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.When(client => client.RemoveGroupToGroupMappingAsync(testFromGroup, testToGroup)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.RemoveGroupToGroupMappingAsync(testFromGroup, testToGroup);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup);
+            await clientAndDescription.Client.Received(1).RemoveGroupToGroupMappingAsync(testFromGroup, testToGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToGroupMappingRemoveTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToGroupMappingRemoveTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to remove mapping between groups '{testFromGroup}' and '{testToGroup}' from shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
@@ -1570,31 +1901,119 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void RemoveUserToEntityMappingAsync()
+        public async Task RemoveUserToEntityMappingAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockMetricLogger.Begin(Arg.Any<UserToEntityMappingRemoveTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
+
+            await testOperationCoordinator.RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Event, testUser);
+            await clientAndDescription.Client.Received(1).RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity);
+            mockMetricLogger.Received(1).Begin(Arg.Any<UserToEntityMappingRemoveTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserToEntityMappingRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<UserToEntityMappingRemoved>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void RemoveUserToEntityMappingAsync_ExceptionWhenRemoving()
+        public async Task RemoveUserToEntityMappingAsync_ExceptionWhenRemoving()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            var mockException = new Exception("Mock exception");
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockMetricLogger.Begin(Arg.Any<UserToEntityMappingRemoveTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.When(client => client.RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Event, testUser);
+            await clientAndDescription.Client.Received(1).RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity);
+            mockMetricLogger.Received(1).Begin(Arg.Any<UserToEntityMappingRemoveTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserToEntityMappingRemoveTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to remove mapping between user '{testUser}' entity type '{testEntityType}' and entity '{testEntity}' from shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void AddGroupToEntityMappingAsync()
+        public async Task AddGroupToEntityMappingAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockMetricLogger.Begin(Arg.Any<GroupToEntityMappingAddTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientAndDescription);
+
+            await testOperationCoordinator.AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Event, testGroup);
+            await clientAndDescription.Client.Received(1).AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToEntityMappingAddTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToEntityMappingAddTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingAdded>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void AddGroupToEntityMappingAsync_ExceptionWhenAdding()
+        public async Task AddGroupToEntityMappingAsync_ExceptionWhenAdding()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            var mockException = new Exception("Mock exception");
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockMetricLogger.Begin(Arg.Any<GroupToEntityMappingAddTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.When(client => client.AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Event, testGroup);
+            await clientAndDescription.Client.Received(1).AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToEntityMappingAddTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToEntityMappingAddTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to add a mapping between group '{testGroup}' entity type '{testEntityType}' and entity '{testEntity}' to shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
@@ -1626,17 +2045,61 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void RemoveGroupToEntityMappingAsync()
+        public async Task RemoveGroupToEntityMappingAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockMetricLogger.Begin(Arg.Any<GroupToEntityMappingRemoveTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientAndDescription);
+
+            await testOperationCoordinator.RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Event, testGroup);
+            await clientAndDescription.Client.Received(1).RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToEntityMappingRemoveTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupToEntityMappingRemoveTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GroupToEntityMappingRemoved>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void RemoveGroupToEntityMappingAsync_ExceptionWhenRemoving()
+        public async Task RemoveGroupToEntityMappingAsync_ExceptionWhenRemoving()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            var mockException = new Exception("Mock exception");
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockMetricLogger.Begin(Arg.Any<GroupToEntityMappingRemoveTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.When(client => client.RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity)).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testOperationCoordinator.RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Event, testGroup);
+            await clientAndDescription.Client.Received(1).RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToEntityMappingRemoveTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToEntityMappingRemoveTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to remove mapping between group '{testGroup}' entity type '{testEntityType}' and entity '{testEntity}' from shard with configuration 'ShardDescription'."));
+            Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]

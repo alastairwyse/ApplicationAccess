@@ -264,37 +264,133 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task AddUserToGroupMappingAsync(String user, String group)
         {
-            throw new NotImplementedException();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            {
+                await client.AddUserToGroupMappingAsync(user, group);
+            };
+            await ProcessEventAsync
+            (
+                new UserToGroupMappingAddTime(),
+                new UserToGroupMappingAdded(),
+                DataElement.User,
+                user,
+                eventAction,
+                $"add a mapping between user '{user}' and group '{group}' to"
+            );
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetUserToGroupMappingsAsync(String user, Boolean includeIndirectMappings)
         {
-            throw new NotImplementedException();
+            Func<DistributedClientAndShardDescription, Task<List<String>>> createTaskFunc = async (DistributedClientAndShardDescription client) =>
+            {
+                return await client.Client.GetUserToGroupMappingsAsync(user, includeIndirectMappings);
+            };
+            QueryIntervalMetric intervalMetric = null;
+            QueryCountMetric countMetric = null;
+            if (includeIndirectMappings == false)
+            {
+                intervalMetric = new GetUserToGroupMappingsQueryTime();
+                countMetric = new GetGroupToGroupMappingsForGroupQuery();
+            }
+            else
+            {
+                throw new NotImplementedException();
+                // Needs to do multiple shard calls
+            }
+            return await GetElementsAsync
+            (
+                intervalMetric,
+                countMetric,
+                DataElement.User,
+                user,
+                createTaskFunc,
+                $"retrieve user to group mappings for user '{user}' from"
+            );
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserToGroupMappingAsync(String user, String group)
         {
-            throw new NotImplementedException();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            {
+                await client.RemoveUserToGroupMappingAsync(user, group);
+            };
+            await ProcessEventAsync
+            (
+                new UserToGroupMappingRemoveTime(),
+                new UserToGroupMappingRemoved(),
+                DataElement.User,
+                user,
+                eventAction,
+                $"remove mapping between user '{user}' and group '{group}' from"
+            );
         }
 
         /// <inheritdoc/>
         public async Task AddGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
-            throw new NotImplementedException();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            {
+                await client.AddGroupToGroupMappingAsync(fromGroup, toGroup);
+            };
+            await ProcessEventAsync
+            (
+                new GroupToGroupMappingAddTime(),
+                new GroupToGroupMappingAdded(),
+                DataElement.GroupToGroupMapping,
+                fromGroup,
+                eventAction,
+                $"add a mapping between groups '{fromGroup}' and '{toGroup}' to"
+            );
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToGroupMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            throw new NotImplementedException();
+            Func<DistributedClientAndShardDescription, Task<List<String>>> createTaskFunc = async (DistributedClientAndShardDescription client) =>
+            {
+                return await client.Client.GetGroupToGroupMappingsAsync(group, includeIndirectMappings);
+            };
+            QueryIntervalMetric intervalMetric = null;
+            QueryCountMetric countMetric = null;
+            if (includeIndirectMappings == false)
+            {
+                intervalMetric = new GetGroupToGroupMappingsForGroupQueryTime();
+                countMetric = new GetGroupToGroupMappingsForGroupQuery();
+            }
+            else
+            {
+                intervalMetric = new GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime();
+                countMetric = new GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery();
+            }
+            return await GetElementsAsync
+            (
+                intervalMetric,
+                countMetric,
+                DataElement.GroupToGroupMapping,
+                group,
+                createTaskFunc,
+                $"retrieve group to group mappings for group '{group}' from"
+            );
         }
 
         /// <inheritdoc/>
         public async Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
-            throw new NotImplementedException();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            {
+                await client.RemoveGroupToGroupMappingAsync(fromGroup, toGroup);
+            };
+            await ProcessEventAsync
+            (
+                new GroupToGroupMappingRemoveTime(),
+                new GroupToGroupMappingRemoved(),
+                DataElement.GroupToGroupMapping,
+                fromGroup,
+                eventAction,
+                $"remove mapping between groups '{fromGroup}' and '{toGroup}' from"
+            );
         }
 
         /// <inheritdoc/>
@@ -516,13 +612,37 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task RemoveUserToEntityMappingAsync(String user, String entityType, String entity)
         {
-            throw new NotImplementedException();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            {
+                await client.RemoveUserToEntityMappingAsync(user, entityType, entity);
+            };
+            await ProcessEventAsync
+            (
+                new UserToEntityMappingRemoveTime(),
+                new UserToEntityMappingRemoved(),
+                DataElement.User,
+                user,
+                eventAction,
+                $"remove mapping between user '{user}' entity type '{entityType}' and entity '{entity}' from"
+            );
         }
 
         /// <inheritdoc/>
         public async Task AddGroupToEntityMappingAsync(String group, String entityType, String entity)
         {
-            throw new NotImplementedException();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            {
+                await client.AddGroupToEntityMappingAsync(group, entityType, entity);
+            };
+            await ProcessEventAsync
+            (
+                new GroupToEntityMappingAddTime(),
+                new GroupToEntityMappingAdded(),
+                DataElement.Group,
+                group,
+                eventAction,
+                $"add a mapping between group '{group}' entity type '{entityType}' and entity '{entity}' to"
+            );
         }
 
         /// <inheritdoc/>
@@ -540,7 +660,19 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task RemoveGroupToEntityMappingAsync(String group, String entityType, String entity)
         {
-            throw new NotImplementedException();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            {
+                await client.RemoveGroupToEntityMappingAsync(group, entityType, entity);
+            };
+            await ProcessEventAsync
+            (
+                new GroupToEntityMappingRemoveTime(),
+                new GroupToEntityMappingRemoved(),
+                DataElement.Group,
+                group,
+                eventAction,
+                $"remove mapping between group '{group}' entity type '{entityType}' and entity '{entity}' from"
+            );
         }
 
         /// <inheritdoc/>
@@ -740,6 +872,45 @@ namespace ApplicationAccess.Distribution
             };
             Func<Boolean, Boolean> continuePredicate = (Boolean shardResult) => { return !shardResult; };
             await AwaitTaskCompletionAsync(shardTasks, taskToShardDescriptionMap, resultAction, continuePredicate, $"check for {exceptionElementAndValue} in", beginId, intervalMetric);
+            metricLogger.End(beginId, intervalMetric);
+            metricLogger.Increment(countMetric);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns data from a single shard in the distributed environment.
+        /// </summary>
+        /// <param name="intervalMetric">An interval metric to log as part of the query.</param>
+        /// <param name="countMetric">A count metric to log after returning the data.</param>
+        /// <param name="dataElement">The type of the element to retrieve the data for.</param>
+        /// <param name="elementValue">The value of the element.</param>
+        /// <param name="createTaskFunc">A function which accepts a client which connects to a shard (and associated description of the shard), and returns a task which resolves to the type of data to return.</param>
+        /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "retrieve user to group mappings for user 'user1' from".</param>
+        /// <returns>The data elements.</returns>
+        protected async Task<T> GetElementsAsync<T>
+        (
+            QueryIntervalMetric intervalMetric,
+            QueryCountMetric countMetric,
+            DataElement dataElement,
+            String elementValue,
+            Func<DistributedClientAndShardDescription, Task<T>> createTaskFunc,
+            String exceptionEventDescription
+        )
+        {
+            Guid beginId = metricLogger.Begin(intervalMetric);
+            DistributedClientAndShardDescription client = shardClientManager.GetClient(dataElement, Operation.Query, elementValue);
+            Task<T> shardTask = createTaskFunc(client);
+            T result = default(T);
+            try
+            {
+                result = await shardTask;
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, intervalMetric);
+                throw new Exception($"Failed to {exceptionEventDescription} shard with configuration '{client.ShardConfigurationDescription}'.", e);
+            }
             metricLogger.End(beginId, intervalMetric);
             metricLogger.Increment(countMetric);
 
