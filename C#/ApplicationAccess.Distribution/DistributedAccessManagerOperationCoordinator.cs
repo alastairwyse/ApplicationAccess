@@ -37,6 +37,9 @@ namespace ApplicationAccess.Distribution
         //     ESPECIALLY Things like Remove Group ContainsGroup
         //     ALREADY HAD LOTS OF THINGS WRONG HERE ON FIRST REVIEW...e.g.ContainsGroup should go to all shards of ALL ELEMTN TYPES...INC ALL GORUPTOGROUP!!! 
 
+        // Go through all protected methods and consolidate and make consistent
+        //   Also go through all XML doco and make sure terminology is consistent
+
 
         /// <summary>Manages the clients used to connect to shards managing the subsets of elements in the distributed implementation..</summary>
         protected IShardClientManager<TClientConfiguration> shardClientManager;
@@ -298,6 +301,7 @@ namespace ApplicationAccess.Distribution
                 throw new NotImplementedException();
                 // Needs to do multiple shard calls
             }
+
             return await GetElementsAsync
             (
                 intervalMetric,
@@ -364,6 +368,7 @@ namespace ApplicationAccess.Distribution
                 intervalMetric = new GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime();
                 countMetric = new GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery();
             }
+
             return await GetElementsAsync
             (
                 intervalMetric,
@@ -414,7 +419,20 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetUserToApplicationComponentAndAccessLevelMappingsAsync(String user)
         {
-            throw new NotImplementedException();
+            Func<DistributedClientAndShardDescription, Task<List<Tuple<String, String>>>> createTaskFunc = async (DistributedClientAndShardDescription client) =>
+            {
+                return await client.Client.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
+            };
+
+            return await GetElementsAsync
+            (
+                new GetUserToApplicationComponentAndAccessLevelMappingsQueryTime(),
+                new GetUserToApplicationComponentAndAccessLevelMappingsQuery(),
+                DataElement.User,
+                user,
+                createTaskFunc,
+                $"retrieve user to application component and access level mappings for user '{user}' from"
+            );
         }
 
         /// <inheritdoc/>
@@ -456,7 +474,20 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync(String group)
         {
-            throw new NotImplementedException();
+            Func<DistributedClientAndShardDescription, Task<List<Tuple<String, String>>>> createTaskFunc = async (DistributedClientAndShardDescription client) =>
+            {
+                return await client.Client.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
+            };
+
+            return await GetElementsAsync
+            (
+                new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime(),
+                new GetGroupToApplicationComponentAndAccessLevelMappingsQuery(),
+                DataElement.Group,
+                group,
+                createTaskFunc,
+                $"retrieve group to application component and access level mappings for group '{group}' from"
+            );
         }
 
         /// <inheritdoc/>
@@ -600,13 +631,39 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetUserToEntityMappingsAsync(String user)
         {
-            throw new NotImplementedException();
+            Func<DistributedClientAndShardDescription, Task<List<Tuple<String, String>>>> createTaskFunc = async (DistributedClientAndShardDescription client) =>
+            {
+                return await client.Client.GetUserToEntityMappingsAsync(user);
+            };
+
+            return await GetElementsAsync
+            (
+                new GetUserToEntityMappingsForUserQueryTime(),
+                new GetUserToEntityMappingsForUserQuery(),
+                DataElement.User,
+                user,
+                createTaskFunc,
+                $"retrieve user to entity mappings for user '{user}' from"
+            );
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetUserToEntityMappingsAsync(String user, String entityType)
         {
-            throw new NotImplementedException();
+            Func<DistributedClientAndShardDescription, Task<List<String>>> createTaskFunc = async (DistributedClientAndShardDescription client) =>
+            {
+                return await client.Client.GetUserToEntityMappingsAsync(user, entityType);
+            };
+
+            return await GetElementsAsync
+            (
+                new GetUserToEntityMappingsForUserAndEntityTypeQueryTime(),
+                new GetUserToEntityMappingsForUserAndEntityTypeQuery(),
+                DataElement.User,
+                user,
+                createTaskFunc,
+                $"retrieve user to entity mappings for user '{user}' and entity type '{entityType}' from"
+            );
         }
 
         /// <inheritdoc/>
@@ -648,13 +705,39 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetGroupToEntityMappingsAsync(String group)
         {
-            throw new NotImplementedException();
+            Func<DistributedClientAndShardDescription, Task<List<Tuple<String, String>>>> createTaskFunc = async (DistributedClientAndShardDescription client) =>
+            {
+                return await client.Client.GetGroupToEntityMappingsAsync(group);
+            };
+
+            return await GetElementsAsync
+            (
+                new GetGroupToEntityMappingsForGroupQueryTime(),
+                new GetGroupToEntityMappingsForGroupQuery(),
+                DataElement.Group,
+                group,
+                createTaskFunc,
+                $"retrieve group to entity mappings for group '{group}' from"
+            );
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToEntityMappingsAsync(String group, String entityType)
         {
-            throw new NotImplementedException();
+            Func<DistributedClientAndShardDescription, Task<List<String>>> createTaskFunc = async (DistributedClientAndShardDescription client) =>
+            {
+                return await client.Client.GetGroupToEntityMappingsAsync(group, entityType);
+            };
+
+            return await GetElementsAsync
+            (
+                new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime(),
+                new GetGroupToEntityMappingsForGroupAndEntityTypeQuery(),
+                DataElement.Group,
+                group,
+                createTaskFunc,
+                $"retrieve group to entity mappings for group '{group}' and entity type '{entityType}' from"
+            );
         }
 
         /// <inheritdoc/>
