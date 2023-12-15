@@ -17,12 +17,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
 using NUnit.Framework;
 using NSubstitute;
 using ApplicationMetrics;
+using System.Text.RegularExpressions;
 
 namespace ApplicationAccess.Distribution.UnitTests
 {
@@ -2389,10 +2391,93 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void HasAccessToApplicationComponentAsync()
+        public async Task HasAccessToApplicationComponentAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var userShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription"
+            );
+            var groupToGroupMappingShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupMappingShardDescription"
+            );
+            var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShardDescription1"
+            );
+            var groupShardClientAndDescription2 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShardDescription2"
+            );
+            String testUser = "user1";
+            String testApplicationComponent = "Order";
+            String testAccessLevel= "Create";
+            var directlyMappedGroups = new List<String>() { "group2", "group3", "group1" };
+            var directlyMappedGroupsAndGroupToGroupClient = new List<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>>()
+            {
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupToGroupMappingShardClientAndDescription,
+                    directlyMappedGroups
+                )
+            };
+            var indirectlyMappedGroups = new List<String>() { "group2", "group3", "group1", "group6", "group5", "group4" };
+            var groupClient1Groups = new List<String>() { "group3", "group5" };
+            var groupClient2Groups = new List<String>() { "group2", "group1", "group6", "group4" };
+            var indirectlyMappedGroupsAndGroupClients = new List<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>>()
+            {
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupShardClientAndDescription1,
+                    groupClient1Groups
+                ),
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupShardClientAndDescription2,
+                    groupClient2Groups
+                )
+            };
+            mockMetricLogger.Begin(Arg.Any<HasAccessToApplicationComponentForUserQueryTime>()).Returns(testBeginId);
+            // Mock the call to check whether the user has access
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(userShardClientAndDescription);
+            userShardClientAndDescription.Client.HasAccessToApplicationComponentAsync(testUser, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(false));
+            // Mock the call to the user node to get the directly mapped groups
+            userShardClientAndDescription.Client.GetGroupToGroupMappingsAsync(testUser, false).Returns(Task.FromResult<List<String>>(directlyMappedGroups));
+            // Mock the call to the group to group mapping node to get the indirectly mapped groups
+            mockShardClientManager.GetClients(DataElement.GroupToGroupMapping, Operation.Query, directlyMappedGroups).Returns(directlyMappedGroupsAndGroupToGroupClient);
+            groupToGroupMappingShardClientAndDescription.Client.GetGroupToGroupMappingsAsync(directlyMappedGroups).Returns(indirectlyMappedGroups);
+            // Mock the calls the group nodes to check whether the user has access
+            mockShardClientManager.GetClients(DataElement.Group, Operation.Query, indirectlyMappedGroups).Returns(indirectlyMappedGroupsAndGroupClients);
+            groupShardClientAndDescription1.Client.HasAccessToApplicationComponentAsync(groupClient1Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(true));
+            groupShardClientAndDescription2.Client.HasAccessToApplicationComponentAsync(groupClient2Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(false));
+
+            Boolean result = await testOperationCoordinator.HasAccessToApplicationComponentAsync(testUser, testApplicationComponent, testAccessLevel);
+
+            Assert.IsTrue(result);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await userShardClientAndDescription.Client.Received(1).HasAccessToApplicationComponentAsync(testUser, testApplicationComponent, testAccessLevel);
+            await userShardClientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(testUser, false);
+            await groupToGroupMappingShardClientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(directlyMappedGroups);
+            await groupShardClientAndDescription1.Client.Received(1).HasAccessToApplicationComponentAsync(groupClient1Groups, testApplicationComponent, testAccessLevel);
+            await groupShardClientAndDescription2.Client.Received(1).HasAccessToApplicationComponentAsync(groupClient2Groups, testApplicationComponent, testAccessLevel);
+            mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToApplicationComponentForUserQuery>());
+            Assert.AreEqual(2, userShardClientAndDescription.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShardClientAndDescription1.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShardClientAndDescription2.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+
+
+            // TODO: Another test where the user shard HasAccessToApplicationComponentAsync() returns true
+            // Quite a few permutations of this... e.g. all clients could return true
         }
 
         [Test]
@@ -2546,6 +2631,44 @@ namespace ApplicationAccess.Distribution.UnitTests
             }
 
             return returnList;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/> which checks whether a collection of strings matches the collection in parameter <paramref name="expected"/> irrespective of their enumeration order.
+        /// </summary>
+        /// <param name="expected">The collection of strings the predicate compares to.</param>
+        /// <returns>The <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/>.</returns>
+        /// <remarks>Designed to be passed to the 'predicate' parameter of the <see cref="Arg.Any{T}"/> argument matcher.</remarks>
+        protected Expression<Predicate<IEnumerable<String>>> EqualIgnoringOrder(IEnumerable<String> expected)
+        {
+            return (IEnumerable<String> actual) => StringEnumerablesContainSameValues(expected, actual);
+        }
+
+        /// <summary>
+        /// Checks whether two collections of strings contain the same elements irrespective of their enumeration order.
+        /// </summary>
+        /// <param name="enumerable1">The first collection.</param>
+        /// <param name="enumerable2">The second collection.</param>
+        /// <returns>True if the collections contain the same string.  False otherwise.</returns>
+        protected Boolean StringEnumerablesContainSameValues(IEnumerable<String> enumerable1, IEnumerable<String> enumerable2)
+        {
+            if (enumerable1.Count() != enumerable2.Count())
+            {
+                return false;
+            }
+            var sortedExpected = new List<String>(enumerable1);
+            var sortedActual = new List<String>(enumerable2);
+            sortedExpected.Sort();
+            sortedActual.Sort();
+            for (Int32 i = 0; i < sortedExpected.Count; i++)
+            {
+                if (sortedExpected[i] != sortedExpected[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         #endregion

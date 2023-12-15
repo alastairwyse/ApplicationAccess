@@ -44,6 +44,15 @@ namespace ApplicationAccess.Distribution
         DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, String dataElementValue);
 
         /// <summary>
+        /// Returns a collection of clients which connect to shards managing the specified elements.
+        /// </summary>
+        /// <param name="dataElement">The type of the element.</param>
+        /// <param name="operation">The type of operation to retrieve the clients for.</param>
+        /// <param name="dataElementValues">The values of the elements.</param>
+        /// <returns>A collection of tuples containing: a client and description of the configuration of the shard the client connects to (e.g. to identify the client in exception messages), and the values from parameter <paramref name="dataElementValues"/> that are managed by that shard client.</returns>
+        IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> GetClients(DataElement dataElement, Operation operation, IEnumerable<String> dataElementValues);
+
+        /// <summary>
         /// Refreshes the internally stored shard configuration with the specified shard configuration if the configurations differ (if they are the same, no refresh is performed).
         /// </summary>
         /// <param name="shardConfiguration">The shard configuration to update the manager with.</param>

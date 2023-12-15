@@ -119,20 +119,29 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, String dataElementValue)
         {
-            var dataElementAndOperation = new DataElementAndOperation(dataElement, operation);
+            return GetClient(dataElement, operation, dataElementValue, true);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> GetClients(DataElement dataElement, Operation operation, IEnumerable<String> dataElementValues)
+        {
+            var clientToDataElementMap = new Dictionary<DistributedClientAndShardDescription, HashSet<String>>();
             configurationLock.EnterReadLock();
             try
             {
-                if (hashRangeToClientMap.ContainsKey(dataElementAndOperation) == false)
-                    throw new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{dataElement}' and {typeof(Operation).Name} '{operation}'.");
-
-                if (dataElement == DataElement.User)
+                foreach (String currentDataElementValue in dataElementValues)
                 {
-                    return GetClientForHashCode(hashRangeToClientMap[dataElementAndOperation], userHashCodeGenerator.GetHashCode(dataElementValue));
+                    DistributedClientAndShardDescription clientAndDescription = GetClient(dataElement, operation, currentDataElementValue, false);
+                    if (clientToDataElementMap.ContainsKey(clientAndDescription) == false)
+                    {
+                        clientToDataElementMap.Add(clientAndDescription, new HashSet<String>());
+                    }
+                    clientToDataElementMap[clientAndDescription].Add(currentDataElementValue);
                 }
-                else
+
+                foreach (KeyValuePair<DistributedClientAndShardDescription, HashSet<String>> currentKvp in clientToDataElementMap)
                 {
-                    return GetClientForHashCode(hashRangeToClientMap[dataElementAndOperation], groupHashCodeGenerator.GetHashCode(dataElementValue));
+                    yield return new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>(currentKvp.Key, currentKvp.Value);
                 }
             }
             finally
@@ -222,6 +231,44 @@ namespace ApplicationAccess.Distribution
         #region Private/Protected Methods
 
         /// <summary>
+        /// Returns a client which connects to the shard managing the specified element and operation type.
+        /// </summary>
+        /// <param name="dataElement">The type of the element.</param>
+        /// <param name="operation">The type of operation to retrieve the clients for.</param>
+        /// <param name="dataElementValue">The value of the element.</param>
+        /// <param name="acquireLock">Whether a mutual-exclusion read lock should be acquired.</param>
+        /// <returns>The client and a description of the configuration of the shard the client connects to (e.g. to identify the client in exception messages).</returns>
+        public DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, String dataElementValue, Boolean acquireLock)
+        {
+            var dataElementAndOperation = new DataElementAndOperation(dataElement, operation);
+            if (acquireLock == true)
+            {
+                configurationLock.EnterReadLock();
+            }
+            try
+            {
+                if (hashRangeToClientMap.ContainsKey(dataElementAndOperation) == false)
+                    throw new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{dataElement}' and {typeof(Operation).Name} '{operation}'.");
+
+                if (dataElement == DataElement.User)
+                {
+                    return GetClientForHashCode(hashRangeToClientMap[dataElementAndOperation], userHashCodeGenerator.GetHashCode(dataElementValue));
+                }
+                else
+                {
+                    return GetClientForHashCode(hashRangeToClientMap[dataElementAndOperation], groupHashCodeGenerator.GetHashCode(dataElementValue));
+                }
+            }
+            finally
+            {
+                if (acquireLock == true)
+                {
+                    configurationLock.ExitReadLock();
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the client and shard description corresponding to a given hash code from the specified tree.
         /// </summary>
         /// <param name="tree">The tree to search.</param>
@@ -235,20 +282,20 @@ namespace ApplicationAccess.Distribution
             }
             else
             {
-                Tuple<Boolean, HashRangeStartClientAndShardDescription> nextGreater = tree.GetNextGreaterThan(new HashRangeStartClientAndShardDescription(hashCode, null));
-                if (nextGreater.Item1 == true)
+                Tuple<Boolean, HashRangeStartClientAndShardDescription> nextLess = tree.GetNextLessThan(new HashRangeStartClientAndShardDescription(hashCode, null));
+                if (nextLess.Item1 == true)
                 {
-                    return nextGreater.Item2.ClientAndDescription;
+                    return nextLess.Item2.ClientAndDescription;
                 }
                 else
                 {
-                    if (tree.Contains(new HashRangeStartClientAndShardDescription(Int32.MinValue, null)) == true)
+                    if (tree.Contains(new HashRangeStartClientAndShardDescription(Int32.MaxValue, null)) == true)
                     {
-                        return tree.Get(new HashRangeStartClientAndShardDescription(Int32.MinValue, null)).ClientAndDescription;
+                        return tree.Get(new HashRangeStartClientAndShardDescription(Int32.MaxValue, null)).ClientAndDescription;
                     }
                     else
                     {
-                        return tree.GetNextGreaterThan(new HashRangeStartClientAndShardDescription(Int32.MinValue, null)).Item2.ClientAndDescription;
+                        return tree.GetNextLessThan(new HashRangeStartClientAndShardDescription(Int32.MaxValue, null)).Item2.ClientAndDescription;
                     }
                 }
             }
