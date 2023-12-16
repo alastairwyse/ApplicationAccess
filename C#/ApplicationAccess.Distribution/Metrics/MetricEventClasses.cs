@@ -51,5 +51,56 @@ namespace ApplicationAccess.Distribution.Metrics
         }
     }
 
+    /// <summary>
+    /// Base for amount metrics which record the total number of groups directly and indirectly mapped to a user, found as part of a distributed query (e.g. method HasAccessToApplicationComponent()).
+    /// </summary>
+    public abstract class GroupsMappedToUser : AmountMetric
+    {
+    }
+
+    /// <summary>
+    /// Base for amount metrics which record the total number of groups directly and indirectly mapped to a group, found as part of a distributed query (e.g. method GetApplicationComponentsAccessibleByGroup()).
+    /// </summary>
+    public abstract class GroupsMappedToGroup : AmountMetric
+    {
+    }
+
+    /// <summary>
+    /// Base for amount metrics which record the number of group shards queried as part of a distributed query (e.g. method HasAccessToApplicationComponent()).
+    /// </summary>
+    public abstract class GroupShardsQueried : AmountMetric
+    {
+    }
+
+    /// <summary>
+    /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToApplicationComponent() method call.
+    /// </summary>
+    public class HasAccessToApplicationComponentGroupsMappedToUser : GroupsMappedToUser
+    {
+        protected static String staticName = "HasAccessToApplicationComponentGroupsMappedToUser";
+        protected static String staticDescription = "The total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToApplicationComponent() method call";
+
+        public HasAccessToApplicationComponentGroupsMappedToUser()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the number of group shards queried as part of a distributed HasAccessToApplicationComponent() method call.
+    /// </summary>
+    public class HasAccessToApplicationComponentGroupShardsQueried : GroupShardsQueried
+    {
+        protected static String staticName = "HasAccessToApplicationComponentGroupShardsQueried";
+        protected static String staticDescription = "The number of group shards queried as part of a distributed HasAccessToApplicationComponent() method call";
+
+        public HasAccessToApplicationComponentGroupShardsQueried()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
     #pragma warning restore 1591
 }

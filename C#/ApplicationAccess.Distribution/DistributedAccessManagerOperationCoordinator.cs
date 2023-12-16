@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -763,32 +764,64 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToApplicationComponentAsync(String user, String applicationComponent, String accessLevel)
         {
-            DistributedClientAndShardDescription userClientAndDescription = shardClientManager.GetClient(DataElement.User, Operation.Query, user);
-            // Get the groups mapped directly to the user
-            List<String> mappedGroups = null;
+            Guid beginId = metricLogger.Begin(new HasAccessToApplicationComponentForUserQueryTime());
+            Int32 groupsMappedToUser = 0;
+            Int32 groupShardsQueried = 0;
+            Boolean result = false;
             try
             {
-                mappedGroups = await userClientAndDescription.Client.GetUserToGroupMappingsAsync(user, false);
+                DistributedClientAndShardDescription userClientAndDescription = shardClientManager.GetClient(DataElement.User, Operation.Query, user);
+                // Get the groups mapped directly to the user
+                List<String> mappedGroups = null;
+                try
+                {
+                    mappedGroups = await userClientAndDescription.Client.GetUserToGroupMappingsAsync(user, false);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Failed to get user to group mappings from shard with configuration '{userClientAndDescription.ShardConfigurationDescription}'.", e);
+                }
+                // Get the groups and their clients mapped indirectly to the user
+                IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> directlyMappedClientsAndGroups = shardClientManager.GetClients(DataElement.GroupToGroupMapping, Operation.Query, mappedGroups);
+                IEnumerable<String> allMappedGroupd;
+                (allMappedGroupd, groupsMappedToUser) = await GetUniqueGroupToGroupMappingsAsync(directlyMappedClientsAndGroups);
+                IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> allClientsAndGroups = shardClientManager.GetClients(DataElement.Group, Operation.Query, allMappedGroupd);
+                // TODO: This is an O(n) operation, as it's not expected there would be a huge number of group shards.  However may want to look at improving this.
+                groupShardsQueried = allClientsAndGroups.Count();
+                // Create tasks which calls HasAccessToApplicationComponent() for all groups
+                HashSet<Task<Boolean>> shardReadTasks;
+                Dictionary<Task<Boolean>, String> taskToShardDescriptionMap;
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Boolean>> createTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> groups) =>
+                {
+                    return await clientAndDescription.Client.HasAccessToApplicationComponentAsync(groups, applicationComponent, accessLevel);
+                };
+                (shardReadTasks, taskToShardDescriptionMap) = CreateTasks<Boolean>(allClientsAndGroups, createTaskFunc);
+                // Create tasks which calls HasAccessToApplicationComponent() for the user
+                Task<Boolean> userTask = userClientAndDescription.Client.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
+                shardReadTasks.Add(userTask);
+                taskToShardDescriptionMap.Add(userTask, userClientAndDescription.ShardConfigurationDescription);
+                // Wait for the tasks to finish
+                Action<Boolean> resultAction = (Boolean hasAccess) =>
+                {
+                    if (hasAccess == true)
+                    {
+                        result = true;
+                    }
+                };
+                Func<Boolean, Boolean> continuePredicate = (Boolean hasAccess) => { return !hasAccess; };
+                await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, $"check access to application component '{applicationComponent}' at access level '{accessLevel}' in", null, null);
             }
-            catch (Exception e)
+            catch
             {
-                throw new Exception($"Failed to get user to group mappings from shard with configuration '{userClientAndDescription.ShardConfigurationDescription}'.", e);
+                metricLogger.CancelBegin(beginId, new HasAccessToApplicationComponentForUserQueryTime());
+                throw;
             }
-            // Get the groups and their clients mapped indirectly to the user
-            IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> directlyMappedClientsAndGroups = MapGroupsToShardClients(mappedGroups, DataElement.GroupToGroupMapping);
-            IEnumerable<String> allMappedGroupd = await GetUniqueGroupToGroupMappingsAsync(directlyMappedClientsAndGroups);
-            IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> allClientsAndGroups = MapGroupsToShardClients(allMappedGroupd, DataElement.Group);
-            // Create tasks which call HasAccessToApplicationComponent() for all groups
-            Func<DistributedClientAndShardDescription, Task<Boolean>> createTaskFunc = async (DistributedClientAndShardDescription clientAndDescription) =>
-            {
-                // TODO: Tricky... can't pass same 'groups' param to every client... hence might need a special version of CreateTasks for this purpose
-                //   **AND** Don't forget to add the call to the user client
+            metricLogger.End(beginId, new HasAccessToApplicationComponentForUserQueryTime());
+            metricLogger.Increment(new HasAccessToApplicationComponentForUserQuery());
+            metricLogger.Add(new HasAccessToApplicationComponentGroupsMappedToUser(), groupsMappedToUser);
+            metricLogger.Add(new HasAccessToApplicationComponentGroupShardsQueried(), groupShardsQueried);
 
-                return await clientAndDescription.Client.HasAccessToApplicationComponentAsync()
-            };
-            (shardReadTasks, taskToShardDescriptionMap) = CreateTasks<List<String>>(clients, createTaskFunc);
-            
-
+            return result;
         }
 
         /// <inheritdoc/>
@@ -847,6 +880,21 @@ namespace ApplicationAccess.Distribution
         }
 
         #region Private/Protected Methods
+
+        /// <summary>
+        /// Enumerates the specified collection of tuples, yielding just the first item property.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first item in the tuple.</typeparam>
+        /// <typeparam name="T2">The type of the second item in the tuple.</typeparam>
+        /// <param name="inputEnumerable">The collection to enumerate.</param>
+        /// <returns>A collection of the first item properties.</returns>
+        protected IEnumerable<T1> EnumerateFirstTupleValue<T1, T2>(IEnumerable<Tuple<T1, T2>> inputEnumerable)
+        {
+            foreach (Tuple<T1, T2> currentTuple in inputEnumerable)
+            {
+                yield return (currentTuple.Item1);
+            }
+        }
 
         /// <summary>
         /// Processes a specified event against a single shard in the distributed environment.
@@ -1049,46 +1097,34 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <summary>
-        /// Maps a collection of groups to a collection of <see cref="DistributedClientAndShardDescription">DistributedClientAndShardDescriptions</see> and the subset of the groups that are managed by that client.
+        /// Creates a set of tasks which perform an operation on each of a collection of shards, and that operation accepts a collection of strings as its parameter.
         /// </summary>
-        /// <param name="groups">The groups to map.</param>
-        /// <param name="dataElement">The type of data element managed by the shard client, either <see cref="DataElement.Group"/> or <see cref="DataElement.GroupToGroupMapping"/>.</param>
-        /// <returns>A collection of tuples, each containing: a <see cref="DistributedClientAndShardDescription"/>, and the groups that are managed by that client.</returns>
-        protected IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> MapGroupsToShardClients(IEnumerable<String> groups, DataElement dataElement)
+        /// <typeparam name="T">The type of data returned by the tasks.</typeparam>
+        /// <param name="clientsAndStringParameters">A collection of tuples containing: a <see cref="IDistributedAccessManagerAsyncClient{TUser, TGroup, TComponent, TAccess}"/> and descriptions of the shards they connect to, and a collection of strings to pass as a parameter to the operation performed against that client.</param>
+        /// <param name="createTaskFunc">The function which creates each task.  Accepts 2 parameters: a <see cref="DistributedClientAndShardDescription"/> containing the client to perform the operation against, and the string collection parameter for the operation, and returns the task.</param>
+        /// <returns>A tuple containing: a HashSet containing the created tasks, and a dictionary which maps each of the created tasks to the description of the shard the client which created the task connected to.</returns>
+        protected (HashSet<Task<T>>, Dictionary<Task<T>, String>) CreateTasks<T>(IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> clientsAndStringParameters, Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<T>> createTaskFunc)
         {
-            if (dataElement == DataElement.User)
-                throw new ArgumentException($"Parameter '{nameof(dataElement)}' must contain either '{DataElement.Group}' or '{DataElement.GroupToGroupMapping}'.", nameof(dataElement));
-
-            var returnMap = new Dictionary<DistributedClientAndShardDescription, HashSet<String>>();
-            foreach (String currentGroup in groups)
+            var shardReadTasks = new HashSet<Task<T>>();
+            var taskToShardDescriptionMap = new Dictionary<Task<T>, String>();
+            foreach (Tuple<DistributedClientAndShardDescription, IEnumerable<String>> currentClientAndParameter in clientsAndStringParameters)
             {
-                DistributedClientAndShardDescription clientAndShardDescription = shardClientManager.GetClient(dataElement, Operation.Query, currentGroup);
-                if (returnMap.ContainsKey(clientAndShardDescription) == false)
-                {
-                    returnMap.Add(clientAndShardDescription, new HashSet<String>());
-                }
-                returnMap[clientAndShardDescription].Add(currentGroup);
+                Task<T> currentTask = createTaskFunc(currentClientAndParameter.Item1, currentClientAndParameter.Item2);
+                taskToShardDescriptionMap.Add(currentTask, currentClientAndParameter.Item1.ShardConfigurationDescription);
+                shardReadTasks.Add(currentTask);
             }
 
-            foreach (KeyValuePair<DistributedClientAndShardDescription, HashSet<String>> currentMapEntry in returnMap)
-            {
-                yield return new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>(currentMapEntry.Key, currentMapEntry.Value);
-            }
+            return (shardReadTasks, taskToShardDescriptionMap);
         }
 
         /// <summary>
         /// Gets a unique list of groups which are mapped to from the specified collection of <see cref="DistributedClientAndShardDescription">DistributedClientAndShardDescriptions</see> and corresponding groups that are managed by each client.
         /// </summary>
         /// <param name="clientsAndGroups">A collection of tuples, each containing: a <see cref="DistributedClientAndShardDescription"/>, and the groups that are managed by that client, to retrieve</param>
-        /// <returns>A unique list of groups which includes both the groups passed in the <paramref name="clientsAndGroups"/> parameter, and the groups those groups are mapped to.</returns>
-        protected async Task<IEnumerable<String>> GetUniqueGroupToGroupMappingsAsync(IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> clientsAndGroups)
+        /// <returns>A tuple containing: a unique list of groups which includes both the groups passed in the <paramref name="clientsAndGroups"/> parameter and the groups those groups are mapped to, and a count of those groups.</returns>
+        protected async Task<(IEnumerable<String>, Int32)> GetUniqueGroupToGroupMappingsAsync(IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> clientsAndGroups)
         {
             var returnGroups = new HashSet<String>();
-            // Add all the inputted groups into the list to return
-            foreach (Tuple<DistributedClientAndShardDescription, IEnumerable<String>> currentClientAndGroups in clientsAndGroups)
-            {
-                returnGroups.UnionWith(currentClientAndGroups.Item2);
-            }
             // Create the tasks to retrieve the 'mapped to' groups
             var shardReadTasks = new HashSet<Task<List<String>>>();
             var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
@@ -1106,7 +1142,7 @@ namespace ApplicationAccess.Distribution
             Func<List<String>, Boolean> continuePredicate = (List<String> groups) => { return true; };
             await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, "retrieve group to group mappings from", null, null);
 
-            return returnGroups;
+            return (returnGroups, returnGroups.Count);
         }
 
         /// <summary>

@@ -25,6 +25,7 @@ using NUnit.Framework;
 using NSubstitute;
 using ApplicationMetrics;
 using System.Text.RegularExpressions;
+using ApplicationAccess.Distribution.Metrics;
 
 namespace ApplicationAccess.Distribution.UnitTests
 {
@@ -2447,12 +2448,12 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(userShardClientAndDescription);
             userShardClientAndDescription.Client.HasAccessToApplicationComponentAsync(testUser, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(false));
             // Mock the call to the user node to get the directly mapped groups
-            userShardClientAndDescription.Client.GetGroupToGroupMappingsAsync(testUser, false).Returns(Task.FromResult<List<String>>(directlyMappedGroups));
+            userShardClientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromResult<List<String>>(directlyMappedGroups));
             // Mock the call to the group to group mapping node to get the indirectly mapped groups
             mockShardClientManager.GetClients(DataElement.GroupToGroupMapping, Operation.Query, directlyMappedGroups).Returns(directlyMappedGroupsAndGroupToGroupClient);
             groupToGroupMappingShardClientAndDescription.Client.GetGroupToGroupMappingsAsync(directlyMappedGroups).Returns(indirectlyMappedGroups);
             // Mock the calls the group nodes to check whether the user has access
-            mockShardClientManager.GetClients(DataElement.Group, Operation.Query, indirectlyMappedGroups).Returns(indirectlyMappedGroupsAndGroupClients);
+            mockShardClientManager.GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(indirectlyMappedGroups))).Returns(indirectlyMappedGroupsAndGroupClients);
             groupShardClientAndDescription1.Client.HasAccessToApplicationComponentAsync(groupClient1Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(true));
             groupShardClientAndDescription2.Client.HasAccessToApplicationComponentAsync(groupClient2Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(false));
 
@@ -2461,19 +2462,21 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
             await userShardClientAndDescription.Client.Received(1).HasAccessToApplicationComponentAsync(testUser, testApplicationComponent, testAccessLevel);
-            await userShardClientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(testUser, false);
+            await userShardClientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
             await groupToGroupMappingShardClientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(directlyMappedGroups);
             await groupShardClientAndDescription1.Client.Received(1).HasAccessToApplicationComponentAsync(groupClient1Groups, testApplicationComponent, testAccessLevel);
             await groupShardClientAndDescription2.Client.Received(1).HasAccessToApplicationComponentAsync(groupClient2Groups, testApplicationComponent, testAccessLevel);
             mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToApplicationComponentForUserQuery>());
-            Assert.AreEqual(2, userShardClientAndDescription.ReceivedCalls().Count());
-            Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.ReceivedCalls().Count());
-            Assert.AreEqual(1, groupShardClientAndDescription1.ReceivedCalls().Count());
-            Assert.AreEqual(1, groupShardClientAndDescription2.ReceivedCalls().Count());
+            mockMetricLogger.Received(1).Add(Arg.Any<HasAccessToApplicationComponentGroupsMappedToUser>(), 6);
+            mockMetricLogger.Received(1).Add(Arg.Any<HasAccessToApplicationComponentGroupShardsQueried>(), 2);
+            Assert.AreEqual(2, userShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShardClientAndDescription2.Client.ReceivedCalls().Count());
             Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
-            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
 
 
             // TODO: Another test where the user shard HasAccessToApplicationComponentAsync() returns true
