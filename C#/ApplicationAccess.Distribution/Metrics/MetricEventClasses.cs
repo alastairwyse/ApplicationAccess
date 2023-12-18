@@ -73,6 +73,21 @@ namespace ApplicationAccess.Distribution.Metrics
     }
 
     /// <summary>
+    /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed GetUserToGroupMappings() method call with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetUserToGroupMappingsGroupsMappedToUser : GroupsMappedToUser
+    {
+        protected static String staticName = "GetUserToGroupMappingsGroupsMappedToUser";
+        protected static String staticDescription = "The total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToApplicationComponent() method call with the 'includeIndirectMappings' parameter set true";
+
+        public GetUserToGroupMappingsGroupsMappedToUser()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToApplicationComponent() method call.
     /// </summary>
     public class HasAccessToApplicationComponentGroupsMappedToUser : GroupsMappedToUser
