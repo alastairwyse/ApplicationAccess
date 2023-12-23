@@ -267,6 +267,18 @@
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.GetApplicationComponentsAccessibleByGroups(System.Collections.Generic.IEnumerable{`1})">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.GetEntitiesAccessibleByGroups(System.Collections.Generic.IEnumerable{`1})">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.GetEntitiesAccessibleByGroups(System.Collections.Generic.IEnumerable{`1},System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
         <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.InitializeAccessManager">
             <inheritdoc/>
         </member>

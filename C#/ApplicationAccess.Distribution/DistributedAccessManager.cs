@@ -125,5 +125,91 @@ namespace ApplicationAccess.Distribution
 
             return metricLoggingWrapper.HasAccessToEntity(groups, entityType, entity, hasAccessToEntityFunc);
         }
+
+
+        /// <inheritdoc/>
+        public virtual HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroups(IEnumerable<TGroup> groups)
+        {
+            Func<IEnumerable<TGroup>, HashSet<Tuple<TComponent, TAccess>>> getApplicationComponentsAccessibleByGroupsFunc =
+            (
+                IEnumerable<TGroup> funcGroups
+            ) =>
+            {
+                var returnComponents = new HashSet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>();
+                foreach (TGroup currentGroup in funcGroups)
+                {
+                    Boolean containsGroup = groupToComponentMap.TryGetValue(currentGroup, out ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>> currentComponents);
+                    if (containsGroup == true)
+                    {
+                        returnComponents.UnionWith(currentComponents);
+                    }
+                }
+                var returnHashSet = new HashSet<Tuple<TComponent, TAccess>>();
+                foreach (ApplicationComponentAndAccessLevel<TComponent, TAccess> currentApplicationComponentAndAccessLevel in returnComponents)
+                {
+                    returnHashSet.Add(new Tuple<TComponent, TAccess>(currentApplicationComponentAndAccessLevel.ApplicationComponent, currentApplicationComponentAndAccessLevel.AccessLevel));
+                }
+
+                return returnHashSet;
+            };
+
+            return metricLoggingWrapper.GetApplicationComponentsAccessibleByGroups(groups, getApplicationComponentsAccessibleByGroupsFunc);
+        }
+
+        /// <inheritdoc/>
+        public virtual HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups)
+        {
+            Func<IEnumerable<TGroup>, HashSet<Tuple<String, String>>> getEntitiesAccessibleByGroupsFunc =(IEnumerable<TGroup> funcGroups) =>
+            {
+                var returnEntities = new HashSet<Tuple<String, String>>();
+                foreach (TGroup currentGroup in funcGroups)
+                {
+                    Boolean containsGroup = groupToEntityMap.TryGetValue(currentGroup, out IDictionary<String, ISet<String>> currentEntityType);
+                    if (containsGroup == true)
+                    {
+                        foreach(KeyValuePair<String, ISet<String>> currentKvp in currentEntityType)
+                        {
+                            foreach (String currentEntity in currentKvp.Value)
+                            {
+                                var currentEntityTypeAndEntity = new Tuple<String, String>(currentKvp.Key, currentEntity);
+                                if (returnEntities.Contains(currentEntityTypeAndEntity) == false)
+                                {
+                                    returnEntities.Add(currentEntityTypeAndEntity);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return returnEntities;
+            };
+
+            return metricLoggingWrapper.GetEntitiesAccessibleByGroups(groups, getEntitiesAccessibleByGroupsFunc);
+        }
+
+        /// <inheritdoc/>
+        public virtual HashSet<String> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups, String entityType)
+        {
+            Func<IEnumerable<TGroup>, String, HashSet<String>> getEntitiesAccessibleByGroupsFunc = (IEnumerable<TGroup> funcGroups, String funcEntityType) =>
+            {
+                var returnEntities = new HashSet<String>();
+                foreach (TGroup currentGroup in funcGroups)
+                {
+                    Boolean containsGroup = groupToEntityMap.TryGetValue(currentGroup, out IDictionary<String, ISet<String>> currentEntityType);
+                    if (containsGroup == true)
+                    {
+                        Boolean containsEntityType = currentEntityType.TryGetValue(entityType, out ISet<String> currentEntities);
+                        if (containsEntityType == true)
+                        {
+                            returnEntities.UnionWith(currentEntities);
+                        }
+                    }
+                }
+
+                return returnEntities;
+            };
+
+            return metricLoggingWrapper.GetEntitiesAccessibleByGroups(groups, entityType, getEntitiesAccessibleByGroupsFunc);
+        }
     }
 }

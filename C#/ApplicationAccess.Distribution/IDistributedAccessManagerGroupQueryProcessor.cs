@@ -34,7 +34,7 @@ namespace ApplicationAccess.Distribution
         /// <param name="applicationComponent">The application component.</param>
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <returns>True if any of the groups have access the component.  False otherwise.</returns>
-        /// <remarks>Unlike the <see cref="IAccessManagerUserQueryProcessor{TUser, TGroup, TComponent, TAccess}.HasAccessToApplicationComponent(TUser, TComponent, TAccess)">'user' parameter overload of the method</see>, this method does not check access of groups indirectly mapped from the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        /// <remarks>Unlike the <see cref="IAccessManagerUserQueryProcessor{TUser, TGroup, TComponent, TAccess}.HasAccessToApplicationComponent(TUser, TComponent, TAccess)">'user' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
         Boolean HasAccessToApplicationComponent(IEnumerable<TGroup> groups, TComponent applicationComponent, TAccess accessLevel);
 
         /// <summary>
@@ -44,7 +44,32 @@ namespace ApplicationAccess.Distribution
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity.</param>
         /// <returns>True if any of the groups have access the entity.  False otherwise.</returns>
-        /// <remarks>Unlike the <see cref="IAccessManagerUserQueryProcessor{TUser, TGroup, TComponent, TAccess}.HasAccessToEntity(TUser, String, String)">'user' parameter overload of the method</see>, this method does not check access of groups indirectly mapped from the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        /// <remarks>Unlike the <see cref="IAccessManagerUserQueryProcessor{TUser, TGroup, TComponent, TAccess}.HasAccessToEntity(TUser, String, String)">'user' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
         Boolean HasAccessToEntity(IEnumerable<TGroup> groups, String entityType, String entity);
+
+        /// <summary>
+        /// Gets all application components and levels of access that the specified groups have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the application components and levels of access for.</param>
+        /// <returns>The application components and levels of access to those application components that the groups have.</returns>
+        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor.GetApplicationComponentsAccessibleByGroup(TGroup)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroups(IEnumerable<TGroup> groups);
+
+        /// <summary>
+        /// Gets all entities that the specified groups have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the entities for.</param>
+        /// <returns>A collection of Tuples containing the entity type and entity that the groups have access to.</returns>
+        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor.GetEntitiesAccessibleByGroup(TGroup)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups);
+
+        /// <summary>
+        /// Gets all entities of a given type that the specified groups have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the entities for.</param>
+        /// <param name="entityType">The type of entities to retrieve.</param>
+        /// <returns>The entities the groups have access to.</returns>
+        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor.GetEntitiesAccessibleByGroup(TGroup, String)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        HashSet<String> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups, String entityType);
     }
 }

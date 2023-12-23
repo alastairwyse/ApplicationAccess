@@ -375,7 +375,6 @@ namespace ApplicationAccess.Distribution.UnitTests
         [Test]
         public void HasAccessToEntityGroupsOverload_InvalidGroupIncluded()
         {
-
             testDistributedAccessManager.AddGroup("group1");
             testDistributedAccessManager.AddGroup("group2");
             testDistributedAccessManager.AddGroup("group3");
@@ -470,6 +469,367 @@ namespace ApplicationAccess.Distribution.UnitTests
             Boolean result = testDistributedAccessManager.HasAccessToEntity(new List<String>() { "group1", "group2", "group3" }, "ClientAccount", "CompanyB");
 
             Assert.IsTrue(result);
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroups()
+        {
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddGroup("group4");
+            testDistributedAccessManager.AddGroup("group5");
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Delete);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Delete);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.Order, AccessLevel.Create);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Create);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Delete);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Modify);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group4", ApplicationScreen.Order, AccessLevel.Modify);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group4", ApplicationScreen.Settings, AccessLevel.Create);
+
+            HashSet<Tuple<ApplicationScreen, AccessLevel>> result = testDistributedAccessManager.GetApplicationComponentsAccessibleByGroups(new List<String>() { "group1", "group2", "group3", "group5" });
+
+            Assert.AreEqual(6, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Create)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Delete)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Modify)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.Create)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.Delete)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.Order, AccessLevel.Modify)));
+        }
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroups_GroupsParameterContainsInvalidGroup()
+        {
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3"); 
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Delete);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Create);
+
+            HashSet<Tuple<ApplicationScreen, AccessLevel>> result = testDistributedAccessManager.GetApplicationComponentsAccessibleByGroups(new List<String>() { "group1", "Invalid", "group2" });
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Create)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Delete)));
+            Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Modify)));
+        }
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroups_MetricsExceptionWhenQuerying()
+        {
+            // TODO: Find a way to test this.  Currently I can't see a way to make the method throw an exception due to ignoring of invalid elements.
+        }
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroups_Metrics()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Delete);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Create);
+            mockMetricLogger.Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupsQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            HashSet<Tuple<ApplicationScreen, AccessLevel>> result = testDistributedAccessManager.GetApplicationComponentsAccessibleByGroups(new List<String>() { "group1", "group2" });
+
+            Assert.AreEqual(3, result.Count);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByGroupsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentsAccessibleByGroupsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+        }
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroups_MetricLoggingDisabled()
+        {
+            testDistributedAccessManager.MetricLoggingEnabled = false;
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Delete);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group2", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testDistributedAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group3", ApplicationScreen.Order, AccessLevel.Create);
+
+            HashSet<Tuple<ApplicationScreen, AccessLevel>> result = testDistributedAccessManager.GetApplicationComponentsAccessibleByGroups(new List<String>() { "group1", "group2" });
+
+            Assert.AreEqual(3, result.Count);
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsOverload()
+        {
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddGroup("group4");
+            testDistributedAccessManager.AddGroup("group5");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Accounting");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "GeneralAffairs");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Accounting");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Marketing");
+            testDistributedAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "Marketing");
+            testDistributedAccessManager.AddGroupToEntityMapping("group4", "ClientAccount", "CompanyD");
+
+            HashSet<Tuple<String, String>> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group1", "group2", "group3", "group5" });
+
+            Assert.AreEqual(6, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyA")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyB")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyC")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Sales")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Accounting")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Marketing")));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsOverload_GroupsParameterContainsInvalidGroup()
+        {
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+
+            HashSet<Tuple<String, String>> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group1", "Invalid", "group2" });
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyA")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyB")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyC")));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsOverload_MetricsExceptionWhenQuerying()
+        {
+            // TODO: Find a way to test this.  Currently I can't see a way to make the method throw an exception due to ignoring of invalid elements.
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsOverload_Metrics()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+            mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByGroupsQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            HashSet<Tuple<String, String>> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group1", "group2" });
+
+            Assert.AreEqual(3, result.Count);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByGroupsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsOverload_MetricLoggingDisabled()
+        {
+            testDistributedAccessManager.MetricLoggingEnabled = false;
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+
+            HashSet<Tuple<String, String>> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group1", "group2" });
+
+            Assert.AreEqual(3, result.Count);
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsAndEntityTypeOverload()
+        {
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddGroup("group4");
+            testDistributedAccessManager.AddGroup("group5");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Accounting");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "GeneralAffairs");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Accounting");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Marketing");
+            testDistributedAccessManager.AddGroupToEntityMapping("group4", "BusinessUnit", "Marketing");
+            testDistributedAccessManager.AddGroupToEntityMapping("group4", "ClientAccount", "CompanyD");
+
+            HashSet<String> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group1", "group2", "group3", "group5" }, "ClientAccount");
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("CompanyA"));
+            Assert.IsTrue(result.Contains("CompanyB"));
+            Assert.IsTrue(result.Contains("CompanyC"));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsAndEntityTypeOverload_GroupsParameterContainsInvalidGroup()
+        {
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+
+            HashSet<String> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group2", "Invalid", "group3" }, "ClientAccount");
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("CompanyB"));
+            Assert.IsTrue(result.Contains("CompanyC"));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsAndEntityTypeOverload_InvalidEntityType()
+        {
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+
+            HashSet<String> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group2", "group3" }, "Invalid");
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsAndEntityTypeOverload_MetricsExceptionWhenQuerying()
+        {
+            // TODO: Find a way to test this.  Currently I can't see a way to make the method throw an exception due to ignoring of invalid elements.
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsAndEntityTypeOverload_Metrics()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+            mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByGroupsQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            HashSet<String> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group2", "group3" }, "ClientAccount");
+
+            Assert.AreEqual(2, result.Count);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByGroupsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupsGroupsAndEntityTypeOverload_MetricLoggingDisabled()
+        {
+            testDistributedAccessManager.MetricLoggingEnabled = false;
+            testDistributedAccessManager.AddGroup("group1");
+            testDistributedAccessManager.AddGroup("group2");
+            testDistributedAccessManager.AddGroup("group3");
+            testDistributedAccessManager.AddEntityType("ClientAccount");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddEntityType("BusinessUnit");
+            testDistributedAccessManager.AddEntity("BusinessUnit", "Sales");
+            testDistributedAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyB");
+            testDistributedAccessManager.AddGroupToEntityMapping("group2", "ClientAccount", "CompanyC");
+            testDistributedAccessManager.AddGroupToEntityMapping("group3", "BusinessUnit", "Sales");
+
+            HashSet<String> result = testDistributedAccessManager.GetEntitiesAccessibleByGroups(new List<String>() { "group2", "group3" }, "ClientAccount");
+
+            Assert.AreEqual(2, result.Count);
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
         }
 

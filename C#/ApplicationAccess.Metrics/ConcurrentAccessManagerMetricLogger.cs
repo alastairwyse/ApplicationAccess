@@ -1286,6 +1286,31 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
+        /// Gets all application components and levels of access that the specified groups (or groups that the specified groups are mapped to) have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the application components and levels of access for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>The application components and levels of access to those application components that the groups have.</returns>
+        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroups(IEnumerable<TGroup> groups, Func<IEnumerable<TGroup>, HashSet<Tuple<TComponent, TAccess>>> baseClassMethod)
+        {
+            HashSet<Tuple<TComponent, TAccess>> result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByGroupsQueryTime());
+            try
+            {
+                result = baseClassMethod.Invoke(groups);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetApplicationComponentsAccessibleByGroupsQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetApplicationComponentsAccessibleByGroupsQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new GetApplicationComponentsAccessibleByGroupsQuery());
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets all entities that the specified user (or a group that the user is a member of) has access to.
         /// </summary>
         /// <param name="user">The user to retrieve the entities for.</param>
@@ -1362,6 +1387,31 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
+        /// Gets all entities that the specified groups (or groups that the specified groups are mapped to) have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the entities for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of Tuples containing the entity type and entity that the groups have access to.</returns>
+        public HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups, Func<IEnumerable<TGroup>, HashSet<Tuple<String, String>>> baseClassMethod)
+        {
+            HashSet<Tuple<String, String>> result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupsQueryTime());
+            try
+            {
+                result = baseClassMethod.Invoke(groups);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupsQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupsQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupsQuery());
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets all entities of a given type that the specified group (or group that the specified group is mapped to) has access to.
         /// </summary>
         /// <param name="group">The group to retrieve the entities for.</param>
@@ -1383,6 +1433,32 @@ namespace ApplicationAccess.Metrics
             }
             EndIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupQueryTime());
             IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupQuery());
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets all entities of a given type that the specified groups (or groups that the specified groups are mapped to) have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the entities for.</param>
+        /// <param name="entityType">The type of entities to retrieve.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>The entities the groups have access to.</returns>
+        public HashSet<String> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups, String entityType, Func<IEnumerable<TGroup>, String, HashSet<String>> baseClassMethod)
+        {
+            HashSet<String> result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupsQueryTime());
+            try
+            {
+                result = baseClassMethod.Invoke(groups, entityType);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupsQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetEntitiesAccessibleByGroupsQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new GetEntitiesAccessibleByGroupsQuery());
 
             return result;
         }

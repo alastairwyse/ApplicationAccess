@@ -20,6 +20,7 @@ using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using ApplicationAccess.Hosting.Models.DataTransferObjects;
 using ApplicationAccess.Distribution;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
@@ -73,6 +74,52 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public ActionResult<Boolean> HasAccessToEntity([FromQuery, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType, [FromRoute] String entity)
         {
             return distributedGroupQueryProcessor.HasAccessToEntity(groups, entityType, entity);
+        }
+
+        /// <summary>
+        /// Gets all application components and levels of access that the specified groups have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the application components and levels of access for.</param>
+        /// <returns>The application components and levels of access to those application components that the groups have.</returns>
+        [HttpGet]
+        [Route("groupToApplicationComponentAndAccessLevelMappings")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public IEnumerable<ApplicationAccess.Hosting.Models.DataTransferObjects.ApplicationComponentAndAccessLevel<String, String>> GetApplicationComponentsAccessibleByGroups([FromQuery, BindRequired] IEnumerable<String> groups)
+        {
+            foreach (Tuple<String, String> currentTuple in distributedGroupQueryProcessor.GetApplicationComponentsAccessibleByGroups(groups))
+            {
+                yield return new ApplicationAccess.Hosting.Models.DataTransferObjects.ApplicationComponentAndAccessLevel<String, String>(currentTuple.Item1, currentTuple.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Gets all entities that the specified groups have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the entities for.</param>
+        /// <returns>A collection of Tuples containing the entity type and entity that the groups have access to.</returns>
+        [HttpGet]
+        [Route("groupToEntityMappings")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public IEnumerable<EntityTypeAndEntity> GetEntitiesAccessibleByGroupsAsync([FromQuery, BindRequired] IEnumerable<String> groups)
+        {
+            foreach (Tuple<String, String> currentTuple in distributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(groups))
+            {
+                yield return new EntityTypeAndEntity(currentTuple.Item1, currentTuple.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Gets all entities of a given type that the specified groups have access to.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the entities for.</param>
+        /// <param name="entityType">The type of entities to retrieve.</param>
+        /// <returns>The entities the groups have access to.</returns>
+        [HttpGet]
+        [Route("groupToEntityMappings/entityType/{entityType}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public IEnumerable<String> GetEntitiesAccessibleByGroupsAsync([FromQuery, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType)
+        {
+            return distributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(groups, entityType);
         }
     }
 }

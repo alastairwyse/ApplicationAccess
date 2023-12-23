@@ -59,9 +59,9 @@ namespace ApplicationAccess.Distribution.Metrics
     }
 
     /// <summary>
-    /// Base for amount metrics which record the total number of groups directly and indirectly mapped to a group, found as part of a distributed query (e.g. method GetApplicationComponentsAccessibleByGroup()).
+    /// Base for amount metrics which record the total number of groups directly and indirectly mapped to an element (i.e. a user or a group), found as part of a distributed query (e.g. method GetApplicationComponentsAccessibleByGroup()).
     /// </summary>
-    public abstract class GroupsMappedToGroup : AmountMetric
+    public abstract class GroupsMappedToElement : AmountMetric
     {
     }
 
@@ -111,6 +111,36 @@ namespace ApplicationAccess.Distribution.Metrics
         protected static String staticDescription = "The number of group shards queried as part of a distributed HasAccessToApplicationComponent() method call";
 
         public HasAccessToApplicationComponentGroupShardsQueried()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the total number of groups directly and indirectly mapped to a group, found as part of a distributed GetApplicationComponentsAccessibleByGroup() method call.
+    /// </summary>
+    public class GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup : GroupsMappedToUser
+    {
+        protected static String staticName = "GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup";
+        protected static String staticDescription = "The total number of groups directly and indirectly mapped to a group, found as part of a distributed GetApplicationComponentsAccessibleByGroup() method call";
+
+        public GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the number of group shards queried as part of a distributed GetApplicationComponentsAccessibleByGroup() method call.
+    /// </summary>
+    public class GetApplicationComponentsAccessibleByGroupGroupShardsQueried : GroupShardsQueried
+    {
+        protected static String staticName = "GetApplicationComponentsAccessibleByGroupGroupShardsQueried";
+        protected static String staticDescription = "The number of group shards queried as part of a distributed GetApplicationComponentsAccessibleByGroup() method call";
+
+        public GetApplicationComponentsAccessibleByGroupGroupShardsQueried()
         {
             base.name = staticName;
             base.description = staticDescription;

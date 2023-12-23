@@ -102,6 +102,30 @@ namespace ApplicationAccess.Hosting
             return concurrentAccessManager.HasAccessToEntity(groups, entityType, entity);
         }
 
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroups(IEnumerable<TGroup> groups)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetApplicationComponentsAccessibleByGroups(groups);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<Tuple<string, string>> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetEntitiesAccessibleByGroups(groups);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<string> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups, string entityType)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetEntitiesAccessibleByGroups(groups, entityType);
+        }
+
         #region Private/Protected Methods
 
         /// <inheritdoc/>

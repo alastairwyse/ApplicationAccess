@@ -1395,6 +1395,36 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
+    /// Count metric which records a call to the GetApplicationComponentsAccessibleByGroups() method.
+    /// </summary>
+    public class GetApplicationComponentsAccessibleByGroupsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetApplicationComponentsAccessibleByGroupsQuery";
+        protected static String staticDescription = "A call to the GetApplicationComponentsAccessibleByGroups() method";
+
+        public GetApplicationComponentsAccessibleByGroupsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetApplicationComponentsAccessibleByGroups() method.
+    /// </summary>
+    public class GetApplicationComponentsAccessibleByGroupsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetApplicationComponentsAccessibleByGroupsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetApplicationComponentsAccessibleByGroups() method";
+
+        public GetApplicationComponentsAccessibleByGroupsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records a call to the GetEntitiesAccessibleByUser() method.
     /// </summary>
     public class GetEntitiesAccessibleByUserQuery : QueryCountMetric
@@ -1448,6 +1478,36 @@ namespace ApplicationAccess.Metrics
         protected static String staticDescription = "The time taken to execute the GetEntitiesAccessibleByGroup() method";
 
         public GetEntitiesAccessibleByGroupQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetEntitiesAccessibleByGroups() method.
+    /// </summary>
+    public class GetEntitiesAccessibleByGroupsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByGroupsQuery";
+        protected static String staticDescription = "A call to the GetEntitiesAccessibleByGroups() method";
+
+        public GetEntitiesAccessibleByGroupsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetEntitiesAccessibleByGroups() method.
+    /// </summary>
+    public class GetEntitiesAccessibleByGroupsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByGroupsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetEntitiesAccessibleByGroups() method";
+
+        public GetEntitiesAccessibleByGroupsQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;

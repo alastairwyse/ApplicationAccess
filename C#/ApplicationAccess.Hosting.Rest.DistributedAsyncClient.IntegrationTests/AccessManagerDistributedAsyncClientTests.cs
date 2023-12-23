@@ -26,6 +26,8 @@ using ApplicationLogging;
 using ApplicationMetrics;
 using NUnit.Framework;
 using NSubstitute;
+using System.Linq.Expressions;
+using System.Linq;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
 {
@@ -121,11 +123,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             var testGroups = new List<String>() { "group1",  "group2", "group3" };
             var testMappedGroups = new HashSet<String>() { "group1", "group2", "group3", "group4", "group5" };
             mockDistributedGroupToGroupQueryProcessor.ClearReceivedCalls();
-            mockDistributedGroupToGroupQueryProcessor.GetGroupToGroupMappings(Arg.Any<IEnumerable<String>>()).Returns(testMappedGroups);
+            mockDistributedGroupToGroupQueryProcessor.GetGroupToGroupMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testMappedGroups);
 
             List<String> result = await testDistributedAccessManagerAsyncClient.GetGroupToGroupMappingsAsync(testGroups);
 
-            mockDistributedGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(Arg.Any<IEnumerable<String>>());
+            mockDistributedGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
             Assert.AreEqual(3, groupStringifier.ToStringCallCount);
             Assert.AreEqual(5, groupStringifier.FromStringCallCount);
             Assert.AreEqual(5, result.Count);
@@ -142,11 +144,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             var testGroups = new List<String>() { "group1" };
             var testMappedGroups = new HashSet<String>() { "group1", "group2", "group3", "group4", "group5" };
             mockDistributedGroupToGroupQueryProcessor.ClearReceivedCalls();
-            mockDistributedGroupToGroupQueryProcessor.GetGroupToGroupMappings(Arg.Any<IEnumerable<String>>()).Returns(testMappedGroups);
+            mockDistributedGroupToGroupQueryProcessor.GetGroupToGroupMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testMappedGroups);
 
             List<String> result = await testDistributedAccessManagerAsyncClient.GetGroupToGroupMappingsAsync(testGroups);
 
-            mockDistributedGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(Arg.Any<IEnumerable<String>>());
+            mockDistributedGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
             Assert.AreEqual(5, groupStringifier.FromStringCallCount);
             Assert.AreEqual(5, result.Count);
@@ -164,11 +166,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             const String testApplicationComponent = "ManageProductsScreen";
             const String testAccessLevel = "View";
             mockDistributedGroupQueryProcessor.ClearReceivedCalls();
-            mockDistributedGroupQueryProcessor.HasAccessToApplicationComponent(Arg.Any<IEnumerable<String>>(), testApplicationComponent, testAccessLevel).Returns(true);
+            mockDistributedGroupQueryProcessor.HasAccessToApplicationComponent(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), testApplicationComponent, testAccessLevel).Returns(true);
 
             Boolean result = await testDistributedAccessManagerAsyncClient.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
 
-            mockDistributedGroupQueryProcessor.Received(1).HasAccessToApplicationComponent(Arg.Any<IEnumerable<String>>(), testApplicationComponent, testAccessLevel);
+            mockDistributedGroupQueryProcessor.Received(1).HasAccessToApplicationComponent(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), testApplicationComponent, testAccessLevel);
             Assert.AreEqual(3, groupStringifier.ToStringCallCount);
             Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
             Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
@@ -182,14 +184,124 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             const String testEntityType = "BusinessUnit";
             const String testEntity = "Sales";
             mockDistributedGroupQueryProcessor.ClearReceivedCalls();
-            mockDistributedGroupQueryProcessor.HasAccessToEntity(Arg.Any<IEnumerable<String>>(), testEntityType, testEntity).Returns(false);
+            mockDistributedGroupQueryProcessor.HasAccessToEntity(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), testEntityType, testEntity).Returns(false);
 
             Boolean result = await testDistributedAccessManagerAsyncClient.HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
 
-            mockDistributedGroupQueryProcessor.Received(1).HasAccessToEntity(Arg.Any<IEnumerable<String>>(), testEntityType, testEntity);
+            mockDistributedGroupQueryProcessor.Received(1).HasAccessToEntity(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), testEntityType, testEntity);
             Assert.AreEqual(3, groupStringifier.ToStringCallCount);
             Assert.IsFalse(result);
         }
+
+        [Test]
+        public async Task GetApplicationComponentsAccessibleByGroupsAsync()
+        {
+            var testGroups = new List<String>() { "group1", "group2", "group3" };
+            var testApplicationComponentsAndAccessLevels = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("Order", "View"),
+                new Tuple<String, String>("Order", "Modify"),
+                new Tuple<String, String>("Order", "Create"),
+                new Tuple<String, String>("Summary", "View")
+            };
+            mockDistributedGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedGroupQueryProcessor.GetApplicationComponentsAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testApplicationComponentsAndAccessLevels);
+
+            List<Tuple<String, String>> result = await testDistributedAccessManagerAsyncClient.GetApplicationComponentsAccessibleByGroupsAsync(testGroups);
+
+            mockDistributedGroupQueryProcessor.Received(1).GetApplicationComponentsAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(4, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(4, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(4, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("Order", "View")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("Order", "Modify")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("Order", "Create")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("Summary", "View")));
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByGroupsAsyncGroupsOverload()
+        {
+            var testGroups = new List<String>() { "group1", "group2", "group3" };
+            var testEntityTypesAndEntities = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ClientAccount", "CompanyA"),
+                new Tuple<String, String>("ClientAccount", "CompanyB"),
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("BusinessUnit", "Manufacturing")
+            };
+            mockDistributedGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testEntityTypesAndEntities);
+
+            List<Tuple<String, String>> result = await testDistributedAccessManagerAsyncClient.GetEntitiesAccessibleByGroupsAsync(testGroups);
+
+            mockDistributedGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(4, result.Count);
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyA")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyB")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Sales")));
+            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Manufacturing")));
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByGroupsAsyncGroupsAndEntityTypeOverload()
+        {
+            var testGroups = new List<String>() { "group1", "group2", "group3" };
+            var testEntityType = "ClientAccount";
+            var testEntities = new HashSet<String>() { "CompanyA", "CompanyB", "CompanyC" };
+            mockDistributedGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), testEntityType).Returns(testEntities);
+
+            List<String> result = await testDistributedAccessManagerAsyncClient.GetEntitiesAccessibleByGroupsAsync(testGroups, testEntityType);
+
+            mockDistributedGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), testEntityType);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("CompanyA"));
+            Assert.IsTrue(result.Contains("CompanyB"));
+            Assert.IsTrue(result.Contains("CompanyC"));
+        }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Returns an <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/> which checks whether a collection of strings matches the collection in parameter <paramref name="expected"/> irrespective of their enumeration order.
+        /// </summary>
+        /// <param name="expected">The collection of strings the predicate compares to.</param>
+        /// <returns>The <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/>.</returns>
+        /// <remarks>Designed to be passed to the 'predicate' parameter of the <see cref="Arg.Any{T}"/> argument matcher.</remarks>
+        protected Expression<Predicate<IEnumerable<String>>> EqualIgnoringOrder(IEnumerable<String> expected)
+        {
+            return (IEnumerable<String> actual) => StringEnumerablesContainSameValues(expected, actual);
+        }
+
+        /// <summary>
+        /// Checks whether two collections of strings contain the same elements irrespective of their enumeration order.
+        /// </summary>
+        /// <param name="enumerable1">The first collection.</param>
+        /// <param name="enumerable2">The second collection.</param>
+        /// <returns>True if the collections contain the same string.  False otherwise.</returns>
+        protected Boolean StringEnumerablesContainSameValues(IEnumerable<String> enumerable1, IEnumerable<String> enumerable2)
+        {
+            if (enumerable1.Count() != enumerable2.Count())
+            {
+                return false;
+            }
+            var sortedExpected = new List<String>(enumerable1);
+            var sortedActual = new List<String>(enumerable2);
+            sortedExpected.Sort();
+            sortedActual.Sort();
+            for (Int32 i = 0; i < sortedExpected.Count; i++)
+            {
+                if (sortedExpected[i] != sortedExpected[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        #endregion
 
         #region Nested Classes
 

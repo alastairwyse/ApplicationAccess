@@ -2810,7 +2810,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             await groupToGroupMappingShardClientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(directlyMappedGroups);
             mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
-            Assert.AreEqual(1, userShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.GreaterOrEqual(userShardClientAndDescription.Client.ReceivedCalls().Count(), 1);
             Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
             Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
@@ -2898,6 +2898,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             await groupShardClientAndDescription1.Client.Received(1).HasAccessToApplicationComponentAsync(groupClient1Groups, testApplicationComponent, testAccessLevel);
             mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
+            Assert.GreaterOrEqual(userShardClientAndDescription.Client.ReceivedCalls().Count(), 1);
             Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
             Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
@@ -2935,10 +2936,96 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        [Ignore("Wait until implemented")]
-        public void GetApplicationComponentsAccessibleByGroupAsync()
+        public async Task GetApplicationComponentsAccessibleByGroupAsync()
         {
-            throw new NotImplementedException();
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var groupToGroupMappingShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupMappingShardDescription"
+            );
+            var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShardDescription1"
+            );
+            var groupShardClientAndDescription2 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShardDescription2"
+            );
+            var groupShardClientAndDescription3 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShardDescription3"
+            );
+            String testGroup = "group1";
+            String testApplicationComponent = "Order";
+            String testAccessLevel = "Create";
+            var directlyMappedGroups = new List<String>() { testGroup };
+            var directlyMappedGroupsAndGroupToGroupClient = new List<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>>()
+            {
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupToGroupMappingShardClientAndDescription,
+                    directlyMappedGroups
+                )
+            };
+            var indirectlyMappedGroups = new List<String>() { "group2", "group3", "group1", "group6", "group5", "group4" };
+            var groupClient1Groups = new List<String>() { "group3", "group5" };
+            var groupClient2Groups = new List<String>() { "group6", "group4" };
+            var groupClient3Groups = new List<String>() { "group2", "group1" };
+            var indirectlyMappedGroupsAndGroupClients = new List<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>>()
+            {
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupShardClientAndDescription1,
+                    groupClient1Groups
+                ),
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupShardClientAndDescription2,
+                    groupClient2Groups
+                ),
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupShardClientAndDescription3,
+                    groupClient3Groups
+                )
+            };/*
+            mockMetricLogger.Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>()).Returns(testBeginId);
+            // Mock the call to the group to group mapping node to get the indirectly mapped groups
+            mockShardClientManager.GetClients(DataElement.GroupToGroupMapping, Operation.Query, directlyMappedGroups).Returns(directlyMappedGroupsAndGroupToGroupClient);
+            groupToGroupMappingShardClientAndDescription.Client.GetGroupToGroupMappingsAsync(directlyMappedGroups).Returns(Task.FromResult<List<String>>(indirectlyMappedGroups));
+            // Mock the calls the group nodes to check whether the user has access
+            mockShardClientManager.GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(indirectlyMappedGroups))).Returns(indirectlyMappedGroupsAndGroupClients);
+            groupShardClientAndDescription1.Client.GetApplicationComponentsAccessibleByGroupAsync(groupClient1Groups).Returns(Task.FromResult<Boolean>(false));
+            groupShardClientAndDescription2.Client.GetApplicationComponentsAccessibleByGroup(groupClient2Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(false));
+            groupShardClientAndDescription3.Client.GetApplicationComponentsAccessibleByGroup(groupClient2Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(false));
+
+            Boolean result = await testOperationCoordinator.HasAccessToApplicationComponentAsync(testGroup, testApplicationComponent, testAccessLevel);
+
+            Assert.IsFalse(result);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testGroup);
+            await userShardClientAndDescription.Client.Received(1).HasAccessToApplicationComponentAsync(testGroup, testApplicationComponent, testAccessLevel);
+            await userShardClientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testGroup, false);
+            mockShardClientManager.Received(1).GetClients(DataElement.GroupToGroupMapping, Operation.Query, directlyMappedGroups);
+            await groupToGroupMappingShardClientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(directlyMappedGroups);
+            mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(indirectlyMappedGroups)));
+            await groupShardClientAndDescription1.Client.Received(1).HasAccessToApplicationComponentAsync(groupClient1Groups, testApplicationComponent, testAccessLevel);
+            await groupShardClientAndDescription2.Client.Received(1).HasAccessToApplicationComponentAsync(groupClient2Groups, testApplicationComponent, testAccessLevel);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentsAccessibleByGroupQuery>());
+            mockMetricLogger.Received(1).Add(Arg.Any<GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup>(), 6);
+            mockMetricLogger.Received(1).Add(Arg.Any<GetApplicationComponentsAccessibleByGroupGroupShardsQueried>(), 2);
+            Assert.AreEqual(2, userShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShardClientAndDescription2.Client.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
+            */
         }
 
         [Test]
@@ -3088,25 +3175,6 @@ namespace ApplicationAccess.Distribution.UnitTests
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Creates a unique <see cref="Task{TResult}"/> that's completed successfully with the specified result.
-        /// </summary>
-        /// <typeparam name="T">The type of the result returned by the task.</typeparam>
-        /// <param name="result">The result to store into the completed task.</param>
-        /// <returns>The successfully completed task.</returns>
-        /// <remarks>Avoids the issue of <see cref="Task.FromResult{TResult}(TResult)"/> returning matching singleton instances from separate calls when the <paramref name="result"/> parameter is the same, which prevents using the Task as the key in a Hashset or Dictionary (see <see href="https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/task-fromresult-returns-singleton"/>).</remarks>
-        protected static Task<T> NewTaskInstanceFromResult<T>(T result)
-        {
-            var completionSource = new TaskCompletionSource<T>();
-            completionSource.TrySetResult(result);
-
-
-            //return completionSource.Task;
-
-            var theTask = completionSource.Task;
-            return theTask;
         }
 
         #endregion

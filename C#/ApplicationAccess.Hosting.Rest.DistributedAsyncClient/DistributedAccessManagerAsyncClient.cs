@@ -24,6 +24,7 @@ using ApplicationAccess.Hosting.Rest.AsyncClient;
 using ApplicationLogging;
 using ApplicationMetrics;
 using Polly;
+using ApplicationAccess.Hosting.Models.DataTransferObjects;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
 {
@@ -203,6 +204,52 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
             var url = new Uri(baseUrl, $"dataElementAccess/entity/entityType/{entityType}/entity/{entity}?{queryString}");
 
             return await SendGetRequestAsync<Boolean>(url);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<TComponent, TAccess>>> GetApplicationComponentsAccessibleByGroupsAsync(IEnumerable<TGroup> groups)
+        {
+            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings?{queryString}");
+            var returnList = new List<Tuple<TComponent, TAccess>>();
+            foreach (ApplicationComponentAndAccessLevel<String, String> currentApplicationComponent in await SendGetRequestAsync<List<ApplicationComponentAndAccessLevel<String, String>>>(url))
+            {
+                returnList.Add(new Tuple<TComponent, TAccess>
+                (
+                    applicationComponentStringifier.FromString(currentApplicationComponent.ApplicationComponent),
+                    accessLevelStringifier.FromString(currentApplicationComponent.AccessLevel)
+                ));
+            }
+
+            return returnList;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<TGroup> groups)
+        {
+            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
+            var url = new Uri(baseUrl, $"groupToEntityMappings?{queryString}");
+            var returnList = new List<Tuple<String, String>>();
+            foreach (EntityTypeAndEntity currentEntityTypeAndEntity in await SendGetRequestAsync<List<EntityTypeAndEntity>>(url))
+            {
+                returnList.Add(new Tuple<String, String>
+                (
+                    currentEntityTypeAndEntity.EntityType, 
+                    currentEntityTypeAndEntity.Entity
+                ));
+            }
+
+            return returnList;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<TGroup> groups, String entityType)
+        {
+            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{entityType}?{queryString}");
+            var returnList = new List<String>();
+
+            return await SendGetRequestAsync<List<String>>(url);
         }
 
         #region Private/Protected Methods

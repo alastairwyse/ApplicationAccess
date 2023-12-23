@@ -790,9 +790,8 @@ namespace ApplicationAccess.Distribution
         public async Task<Boolean> HasAccessToApplicationComponentAsync(String user, String applicationComponent, String accessLevel)
         {
             Guid beginId = metricLogger.Begin(new HasAccessToApplicationComponentForUserQueryTime());
-            Int32 groupsMappedToUser = 0;
-            Int32 groupShardsQueried = 0;
             Boolean result = false;
+            ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
             try
             {
                 DistributedClientAndShardDescription userClientAndDescription = shardClientManager.GetClient(DataElement.User, Operation.Query, user);
@@ -806,32 +805,23 @@ namespace ApplicationAccess.Distribution
                 {
                     throw new Exception($"Failed to retrieve user to group mappings from shard with configuration '{userClientAndDescription.ShardConfigurationDescription}'.", e);
                 }
-                // Get the groups and their clients mapped indirectly to the user
-                IEnumerable<String> allMappedGroupd;
-                (allMappedGroupd, groupsMappedToUser) = await GetUniqueGroupToGroupMappingsAsync(mappedGroups);
-                IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> allClientsAndGroups = shardClientManager.GetClients(DataElement.Group, Operation.Query, allMappedGroupd);
-                // TODO: This is an O(n) operation, as it's not expected there would be a huge number of group shards.  However may want to look at improving this.
-                groupShardsQueried = allClientsAndGroups.Count();
-                // Create tasks which calls HasAccessToApplicationComponent() for all groups
-                // TODO: Explanation for Tuple and Guid
-                //   https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/task-fromresult-returns-singleton
-                HashSet<Task<Tuple<Boolean, Guid>>> shardReadTasks;
-                Dictionary<Task<Tuple<Boolean, Guid>>, String> taskToShardDescriptionMap;
-                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<Boolean, Guid>>> createTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> groups) =>
+                // Below we're returning a tuple containing a Boolean and Guid from the query methods rather than just the Boolean that the HasAccessToApplicationComponentAsync() method actually returns.
+                // As per article https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/task-fromresult-returns-singleton, the Task.FromResult() method returns singleton Task
+                // instances for simple types like bools.  The ExecuteQueryAgainstGroupShards() attempts to store executed tasks as the key in a Dictionary, but was giving duplicate key errors when 
+                // attempting to insert.  Even though Task.FromResult() is not used in ExecuteQueryAgainstGroupShards(), I'm assuming similar returning of singletons may also occur from the Task.WhenAny()
+                // method which is called within ExecuteQueryAgainstGroupShards().  Hence to circumvent this, the functions below return a Boolean/Guid tuple which generates a unique Task for
+                // each query.
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<Boolean, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> groups) =>
                 {
                     Boolean groupShardresult = await clientAndDescription.Client.HasAccessToApplicationComponentAsync(groups, applicationComponent, accessLevel);
                     return new Tuple<Boolean, Guid>(groupShardresult, Guid.NewGuid());
                 };
-                (shardReadTasks, taskToShardDescriptionMap) = CreateTasks<Tuple<Boolean, Guid>>(allClientsAndGroups, createTaskFunc);
-                // Create tasks which calls HasAccessToApplicationComponent() for the user
                 Task<Tuple<Boolean, Guid>> userTask = Task.Run<Tuple<Boolean, Guid>>(async () =>
                 {
                     Boolean userShardResult = await userClientAndDescription.Client.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
                     return new Tuple<Boolean, Guid>(userShardResult, Guid.NewGuid());
                 });
-                shardReadTasks.Add(userTask);
-                taskToShardDescriptionMap.Add(userTask, userClientAndDescription.ShardConfigurationDescription);
-                // Wait for the tasks to finish
+                var userTaskAndShardDescription = new Tuple<Task<Tuple<Boolean, Guid>>, String>(userTask, userClientAndDescription.ShardConfigurationDescription);
                 Action<Tuple<Boolean, Guid>> resultAction = (Tuple<Boolean, Guid> hasAccess) =>
                 {
                     if (hasAccess.Item1 == true)
@@ -840,7 +830,15 @@ namespace ApplicationAccess.Distribution
                     }
                 };
                 Func<Tuple<Boolean, Guid>, Boolean> continuePredicate = (Tuple<Boolean, Guid> hasAccess) => { return !hasAccess.Item1; };
-                await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, $"check access to application component '{applicationComponent}' at access level '{accessLevel}' in", null, null);
+                queryMetricData = await ExecuteQueryAgainstGroupShards
+                (
+                    mappedGroups,
+                    createQueryTaskFunc, 
+                    new List<Tuple<Task<Tuple<Boolean, Guid>>, String>>() { userTaskAndShardDescription },
+                    resultAction,
+                    continuePredicate,
+                    $"check access to application component '{applicationComponent}' at access level '{accessLevel}' in"
+                );
             }
             catch
             {
@@ -849,8 +847,8 @@ namespace ApplicationAccess.Distribution
             }
             metricLogger.End(beginId, new HasAccessToApplicationComponentForUserQueryTime());
             metricLogger.Increment(new HasAccessToApplicationComponentForUserQuery());
-            metricLogger.Add(new HasAccessToApplicationComponentGroupsMappedToUser(), groupsMappedToUser);
-            metricLogger.Add(new HasAccessToApplicationComponentGroupShardsQueried(), groupShardsQueried);
+            metricLogger.Add(new HasAccessToApplicationComponentGroupsMappedToUser(), queryMetricData.GroupsMappedToGroups);
+            metricLogger.Add(new HasAccessToApplicationComponentGroupShardsQueried(), queryMetricData.GroupShardsQueried);
 
             return result;
         }
@@ -1112,23 +1110,42 @@ namespace ApplicationAccess.Distribution
         /// <typeparam name="T">The type of data returned by the query.</typeparam>
         /// <param name="groups">The groups to run the query.</param>
         /// <param name="createQueryTaskFunc">A function which creates a task which executes the query and returns the results from a single group node.  Accepts 2 parameters: the client (and its description) which connects to the group shard, and the subset of the <paramref name="groups"/> parameter which are managed by that shard, and returns a task which returns the results of the query.</param>
-        /// <param name="additionalTasks">A collection of additional functions which are executed alongside those in parameter <paramref name="createQueryTaskFunc"/>, and which returns the same type as the queries against the group nodes.  This can be used for queries which must also be executed against a user node to give a complete result (e.g. in method GetEntitiesAccessibleByUserAsync()).</param>
+        /// <param name="additionalTasksAndShardDescriptions">A collection of additional functions and descriptions of the shards they're executed against, which are executed alongside those in parameter <paramref name="createQueryTaskFunc"/>, and which returns the same type as the queries against the group nodes.  This can be used for queries which must also be executed against a user node to give a complete result (e.g. in method GetEntitiesAccessibleByUserAsync()).</param>
         /// <param name="resultAction">An action to invoke with the results of each query task.</param>
         /// <param name="continuePredicate">A function which returns a boolean which is called after the completion of each query task and subdequent processing of its results, and which indicates whether further tasks shouled be waited for.  Accepts a single parameter which is the result of each task.</param>
         /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error when executing the query.  E.g. "retrieve application components and access level for user 'user1' from".</param>
-        /// <returns>A tuple containing 3 value: The combined results of all queries (combined by the action in parameter <paramref name="resultAction"/>), a count of the total number of groups mapped indirectly to the inputted groups (including the inputted groups), and a count of the number of group shards that were queried.</returns>
-        protected async Task<(T, Int32, Int32)> ExecuteQueryAgainstGroupShards<T>
+        /// <returns>An <see cref="ExecuteQueryAgainstGroupShardsMetricData"/> instance.</returns>
+        protected async Task<ExecuteQueryAgainstGroupShardsMetricData> ExecuteQueryAgainstGroupShards<T>
         (
             IEnumerable<String> groups,
             Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<T>> createQueryTaskFunc, 
-            IEnumerable<Task<T>> additionalTasks,
+            IEnumerable<Tuple<Task<T>, String>> additionalTasksAndShardDescriptions,
             Action<T> resultAction,
             Func<T, Boolean> continuePredicate, 
             String exceptionEventDescription
         )
         {
-            // TODO: Copy from HasAccessToApplicationComponentAsync()
-            // Also, make a container class to return... easier to understand
+            Int32 groupsMappedToGroups = 0;
+            Int32 groupShardsQueried = 0;
+            // Get the groups and their clients mapped indirectly to the inputted groups
+            IEnumerable<String> allMappedGroups;
+            (allMappedGroups, groupsMappedToGroups) = await GetUniqueGroupToGroupMappingsAsync(groups);
+            IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> allClientsAndGroups = shardClientManager.GetClients(DataElement.Group, Operation.Query, allMappedGroups);
+            // TODO: This is an O(n) operation, as it's not expected there would be a huge number of group shards.  However may want to look at improving this.
+            groupShardsQueried = allClientsAndGroups.Count();
+            // Create tasks which query the group shards
+            HashSet<Task<T>> shardReadTasks;
+            Dictionary<Task<T>, String> taskToShardDescriptionMap;
+            (shardReadTasks, taskToShardDescriptionMap) = CreateTasks<T>(allClientsAndGroups, createQueryTaskFunc);
+            // Add the specified additional tasks to the collection of tasks
+            foreach (Tuple<Task<T>, String> currentAdditionalTaskAndShardDescription in additionalTasksAndShardDescriptions)
+            {
+                shardReadTasks.Add(currentAdditionalTaskAndShardDescription.Item1);
+                taskToShardDescriptionMap.Add(currentAdditionalTaskAndShardDescription.Item1, currentAdditionalTaskAndShardDescription.Item2);
+            }
+            await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, exceptionEventDescription, null, null);
+
+            return new ExecuteQueryAgainstGroupShardsMetricData(groupsMappedToGroups, groupShardsQueried);
         }
 
         /// <summary>
@@ -1293,6 +1310,33 @@ namespace ApplicationAccess.Distribution
                 // Set large fields to null.
 
                 disposed = true;
+            }
+        }
+
+        #endregion
+
+        #region Nested Classes
+
+        /// <summary>
+        /// Model/container class holding metric data recorded by a call to the ExecuteQueryAgainstGroupShards() method.
+        /// </summary>
+        protected class ExecuteQueryAgainstGroupShardsMetricData
+        {
+            /// <summary>A count of the total number of unique groups mapped directly and indirectly to the inputted groups (and including the inputted groups).</summary>
+            public Int32 GroupsMappedToGroups { get; protected set; }
+
+            /// <summary>A count of the number of group shards that were queried.</summary>
+            public Int32 GroupShardsQueried { get; protected set; }
+
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManagerOperationCoordinator+ExecuteQueryAgainstGroupShardsMetricData class.
+            /// </summary>
+            /// <param name="groupsMappedToGroups">A count of the total number of unique groups mapped directly and indirectly to the inputted groups (and including the inputted groups).</param>
+            /// <param name="groupShardsQueried">A count of the number of group shards that were queried.</param>
+            public ExecuteQueryAgainstGroupShardsMetricData(Int32 groupsMappedToGroups, Int32 groupShardsQueried)
+            {
+                GroupsMappedToGroups = groupsMappedToGroups;
+                GroupShardsQueried = groupShardsQueried;
             }
         }
 

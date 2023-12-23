@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
+using System.Text.RegularExpressions;
+
 namespace ApplicationAccess.Hosting.Models.DataTransferObjects
 {
     /// <summary>
-    /// DTO container class holding a group, an application component, and level of access to that component.
+    /// DTO container class holding an application component, and level of access to that component.
     /// </summary>
-    public class GroupAndApplicationComponentAndAccessLevel<TGroup, TComponent, TAccess> : ApplicationComponentAndAccessLevel<TComponent, TAccess>
+    public class ApplicationComponentAndAccessLevel<TComponent, TAccess>
     {
-        public TGroup Group { get; set; }
+        public TComponent ApplicationComponent { get; set; }
 
-        public GroupAndApplicationComponentAndAccessLevel(TGroup group, TComponent applicationComponent, TAccess accessLevel)
-            : base(applicationComponent, accessLevel)
+        public TAccess AccessLevel { get; set; }
+
+        public ApplicationComponentAndAccessLevel(TComponent applicationComponent, TAccess accessLevel)
         {
-            Group = group;
+            ApplicationComponent = applicationComponent;
+            AccessLevel = accessLevel;
         }
     }
 }
