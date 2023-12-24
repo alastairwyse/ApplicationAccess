@@ -810,16 +810,16 @@ namespace ApplicationAccess.Distribution
                 // instances for simple types like bools.  The ExecuteQueryAgainstGroupShards() attempts to store executed tasks as the key in a Dictionary, but was giving duplicate key errors when 
                 // attempting to insert.  Even though Task.FromResult() is not used in ExecuteQueryAgainstGroupShards(), I'm assuming similar returning of singletons may also occur from the Task.WhenAny()
                 // method which is called within ExecuteQueryAgainstGroupShards().  Hence to circumvent this, the functions below return a Boolean/Guid tuple which generates a unique Task for
-                // each query.
+                // each query.  This seems to also occur with Tuples hence same approach is applied to all HasAccessTo*() and Get*AccessibleBy*() methods.
                 Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<Boolean, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> groups) =>
                 {
                     Boolean groupShardresult = await clientAndDescription.Client.HasAccessToApplicationComponentAsync(groups, applicationComponent, accessLevel);
-                    return new Tuple<Boolean, Guid>(groupShardresult, Guid.NewGuid());
+                    return Tuple.Create(groupShardresult, Guid.NewGuid());
                 };
                 Task<Tuple<Boolean, Guid>> userTask = Task.Run<Tuple<Boolean, Guid>>(async () =>
                 {
                     Boolean userShardResult = await userClientAndDescription.Client.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
-                    return new Tuple<Boolean, Guid>(userShardResult, Guid.NewGuid());
+                    return Tuple.Create(userShardResult, Guid.NewGuid());
                 });
                 var userTaskAndShardDescription = new Tuple<Task<Tuple<Boolean, Guid>>, String>(userTask, userClientAndDescription.ShardConfigurationDescription);
                 Action<Tuple<Boolean, Guid>> resultAction = (Tuple<Boolean, Guid> hasAccess) =>
@@ -862,13 +862,102 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByUserAsync(String user)
         {
-            throw new NotImplementedException();
+            Guid beginId = metricLogger.Begin(new GetApplicationComponentsAccessibleByUserQueryTime());
+            var result = new HashSet<Tuple<String, String>>();
+            ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
+            try
+            {
+                DistributedClientAndShardDescription userClientAndDescription = shardClientManager.GetClient(DataElement.User, Operation.Query, user);
+                // Get the groups mapped directly to the user
+                List<String> mappedGroups = null;
+                try
+                {
+                    mappedGroups = await userClientAndDescription.Client.GetUserToGroupMappingsAsync(user, false);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Failed to retrieve user to group mappings from shard with configuration '{userClientAndDescription.ShardConfigurationDescription}'.", e);
+                }
+                // See comment in method HasAccessToApplicationComponentAsync() explaining need for Tuple with Boolean in return type
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<List<Tuple<String, String>>, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> groups) =>
+                {
+                    List<Tuple<String, String>> groupShardresult = await clientAndDescription.Client.GetApplicationComponentsAccessibleByGroupsAsync(groups);
+                    return Tuple.Create(groupShardresult, Guid.NewGuid());
+                }; 
+                Task<Tuple<List<Tuple<String, String>>, Guid>> userTask = Task.Run<Tuple<List<Tuple<String, String>>, Guid>>(async () =>
+                {
+                    List<Tuple<String, String>> userShardResult = await userClientAndDescription.Client.GetApplicationComponentsAccessibleByUserAsync(user);
+                    return Tuple.Create(userShardResult, Guid.NewGuid());
+                });
+                var userTaskAndShardDescription = new Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>(userTask, userClientAndDescription.ShardConfigurationDescription);
+                Action<Tuple<List<Tuple<String, String>>, Guid>> resultAction = (Tuple<List<Tuple<String, String>>, Guid> groupShardResult) =>
+                {
+                    result.UnionWith(groupShardResult.Item1);
+                };
+                Func<Tuple<List<Tuple<String, String>>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
+                queryMetricData = await ExecuteQueryAgainstGroupShards
+                (
+                    mappedGroups,
+                    createQueryTaskFunc,
+                    new List<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>> () { userTaskAndShardDescription },
+                    resultAction,
+                    continuePredicate,
+                    $"retrieve application component and access level mappings for user '{user}' from"
+                );
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new GetApplicationComponentsAccessibleByUserQueryTime());
+                throw;
+            }
+            metricLogger.End(beginId, new GetApplicationComponentsAccessibleByUserQueryTime());
+            metricLogger.Increment(new GetApplicationComponentsAccessibleByUserQuery());
+            metricLogger.Add(new GetApplicationComponentsAccessibleByUserGroupsMappedToUser(), queryMetricData.GroupsMappedToGroups);
+            metricLogger.Add(new GetApplicationComponentsAccessibleByUserGroupShardsQueried(), queryMetricData.GroupShardsQueried);
+
+            return new List<Tuple<String, String>>(result);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupAsync(String group)
         {
-            throw new NotImplementedException();
+            Guid beginId = metricLogger.Begin(new GetApplicationComponentsAccessibleByGroupQueryTime());
+            var result = new HashSet<Tuple<String, String>>();
+            ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
+            try
+            {
+                // See comment in method HasAccessToApplicationComponentAsync() explaining need for Tuple with Boolean in return type
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<List<Tuple<String, String>>, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> groups) =>
+                {
+                    List<Tuple<String, String>> groupShardresult = await clientAndDescription.Client.GetApplicationComponentsAccessibleByGroupsAsync(groups);
+                    return Tuple.Create(groupShardresult, Guid.NewGuid());
+                };
+                Action<Tuple<List<Tuple<String, String>>, Guid>> resultAction = (Tuple<List<Tuple<String, String>>, Guid> groupShardResult) =>
+                {
+                    result.UnionWith(groupShardResult.Item1);
+                };
+                Func<Tuple<List<Tuple<String, String>>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
+                queryMetricData = await ExecuteQueryAgainstGroupShards
+                (
+                    new List<String>() { group },
+                    createQueryTaskFunc,
+                    Enumerable.Empty<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>(),
+                    resultAction,
+                    continuePredicate,
+                    $"retrieve application component and access level mappings for group '{group}' from"
+                );
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new GetApplicationComponentsAccessibleByGroupQueryTime());
+                throw;
+            }
+            metricLogger.End(beginId, new GetApplicationComponentsAccessibleByGroupQueryTime());
+            metricLogger.Increment(new GetApplicationComponentsAccessibleByGroupQuery());
+            metricLogger.Add(new GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup(), queryMetricData.GroupsMappedToGroups);
+            metricLogger.Add(new GetApplicationComponentsAccessibleByGroupGroupShardsQueried(), queryMetricData.GroupShardsQueried);
+
+            return new List<Tuple<String, String>>(result);
         }
 
         /// <inheritdoc/>

@@ -199,10 +199,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             var testGroups = new List<String>() { "group1", "group2", "group3" };
             var testApplicationComponentsAndAccessLevels = new HashSet<Tuple<String, String>>()
             {
-                new Tuple<String, String>("Order", "View"),
-                new Tuple<String, String>("Order", "Modify"),
-                new Tuple<String, String>("Order", "Create"),
-                new Tuple<String, String>("Summary", "View")
+                Tuple.Create("Order", "View"),
+                Tuple.Create("Order", "Modify"),
+                Tuple.Create("Order", "Create"),
+                Tuple.Create("Summary", "View")
             };
             mockDistributedGroupQueryProcessor.ClearReceivedCalls();
             mockDistributedGroupQueryProcessor.GetApplicationComponentsAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testApplicationComponentsAndAccessLevels);
@@ -213,10 +213,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             Assert.AreEqual(4, applicationComponentStringifier.FromStringCallCount);
             Assert.AreEqual(4, accessLevelStringifier.FromStringCallCount);
             Assert.AreEqual(4, result.Count);
-            Assert.IsTrue(result.Contains(new Tuple<String, String>("Order", "View")));
-            Assert.IsTrue(result.Contains(new Tuple<String, String>("Order", "Modify")));
-            Assert.IsTrue(result.Contains(new Tuple<String, String>("Order", "Create")));
-            Assert.IsTrue(result.Contains(new Tuple<String, String>("Summary", "View")));
+            Assert.IsTrue(result.Contains(Tuple.Create("Order", "View")));
+            Assert.IsTrue(result.Contains(Tuple.Create("Order", "Modify")));
+            Assert.IsTrue(result.Contains(Tuple.Create("Order", "Create")));
+            Assert.IsTrue(result.Contains(Tuple.Create("Summary", "View")));
         }
 
         [Test]
@@ -225,10 +225,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             var testGroups = new List<String>() { "group1", "group2", "group3" };
             var testEntityTypesAndEntities = new HashSet<Tuple<String, String>>()
             {
-                new Tuple<String, String>("ClientAccount", "CompanyA"),
-                new Tuple<String, String>("ClientAccount", "CompanyB"),
-                new Tuple<String, String>("BusinessUnit", "Sales"),
-                new Tuple<String, String>("BusinessUnit", "Manufacturing")
+                Tuple.Create("ClientAccount", "CompanyA"),
+                Tuple.Create("ClientAccount", "CompanyB"),
+                Tuple.Create("BusinessUnit", "Sales"),
+                Tuple.Create("BusinessUnit", "Manufacturing")
             };
             mockDistributedGroupQueryProcessor.ClearReceivedCalls();
             mockDistributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testEntityTypesAndEntities);
@@ -237,10 +237,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
 
             mockDistributedGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
             Assert.AreEqual(4, result.Count);
-            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyA")));
-            Assert.IsTrue(result.Contains(new Tuple<String, String>("ClientAccount", "CompanyB")));
-            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Sales")));
-            Assert.IsTrue(result.Contains(new Tuple<String, String>("BusinessUnit", "Manufacturing")));
+            Assert.IsTrue(result.Contains(Tuple.Create("ClientAccount", "CompanyA")));
+            Assert.IsTrue(result.Contains(Tuple.Create("ClientAccount", "CompanyB")));
+            Assert.IsTrue(result.Contains(Tuple.Create("BusinessUnit", "Sales")));
+            Assert.IsTrue(result.Contains(Tuple.Create("BusinessUnit", "Manufacturing")));
         }
 
         [Test]
