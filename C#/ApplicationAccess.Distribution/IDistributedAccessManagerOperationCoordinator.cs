@@ -22,9 +22,9 @@ using System.Text.RegularExpressions;
 namespace ApplicationAccess.Distribution
 {
     /// <summary>
-    /// Defines methods which coordinate operations in an AccessManager implementation where responsibility for subsets of elements is distributed across multiple computers.
+    /// Defines methods which coordinate operations in an AccessManager implementation where responsibility for subsets of elements is distributed across multiple computers in shards.
     /// </summary>
-    /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to distributed components.</typeparam>
+    /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
     public interface IDistributedAccessManagerOperationCoordinator<TClientConfiguration> :
         IAccessManagerAsyncQueryProcessor<String, String, String, String>,
         IAccessManagerAsyncEventProcessor<String, String, String, String>

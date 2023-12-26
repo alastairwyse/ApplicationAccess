@@ -50,35 +50,11 @@ namespace ApplicationAccess.Distribution.Metrics
             base.description = staticDescription;
         }
     }
-
-    /// <summary>
-    /// Base for amount metrics which record the total number of groups directly and indirectly mapped to a user, found as part of a distributed query (e.g. method HasAccessToApplicationComponent()).
-    /// </summary>
-    public abstract class GroupsMappedToUser : AmountMetric
-    {
-    }
-
-    /// <summary>
-    /// Base for amount metrics which record the total number of groups directly and indirectly mapped to an element (i.e. a user or a group), found as part of a distributed query (e.g. method GetApplicationComponentsAccessibleByGroup()).
-    /// </summary>
-    public abstract class GroupsMappedToElement : AmountMetric
-    {
-    }
-
-    /// <summary>
-    /// Base for amount metrics which record the number of group shards queried as part of a distributed query (e.g. method HasAccessToApplicationComponent()).
-    /// </summary>
-    public abstract class GroupShardsQueried : AmountMetric
-    {
-    }
-
-    /// <summary>
-    /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed GetUserToGroupMappings() method call with the 'includeIndirectMappings' parameter set true.
-    /// </summary>
-    public class GetUserToGroupMappingsGroupsMappedToUser : GroupsMappedToUser
+    
+    public class GetUserToGroupMappingsGroupsMappedToUser : AmountMetric
     {
         protected static String staticName = "GetUserToGroupMappingsGroupsMappedToUser";
-        protected static String staticDescription = "The total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToApplicationComponent() method call with the 'includeIndirectMappings' parameter set true";
+        protected static String staticDescription = "The total number of groups directly and indirectly mapped to a user, found as part of a distributed GetUserToGroupMappings() method call with the 'includeIndirectMappings' parameter set true";
 
         public GetUserToGroupMappingsGroupsMappedToUser()
         {
@@ -90,7 +66,7 @@ namespace ApplicationAccess.Distribution.Metrics
     /// <summary>
     /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToApplicationComponent() method call.
     /// </summary>
-    public class HasAccessToApplicationComponentGroupsMappedToUser : GroupsMappedToUser
+    public class HasAccessToApplicationComponentGroupsMappedToUser : AmountMetric
     {
         protected static String staticName = "HasAccessToApplicationComponentGroupsMappedToUser";
         protected static String staticDescription = "The total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToApplicationComponent() method call";
@@ -105,7 +81,7 @@ namespace ApplicationAccess.Distribution.Metrics
     /// <summary>
     /// Amount metric which records the number of group shards queried as part of a distributed HasAccessToApplicationComponent() method call.
     /// </summary>
-    public class HasAccessToApplicationComponentGroupShardsQueried : GroupShardsQueried
+    public class HasAccessToApplicationComponentGroupShardsQueried : AmountMetric
     {
         protected static String staticName = "HasAccessToApplicationComponentGroupShardsQueried";
         protected static String staticDescription = "The number of group shards queried as part of a distributed HasAccessToApplicationComponent() method call";
@@ -118,9 +94,39 @@ namespace ApplicationAccess.Distribution.Metrics
     }
 
     /// <summary>
+    /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToEntity() method call.
+    /// </summary>
+    public class HasAccessToEntityGroupsMappedToUser : AmountMetric
+    {
+        protected static String staticName = "HasAccessToEntityGroupsMappedToUser";
+        protected static String staticDescription = "The total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToEntity() method call";
+
+        public HasAccessToEntityGroupsMappedToUser()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the number of group shards queried as part of a distributed HasAccessToEntity() method call.
+    /// </summary>
+    public class HasAccessToEntityGroupShardsQueried : AmountMetric
+    {
+        protected static String staticName = "HasAccessToEntityGroupShardsQueried";
+        protected static String staticDescription = "The number of group shards queried as part of a distributed HasAccessToEntity() method call";
+
+        public HasAccessToEntityGroupShardsQueried()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed GetApplicationComponentsAccessibleByUser() method call.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByUserGroupsMappedToUser : GroupsMappedToUser
+    public class GetApplicationComponentsAccessibleByUserGroupsMappedToUser : AmountMetric
     {
         protected static String staticName = "GetApplicationComponentsAccessibleByUserGroupsMappedToUser";
         protected static String staticDescription = "The total number of groups directly and indirectly mapped to a user, found as part of a distributed GetApplicationComponentsAccessibleByUser() method call";
@@ -135,7 +141,7 @@ namespace ApplicationAccess.Distribution.Metrics
     /// <summary>
     /// Amount metric which records the number of group shards queried as part of a distributed GetApplicationComponentsAccessibleByUser() method call.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByUserGroupShardsQueried : GroupShardsQueried
+    public class GetApplicationComponentsAccessibleByUserGroupShardsQueried : AmountMetric
     {
         protected static String staticName = "GetApplicationComponentsAccessibleByUserGroupShardsQueried";
         protected static String staticDescription = "The number of group shards queried as part of a distributed GetApplicationComponentsAccessibleByUser() method call";
@@ -150,7 +156,7 @@ namespace ApplicationAccess.Distribution.Metrics
     /// <summary>
     /// Amount metric which records the total number of groups directly and indirectly mapped to a group, found as part of a distributed GetApplicationComponentsAccessibleByGroup() method call.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup : GroupsMappedToUser
+    public class GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup : AmountMetric
     {
         protected static String staticName = "GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup";
         protected static String staticDescription = "The total number of groups directly and indirectly mapped to a group, found as part of a distributed GetApplicationComponentsAccessibleByGroup() method call";
@@ -165,12 +171,72 @@ namespace ApplicationAccess.Distribution.Metrics
     /// <summary>
     /// Amount metric which records the number of group shards queried as part of a distributed GetApplicationComponentsAccessibleByGroup() method call.
     /// </summary>
-    public class GetApplicationComponentsAccessibleByGroupGroupShardsQueried : GroupShardsQueried
+    public class GetApplicationComponentsAccessibleByGroupGroupShardsQueried : AmountMetric
     {
         protected static String staticName = "GetApplicationComponentsAccessibleByGroupGroupShardsQueried";
         protected static String staticDescription = "The number of group shards queried as part of a distributed GetApplicationComponentsAccessibleByGroup() method call";
 
         public GetApplicationComponentsAccessibleByGroupGroupShardsQueried()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed GetEntitiesAccessibleByUser() method call.
+    /// </summary>
+    public class GetEntitiesAccessibleByUserGroupsMappedToUser : AmountMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByUserGroupsMappedToUser";
+        protected static String staticDescription = "The total number of groups directly and indirectly mapped to a user, found as part of a distributed GetEntitiesAccessibleByUser() method call";
+
+        public GetEntitiesAccessibleByUserGroupsMappedToUser()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the number of group shards queried as part of a distributed GetEntitiesAccessibleByUser() method call.
+    /// </summary>
+    public class GetEntitiesAccessibleByUserGroupShardsQueried : AmountMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByUserGroupShardsQueried";
+        protected static String staticDescription = "The number of group shards queried as part of a distributed GetEntitiesAccessibleByUser() method call";
+
+        public GetEntitiesAccessibleByUserGroupShardsQueried()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the total number of groups directly and indirectly mapped to a group, found as part of a distributed GetEntitiesAccessibleByGroup() method call.
+    /// </summary>
+    public class GetEntitiesAccessibleByGroupGroupsMappedToGroup : AmountMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByGroupGroupsMappedToGroup";
+        protected static String staticDescription = "The total number of groups directly and indirectly mapped to a group, found as part of a distributed GetEntitiesAccessibleByGroup() method call";
+
+        public GetEntitiesAccessibleByGroupGroupsMappedToGroup()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the number of group shards queried as part of a distributed GetEntitiesAccessibleByGroup() method call.
+    /// </summary>
+    public class GetEntitiesAccessibleByGroupGroupShardsQueried : AmountMetric
+    {
+        protected static String staticName = "GetEntitiesAccessibleByGroupGroupShardsQueried";
+        protected static String staticDescription = "The number of group shards queried as part of a distributed GetEntitiesAccessibleByGroup() method call";
+
+        public GetEntitiesAccessibleByGroupGroupShardsQueried()
         {
             base.name = staticName;
             base.description = staticDescription;
