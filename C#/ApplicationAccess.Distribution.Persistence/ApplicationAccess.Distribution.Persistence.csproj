@@ -7,7 +7,7 @@
     <Copyright>Copyright © Alastair Wyse 2023</Copyright>
     <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
-    <Description>Classes which distribute the operation and workload of an AccessManager implementation between multiple computers.</Description>
+    <Description>Classes which persist classes in the ApplicationAccess.Distribution namespace to and from persistent storage.</Description>
     <PackageReleaseNotes>First release.</PackageReleaseNotes>
     <PackageTags>application access authorization authorisation permission permissions user group users groups distribute distributed distribution shard sharded</PackageTags>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
@@ -15,13 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApplicationMetrics" Version="6.2.0" />
-    <PackageReference Include="MoreComplexDataStructures" Version="1.9.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Metrics\ApplicationAccess.Metrics.csproj" />
-    <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Serialization\ApplicationAccess.Distribution.Serialization.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
   </ItemGroup>
 
 </Project>

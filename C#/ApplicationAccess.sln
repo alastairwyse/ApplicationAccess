@@ -83,17 +83,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.L
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter", "ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter.csproj", "{894CDB2E-16FA-4641-8CAD-BEDAEA0BBF15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Distribution", "ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj", "{C2F307A2-6D89-46D1-8C9A-78D3A684F175}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Distribution", "ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj", "{C2F307A2-6D89-46D1-8C9A-78D3A684F175}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Distribution.UnitTests", "ApplicationAccess.Distribution.UnitTests\ApplicationAccess.Distribution.UnitTests.csproj", "{BF647EC3-68D9-4C5E-A6CF-C85D8749DB1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Distribution.UnitTests", "ApplicationAccess.Distribution.UnitTests\ApplicationAccess.Distribution.UnitTests.csproj", "{BF647EC3-68D9-4C5E-A6CF-C85D8749DB1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.DistributedReader", "ApplicationAccess.Hosting.Rest.DistributedReader\ApplicationAccess.Hosting.Rest.DistributedReader.csproj", "{DDC88DB6-C3E8-49F0-9EFE-1F2E68220750}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.DistributedReader", "ApplicationAccess.Hosting.Rest.DistributedReader\ApplicationAccess.Hosting.Rest.DistributedReader.csproj", "{DDC88DB6-C3E8-49F0-9EFE-1F2E68220750}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.DistributedWriter", "ApplicationAccess.Hosting.Rest.DistributedWriter\ApplicationAccess.Hosting.Rest.DistributedWriter.csproj", "{E13E7F0C-962D-4395-A314-EFB810F73F2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.DistributedWriter", "ApplicationAccess.Hosting.Rest.DistributedWriter\ApplicationAccess.Hosting.Rest.DistributedWriter.csproj", "{E13E7F0C-962D-4395-A314-EFB810F73F2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.DistributedAsyncClient", "ApplicationAccess.Hosting.Rest.DistributedAsyncClient\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.csproj", "{5C672646-A614-411E-8CEB-4517A0E83C3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.DistributedAsyncClient", "ApplicationAccess.Hosting.Rest.DistributedAsyncClient\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.csproj", "{5C672646-A614-411E-8CEB-4517A0E83C3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests", "ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests.csproj", "{D766E500-9466-4EB9-8890-834C740BB59D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests", "ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests.csproj", "{D766E500-9466-4EB9-8890-834C740BB59D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Distribution.Serialization", "ApplicationAccess.Distribution.Serialization\ApplicationAccess.Distribution.Serialization.csproj", "{1EB6FCD6-464C-4630-8205-E60AFF1BC265}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Distribution.Serialization.UnitTests", "ApplicationAccess.Distribution.Serialization.UnitTests\ApplicationAccess.Distribution.Serialization.UnitTests.csproj", "{71807A0D-4B8C-440F-B76F-450C363944C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Distribution.Persistence", "ApplicationAccess.Distribution.Persistence\ApplicationAccess.Distribution.Persistence.csproj", "{2747E9D6-2F36-47C7-B8F0-86747216122A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Distribution.Persistence.SqlServer", "ApplicationAccess.Distribution.Persistence.SqlServer\ApplicationAccess.Distribution.Persistence.SqlServer.csproj", "{25640E53-264B-4740-B582-562F946A8984}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -285,6 +293,22 @@ Global
 		{D766E500-9466-4EB9-8890-834C740BB59D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D766E500-9466-4EB9-8890-834C740BB59D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D766E500-9466-4EB9-8890-834C740BB59D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EB6FCD6-464C-4630-8205-E60AFF1BC265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EB6FCD6-464C-4630-8205-E60AFF1BC265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EB6FCD6-464C-4630-8205-E60AFF1BC265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EB6FCD6-464C-4630-8205-E60AFF1BC265}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71807A0D-4B8C-440F-B76F-450C363944C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71807A0D-4B8C-440F-B76F-450C363944C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71807A0D-4B8C-440F-B76F-450C363944C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71807A0D-4B8C-440F-B76F-450C363944C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2747E9D6-2F36-47C7-B8F0-86747216122A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2747E9D6-2F36-47C7-B8F0-86747216122A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2747E9D6-2F36-47C7-B8F0-86747216122A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2747E9D6-2F36-47C7-B8F0-86747216122A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25640E53-264B-4740-B582-562F946A8984}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25640E53-264B-4740-B582-562F946A8984}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25640E53-264B-4740-B582-562F946A8984}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25640E53-264B-4740-B582-562F946A8984}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

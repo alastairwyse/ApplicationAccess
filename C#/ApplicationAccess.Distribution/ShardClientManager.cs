@@ -30,7 +30,7 @@ namespace ApplicationAccess.Distribution
     /// Manages a set of <see cref="IDistributedAccessManagerAsyncClient{TUser, TGroup, TComponent, TAccess}"/> implementations corresponding to a <see cref="ShardConfigurationSet{TClientConfiguration}"/> which connect to shards in a distributed AccessManager implementation.  Provides query methods to return clients based on varying parameters, and the ability to refresh the <see cref="ShardConfigurationSet{TClientConfiguration}"/> to update/rebuild the clients.
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration stored in the shard configuration.</typeparam>
-    /// <remarks>This class is thread safe for concurrent read opertations (e.g. method <see cref="ShardClientManager{TClientConfiguration}.GetClient(DataElement, String)">GetClient()</see>).  The <see cref="ShardClientManager{TClientConfiguration}.RefreshConfiguration(ShardConfigurationSet{TClientConfiguration})">RefreshConfiguration()</see> method however should not be called concurrently by multiple threads.</remarks>
+    /// <remarks>This class is thread safe for concurrent read opertations (e.g. method <see cref="ShardClientManager{TClientConfiguration}.GetClient(DataElement, Operation, String)">GetClient()</see>).  The <see cref="ShardClientManager{TClientConfiguration}.RefreshConfiguration(ShardConfigurationSet{TClientConfiguration})">RefreshConfiguration()</see> method however should not be called concurrently by multiple threads.</remarks>
     public class ShardClientManager<TClientConfiguration> : IShardClientManager<TClientConfiguration>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
@@ -40,7 +40,7 @@ namespace ApplicationAccess.Distribution
         protected Dictionary<DataElementAndOperation, WeightBalancedTree<HashRangeStartClientAndShardDescription>> hashRangeToClientMap;
         /// <summary>The current shard configuration.</summary>
         protected ShardConfigurationSet<TClientConfiguration> currentConfiguration;
-        /// <summary>An <see cref="IDistributedAccessManagerAsyncClientFactory{TUser, TGroup, TComponent, TAccess}"/> instance used to create AccessManager client instances from configuration.</summary>
+        /// <summary>An <see cref="IDistributedAccessManagerAsyncClientFactory{TClientConfiguration, TUser, TGroup, TComponent, TAccess}"/> instance used to create AccessManager client instances from configuration.</summary>
         protected IDistributedAccessManagerAsyncClientFactory<TClientConfiguration, String, String, String, String> clientFactory;
         /// <summary>A hash code generator for users.</summary>
         protected IHashCodeGenerator<String> userHashCodeGenerator;

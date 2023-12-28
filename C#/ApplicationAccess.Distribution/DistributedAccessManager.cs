@@ -30,6 +30,11 @@ namespace ApplicationAccess.Distribution
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public class DistributedAccessManager<TUser, TGroup, TComponent, TAccess> : MetricLoggingDependencyFreeAccessManager<TUser, TGroup, TComponent, TAccess>, IDistributedAccessManager<TUser, TGroup, TComponent, TAccess>
     {
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManager class.
+        /// </summary>
+        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
         public DistributedAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
             : base(storeBidirectionalMappings, metricLogger)
         {

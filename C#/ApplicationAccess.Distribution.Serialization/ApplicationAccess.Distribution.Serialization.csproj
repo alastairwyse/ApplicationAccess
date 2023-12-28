@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <Authors>Alastair Wyse</Authors>
+    <Company>Alastair Wyse</Company>
+    <Copyright>Copyright © Alastair Wyse 2023</Copyright>
+    <Description>Classes which serialize and deserialize classes in the ApplicationAccess.Distribution namespace.</Description>
+    <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
+    <PackageReleaseNotes>First release.</PackageReleaseNotes>
+    <PackageTags>application access authorization authorisation permission permissions user group users groups serialize deserialize serialization deserialization json</PackageTags>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedAsyncClient\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.csproj" />
+  </ItemGroup>
+
+</Project>

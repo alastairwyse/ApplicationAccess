@@ -19,14 +19,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using ApplicationAccess.Distribution.Metrics;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
+using ApplicationMetrics;
 using NUnit.Framework;
 using NSubstitute;
-using ApplicationMetrics;
-using System.Text.RegularExpressions;
-using ApplicationAccess.Distribution.Metrics;
-using ApplicationAccess.UnitTests;
 
 namespace ApplicationAccess.Distribution.UnitTests
 {
@@ -746,7 +744,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             await clientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
             mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetUserToGroupMappingsQueryTime>());
-            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsForGroupQuery>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetUserToGroupMappingsQuery>());
             Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(3, result.Count);

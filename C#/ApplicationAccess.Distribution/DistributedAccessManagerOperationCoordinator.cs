@@ -53,7 +53,7 @@ namespace ApplicationAccess.Distribution
         /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManagerOperationCoordinator class.
         /// </summary>
         /// <param name="initialShardConfiguration">The initial configuration of the shards managing the subsets of elements in the distributed implementation.</param>
-        /// <param name="shardClientFactory">Factory used to create <see cref="IDistributedAccessManagerAsyncClient{String, String, String, String}"/> instances from <see cref="TClientConfiguration"/> objects, which connect to shards managing the subsets of elements in the distributed implementation.</param>
+        /// <param name="shardClientFactory">Factory used to create <see cref="IDistributedAccessManagerAsyncClient{String, String, String, String}"/> instances from <typeparamref name="TClientConfiguration"/> objects, which connect to shards managing the subsets of elements in the distributed implementation.</param>
         /// <param name="userHashCodeGenerator">Hash code generator for users.</param>
         /// <param name="groupHashCodeGenerator">Hash code generator for groups.</param>
         /// <param name="metricLogger">Logger for metrics.</param>
@@ -76,7 +76,7 @@ namespace ApplicationAccess.Distribution
         /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManagerOperationCoordinator class.
         /// </summary>
         /// <param name="initialShardConfiguration">The initial configuration of the shards managing the subsets of elements in the distributed implementation.</param>
-        /// <param name="shardClientFactory">Factory used to create <see cref="IDistributedAccessManagerAsyncClient{String, String, String, String}"/> instances from <see cref="TClientConfiguration"/> objects, which connect to shards managing the subsets of elements in the distributed implementation.</param>
+        /// <param name="shardClientFactory">Factory used to create <see cref="IDistributedAccessManagerAsyncClient{String, String, String, String}"/> instances from <typeparamref name="TClientConfiguration"/> objects, which connect to shards managing the subsets of elements in the distributed implementation.</param>
         /// <param name="userHashCodeGenerator">Hash code generator for users.</param>
         /// <param name="groupHashCodeGenerator">Hash code generator for groups.</param>
         /// <param name="metricLogger">Logger for metrics.</param>
@@ -292,7 +292,7 @@ namespace ApplicationAccess.Distribution
                 return await GetElementsAsync
                 (
                     new GetUserToGroupMappingsQueryTime(),
-                    new GetGroupToGroupMappingsForGroupQuery(),
+                    new GetUserToGroupMappingsQuery(),
                     DataElement.User,
                     user,
                     createTaskFunc,
@@ -1502,7 +1502,7 @@ namespace ApplicationAccess.Distribution
         /// Gets a unique list of groups which are mapped both directly and indirectly a specified collection of groups.
         /// </summary>
         /// <param name="groups">The groups to retrieve the mappings for.</param>
-        /// <returns>A tuple containing: a unique list of groups which includes both the groups passed in the <paramref name="clientsAndGroups"/> parameter and the groups those groups are mapped to, and a count of those groups.</returns>
+        /// <returns>A tuple containing: a unique list of groups which includes both the groups passed in the <paramref name="groups"/> parameter and the groups those groups are mapped to, and a count of those groups.</returns>
         protected async Task<(IEnumerable<String>, Int32)> GetUniqueGroupToGroupMappingsAsync(IEnumerable<String> groups)
         {
             var returnGroups = new HashSet<String>();

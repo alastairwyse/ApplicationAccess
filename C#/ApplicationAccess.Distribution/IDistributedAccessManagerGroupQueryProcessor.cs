@@ -52,7 +52,7 @@ namespace ApplicationAccess.Distribution
         /// </summary>
         /// <param name="groups">The groups to retrieve the application components and levels of access for.</param>
         /// <returns>The application components and levels of access to those application components that the groups have.</returns>
-        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor.GetApplicationComponentsAccessibleByGroup(TGroup)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor{TGroup, TComponent, TAccess}.GetApplicationComponentsAccessibleByGroup(TGroup)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
         HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroups(IEnumerable<TGroup> groups);
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace ApplicationAccess.Distribution
         /// </summary>
         /// <param name="groups">The groups to retrieve the entities for.</param>
         /// <returns>A collection of Tuples containing the entity type and entity that the groups have access to.</returns>
-        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor.GetEntitiesAccessibleByGroup(TGroup)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor{TGroup, TComponent, TAccess}.GetEntitiesAccessibleByGroup(TGroup)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
         HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups);
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace ApplicationAccess.Distribution
         /// <param name="groups">The groups to retrieve the entities for.</param>
         /// <param name="entityType">The type of entities to retrieve.</param>
         /// <returns>The entities the groups have access to.</returns>
-        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor.GetEntitiesAccessibleByGroup(TGroup, String)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
+        /// <remarks>Unlike the <see cref="IAccessManagerGroupQueryProcessor{TGroup, TComponent, TAccess}.GetEntitiesAccessibleByGroup(TGroup, String)">'group' parameter overload of the method</see>, this method does not check access of groups indirectly mapped to the groups specified in the <paramref name="groups"/> parameter.</remarks>
         HashSet<String> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups, String entityType);
     }
 }
