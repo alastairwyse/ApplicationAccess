@@ -191,7 +191,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
         public SqlServerAccessManagerTemporalBulkPersister
         (
-            string connectionString,
+            String connectionString,
             Int32 retryCount,
             Int32 retryInterval,
             Int32 operationTimeout,

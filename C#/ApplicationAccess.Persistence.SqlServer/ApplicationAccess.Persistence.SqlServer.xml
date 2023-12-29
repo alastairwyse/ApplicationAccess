@@ -388,18 +388,6 @@
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.transactionSql126DateStyle">
             <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.connectionString">
-            <summary>The string to use to connect to the SQL Server database.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.retryCount">
-            <summary>The number of times an operation against the SQL Server database should be retried in the case of execution failure.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.retryInterval">
-            <summary>The time in seconds between operation retries.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.operationTimeout">
-            <summary>The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
-        </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.userStringifier">
             <summary>A string converter for users.</summary>
         </member>
@@ -411,23 +399,6 @@
         </member>
         <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.accessLevelStringifier">
             <summary>A string converter for access levels</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.logger">
-            <summary>The logger for general logging.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.metricLogger">
-            <summary>The logger for metrics.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.sqlRetryLogicOption">
-            <summary>The retry logic to use when connecting to and executing against the SQL Server database.</summary>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.sqlServerTransientErrorNumbers">
-            <summary>A set of SQL Server database engine error numbers which denote a transient fault.</summary>
-            <see href="https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-ver16"/>
-            <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql"/>
-        </member>
-        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.connectionRetryAction">
-            <summary>The action to invoke if an action is retried due to a transient error.</summary>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
             <summary>
@@ -466,13 +437,6 @@
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
             <inheritdoc/>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.GenerateSqlServerTransientErrorNumbers">
-            <summary>
-            Returns a list of SQL Server error numbers which indicate errors which are transient (i.e. could be recovered from after retry).
-            </summary>
-            <returns>The list of SQL Server error numbers.</returns>
-            <remarks>See <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql">Troubleshooting connectivity issues and other errors with Azure SQL Database and Azure SQL Managed Instance</see></remarks> 
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.GetUsers(System.DateTime)">
             <summary>
@@ -543,13 +507,6 @@
             </summary>
             <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
             <returns>A collection of all group to entity mappings in the database valid at the specified state time.  Each tuple contains: the group, the type of the entity, and the entity.</returns>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.ExecuteStoredProcedure(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
-            <summary>
-            Attempts to execute a stored procedure which does not return a result set.
-            </summary>
-            <param name="procedureName">The name of the stored procedure.</param>
-            <param name="parameters">The parameters to pass to the stored procedure.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.ExecuteMultiResultQueryAndHandleException``1(System.String,System.String,System.Func{System.String,``0})">
             <summary>
@@ -629,15 +586,6 @@
             <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
             <returns>A collection of items returned by the query.</returns>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.CreateSqlParameterWithValue(System.String,System.Data.SqlDbType,System.Object)">
-            <summary>
-            Creates a <see cref="T:Microsoft.Data.SqlClient.SqlParameter" />.
-            </summary>
-            <param name="parameterName">The name of the parameter.</param>
-            <param name="parameterType">The type of the parameter.</param>
-            <param name="parameterValue">The value of the parameter.</param>
-            <returns>The created parameter.</returns>
-        </member>
         <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3},System.Exception)">
             <summary>
             Loads the access manager with state corresponding to the specified timestamp from persistent storage.
@@ -653,6 +601,73 @@
             </summary>
             <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
             <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase">
+            <summary>
+            Base class providing common funcionality for classes which read and write to and from Microsoft SQL Server databases.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.connectionString">
+            <summary>The string to use to connect to the SQL Server database.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.retryCount">
+            <summary>The number of times an operation against the SQL Server database should be retried in the case of execution failure.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.retryInterval">
+            <summary>The time in seconds between operation retries.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.operationTimeout">
+            <summary>The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.logger">
+            <summary>The logger for general logging.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.sqlRetryLogicOption">
+            <summary>The retry logic to use when connecting to and executing against the SQL Server database.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.sqlServerTransientErrorNumbers">
+            <summary>A set of SQL Server database engine error numbers which denote a transient fault.</summary>
+            <see href="https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-ver16"/>
+            <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql"/>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.connectionRetryAction">
+            <summary>The action to invoke if an action is retried due to a transient error.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationLogging.IApplicationLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase class.
+            </summary>
+            <param name="connectionString">The string to use to connect to the SQL Server database.</param>
+            <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
+            <param name="retryInterval">The time in seconds between operation retries.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="logger">The logger for general logging.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.GenerateSqlServerTransientErrorNumbers">
+            <summary>
+            Returns a list of SQL Server error numbers which indicate errors which are transient (i.e. could be recovered from after retry).
+            </summary>
+            <returns>The list of SQL Server error numbers.</returns>
+            <remarks>See <see href="https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql">Troubleshooting connectivity issues and other errors with Azure SQL Database and Azure SQL Managed Instance</see></remarks> 
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.CreateSqlParameterWithValue(System.String,System.Data.SqlDbType,System.Object)">
+            <summary>
+            Creates a <see cref="T:Microsoft.Data.SqlClient.SqlParameter" />.
+            </summary>
+            <param name="parameterName">The name of the parameter.</param>
+            <param name="parameterType">The type of the parameter.</param>
+            <param name="parameterValue">The value of the parameter.</param>
+            <returns>The created parameter.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase.ExecuteStoredProcedure(System.String,System.Collections.Generic.IEnumerable{Microsoft.Data.SqlClient.SqlParameter})">
+            <summary>
+            Attempts to execute a stored procedure which does not return a result set.
+            </summary>
+            <param name="procedureName">The name of the stored procedure.</param>
+            <param name="parameters">The parameters to pass to the stored procedure.</param>
         </member>
     </members>
 </doc>

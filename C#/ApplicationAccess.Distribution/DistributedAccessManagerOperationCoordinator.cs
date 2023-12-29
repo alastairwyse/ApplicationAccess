@@ -33,11 +33,6 @@ namespace ApplicationAccess.Distribution
     public class DistributedAccessManagerOperationCoordinator<TClientConfiguration> : IDistributedAccessManagerOperationCoordinator<TClientConfiguration>, IDisposable
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
-        // TODO:
-        //   RE-REVIEW WHICH SHARDS OPERATIONS ARE SENT TO!!!
-        //     ESPECIALLY Things like Remove Group ContainsGroup
-        //     ALREADY HAD LOTS OF THINGS WRONG HERE ON FIRST REVIEW...e.g.ContainsGroup should go to all shards of ALL ELEMTN TYPES...INC ALL GORUPTOGROUP!!! 
-
         /// <summary>Manages the clients used to connect to shards managing the subsets of elements in the distributed implementation..</summary>
         protected IShardClientManager<TClientConfiguration> shardClientManager;
         /// <summary>The hash code generator for users.</summary>

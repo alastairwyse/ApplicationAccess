@@ -20,4 +20,8 @@
     <ProjectReference Include="..\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
 </Project>
