@@ -16,13 +16,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using Microsoft.Data.SqlClient;
-using ApplicationLogging;
 using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Distribution.Serialization;
 using ApplicationAccess.Persistence.SqlServer;
-using System.Data;
-using System.Data.Common;
+using ApplicationAccess.Serialization;
+using ApplicationLogging;
 
 namespace ApplicationAccess.Distribution.Persistence.SqlServer
 {
@@ -85,6 +86,15 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             this.jsonSerializer = jsonSerializer;
             storedProcedureExecutor = new StoredProcedureExecutionWrapper((String procedureName, IEnumerable<SqlParameter> parameters) => { ExecuteStoredProcedure(procedureName, parameters); });
             disposed = false;
+            stagingTable = new DataTable();
+            dataElementTypeColumn = new DataColumn(dataElementTypeColumnName, typeof(String));
+            operationTypeColumn = new DataColumn(operationTypeColumnName, typeof(String));
+            hashRangeStartColumn = new DataColumn(hashRangeStartColumnName, typeof(Int32));
+            clientConfigurationColumn = new DataColumn(clientConfigurationColumnName, typeof(String));
+            stagingTable.Columns.Add(dataElementTypeColumn);
+            stagingTable.Columns.Add(operationTypeColumn);
+            stagingTable.Columns.Add(hashRangeStartColumn);
+            stagingTable.Columns.Add(clientConfigurationColumn);
         }
 
         /// <summary>
@@ -115,15 +125,38 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         /// <inheritdoc/>
         public void Write(ShardConfigurationSet<TClientConfiguration> shardConfigurationSet)
         {
-            // TODO: Implement as per SqlServerAccessManagerTemporalPersisterBase and SqlServerAccessManagerTemporalPersister
-            //   Need to design table, do create scripts, and SP
-
-            throw new NotImplementedException();
+            stagingTable.Rows.Clear();
+            foreach (ShardConfiguration<TClientConfiguration> currentShardConfigurationItem in shardConfigurationSet.Items)
+            {
+                DataRow row = stagingTable.NewRow();
+                row[dataElementTypeColumnName] = currentShardConfigurationItem.DataElementType.ToString();
+                row[operationTypeColumnName] = currentShardConfigurationItem.OperationType.ToString();
+                row[hashRangeStartColumnName] = currentShardConfigurationItem.HashRangeStart;
+                try
+                {
+                    row[clientConfigurationColumnName] = jsonSerializer.Serialize(currentShardConfigurationItem.ClientConfiguration);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Failed to serialize shard configuration item for data element '{currentShardConfigurationItem.DataElementType.ToString()}', operation '{currentShardConfigurationItem.OperationType.ToString()}', and hash range start {currentShardConfigurationItem.HashRangeStart}.", e);
+                }
+                stagingTable.Rows.Add(row);
+            }
+            var parameters = new List<SqlParameter>()
+            {
+                CreateSqlParameterWithValue(shardConfigurationItemsParameterName, SqlDbType.Structured, stagingTable)
+            };
+            storedProcedureExecutor.Execute(updateShardConfigurationsStoredProcedureName, parameters);
         }
 
         /// <inheritdoc/>
         public ShardConfigurationSet<TClientConfiguration> Read()
         {
+            // Implement similar to SqlServerAccessManagerTemporalPersisterBase.Load
+            //   Query for temporal validity and just convert each cell value and create the shard config items
+            //   Then will just need some granular error testing
+
+
             throw new NotImplementedException();
         }
 
@@ -185,7 +218,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             protected Action<String, IEnumerable<SqlParameter>> executeAction;
 
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister+StoredProcedureExecutionWrapper class.
+            /// Initialises a new instance of the ApplicationAccess.Distribution.Persistence.SqlServer.SqlServerShardConfigurationSetPersister+StoredProcedureExecutionWrapper class.
             /// </summary>
             /// <param name="executeAction"></param>
             public StoredProcedureExecutionWrapper(Action<String, IEnumerable<SqlParameter>> executeAction)

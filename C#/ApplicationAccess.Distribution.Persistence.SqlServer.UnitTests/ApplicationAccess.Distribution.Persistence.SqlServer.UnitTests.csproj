@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <Description>Unit tests for classes in the ApplicationAccess.Distribution.Persistence.SqlServer namespace.</Description>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="ApplicationLogging" Version="2.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+    <PackageReference Include="NSubstitute" Version="4.4.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence.SqlServer\ApplicationAccess.Distribution.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Serialization\ApplicationAccess.Distribution.Serialization.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedAsyncClient\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.csproj" />
+  </ItemGroup>
+  
+</Project>

@@ -304,7 +304,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testUser = "user1";
             mockMetricLogger.Begin(Arg.Any<UserAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.AddUserAsync(testUser)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.AddUserAsync(testUser).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -434,7 +434,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             var mockException = new Exception("Mock exception");
             mockMetricLogger.Begin(Arg.Any<UserRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(allClients);
-            clientsAndDescriptions[1].Client.When(client => client.RemoveUserAsync(testUser)).Do((callInfo) => throw mockException);
+            clientsAndDescriptions[1].Client.RemoveUserAsync(testUser).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -485,7 +485,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockMetricLogger.Begin(Arg.Any<GroupAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientsAndDescriptions[0]);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[1] });
-            clientsAndDescriptions[1].Client.When(client => client.AddGroupAsync(testGroup)).Do((callInfo) => throw mockException);
+            clientsAndDescriptions[1].Client.AddGroupAsync(testGroup).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -645,7 +645,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] });
             mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2] });
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[3], clientsAndDescriptions[4] });
-            clientsAndDescriptions[3].Client.When(client => client.RemoveGroupAsync(testGroup)).Do((callInfo) => throw mockException);
+            clientsAndDescriptions[3].Client.RemoveGroupAsync(testGroup).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -707,7 +707,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testGroup = "group1";
             mockMetricLogger.Begin(Arg.Any<UserToGroupMappingAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.AddUserToGroupMappingAsync(testUser, testGroup)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.AddUserToGroupMappingAsync(testUser, testGroup).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -998,7 +998,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testGroup = "group1";
             mockMetricLogger.Begin(Arg.Any<UserToGroupMappingRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.RemoveUserToGroupMappingAsync(testUser, testGroup)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.RemoveUserToGroupMappingAsync(testUser, testGroup).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1054,7 +1054,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testToGroup = "group2";
             mockMetricLogger.Begin(Arg.Any<GroupToGroupMappingAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.AddGroupToGroupMappingAsync(testFromGroup, testToGroup)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.AddGroupToGroupMappingAsync(testFromGroup, testToGroup).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1228,7 +1228,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testToGroup = "group2";
             mockMetricLogger.Begin(Arg.Any<GroupToGroupMappingRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.RemoveGroupToGroupMappingAsync(testFromGroup, testToGroup)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.RemoveGroupToGroupMappingAsync(testFromGroup, testToGroup).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1286,7 +1286,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testAccessLevel = "View";
             mockMetricLogger.Begin(Arg.Any<UserToApplicationComponentAndAccessLevelMappingAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.AddUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.AddUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1406,7 +1406,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testAccessLevel = "View";
             mockMetricLogger.Begin(Arg.Any<UserToApplicationComponentAndAccessLevelMappingRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1464,7 +1464,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testAccessLevel = "View";
             mockMetricLogger.Begin(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.AddGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.AddGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1584,7 +1584,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testAccessLevel = "View";
             mockMetricLogger.Begin(Arg.Any<GroupToApplicationComponentAndAccessLevelMappingRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1636,7 +1636,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockMetricLogger.Begin(Arg.Any<EntityTypeAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] });
             mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2], clientsAndDescriptions[3] });
-            clientsAndDescriptions[2].Client.When(client => client.AddEntityTypeAsync(testEntityType)).Do((callInfo) => throw mockException);
+            clientsAndDescriptions[2].Client.AddEntityTypeAsync(testEntityType).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1780,7 +1780,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockMetricLogger.Begin(Arg.Any<EntityTypeRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] });
             mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2], clientsAndDescriptions[3] });
-            clientsAndDescriptions[0].Client.When(client => client.RemoveEntityTypeAsync(testEntityType)).Do((callInfo) => throw mockException);
+            clientsAndDescriptions[0].Client.RemoveEntityTypeAsync(testEntityType).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1838,7 +1838,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockMetricLogger.Begin(Arg.Any<EntityAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] });
             mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2], clientsAndDescriptions[3] });
-            clientsAndDescriptions[0].Client.When(client => client.AddEntityAsync(testEntityType, testEntity)).Do((callInfo) => throw mockException);
+            clientsAndDescriptions[0].Client.AddEntityAsync(testEntityType, testEntity).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2049,7 +2049,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockMetricLogger.Begin(Arg.Any<EntityRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] });
             mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2], clientsAndDescriptions[3] });
-            clientsAndDescriptions[1].Client.When(client => client.RemoveEntityAsync(testEntityType, testEntity)).Do((callInfo) => throw mockException);
+            clientsAndDescriptions[1].Client.RemoveEntityAsync(testEntityType, testEntity).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2111,7 +2111,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testEntity = "CompanyA";
             mockMetricLogger.Begin(Arg.Any<UserToEntityMappingAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.AddUserToEntityMappingAsync(testUser, testEntityType, testEntity)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.AddUserToEntityMappingAsync(testUser, testEntityType, testEntity).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2292,7 +2292,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testEntity = "CompanyA";
             mockMetricLogger.Begin(Arg.Any<UserToEntityMappingRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2350,7 +2350,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testEntity = "CompanyA";
             mockMetricLogger.Begin(Arg.Any<GroupToEntityMappingAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2531,7 +2531,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testEntity = "CompanyA";
             mockMetricLogger.Begin(Arg.Any<GroupToEntityMappingRemoveTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientAndDescription);
-            clientAndDescription.Client.When(client => client.RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity)).Do((callInfo) => throw mockException);
+            clientAndDescription.Client.RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {

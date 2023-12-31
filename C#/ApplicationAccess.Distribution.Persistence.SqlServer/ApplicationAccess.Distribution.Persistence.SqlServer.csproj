@@ -18,6 +18,7 @@
     <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence\ApplicationAccess.Distribution.Persistence.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Serialization\ApplicationAccess.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

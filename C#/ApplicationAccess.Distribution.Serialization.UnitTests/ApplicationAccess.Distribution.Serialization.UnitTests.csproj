@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Distribution.Serialization\ApplicationAccess.Distribution.Serialization.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedAsyncClient\ApplicationAccess.Hosting.Rest.DistributedAsyncClient.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Serialization\ApplicationAccess.Serialization.csproj" />
   </ItemGroup>
 
 </Project>

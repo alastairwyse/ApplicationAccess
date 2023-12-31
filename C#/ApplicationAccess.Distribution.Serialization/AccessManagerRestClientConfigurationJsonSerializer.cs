@@ -17,6 +17,7 @@
 using System;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
+using ApplicationAccess.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -60,7 +61,7 @@ namespace ApplicationAccess.Distribution.Serialization
             }
             if (Uri.TryCreate(clientConfigurationJson[baseUrlPropertyName].ToString(), UriKind.RelativeOrAbsolute, out Uri baseUrl) == false)
             {
-                throw new ArgumentException($"Property '{baseUrlPropertyName}' with value '{clientConfigurationJson[baseUrlPropertyName].ToString()}' in JSON document in parameter '{nameof(serializedClientConfiguration)}' could not be parsed as a {typeof(Uri).Name}.", nameof(serializedClientConfiguration));
+                throw new DeserializationException($"Property '{baseUrlPropertyName}' with value '{clientConfigurationJson[baseUrlPropertyName].ToString()}' in JSON document in parameter '{nameof(serializedClientConfiguration)}' could not be parsed as a {typeof(Uri).Name}.");
             }
 
             return new AccessManagerRestClientConfiguration(baseUrl);
