@@ -36,6 +36,9 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
         where TJsonSerializer : IDistributedAccessManagerAsyncClientConfigurationJsonSerializer<TClientConfiguration>
     {
+        /// <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
+        protected const String transactionSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
+
         #pragma warning disable 1591
 
         protected const String updateShardConfigurationsStoredProcedureName = "UpdateShardConfiguration";
@@ -152,13 +155,73 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         /// <inheritdoc/>
         public ShardConfigurationSet<TClientConfiguration> Read()
         {
-            // Implement similar to SqlServerAccessManagerTemporalPersisterBase.Load
-            //   Query for temporal validity and just convert each cell value and create the shard config items
-            //   Then will just need some granular error testing
+            var shardConfigurationItems = new List<ShardConfiguration<TClientConfiguration>>();
+            DateTime currentDateTime = DateTime.UtcNow;
+            String query =
+            @$"
+            SELECT  DataElementType, 
+                    OperationType, 
+                    HashRangeStart, 
+                    ClientConfiguration 
+            FROM    ShardConfiguration 
+            WHERE   CONVERT(datetime2, '{currentDateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
 
+            using (var connection = new SqlConnection(connectionString))
+            using (var command = new SqlCommand(query))
+            {
+                connection.RetryLogicProvider = SqlConfigurableRetryFactory.CreateFixedRetryProvider(sqlRetryLogicOption);
+                connection.RetryLogicProvider.Retrying += connectionRetryAction;
+                connection.Open();
+                command.Connection = connection;
+                command.CommandTimeout = operationTimeout;
+                using (SqlDataReader dataReader = command.ExecuteReader())
+                {
+                    while (dataReader.Read())
+                    {
+                        ShardConfiguration<TClientConfiguration> currentConfigurationItem = ReadShardConfigurationItem(dataReader);
+                        shardConfigurationItems.Add(currentConfigurationItem);
+                    }
+                }
+                connection.RetryLogicProvider.Retrying -= connectionRetryAction;
+            }
 
-            throw new NotImplementedException();
+            return new ShardConfigurationSet<TClientConfiguration>(shardConfigurationItems);
         }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Reads a single <see cref="ShardConfiguration{TClientConfiguration}"/> from the current row of the specified <see cref="SqlDataReader"/>.
+        /// </summary>
+        /// <param name="dataReader">The <see cref="SqlDataReader"/> to read from.</param>
+        /// <returns>The <see cref="ShardConfiguration{TClientConfiguration}"/>.</returns>
+        protected ShardConfiguration<TClientConfiguration> ReadShardConfigurationItem(SqlDataReader dataReader)
+        {
+            Boolean parseResult = Enum.TryParse<DataElement>((String)dataReader[dataElementTypeColumnName], out DataElement dataElement);
+            if (parseResult == false)
+            {
+                throw new Exception($"Failed to convert value '{(String)dataReader[dataElementTypeColumnName]}' in column '{dataElementTypeColumnName}' to a {typeof(DataElement).Name}.");
+            }
+            parseResult = Enum.TryParse<Operation>((String)dataReader[operationTypeColumnName], out Operation operation);
+            if (parseResult == false)
+            {
+                throw new Exception($"Failed to convert value '{(String)dataReader[operationTypeColumnName]}' in column '{operationTypeColumnName}' to an {typeof(Operation).Name}.");
+            }
+            Int32 hashRangeStart = (Int32)dataReader[hashRangeStartColumnName];
+            TClientConfiguration clientConfiguration = default(TClientConfiguration);
+            try
+            {
+                clientConfiguration = jsonSerializer.Deserialize((String)dataReader[clientConfigurationColumnName]);
+            }
+            catch (Exception e)
+            {
+                throw new DeserializationException($"Failed to deserialize client configuration of type '{typeof(TClientConfiguration).Name}' from string '{(String)dataReader[clientConfigurationColumnName]}'.", e);
+            }
+
+            return new ShardConfiguration<TClientConfiguration>(dataElement, operation, hashRangeStart, clientConfiguration);
+        }
+
+        #endregion
 
         #region Finalize / Dispose Methods
 

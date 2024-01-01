@@ -128,14 +128,6 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
             mockJsonSerializer.Received(1).Serialize(testClientConfiguration3);
         }
 
-        [Test]
-        public void Read()
-        {
-            // Need to implement this and tests incl failure
-
-            throw new NotImplementedException();
-        }
-
         #region Private/Protected Methods
 
         /// <summary>
