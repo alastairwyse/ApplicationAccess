@@ -23,7 +23,7 @@ using System.ComponentModel;
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controller which exposes primary 'Add*' entity event methods as REST methods.
+    /// Base for controllers which expose primary 'Add*' entity event methods as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]

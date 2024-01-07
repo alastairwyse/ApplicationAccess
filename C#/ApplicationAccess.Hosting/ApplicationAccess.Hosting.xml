@@ -212,6 +212,190 @@
         <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.InitializeAccessManager(System.Boolean)">
             <inheritdoc/>
         </member>
+        <member name="T:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2">
+            <summary>
+            A node which coordinates operations in an AccessManager implementation where responsibility for subsets of elements is distributed across multiple computers in shards.
+            </summary>
+            <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
+            <typeparam name="TClientConfigurationJsonSerializer">An implementation of <see cref="T:ApplicationAccess.Distribution.Serialization.IDistributedAccessManagerAsyncClientConfigurationJsonSerializer`1"/> which serializes <typeparamref name="TClientConfiguration"/> instances.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.shardClientManager">
+            <summary>Manages the clients used to connect to shards managing the subsets of elements in the distributed access manager implementation.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.shardConfigurationRefreshStrategy">
+            <summary>The strategy/methodology to use to refresh the shard configuration.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.distributedOperationCoordinator">
+            <summary>The <see cref="T:ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator`1"/> instance which processes any operations received by the node.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.shardConfigurationSetPersister">
+            <summary>Implementation of <see cref="T:ApplicationAccess.Distribution.Persistence.IShardConfigurationSetPersister`2"/> used to read shard configuration from persistent storage.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.shardConfigurationRefreshedEventHandler">
+            <summary>The delegate which handles a <see cref="E:ApplicationAccess.Hosting.IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.ShardConfigurationRefreshed">ShardConfigurationRefreshed</see> event.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.#ctor(ApplicationAccess.Distribution.IShardClientManager{`0},ApplicationAccess.Hosting.IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy,ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator{`0},ApplicationAccess.Distribution.Persistence.IShardConfigurationSetPersister{`0,`1})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedOperationCoordinatorNode class.
+            </summary>
+            <param name="shardClientManager">Manages the clients used to connect to shards managing the subsets of elements in the distributed access manager implementation.</param>
+            <param name="shardConfigurationRefreshStrategy">The strategy/methodology to use to refresh the shard configuration.</param>
+            <param name="distributedOperationCoordinator">The <see cref="T:ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator`1"/> instance which processes any operations received by the node.</param>
+            <param name="shardConfigurationSetPersister">Implementation of <see cref="T:ApplicationAccess.Distribution.Persistence.IShardConfigurationSetPersister`2"/> used to read shard configuration from persistent storage.</param>
+            <remarks>The shard client manager in parameter <paramref name="shardClientManager"/> must be the same instance used by the distributed operation coordinator in parameter <paramref name="distributedOperationCoordinator"/>.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetUsersAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupsAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetEntityTypesAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.ContainsUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.ContainsGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddUserToGroupMappingAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetUserToGroupMappingsAsync(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveUserToGroupMappingAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddGroupToGroupMappingAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToGroupMappingsAsync(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveGroupToGroupMappingAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddUserToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetUserToApplicationComponentAndAccessLevelMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddGroupToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddEntityTypeAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.ContainsEntityTypeAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveEntityTypeAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddEntityAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetEntitiesAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.ContainsEntityAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveEntityAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddUserToEntityMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetUserToEntityMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetUserToEntityMappingsAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveUserToEntityMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.AddGroupToEntityMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToEntityMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToEntityMappingsAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveGroupToEntityMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.HasAccessToApplicationComponentAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.HasAccessToEntityAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetApplicationComponentsAccessibleByUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetApplicationComponentsAccessibleByGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetEntitiesAccessibleByUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetEntitiesAccessibleByUserAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetEntitiesAccessibleByGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetEntitiesAccessibleByGroupAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RefreshShardConfiguration">
+            <summary>
+            Refreshes the shard configuration with the configuration currently in persistent storage.
+            </summary>
+            <exception cref="T:ApplicationAccess.Distribution.ShardConfigurationRefreshException"></exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the DistributedOperationCoordinatorNode.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        </member>
         <member name="T:ApplicationAccess.Hosting.DistributedReaderNode`4">
             <summary>
             A node in a distributed ApplicationAccess hosting environment which allows reading permissions and authorizations for an application.
@@ -317,6 +501,20 @@
         <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.InitializeAccessManager(System.Boolean)">
             <inheritdoc/>
         </member>
+        <member name="T:ApplicationAccess.Hosting.IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy">
+            <summary>
+            Defines a strategy/methodology for refreshing/updating the shard configuration in a <see cref="T:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2"/>.
+            </summary>
+        </member>
+        <member name="E:ApplicationAccess.Hosting.IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.ShardConfigurationRefreshed">
+            <summary>Occurs when the shard configuration is refreshed/updated.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.NotifyOperationProcessed">
+            <summary>
+            Notifies the strategy that an operation was processed by the <see cref="T:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2"/>.
+            </summary>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the shard configuration.</exception>
+        </member>
         <member name="T:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy">
             <summary>
             Defines a strategy/methodology for refreshing/updating the contents of a <see cref="T:ApplicationAccess.Hosting.ReaderNode`4"/>.
@@ -330,6 +528,62 @@
             Notifies the strategy that a <see cref="T:ApplicationAccess.Hosting.ReaderNode`4"/> query method was called.
             </summary>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="T:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy">
+            <summary>
+            A distributed operation coordinator node shard configuration refresh strategy that refreshes/updates the shard configuration at a regular interval, using a worker thread.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.shardConfigurationRefreshWorkerThread">
+            <summary>Worker thread which implements the strategy to refresh the shard configuration.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.refreshExceptionDispatchInfo">
+            <summary>Set with any exception which occurrs on the worker thread when refreshing the shard configuration (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.refreshLoopInterval">
+            <summary>The time to wait (in milliseconds) between shard configuration refreshes.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.stopMethodCalled">
+            <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
+        </member>
+        <member name="E:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.ShardConfigurationRefreshed">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.#ctor(System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy class.
+            </summary>
+            <param name="refreshLoopInterval">The time to wait (in milliseconds) between shard configuration refreshes.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.NotifyOperationProcessed">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.Start">
+            <summary>
+            Starts the worker thread which performs shard configuration refreshes.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.Stop">
+            <summary>
+            Stops the worker thread which performs shard configuration refreshes.
+            </summary>
+            <exception cref="T:ApplicationAccess.Distribution.ShardConfigurationRefreshException">An exception occurred whilst attempting to refresh/update the shard configuration.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.OnShardConfigurationRefreshed(System.EventArgs)">
+            <summary>
+            Raises the ShardConfigurationRefreshed event.
+            </summary>
+            <param name="e">An EventArgs that contains the event data.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.JoinWorkerThread">
+            <summary>
+            Calls Join() on the worker thread, waiting until it terminates.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.CheckAndThrowRefreshException">
+            <summary>
+            Checks whether property 'refreshExceptionDispatchInfo' has been set, and re-throws the exception in the case that it has.
+            </summary>
         </member>
         <member name="T:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy">
             <summary>
@@ -403,7 +657,7 @@
         </member>
         <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.CheckAndThrowRefreshException">
             <summary>
-            Checks whether property 'refreshException' has been set, and re-throws the exception in the case that it has.
+            Checks whether property 'refreshExceptionDispatchInfo' has been set, and re-throws the exception in the case that it has.
             </summary>
         </member>
         <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.Dispose">

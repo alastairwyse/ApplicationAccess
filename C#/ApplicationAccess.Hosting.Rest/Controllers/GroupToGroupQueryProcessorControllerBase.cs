@@ -25,7 +25,7 @@ using ApplicationAccess.Hosting.Models.DataTransferObjects;
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controller which exposes methods on the <see cref="IAccessManagerGroupToGroupQueryProcessor{TGroup}"/> interface as REST methods.
+    /// Base for controllers which expose methods on the <see cref="IAccessManagerGroupToGroupQueryProcessor{TGroup}"/> interface as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
@@ -61,6 +61,5 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
                 yield return new FromGroupAndToGroup<String>(group, currentGroup);
             }
         }
-
     }
 }

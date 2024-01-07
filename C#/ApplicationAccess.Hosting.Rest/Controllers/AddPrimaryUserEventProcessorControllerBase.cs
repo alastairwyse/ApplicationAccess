@@ -22,7 +22,7 @@ using Microsoft.AspNetCore.Http;
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controller which exposes primary 'Add*' user event methods as REST methods.
+    /// Base for controllers which expose primary 'Add*' user event methods as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]

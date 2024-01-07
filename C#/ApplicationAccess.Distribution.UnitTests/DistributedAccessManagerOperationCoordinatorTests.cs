@@ -34,7 +34,6 @@ namespace ApplicationAccess.Distribution.UnitTests
     public class DistributedAccessManagerOperationCoordinatorTests
     {
         private IShardClientManager<AccessManagerRestClientConfiguration> mockShardClientManager;
-        private IDistributedAccessManagerAsyncClientFactory<AccessManagerRestClientConfiguration, String, String, String, String> mockClientFactory;
         private IHashCodeGenerator<String> mockUserHashCodeGenerator;
         private IHashCodeGenerator<String> mockGroupHashCodeGenerator;
         private IMetricLogger mockMetricLogger;
@@ -44,27 +43,17 @@ namespace ApplicationAccess.Distribution.UnitTests
         protected void SetUp()
         {
             mockShardClientManager = Substitute.For<IShardClientManager<AccessManagerRestClientConfiguration>>();
-            mockClientFactory = Substitute.For<IDistributedAccessManagerAsyncClientFactory<AccessManagerRestClientConfiguration, String, String, String, String>>();
             mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            mockClientFactory = Substitute.For<IDistributedAccessManagerAsyncClientFactory<AccessManagerRestClientConfiguration, String, String, String, String>>();
             var initialShardConfiguration = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(Enumerable.Empty<ShardConfiguration<AccessManagerRestClientConfiguration>>());
             testOperationCoordinator = new DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>
             (
-                initialShardConfiguration,
-                mockClientFactory,
+                mockShardClientManager, 
                 mockUserHashCodeGenerator,
                 mockGroupHashCodeGenerator,
-                mockMetricLogger,
-                mockShardClientManager
+                mockMetricLogger
             );
-        }
-
-        [TearDown]
-        protected void TearDown()
-        {
-            testOperationCoordinator.Dispose();
         }
 
         [Test]
@@ -4484,7 +4473,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             var userQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQueryClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
-                new List<ShardConfiguration<AccessManagerRestClientConfiguration>>(){ userQueryShardConfiguration }
+                new List<ShardConfiguration<AccessManagerRestClientConfiguration>>() { userQueryShardConfiguration }
             );
             var mockException = new Exception("Mock exception");
             mockShardClientManager.When((shardClientManager) => shardClientManager.RefreshConfiguration(testShardConfigurationSet)).Do((callInfo) => throw mockException);

@@ -161,7 +161,7 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <summary>
-        /// Checks whether property 'refreshException' has been set, and re-throws the exception in the case that it has.
+        /// Checks whether property 'refreshExceptionDispatchInfo' has been set, and re-throws the exception in the case that it has.
         /// </summary>
         protected void CheckAndThrowRefreshException()
         {
@@ -172,7 +172,6 @@ namespace ApplicationAccess.Hosting
         }
 
         #endregion
-
 
         #region Finalize / Dispose Methods
 

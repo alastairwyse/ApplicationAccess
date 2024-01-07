@@ -23,7 +23,7 @@ namespace ApplicationAccess.Distribution.Persistence
     /// Defines methods which read and write instances of <see cref="ShardConfigurationSet{TClientConfiguration}"/> to and from persistent storage.
     /// </summary>
     /// <typeparam name="TClientConfiguration">The implementation of <see cref="IDistributedAccessManagerAsyncClientConfiguration"/> embedded within items in the shard configuration set.</typeparam>
-    /// <typeparam name="TJsonSerializer">An implementation of <see cref="IDistributedAccessManagerAsyncClientConfigurationJsonSerializer{T}"/> which serializes <typeparamref name="TClientConfiguration"/> instances</typeparam>
+    /// <typeparam name="TJsonSerializer">An implementation of <see cref="IDistributedAccessManagerAsyncClientConfigurationJsonSerializer{T}"/> which serializes <typeparamref name="TClientConfiguration"/> instances.</typeparam>
     public interface IShardConfigurationSetPersister<TClientConfiguration, TJsonSerializer>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
         where TJsonSerializer : IDistributedAccessManagerAsyncClientConfigurationJsonSerializer<TClientConfiguration>

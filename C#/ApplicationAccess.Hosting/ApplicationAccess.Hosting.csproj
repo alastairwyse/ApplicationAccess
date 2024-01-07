@@ -14,6 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence\ApplicationAccess.Distribution.Persistence.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Serialization\ApplicationAccess.Distribution.Serialization.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Metrics\ApplicationAccess.Metrics.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />

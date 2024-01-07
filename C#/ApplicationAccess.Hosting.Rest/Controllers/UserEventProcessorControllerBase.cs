@@ -22,7 +22,7 @@ using Microsoft.AspNetCore.Http;
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controller which exposes methods on the <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/> interface (except the primary 'Add*' methods) as REST methods.
+    /// Base for controllers which expose methods on the <see cref="IAccessManagerUserEventProcessor{TUser, TGroup, TComponent, TAccess}"/> interface (except the primary 'Add*' methods) as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]

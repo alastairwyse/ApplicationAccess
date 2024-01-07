@@ -26,7 +26,7 @@ using ApplicationAccess.Distribution;
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controller which exposes methods on the <see cref="IDistributedAccessManagerGroupQueryProcessor{TGroup, TComponent, TAccess}"/> interface as REST methods.
+    /// Base for controllers which expose methods on the <see cref="IDistributedAccessManagerGroupQueryProcessor{TGroup, TComponent, TAccess}"/> interface as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]

@@ -30,10 +30,10 @@ namespace ApplicationAccess.Distribution
     /// Coordinates operations in an AccessManager implementation where responsibility for subsets of elements is distributed across multiple computers in shards.
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
-    public class DistributedAccessManagerOperationCoordinator<TClientConfiguration> : IDistributedAccessManagerOperationCoordinator<TClientConfiguration>, IDisposable
+    public class DistributedAccessManagerOperationCoordinator<TClientConfiguration> : IDistributedAccessManagerOperationCoordinator<TClientConfiguration>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
-        /// <summary>Manages the clients used to connect to shards managing the subsets of elements in the distributed implementation..</summary>
+        /// <summary>Manages the clients used to connect to shards managing the subsets of elements in the distributed access manager implementation.</summary>
         protected IShardClientManager<TClientConfiguration> shardClientManager;
         /// <summary>The hash code generator for users.</summary>
         protected IHashCodeGenerator<String> userHashCodeGenerator;
@@ -47,49 +47,22 @@ namespace ApplicationAccess.Distribution
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManagerOperationCoordinator class.
         /// </summary>
-        /// <param name="initialShardConfiguration">The initial configuration of the shards managing the subsets of elements in the distributed implementation.</param>
-        /// <param name="shardClientFactory">Factory used to create <see cref="IDistributedAccessManagerAsyncClient{String, String, String, String}"/> instances from <typeparamref name="TClientConfiguration"/> objects, which connect to shards managing the subsets of elements in the distributed implementation.</param>
+        /// <param name="shardClientManager">Manages the clients used to connect to shards managing the subsets of elements in the distributed access manager implementation.</param>
         /// <param name="userHashCodeGenerator">Hash code generator for users.</param>
         /// <param name="groupHashCodeGenerator">Hash code generator for groups.</param>
         /// <param name="metricLogger">Logger for metrics.</param>
         public DistributedAccessManagerOperationCoordinator
         (
-            ShardConfigurationSet<TClientConfiguration> initialShardConfiguration, 
-            IDistributedAccessManagerAsyncClientFactory<TClientConfiguration, String, String, String, String> shardClientFactory, 
+            IShardClientManager<TClientConfiguration> shardClientManager, 
             IHashCodeGenerator<String> userHashCodeGenerator, 
             IHashCodeGenerator<String> groupHashCodeGenerator, 
             IMetricLogger metricLogger
         )
         {
-            shardClientManager = new ShardClientManager<TClientConfiguration>(initialShardConfiguration, shardClientFactory, userHashCodeGenerator, groupHashCodeGenerator, metricLogger);
+            this.shardClientManager = shardClientManager;
             this.userHashCodeGenerator = userHashCodeGenerator;
             this.groupHashCodeGenerator = groupHashCodeGenerator;
             this.metricLogger= metricLogger;
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManagerOperationCoordinator class.
-        /// </summary>
-        /// <param name="initialShardConfiguration">The initial configuration of the shards managing the subsets of elements in the distributed implementation.</param>
-        /// <param name="shardClientFactory">Factory used to create <see cref="IDistributedAccessManagerAsyncClient{String, String, String, String}"/> instances from <typeparamref name="TClientConfiguration"/> objects, which connect to shards managing the subsets of elements in the distributed implementation.</param>
-        /// <param name="userHashCodeGenerator">Hash code generator for users.</param>
-        /// <param name="groupHashCodeGenerator">Hash code generator for groups.</param>
-        /// <param name="metricLogger">Logger for metrics.</param>
-        /// <param name="shardClientManager">A mock shard client manager.</param>
-        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public DistributedAccessManagerOperationCoordinator
-        (
-            ShardConfigurationSet<TClientConfiguration> initialShardConfiguration,
-            IDistributedAccessManagerAsyncClientFactory<TClientConfiguration, String, String, String, String> shardClientFactory,
-            IHashCodeGenerator<String> userHashCodeGenerator,
-            IHashCodeGenerator<String> groupHashCodeGenerator,
-            IMetricLogger metricLogger,
-            IShardClientManager<TClientConfiguration> shardClientManager
-        )
-            : this(initialShardConfiguration, shardClientFactory, userHashCodeGenerator, groupHashCodeGenerator, metricLogger)
-        {
-            this.shardClientManager.Dispose();
-            this.shardClientManager = shardClientManager;
         }
 
         /// <inheritdoc/>
@@ -1207,7 +1180,11 @@ namespace ApplicationAccess.Distribution
             return new List<String>(result);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Refreshes the internally stored shard configuration with the specified shard configuration if the configurations differ (if they are the same, no refresh is performed).
+        /// </summary>
+        /// <param name="shardConfiguration">The updated shard configuration.</param>
+        /// <exception cref="ShardConfigurationRefreshException">An exception occurred whilst attempting to refresh/update the shard configuration.</exception>
         public void RefreshShardConfiguration(ShardConfigurationSet<TClientConfiguration> shardConfiguration)
         {
             try
@@ -1570,49 +1547,6 @@ namespace ApplicationAccess.Distribution
                 {
                     return;
                 }
-            }
-        }
-
-        #endregion
-
-        #region Finalize / Dispose Methods
-
-        /// <summary>
-        /// Releases the unmanaged resources used by the DistributedAccessManagerOperationCoordinator.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #pragma warning disable 1591
-
-        ~DistributedAccessManagerOperationCoordinator()
-        {
-            Dispose(false);
-        }
-
-        #pragma warning restore 1591
-
-        /// <summary>
-        /// Provides a method to free unmanaged resources used by this class.
-        /// </summary>
-        /// <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                if (disposing)
-                {
-                    // Free other state (managed objects).
-                    shardClientManager.Dispose();
-                }
-                // Free your own state (unmanaged objects).
-
-                // Set large fields to null.
-
-                disposed = true;
             }
         }
 

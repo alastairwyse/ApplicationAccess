@@ -49,6 +49,12 @@ namespace ApplicationAccess.Hosting.UnitTests
             testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, false, mockMetricLogger);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            testReaderWriterNode.Dispose();
+        }
+
         [Test]
         public void Constructor_ConcurrentAccessManagerStoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
         {

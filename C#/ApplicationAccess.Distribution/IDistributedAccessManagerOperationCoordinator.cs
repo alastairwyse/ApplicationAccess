@@ -30,11 +30,5 @@ namespace ApplicationAccess.Distribution
         IAccessManagerAsyncEventProcessor<String, String, String, String>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
-        /// <summary>
-        /// Refreshes the internally stored shard configuration with the specified shard configuration if the configurations differ (if they are the same, no refresh is performed).
-        /// </summary>
-        /// <param name="shardConfiguration"></param>
-        /// <exception cref="ShardConfigurationRefreshException">An exception occurred whilst attempting to refresh/update the shard configuration.</exception>
-        void RefreshShardConfiguration(ShardConfigurationSet<TClientConfiguration> shardConfiguration);
     }
 }

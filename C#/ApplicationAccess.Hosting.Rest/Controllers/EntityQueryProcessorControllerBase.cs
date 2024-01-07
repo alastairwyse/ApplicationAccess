@@ -26,7 +26,7 @@ using ApplicationAccess.Hosting.Rest.Utilities;
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controller which exposes methods on the <see cref="IAccessManagerEntityQueryProcessor"/> interface as REST methods.
+    /// Base for controllers which expose methods on the <see cref="IAccessManagerEntityQueryProcessor"/> interface as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
@@ -118,6 +118,5 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
                 throw new NotFoundException($"Entity '{entity}' with type '{entityType}' does not exist.", entity);
             }
         }
-
     }
 }
