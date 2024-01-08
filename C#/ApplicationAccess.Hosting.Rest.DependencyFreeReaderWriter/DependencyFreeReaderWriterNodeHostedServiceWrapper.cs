@@ -15,12 +15,13 @@
  */
 
 using System;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.ReaderWriter;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
 {

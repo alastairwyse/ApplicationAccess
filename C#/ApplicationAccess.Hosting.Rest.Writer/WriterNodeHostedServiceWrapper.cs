@@ -15,8 +15,9 @@
  */
 
 using System;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Metrics;
 

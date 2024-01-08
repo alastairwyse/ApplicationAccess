@@ -27,8 +27,10 @@
 #
 # Arguments:
 #   $1 - The ApplicationAccess component to launch.  Should be one of 
-#   'EventCacheNode', 'ReaderNode', 'ReaderWriterNode', or 'WriterNode'.  Not 
-#   required in 'EncodeConfiguration' mode.
+#   'EventCacheNode', 'ReaderNode', 'ReaderWriterNode', 'WriterNode', 
+#   'DependencyFreeReaderWriterNode', 'DistributedReaderNode', 'DistributedWriterNode', 
+#   or 'DistributedOperationCoordinatorNode'.  Not required in 'EncodeConfiguration' 
+#   mode.
 #
 # Usage Example:
 #   ./ApplicationAccessComponentLauncher.sh ReaderNode

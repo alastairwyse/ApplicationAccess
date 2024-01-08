@@ -17,8 +17,9 @@
 using System;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Metrics;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {

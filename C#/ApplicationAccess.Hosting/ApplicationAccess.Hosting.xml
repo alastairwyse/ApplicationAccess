@@ -383,7 +383,7 @@
             <summary>
             Refreshes the shard configuration with the configuration currently in persistent storage.
             </summary>
-            <exception cref="T:ApplicationAccess.Distribution.ShardConfigurationRefreshException"></exception>
+            <exception cref="T:ApplicationAccess.Distribution.ShardConfigurationRefreshException">An error occurred whilst refreshing the shard configuration.</exception>
         </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.Dispose">
             <summary>

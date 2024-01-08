@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Client\ApplicationAccess.Hosting.Rest.Client.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests\ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests.csproj" />
   </ItemGroup>

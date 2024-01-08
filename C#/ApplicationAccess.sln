@@ -105,6 +105,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Distribut
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests", "ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests\ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests.csproj", "{6FBDC1F7-4510-45BF-B684-D2EAA79B3C36}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator", "ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.csproj", "{A04C5FFA-E1AF-422B-97DD-30E55ED3D7E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -315,6 +317,10 @@ Global
 		{6FBDC1F7-4510-45BF-B684-D2EAA79B3C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FBDC1F7-4510-45BF-B684-D2EAA79B3C36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FBDC1F7-4510-45BF-B684-D2EAA79B3C36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A04C5FFA-E1AF-422B-97DD-30E55ED3D7E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A04C5FFA-E1AF-422B-97DD-30E55ED3D7E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A04C5FFA-E1AF-422B-97DD-30E55ED3D7E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A04C5FFA-E1AF-422B-97DD-30E55ED3D7E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

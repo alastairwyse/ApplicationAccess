@@ -4,7 +4,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccess
+USE ApplicationAccessConfiguration
 GO 
 
 DROP PROCEDURE dbo.UpdateShardConfiguration;
@@ -25,4 +25,4 @@ DROP TYPE dbo.ShardConfigurationStagingTableType;
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-DROP TABLE ApplicationAccess.dbo.ShardConfiguration;
+DROP TABLE ApplicationAccessConfiguration.dbo.ShardConfiguration;

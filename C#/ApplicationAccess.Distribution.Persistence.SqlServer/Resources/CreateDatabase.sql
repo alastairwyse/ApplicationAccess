@@ -1,4 +1,4 @@
-USE ApplicationAccess;
+USE ApplicationAccessConfiguration;
 GO 
 
 --------------------------------------------------------------------------------
@@ -7,7 +7,7 @@ GO
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-CREATE TABLE ApplicationAccess.dbo.ShardConfiguration
+CREATE TABLE ApplicationAccessConfiguration.dbo.ShardConfiguration
 (
     Id                   bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     DataElementType      nvarchar(450)  NOT NULL, 
@@ -27,7 +27,7 @@ CREATE INDEX ShardConfigurationTransactionIndex ON ShardConfiguration (Transacti
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccess
+USE ApplicationAccessConfiguration
 GO 
 
 CREATE TYPE dbo.ShardConfigurationStagingTableType 
@@ -47,7 +47,7 @@ GO
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccess
+USE ApplicationAccessConfiguration
 GO 
 
 --------------------------------------------------------------------------------

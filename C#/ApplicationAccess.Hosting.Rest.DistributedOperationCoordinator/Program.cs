@@ -17,12 +17,16 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
-namespace ApplicationAccess.Hosting.Rest.Reader
+namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
 {
     public class Program
     {
@@ -32,25 +36,22 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             {
                 Args = args,
                 SwaggerVersionString = "v1",
-                SwaggerApplicationName = "ApplicationAccess Reader Node",
-                SwaggerApplicationDescription = "Node in a multi-reader, single-writer deployment of ApplicationAccess which handles query/read operations",
+                SwaggerApplicationName = "ApplicationAccess",
+                SwaggerApplicationDescription = "Provides flexible and configurable user permission and authorization management for applications",
                 SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
                 {
-                    typeof(Rest.Controllers.EntityQueryProcessorControllerBase).Assembly
+                    typeof(Rest.Controllers.DistributedOperationCoordinatorControllerBase).Assembly
                 },
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
-                    builder.Services.AddOptions<AccessManagerOptions>()
-                        .Bind(builder.Configuration.GetSection(AccessManagerOptions.AccessManagerOptionsName))
-                        .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()
                         .Bind(builder.Configuration.GetSection(AccessManagerSqlServerConnectionOptions.AccessManagerSqlServerConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
-                    builder.Services.AddOptions<EventCacheConnectionOptions>()
-                        .Bind(builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName))
+                    builder.Services.AddOptions<ShardConfigurationRefreshOptions>()
+                        .Bind(builder.Configuration.GetSection(ShardConfigurationRefreshOptions.ShardConfigurationRefreshOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
-                    builder.Services.AddOptions<EventCacheRefreshOptions>()
-                        .Bind(builder.Configuration.GetSection(EventCacheRefreshOptions.EventCacheRefreshOptionsName))
+                    builder.Services.AddOptions<ShardConnectionOptions>()
+                        .Bind(builder.Configuration.GetSection(ShardConnectionOptions.ShardConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<ErrorHandlingOptions>()
                         .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
@@ -58,18 +59,26 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 },
                 ProcessorHolderTypes = new List<Type>()
                 {
-                    typeof(EntityQueryProcessorHolder),
-                    typeof(GroupQueryProcessorHolder),
-                    typeof(GroupToGroupQueryProcessorHolder),
-                    typeof(UserQueryProcessorHolder)
-                }, 
+                    typeof(DistributedOperationCoordinatorHolder)
+                },
+                // Add a mapping from ServiceUnavailableException to HTTP 503 error status
+                ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
+                {
+                    new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
+                },
+                ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
+                {
+                    typeof(ServiceUnavailableException)
+                },
+                // Setup TripSwitchMiddleware to trip on encounterting a BufferFlushingException
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
                 // Optionally setup file logging
                 LogFilePath = @"C:\Temp\AppAccess\TestHarness",
-                LogFileNamePrefix = "ApplicationAccessReaderNodeLog"
+                LogFileNamePrefix = "ApplicationAccessDistributedOperationCoordinatorNodeLog"
             };
 
             var initializer = new ApplicationInitializer();
-            WebApplication app = initializer.Initialize<ReaderNodeHostedServiceWrapper>(parameters);
+            WebApplication app = initializer.Initialize<DistributedOperationCoordinatorNodeHostedServiceWrapper, ShardConfigurationRefreshException>(parameters);
 
             app.Run();
         }

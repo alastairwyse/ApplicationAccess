@@ -34,6 +34,8 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         /// <summary>A distributed reader node.</summary>
         DistributedReaderNode,
         /// <summary>A distributed writer node.</summary>
-        DistributedWriterNode
+        DistributedWriterNode,
+        /// <summary>A distributed operation coordinator node.</summary>
+        DistributedOperationCoordinatorNode
     }
 }
