@@ -88,21 +88,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         }
 
         /// <summary>
-        /// Adds a user.
-        /// </summary>
-        /// <param name="user">The user to add.</param>
-        /// <response code="201">The user was added.</response>
-        [HttpPost]
-        [Route("users/{user}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<StatusCodeResult> AddUserAsync([FromRoute] String user)
-        {
-            await distributedAccessManagerOperationCoordinator.AddUserAsync(user);
-
-            return new StatusCodeResult(StatusCodes.Status201Created);
-        }
-
-        /// <summary>
         /// Returns the specified user if it exists.
         /// </summary>
         /// <param name="user">The id of the user.</param>
@@ -134,21 +119,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveUserAsync([FromRoute] String user)
         {
             await distributedAccessManagerOperationCoordinator.RemoveUserAsync(user);
-        }
-
-        /// <summary>
-        /// Adds a group.
-        /// </summary>
-        /// <param name="group">The group to add.</param>
-        /// <response code="201">The group was added.</response>
-        [HttpPost]
-        [Route("groups/{group}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<StatusCodeResult> AddGroupAsync([FromRoute] String group)
-        {
-            await distributedAccessManagerOperationCoordinator.AddGroupAsync(group);
-
-            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>
@@ -392,21 +362,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         }
 
         /// <summary>
-        /// Adds an entity type.
-        /// </summary>
-        /// <param name="entityType">The entity type to add.</param>
-        /// <response code="201">The entity type was added.</response>
-        [HttpPost]
-        [Route("entityTypes/{entityType}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<StatusCodeResult> AddEntityTypeAsync([FromRoute] String entityType)
-        {
-            await distributedAccessManagerOperationCoordinator.AddEntityTypeAsync(entityType);
-
-            return new StatusCodeResult(StatusCodes.Status201Created);
-        }
-
-        /// <summary>
         /// Returns the specified entity type if it exists.
         /// </summary>
         /// <param name="entityType">The id of the entity type.</param>
@@ -438,22 +393,6 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveEntityTypeAsync([FromRoute] String entityType)
         {
             await distributedAccessManagerOperationCoordinator.RemoveEntityTypeAsync(entityType);
-        }
-
-        /// <summary>
-        /// Adds an entity.
-        /// </summary>
-        /// <param name="entityType">The type of the entity.</param>
-        /// <param name="entity">The entity to add.</param>
-        /// <response code="201">The entity was added.</response>
-        [HttpPost]
-        [Route("entityTypes/{entityType}/entities/{entity}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<StatusCodeResult> AddEntityAsync([FromRoute] String entityType, [FromRoute] String entity)
-        {
-            await distributedAccessManagerOperationCoordinator.AddEntityAsync(entityType, entity);
-
-            return new StatusCodeResult(StatusCodes.Status201Created);
         }
 
         /// <summary>

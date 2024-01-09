@@ -28,7 +28,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
     /// <summary>
     /// Tests custom routines and settings in the ASP.NET middleware layers (e.g. custom error handling).
     /// </summary>
-    public class MiddlewareTests : IntegrationTestsBase
+    public class MiddlewareTests : ReaderWriterIntegrationTestsBase
     {
         // Need to use 'Order' attribute so the TripSwitch() test is run last... after the switch is tripped, nothing works
 

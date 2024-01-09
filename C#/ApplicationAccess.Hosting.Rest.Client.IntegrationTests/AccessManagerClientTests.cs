@@ -34,7 +34,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
     /// <summary>
     /// Integration tests for the ApplicationAccess.Hosting.Rest.Client.AccessManagerClient class.
     /// </summary>
-    public class AccessManagerClientTests : IntegrationTestsBase
+    public class AccessManagerClientTests : ReaderWriterIntegrationTestsBase
     {
         private Uri testBaseUrl;
         private MethodCallCountingStringUniqueStringifier userStringifier;

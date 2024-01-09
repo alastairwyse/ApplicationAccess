@@ -50,17 +50,6 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         }
 
         [Test]
-        public async Task AddUserAsync()
-        {
-            const String user = "user1";
-
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddUserAsync(user);
-
-            await mockDistributedOperationCoordinator.Received(1).AddUserAsync(user);
-            Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
-        }
-
-        [Test]
         public async Task ContainsUserAsync_TrueResult()
         {
             const String user = "user1";
@@ -86,17 +75,6 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             await mockDistributedOperationCoordinator.Received(1).ContainsUserAsync(user);
             Assert.That(e.Message, Does.StartWith($"User '{user}' does not exist."));
             Assert.AreEqual(user, e.ResourceId);
-        }
-
-        [Test]
-        public async Task AddGroupAsync()
-        {
-            const String group = "group1";
-
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddGroupAsync(group);
-
-            await mockDistributedOperationCoordinator.Received(1).AddGroupAsync(group);
-            Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
         }
 
         [Test]
@@ -372,17 +350,6 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         }
 
         [Test]
-        public async Task AddEntityTypeAsync()
-        {
-            const String entityType = "ClientAccount";
-
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddEntityTypeAsync(entityType);
-
-            await mockDistributedOperationCoordinator.Received(1).AddEntityTypeAsync(entityType);
-            Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
-        }
-
-        [Test]
         public async Task ContainsEntityTypeAsync_TrueResult()
         {
             const String entityType = "ClientAccount";
@@ -408,18 +375,6 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             await mockDistributedOperationCoordinator.Received(1).ContainsEntityTypeAsync(entityType);
             Assert.That(e.Message, Does.StartWith($"Entity type '{entityType}' does not exist."));
             Assert.AreEqual(entityType, e.ResourceId);
-        }
-
-        [Test]
-        public async Task AddEntityAsync()
-        {
-            const String entityType = "ClientAccount";
-            const String entity = "CompanyA";
-
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddEntityAsync(entityType, entity);
-
-            await mockDistributedOperationCoordinator.Received(1).AddEntityAsync(entityType, entity);
-            Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
         }
 
         [Test]

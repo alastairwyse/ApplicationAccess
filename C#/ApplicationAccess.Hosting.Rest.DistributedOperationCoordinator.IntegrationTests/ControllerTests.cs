@@ -16,24 +16,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
 
-namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
+namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.IntegrationTests
 {
     /// <summary>
-    /// Tests various patterns of controller method parameter sets and return types in the ApplicationAccess.Hosting.Rest.ReaderWriter namespace.
+    /// Tests various patterns of controller method parameter sets and return types in the ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator namespace.
     /// </summary>
-    public class ControllerTests : ReaderWriterIntegrationTestsBase
+    public class ControllerTests : DistributedOperationCoordinatorIntegrationTestsBase
     {
         /// <summary>
         /// Success test for a POST method endpoint that creates a resource.
         /// </summary>
         [Test]
-        public void PostCreateResourceMethod()
+        public async Task PostCreateResourceMethod()
         {
             const String user = "user1";
             const String group = "group1";
@@ -41,10 +42,10 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUrl))
             {
 
-                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
+                using (HttpResponseMessage response = await client.SendAsync(requestMessage))
                 {
 
-                    mockUserEventProcessor.Received(1).AddUserToGroupMapping(user, group);
+                    await mockDistributedAccessManagerOperationCoordinator.Received(1).AddUserToGroupMappingAsync(user, group);
                     String responseBody = response.Content.ReadAsStringAsync().Result;
                     Assert.IsEmpty(responseBody);
                     Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
@@ -56,7 +57,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Success test for a DELETE method endpoint that removes a resource.
         /// </summary>
         [Test]
-        public void DeleteRemoveResourceMethod()
+        public async Task DeleteRemoveResourceMethod()
         {
             const String user = "user1";
             const String group = "group1";
@@ -64,10 +65,10 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUrl))
             {
 
-                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
+                using (HttpResponseMessage response = await client.SendAsync(requestMessage))
                 {
 
-                    mockUserEventProcessor.Received(1).RemoveUserToGroupMapping(user, group);
+                    await mockDistributedAccessManagerOperationCoordinator.Received(1).RemoveUserToGroupMappingAsync(user, group);
                     String responseBody = response.Content.ReadAsStringAsync().Result;
                     Assert.IsEmpty(responseBody);
                     Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -79,17 +80,17 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Success test for a GET method endpoint that returns a string.
         /// </summary>
         [Test]
-        public void GetReturnStringMethod()
+        public async Task GetReturnStringMethod()
         {
             const String user = "user1";
             const String requestUrl = $"/api/v1/users/{user}";
-            mockUserQueryProcessor.ContainsUser(user).Returns(true);
+            mockDistributedAccessManagerOperationCoordinator.ContainsUserAsync(user).Returns(Task.FromResult<Boolean>(true));
 
-            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
             {
 
-                mockUserQueryProcessor.Received(1).ContainsUser(user);
-                JToken jsonResponse = JValue.Parse(response.Content.ReadAsStringAsync().Result);
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).ContainsUserAsync(user);
+                JToken jsonResponse = JValue.Parse(await response.Content.ReadAsStringAsync());
                 Assert.AreEqual(user, jsonResponse.ToString());
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             }
@@ -99,16 +100,16 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Success test for a GET method endpoint that returns an arrray of strings.
         /// </summary>
         [Test]
-        public void GetReturnStringArrayMethod()
+        public async Task GetReturnStringArrayMethod()
         {
             var users = new List<String>() { "user1", "user2", "user3" };
             const String requestUrl = $"/api/v1/users";
-            mockUserQueryProcessor.Users.Returns(users);
+            mockDistributedAccessManagerOperationCoordinator.GetUsersAsync().Returns(Task.FromResult<List<String>>(users));
 
-            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
             {
 
-                var throwAway = mockUserQueryProcessor.Received(1).Users;
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).GetUsersAsync();
                 JArray jsonArrayResponse = ConvertHttpContentToJsonArray(response.Content);
                 Assert.AreEqual(3, jsonArrayResponse.Count);
                 Assert.AreEqual("user1", jsonArrayResponse[0].ToString());
@@ -122,17 +123,17 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Success test for a GET method endpoint that returns a single object.
         /// </summary>
         [Test]
-        public void GetReturnObjectMethod()
+        public async Task GetReturnObjectMethod()
         {
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String requestUrl = $"/api/v1/entityTypes/{entityType}/entities/{entity}";
-            mockEntityQueryProcessor.ContainsEntity(entityType, entity).Returns(true);
+            mockDistributedAccessManagerOperationCoordinator.ContainsEntityAsync(entityType, entity).Returns(Task.FromResult<Boolean>(true));
 
-            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
             {
 
-                mockEntityQueryProcessor.Received(1).ContainsEntity(entityType, entity);
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).ContainsEntityAsync(entityType, entity);
                 JObject jsonResponse = ConvertHttpContentToJson(response.Content);
                 if (jsonResponse["entityType"] == null)
                     Assert.Fail("The returned JSON object doesn't contain an 'entityType' property.");
@@ -148,20 +149,20 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Success test for a GET method endpoint that returns an array of objects.
         /// </summary>
         [Test]
-        public void GetReturnObjectArrayMethod()
+        public async Task GetReturnObjectArrayMethod()
         {
             const String user = "user1";
-            var groups = new HashSet<String>() { "group1", "group2", "group3" };
+            var groups = new List<String>() { "group1", "group2", "group3" };
             const String requestUrl = $"/api/v1/userToGroupMappings/user/{user}?includeIndirectMappings=false";
-            mockUserQueryProcessor.GetUserToGroupMappings(user, false).Returns(groups);
+            mockDistributedAccessManagerOperationCoordinator.GetUserToGroupMappingsAsync(user, false).Returns(Task.FromResult<List<String>>(groups));
 
-            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
             {
 
-                mockUserQueryProcessor.Received(1).GetUserToGroupMappings(user, false);
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).GetUserToGroupMappingsAsync(user, false);
                 JArray jsonArrayResponse = ConvertHttpContentToJsonArray(response.Content);
                 Assert.AreEqual(3, jsonArrayResponse.Count);
-                foreach(JObject currentArrayElement in jsonArrayResponse)
+                foreach (JObject currentArrayElement in jsonArrayResponse)
                 {
                     if (currentArrayElement["user"] == null)
                         Assert.Fail("The returned JSON array element doesn't contain a 'user' property.");
@@ -180,18 +181,18 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         /// Success test for a GET method endpoint that returns a boolean value.
         /// </summary>
         [Test]
-        public void GetReturnBooleanMethod()
+        public async Task GetReturnBooleanMethod()
         {
             const String user = "user1";
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             const String requestUrl = $"/api/v1/dataElementAccess/entity/user/{user}/entityType/{entityType}/entity/{entity}";
-            mockUserQueryProcessor.HasAccessToEntity(user, entityType, entity).Returns(false);
+            mockDistributedAccessManagerOperationCoordinator.HasAccessToEntityAsync(user, entityType, entity).Returns(Task.FromResult<Boolean>(false));
 
-            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
             {
 
-                mockUserQueryProcessor.Received(1).HasAccessToEntity(user, entityType, entity);
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).HasAccessToEntityAsync(user, entityType, entity);
                 JToken jsonResponse = JValue.Parse(response.Content.ReadAsStringAsync().Result);
                 Assert.AreEqual(new JValue(false), jsonResponse);
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);

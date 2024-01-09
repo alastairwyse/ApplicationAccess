@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <_ContentIncludedByDefault Remove="appsettings.IntegrationTesting.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

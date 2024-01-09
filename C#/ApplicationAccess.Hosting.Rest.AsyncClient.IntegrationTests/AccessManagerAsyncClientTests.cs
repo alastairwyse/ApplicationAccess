@@ -29,7 +29,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
     /// <summary>
     /// Integration tests for the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
     /// </summary>
-    public class AccessManagerAsyncClientTests : IntegrationTestsBase
+    public class AccessManagerAsyncClientTests : ReaderWriterIntegrationTestsBase
     {
         private Uri testBaseUrl;
         private MethodCallCountingStringUniqueStringifier userStringifier;
