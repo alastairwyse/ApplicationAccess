@@ -8,6 +8,8 @@ USE ApplicationAccessConfiguration
 GO 
 
 DROP PROCEDURE dbo.UpdateShardConfiguration;
+DROP FUNCTION dbo.SubtractTemporalMinimumTimeUnit;
+DROP FUNCTION dbo.GetTemporalMaxDate;
 
 
 --------------------------------------------------------------------------------

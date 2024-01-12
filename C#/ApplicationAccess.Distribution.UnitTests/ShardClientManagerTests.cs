@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ApplicationAccess.Distribution.Metrics;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
@@ -24,7 +25,6 @@ using NUnit.Framework;
 using NSubstitute;
 using MoreComplexDataStructures;
 using ApplicationMetrics;
-using System.Threading;
 
 namespace ApplicationAccess.Distribution.UnitTests
 {
@@ -419,6 +419,22 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public void GetAllClients_ShardConfigurationDoesntExist()
+        {
+            var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(Enumerable.Empty<ShardConfiguration<AccessManagerRestClientConfiguration>>());
+            using (var testShardClientManager = new ShardClientManagerWithProtectedMembers<AccessManagerRestClientConfiguration>(testShardConfigurationSet, mockClientFactory, new StringHashCodeGenerator(), new StringHashCodeGenerator()))
+            {
+
+                var e = Assert.Throws<ArgumentException>(delegate
+                {
+                    testShardClientManager.GetAllClients(DataElement.User, Operation.Query);
+                });
+
+                Assert.That(e.Message, Does.StartWith("No shard configuration exists for DataElement 'User' and Operation 'Query'."));
+            }
+        }
+
+        [Test]
         public void GetClient()
         {
             IHashCodeGenerator<String> mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
@@ -503,6 +519,22 @@ namespace ApplicationAccess.Distribution.UnitTests
 
                 Assert.AreSame(groupToGroupEvent0Client, result.Client);
                 Assert.AreEqual(groupToGroupEvent0ShardConfiguration.Describe(true), result.ShardConfigurationDescription);
+            }
+        }
+
+        [Test]
+        public void GetClient_ShardConfigurationDoesntExist()
+        {
+            var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(Enumerable.Empty<ShardConfiguration<AccessManagerRestClientConfiguration>>());
+            using (var testShardClientManager = new ShardClientManagerWithProtectedMembers<AccessManagerRestClientConfiguration>(testShardConfigurationSet, mockClientFactory, new StringHashCodeGenerator(), new StringHashCodeGenerator()))
+            {
+
+                var e = Assert.Throws<ArgumentException>(delegate
+                {
+                    testShardClientManager.GetClient(DataElement.User, Operation.Query, "user1");
+                });
+
+                Assert.That(e.Message, Does.StartWith("No shard configuration exists for DataElement 'User' and Operation 'Query'."));
             }
         }
 
@@ -593,6 +625,22 @@ namespace ApplicationAccess.Distribution.UnitTests
                 Assert.IsTrue(result.ElementAt(1).Item2.Contains(testGroups[1]));
                 Assert.AreEqual(1, result.ElementAt(1).Item2.Count());
                 Assert.AreEqual(2, result.Count());
+            }
+        }
+
+        [Test]
+        public void GetClients_ShardConfigurationDoesntExist()
+        {
+            var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(Enumerable.Empty<ShardConfiguration<AccessManagerRestClientConfiguration>>());
+            using (var testShardClientManager = new ShardClientManagerWithProtectedMembers<AccessManagerRestClientConfiguration>(testShardConfigurationSet, mockClientFactory, new StringHashCodeGenerator(), new StringHashCodeGenerator()))
+            {
+
+                var e = Assert.Throws<ArgumentException>(delegate
+                {
+                    testShardClientManager.GetClients(DataElement.User, Operation.Query, new List<String>() { "user1", "user2" }).Count();
+                });
+
+                Assert.That(e.Message, Does.StartWith("No shard configuration exists for DataElement 'User' and Operation 'Query'."));
             }
         }
 

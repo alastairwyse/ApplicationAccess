@@ -51,6 +51,33 @@ USE ApplicationAccessConfiguration
 GO 
 
 --------------------------------------------------------------------------------
+-- dbo.GetTemporalMaxDate
+
+CREATE FUNCTION dbo.GetTemporalMaxDate
+(
+)
+RETURNS datetime2
+AS
+BEGIN
+    RETURN CONVERT(datetime2, '9999-12-31T23:59:59.9999999', 126);
+END
+GO
+
+--------------------------------------------------------------------------------
+-- dbo.SubtractTemporalMinimumTimeUnit
+
+CREATE FUNCTION dbo.SubtractTemporalMinimumTimeUnit
+(
+    @InputTime  datetime2
+)
+RETURNS datetime2
+AS
+BEGIN
+    RETURN DATEADD(NANOSECOND, -100, @InputTime);
+END
+GO
+
+--------------------------------------------------------------------------------
 -- dbo.ProcessEvents
 
 CREATE PROCEDURE dbo.UpdateShardConfiguration
@@ -123,7 +150,7 @@ BEGIN
                             @CurrentOperationType, 
                             @CurrentHashRangeStart, 
                             @CurrentClientConfiguration, 
-                            @@CurrentTimestamp, 
+                            @CurrentTimestamp, 
                             dbo.GetTemporalMaxDate()
                         );
             END TRY
