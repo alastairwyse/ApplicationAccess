@@ -70,19 +70,19 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         /// </summary>
         public DistributedOperationCoordinatorNodeHostedServiceWrapper
         (
-            AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions,
-            ShardConfigurationRefreshOptions shardConfigurationRefreshOptions,
-            ShardConnectionOptions shardConnectionOptions,
-            MetricLoggingOptions metricLoggingOptions,
+            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
+            IOptions<ShardConfigurationRefreshOptions> shardConfigurationRefreshOptions,
+            IOptions<ShardConnectionOptions> shardConnectionOptions,
+            IOptions<MetricLoggingOptions> metricLoggingOptions,
             DistributedOperationCoordinatorHolder distributedOperationCoordinatorHolder,
             ILoggerFactory loggerFactory,
             ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger
         )
         {
-            this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions;
-            this.shardConfigurationRefreshOptions = shardConfigurationRefreshOptions;
-            this.shardConnectionOptions = shardConnectionOptions;
-            this.metricLoggingOptions = metricLoggingOptions;
+            this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
+            this.shardConfigurationRefreshOptions = shardConfigurationRefreshOptions.Value;
+            this.shardConnectionOptions = shardConnectionOptions.Value;
+            this.metricLoggingOptions = metricLoggingOptions.Value;
             this.distributedOperationCoordinatorHolder = distributedOperationCoordinatorHolder;
             this.loggerFactory = loggerFactory;
             this.logger = logger;

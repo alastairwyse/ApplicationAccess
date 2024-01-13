@@ -156,7 +156,7 @@ BEGIN
             END TRY
             BEGIN CATCH
                 ROLLBACK TRANSACTION
-                SET @ErrorMessage = N'Error occurred when inserting shard configuration for DataElementType ''' + ISNULL(@CurrentDataElementType, '(null)') + ''' OperationType ''' + ISNULL(@CurrentOperationType, '(null)') + ''' and HashRangeStart ''' + ISNULL(@CurrentHashRangeStart, '(null)') + ''' ; ' + ERROR_MESSAGE();
+                SET @ErrorMessage = N'Error occurred when inserting shard configuration for DataElementType ''' + ISNULL(@CurrentDataElementType, '(null)') + ''' OperationType ''' + ISNULL(@CurrentOperationType, '(null)') + ''' and HashRangeStart ''' + ISNULL(CONVERT(nvarchar, @CurrentHashRangeStart), '(null)') + ''' ; ' + ERROR_MESSAGE();
                 THROW 50001, @ErrorMessage, 1;
             END CATCH
 

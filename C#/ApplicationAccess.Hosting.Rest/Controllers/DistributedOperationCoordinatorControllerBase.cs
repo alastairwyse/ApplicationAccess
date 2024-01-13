@@ -57,6 +57,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>All users.</returns>
         [HttpGet]
         [Route("users")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<IEnumerable<String>> GetUsersAsync()
         {
@@ -69,6 +70,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>All groups.</returns>
         [HttpGet]
         [Route("groups")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<IEnumerable<String>> GetGroupsAsync()
         {
@@ -81,6 +83,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>All entity types.</returns>
         [HttpGet]
         [Route("entityTypes")]
+        [ApiExplorerSettings(GroupName = "EntityQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<IEnumerable<String>> GetEntityTypesAsync()
         {
@@ -95,6 +98,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="404">The user doesn't exist.</response>
         [HttpGet]
         [Route("users/{user}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<String>> ContainsUserAsync([FromRoute] String user)
@@ -116,6 +120,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The user was removed.</response>
         [HttpDelete]
         [Route("users/{user}")]
+        [ApiExplorerSettings(GroupName = "UserEventProcessor")]
         public async Task RemoveUserAsync([FromRoute] String user)
         {
             await distributedAccessManagerOperationCoordinator.RemoveUserAsync(user);
@@ -129,6 +134,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="404">The group doesn't exist.</response>
         [HttpGet]
         [Route("groups/{group}")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<String>> ContainsGroupAsync([FromRoute] String group)
@@ -150,6 +156,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The group was removed.</response>
         [HttpDelete]
         [Route("groups/{group}")]
+        [ApiExplorerSettings(GroupName = "GroupEventProcessor")]
         public async Task RemoveGroupAsync([FromRoute] String group)
         {
             await distributedAccessManagerOperationCoordinator.RemoveGroupAsync(group);
@@ -163,6 +170,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="201">The mapping was added.</response>
         [HttpPost]
         [Route("userToGroupMappings/user/{user}/group/{group}")]
+        [ApiExplorerSettings(GroupName = "UserEventProcessor")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<StatusCodeResult> AddUserToGroupMappingAsync([FromRoute] String user, [FromRoute] String group)
         {
@@ -179,6 +187,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user and a group.</returns>
         [HttpGet]
         [Route("userToGroupMappings/user/{user}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<UserAndGroup<String, String>> GetUserToGroupMappingsAsync([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
@@ -196,6 +205,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("userToGroupMappings/user/{user}/group/{group}")]
+        [ApiExplorerSettings(GroupName = "UserEventProcessor")]
         public async Task RemoveUserToGroupMappingAsync([FromRoute] String user, [FromRoute] String group)
         {
             await distributedAccessManagerOperationCoordinator.RemoveUserToGroupMappingAsync(user, group);
@@ -209,6 +219,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="201">The mapping was added.</response>
         [HttpPost]
         [Route("groupToGroupMappings/fromGroup/{fromGroup}/toGroup/{toGroup}")]
+        [ApiExplorerSettings(GroupName = "GroupToGroupEventProcessor")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<StatusCodeResult> AddGroupToGroupMappingAsync([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
@@ -225,6 +236,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>>A collection of between two groups.</returns>
         [HttpGet]
         [Route("groupToGroupMappings/group/{group}")]
+        [ApiExplorerSettings(GroupName = "GroupToGroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupMappingsAsync([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
@@ -242,6 +254,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("groupToGroupMappings/fromGroup/{fromGroup}/toGroup/{toGroup}")]
+        [ApiExplorerSettings(GroupName = "GroupToGroupEventProcessor")]
         public async Task RemoveGroupToGroupMappingAsync([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
             await distributedAccessManagerOperationCoordinator.RemoveGroupToGroupMappingAsync(fromGroup, toGroup);
@@ -256,6 +269,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="201">The mapping was added.</response>
         [HttpPost]
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [ApiExplorerSettings(GroupName = "UserEventProcessor")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<StatusCodeResult> AddUserToApplicationComponentAndAccessLevelMappingAsync([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
@@ -272,6 +286,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user, and an application component and access level.</returns>
         [HttpGet]
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetUserToApplicationComponentAndAccessLevelMappingsAsync([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
@@ -299,6 +314,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [ApiExplorerSettings(GroupName = "UserEventProcessor")]
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             await distributedAccessManagerOperationCoordinator.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
@@ -313,6 +329,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="201">The mapping was added.</response>
         [HttpPost]
         [Route("groupToApplicationComponentAndAccessLevelMappings/group/{group}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [ApiExplorerSettings(GroupName = "GroupEventProcessor")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<StatusCodeResult> AddGroupToApplicationComponentAndAccessLevelMappingAsync([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
@@ -329,6 +346,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a group, and an application component and access level.</returns>
         [HttpGet]
         [Route("groupToApplicationComponentAndAccessLevelMappings/group/{group}")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<GroupAndApplicationComponentAndAccessLevel<String, String, String>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
@@ -356,6 +374,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("groupToApplicationComponentAndAccessLevelMappings/group/{group}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [ApiExplorerSettings(GroupName = "GroupEventProcessor")]
         public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             await distributedAccessManagerOperationCoordinator.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
@@ -369,6 +388,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="404">The entity type doesn't exist.</response>
         [HttpGet]
         [Route("entityTypes/{entityType}")]
+        [ApiExplorerSettings(GroupName = "EntityQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<String>> ContainsEntityTypeAsync([FromRoute] String entityType)
@@ -390,6 +410,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The entity type was removed.</response>
         [HttpDelete]
         [Route("entityTypes/{entityType}")]
+        [ApiExplorerSettings(GroupName = "EntityEventProcessor")]
         public async Task RemoveEntityTypeAsync([FromRoute] String entityType)
         {
             await distributedAccessManagerOperationCoordinator.RemoveEntityTypeAsync(entityType);
@@ -402,6 +423,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>All entities of the specified type.</returns>
         [HttpGet]
         [Route("entityTypes/{entityType}/entities")]
+        [ApiExplorerSettings(GroupName = "EntityQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<EntityTypeAndEntity> GetEntitiesAsync([FromRoute] String entityType)
         {
@@ -420,6 +442,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="404">The entity doesn't exist.</response>
         [HttpGet]
         [Route("entityTypes/{entityType}/entities/{entity}")]
+        [ApiExplorerSettings(GroupName = "EntityQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<EntityTypeAndEntity>> ContainsEntityAsync([FromRoute] String entityType, [FromRoute] String entity)
@@ -442,6 +465,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The entity was removed.</response>
         [HttpDelete]
         [Route("entityTypes/{entityType}/entities/{entity}")]
+        [ApiExplorerSettings(GroupName = "EntityEventProcessor")]
         public async Task RemoveEntityAsync([FromRoute] String entityType, [FromRoute] String entity)
         {
             await distributedAccessManagerOperationCoordinator.RemoveEntityAsync(entityType, entity);
@@ -456,6 +480,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="201">The mapping was added.</response>
         [HttpPost]
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}/entity/{entity}")]
+        [ApiExplorerSettings(GroupName = "UserEventProcessor")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<StatusCodeResult> AddUserToEntityMappingAsync([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
@@ -472,6 +497,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
         [HttpGet]
         [Route("userToEntityMappings/user/{user}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<UserAndEntity<String>> GetUserToEntityMappingsAsync([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
@@ -499,6 +525,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
         [HttpGet]
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<UserAndEntity<String>> GetUserToEntityMappingsAsync([FromRoute] String user, [FromRoute] String entityType, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
@@ -526,6 +553,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}/entity/{entity}")]
+        [ApiExplorerSettings(GroupName = "UserEventProcessor")]
         public async Task RemoveUserToEntityMappingAsync([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             await distributedAccessManagerOperationCoordinator.RemoveUserToEntityMappingAsync(user, entityType, entity);
@@ -540,6 +568,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="201">The mapping was added.</response>
         [HttpPost]
         [Route("groupToEntityMappings/group/{group}/entityType/{entityType}/entity/{entity}")]
+        [ApiExplorerSettings(GroupName = "GroupEventProcessor")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<StatusCodeResult> AddGroupToEntityMappingAsync([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
@@ -556,6 +585,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a group, and an entity type and entity.</returns>
         [HttpGet]
         [Route("groupToEntityMappings/group/{group}")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<GroupAndEntity<String>> GetGroupToEntityMappingsAsync([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
@@ -583,6 +613,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>A collection of mappings between a group, and an entity type and entity.</returns>
         [HttpGet]
         [Route("groupToEntityMappings/group/{group}/entityType/{entityType}")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async IAsyncEnumerable<GroupAndEntity<String>> GetGroupToEntityMappingsAsync([FromRoute] String group, [FromRoute] String entityType, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
@@ -610,6 +641,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <response code="200">The mapping was removed.</response>
         [HttpDelete]
         [Route("groupToEntityMappings/group/{group}/entityType/{entityType}/entity/{entity}")]
+        [ApiExplorerSettings(GroupName = "GroupEventProcessor")]
         public async Task RemoveGroupToEntityMappingAsync([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
             await distributedAccessManagerOperationCoordinator.RemoveGroupToEntityMappingAsync(group, entityType, entity);
@@ -624,6 +656,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>True if the user has access the component.  False otherwise.</returns>
         [HttpGet]
         [Route("dataElementAccess/applicationComponent/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<Boolean>> HasAccessToApplicationComponentAsync([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
@@ -639,6 +672,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>True if the user has access the entity.  False otherwise.</returns>
         [HttpGet]
         [Route("dataElementAccess/entity/user/{user}/entityType/{entityType}/entity/{entity}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<Boolean>> HasAccessToEntityAsync([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
