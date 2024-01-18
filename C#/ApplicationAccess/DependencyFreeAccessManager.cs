@@ -37,7 +37,7 @@ namespace ApplicationAccess
          * 
          * Techniques used can generally be split into 4 categories, and the techniques are repeated for all methods that fall into a given category...
          *   1) Primary Add Methods (e.g. AddUser())
-         *     We need to have different behaviour depending on whether the method is begin called directly, or being called as part of a prepended event of a secondary add method (like AddUserToGroupMapping()).
+         *     We need to have different behaviour depending on whether the method is being called directly, or being called as part of a prepended event of a secondary add method (like AddUserToGroupMapping()).
          *     Because if it's being called as a prepended event, we want to emit an event to the 'eventProcessor' member (but we don't if it's being called directly).
          *     Hence we create a protected overload of the method with a Boolean 'generateEvent' parameter... the public version of the method (direct call) will set that parameter to false.
          *     The same protected overload is called from secondary add methods, but the 'generateEvent' parameter is set true

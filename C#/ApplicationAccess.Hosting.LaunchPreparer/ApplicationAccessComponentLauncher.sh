@@ -55,6 +55,12 @@
 #
 # ------------------------------------------------------------------------------
 
+if [ -z "$MODE" ]
+then
+    echo "Required parameter 'MODE' not specified"
+    exit 1
+fi
+
 if [ $MODE == EncodeConfiguration ]
 then
     # Run LaunchPreparer in 'EncodeConfiguration' mode (encoded config will be written to the console)
@@ -67,7 +73,7 @@ else
     if [ $? -eq 0 ]
     then
         # Execution of LaunchPreparer was successful, so start the ApplicationAccess component ($launchPreparerOutput contains the name of the dll corresponding to the specified component)
-        dotnet $launchPreparerOutput --urls http://*:$LISTEN_PORT --environment Production
+        exec dotnet $launchPreparerOutput --urls http://*:$LISTEN_PORT --environment Production
     else
         # execution of LaunchPreparer was not successful, so show its output (error message and usage info) on the console
         echo "$launchPreparerOutput"
