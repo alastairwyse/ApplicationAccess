@@ -717,7 +717,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
             {
                 if (statusCodeToExceptionThrowingActionMap.ContainsKey(responseStatus) == true)
                 {
-                    statusCodeToExceptionThrowingActionMap[responseStatus].Invoke(httpErrorResponse.Message);
+                    statusCodeToExceptionThrowingActionMap[responseStatus].Invoke(httpErrorResponse);
                 }
                 else
                 {

@@ -93,6 +93,7 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveUser(`0)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroup(`1)">
             <inheritdoc/>
@@ -105,12 +106,15 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddUserToGroupMapping(`0,`1)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToGroupMappings(`0,System.Boolean)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveUserToGroupMapping(`0,`1)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroupToGroupMapping(`1,`1)">
             <inheritdoc/>
@@ -123,12 +127,15 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
             <inheritdoc/>
@@ -162,15 +169,19 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddUserToEntityMapping(`0,System.String,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToEntityMappings(`0)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToEntityMappings(`0,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
@@ -192,15 +203,18 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetApplicationComponentsAccessibleByUser(`0)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetApplicationComponentsAccessibleByGroup(`1)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByUser(`0)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByUser(`0,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByGroup(`1)">
             <inheritdoc/>
@@ -1346,6 +1360,76 @@
             <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
             <returns>A collection of non-leaf vertices the specified vertex is connected to by an edge.</returns>
         </member>
+        <member name="T:ApplicationAccess.EntityNotFoundException">
+            <summary>
+            The exception that is thrown when an entity specified in an parameter/argument does not exist.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.EntityNotFoundException.entityType">
+            <summary>The type of the entity which does not exist.</summary>
+        </member>
+        <member name="F:ApplicationAccess.EntityNotFoundException.entity">
+            <summary>The entity which does not exist.</summary>
+        </member>
+        <member name="P:ApplicationAccess.EntityNotFoundException.EntityType">
+            <summary>
+            The type of the entity which does not exist.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.EntityNotFoundException.Entity">
+            <summary>
+            The entity which does not exist.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.EntityNotFoundException.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.EntityNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="parameterName">The name of the parameter containing the invalid entity.</param>
+            <param name="entityType">The type of the entity which does not exist.</param>
+            <param name="entity">The entity which does not exist.</param>
+        </member>
+        <member name="M:ApplicationAccess.EntityNotFoundException.#ctor(System.String,System.String,System.String,System.String,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.EntityNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="parameterName">The name of the parameter containing the invalid entity.</param>
+            <param name="entityType">The type of the entity which does not exist.</param>
+            <param name="entity">The entity which does not exist.</param>
+            <param name="innerException">The exception that is the cause of the current exception.</param>
+        </member>
+        <member name="T:ApplicationAccess.EntityTypeNotFoundException">
+            <summary>
+            The exception that is thrown when an entity type specified in an parameter/argument does not exist.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.EntityTypeNotFoundException.entityType">
+            <summary>The entity type which does not exist.</summary>
+        </member>
+        <member name="P:ApplicationAccess.EntityTypeNotFoundException.EntityType">
+            <summary>
+            The entity type which does not exist.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.EntityTypeNotFoundException.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.EntityTypeNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="parameterName">The name of the parameter containing the invalid entity type.</param>
+            <param name="entityType">The entity type which does not exist.</param>
+        </member>
+        <member name="M:ApplicationAccess.EntityTypeNotFoundException.#ctor(System.String,System.String,System.String,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.EntityTypeNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="parameterName">The name of the parameter containing the invalid entity type.</param>
+            <param name="entityType">The entity type which does not exist.</param>
+            <param name="innerException">The exception that is the cause of the current exception.</param>
+        </member>
         <member name="T:ApplicationAccess.EnumUniqueStringifier`1">
             <summary>
             An implementation of <see cref="T:ApplicationAccess.IUniqueStringifier`1"/> for enums.
@@ -1365,6 +1449,37 @@
             </summary>
             <param name="stringifiedObject">The string representing the enum value.</param>
             <returns>The enum value.</returns>
+        </member>
+        <member name="T:ApplicationAccess.GroupNotFoundException`1">
+            <summary>
+            The exception that is thrown when a group specified in an parameter/argument does not exist.
+            </summary>
+            <typeparam name="T">The type of the group.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.GroupNotFoundException`1.group">
+            <summary>The group which does not exist.</summary>
+        </member>
+        <member name="P:ApplicationAccess.GroupNotFoundException`1.Group">
+            <summary>
+            The group which does not exist.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.GroupNotFoundException`1.#ctor(System.String,System.String,`0)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.GroupNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="parameterName">The name of the parameter containing the invalid group.</param>
+            <param name="group">The group which does not exist.</param>
+        </member>
+        <member name="M:ApplicationAccess.GroupNotFoundException`1.#ctor(System.String,System.String,`0,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.GroupNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="parameterName">The name of the parameter containing the invalid group.</param>
+            <param name="group">The group which does not exist.</param>
+            <param name="innerException">The exception that is the cause of the current exception.</param>
         </member>
         <member name="T:ApplicationAccess.IAccessManager`4">
             <summary>
@@ -2490,6 +2605,37 @@
             An implementation of <see cref="T:ApplicationAccess.IUniqueStringifier`1"/> for strings.
             </summary>
             <remarks>Methods simply return the respective string parameters immediately.</remarks>
+        </member>
+        <member name="T:ApplicationAccess.UserNotFoundException`1">
+            <summary>
+            The exception that is thrown when a user specified in an parameter/argument does not exist.
+            </summary>
+            <typeparam name="T">The type of the user.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.UserNotFoundException`1.user">
+            <summary>The user which does not exist.</summary>
+        </member>
+        <member name="P:ApplicationAccess.UserNotFoundException`1.User">
+            <summary>
+            The user which does not exist.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.UserNotFoundException`1.#ctor(System.String,System.String,`0)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.UserNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="parameterName">The name of the parameter containing the invalid user.</param>
+            <param name="user">The user which does not exist.</param>
+        </member>
+        <member name="M:ApplicationAccess.UserNotFoundException`1.#ctor(System.String,System.String,`0,System.Exception)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.UserNotFoundException class.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="parameterName">The name of the parameter containing the invalid user.</param>
+            <param name="user">The user which does not exist.</param>
+            <param name="innerException">The exception that is the cause of the current exception.</param>
         </member>
     </members>
 </doc>

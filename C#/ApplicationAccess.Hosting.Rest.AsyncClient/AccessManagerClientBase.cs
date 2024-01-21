@@ -30,6 +30,7 @@ using ApplicationMetrics.MetricLoggers;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Polly;
+using System.Linq.Expressions;
 
 namespace ApplicationAccess.Hosting.Rest.AsyncClient
 {
@@ -51,8 +52,8 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         protected Uri baseUrl;
         /// <summary>Deserializer for HttpErrorResponse objects.</summary>
         protected HttpErrorResponseJsonSerializer errorResponseDeserializer;
-        /// <summary>Maps a HTTP status code to an action which throws a matching Exception to the status code.  The action accepts 1 parameter: the exception message.</summary>
-        protected Dictionary<HttpStatusCode, Action<String>> statusCodeToExceptionThrowingActionMap;
+        /// <summary>Maps an HTTP status code to an action which throws a matching Exception to the status code.  The action accepts 1 parameter: the <see cref="HttpErrorResponse"/> representing the exception.</summary>
+        protected Dictionary<HttpStatusCode, Action<HttpErrorResponse>> statusCodeToExceptionThrowingActionMap;
         /// <summary>A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</summary>
         protected IUniqueStringifier<TUser> userStringifier;
         /// <summary>A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</summary>
@@ -275,15 +276,93 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         /// </summary>
         protected void InitializeStatusCodeToExceptionThrowingActionMap()
         {
-            statusCodeToExceptionThrowingActionMap = new Dictionary<HttpStatusCode, Action<String>>()
+            statusCodeToExceptionThrowingActionMap = new Dictionary<HttpStatusCode, Action<HttpErrorResponse>>()
             {
                 {
                     HttpStatusCode.InternalServerError,
-                    (String exceptionMessage) => { throw new Exception(exceptionMessage); }
+                    (HttpErrorResponse httpErrorResponse) => { throw new Exception(httpErrorResponse.Message); }
                 },
                 {
                     HttpStatusCode.BadRequest,
-                    (String exceptionMessage) => { throw new ArgumentException(exceptionMessage); }
+                    (HttpErrorResponse httpErrorResponse) => 
+                    {
+                        if (httpErrorResponse.Code == typeof(ArgumentException).Name)
+                        {
+                            String parameterName = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ParameterName");
+                            if (parameterName == "")
+                            {
+                                throw new ArgumentException(httpErrorResponse.Message);
+                            }
+                            else
+                            {
+                                throw new ArgumentException(httpErrorResponse.Message, parameterName);
+                            }
+                        }
+                        else if (httpErrorResponse.Code == typeof(ArgumentOutOfRangeException).Name)
+                        {
+                            String parameterName = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ParameterName");
+                            if (parameterName == "")
+                            {
+                                throw new ArgumentOutOfRangeException(httpErrorResponse.Message);
+                            }
+                            else
+                            {
+                                throw new ArgumentOutOfRangeException(parameterName, httpErrorResponse.Message);
+                            }
+                        }
+                        else if (httpErrorResponse.Code == typeof(ArgumentNullException).Name)
+                        {
+                            String parameterName = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ParameterName");
+                            if (parameterName == "")
+                            {
+                                throw new ArgumentNullException(httpErrorResponse.Message);
+                            }
+                            else
+                            {
+                                throw new ArgumentNullException(parameterName, httpErrorResponse.Message);
+                            }
+                        }
+                        else
+                        {
+                            throw new ArgumentException(httpErrorResponse.Message);
+                        }
+                    }
+                },
+                {
+                    HttpStatusCode.NotFound,
+                    (HttpErrorResponse httpErrorResponse) =>
+                    {
+                        if (httpErrorResponse.Code == "UserNotFoundException")
+                        {
+                            String parameterName = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ParameterName");
+                            String user = GetHttpErrorResponseAttributeValue(httpErrorResponse, "User");
+                            throw new UserNotFoundException<String>(httpErrorResponse.Message, parameterName, user);
+                        }
+                        else if (httpErrorResponse.Code == "GroupNotFoundException")
+                        {
+                            String parameterName = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ParameterName");
+                            String group = GetHttpErrorResponseAttributeValue(httpErrorResponse, "Group");
+                            throw new GroupNotFoundException<String>(httpErrorResponse.Message, parameterName, group);
+                        }
+                        else if (httpErrorResponse.Code == typeof(EntityTypeNotFoundException).Name)
+                        {
+                            String parameterName = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ParameterName");
+                            String entityType = GetHttpErrorResponseAttributeValue(httpErrorResponse, "EntityType");
+                            throw new EntityTypeNotFoundException(httpErrorResponse.Message, parameterName, entityType);
+                        }
+                        else if (httpErrorResponse.Code == typeof(EntityNotFoundException).Name)
+                        {
+                            String parameterName = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ParameterName");
+                            String entityType = GetHttpErrorResponseAttributeValue(httpErrorResponse, "EntityType");
+                            String entity = GetHttpErrorResponseAttributeValue(httpErrorResponse, "Entity");
+                            throw new EntityNotFoundException(httpErrorResponse.Message, parameterName, entityType, entity);
+                        }
+                        else
+                        {
+                            String resourceId = GetHttpErrorResponseAttributeValue(httpErrorResponse, "ResourceId");
+                            throw new NotFoundException(httpErrorResponse.Message, resourceId);
+                        }
+                    }
                 }
             };
         }
@@ -338,7 +417,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
             {
                 if (statusCodeToExceptionThrowingActionMap.ContainsKey(responseStatus) == true)
                 {
-                    statusCodeToExceptionThrowingActionMap[responseStatus].Invoke(httpErrorResponse.Message);
+                    statusCodeToExceptionThrowingActionMap[responseStatus].Invoke(httpErrorResponse);
                 }
                 else
                 {
@@ -395,6 +474,25 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
                     return null;
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the value of the specified <see cref="HttpErrorResponse"/> attribute.
+        /// </summary>
+        /// <param name="httpErrorResponse">The <see cref="HttpErrorResponse"/> to retrieve the attribute from.</param>
+        /// <param name="attributeKey">The key of the attribute to retrieve.</param>
+        /// <returns>The value of the attribute, or a blank string if no attribute with that key exists.</returns>
+        protected String GetHttpErrorResponseAttributeValue(HttpErrorResponse httpErrorResponse, String attributeKey)
+        {
+            foreach (Tuple<String, String> currentAttribute in httpErrorResponse.Attributes)
+            {
+                if (currentAttribute.Item1 == attributeKey)
+                {
+                    return currentAttribute.Item2;
+                }
+            }
+
+            return "";
         }
 
         #endregion

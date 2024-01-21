@@ -1952,7 +1952,7 @@ namespace ApplicationAccess.Serialization.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith($"Failed to deserialize entity 'CompanyA' with type 'ClientAccount' in user to entity mappings."));
-            Assert.IsAssignableFrom<ArgumentException>(e.InnerException);
+            Assert.IsAssignableFrom<UserNotFoundException<String>>(e.InnerException);
         }
 
         [Test]
@@ -2248,7 +2248,7 @@ namespace ApplicationAccess.Serialization.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith($"Failed to deserialize entity 'CompanyA' with type 'ClientAccount' in group to entity mappings."));
-            Assert.IsAssignableFrom<ArgumentException>(e.InnerException);
+            Assert.IsAssignableFrom<GroupNotFoundException<String>>(e.InnerException);
         }
 
         [Test]

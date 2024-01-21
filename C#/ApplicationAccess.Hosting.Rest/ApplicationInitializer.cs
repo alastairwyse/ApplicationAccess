@@ -30,6 +30,7 @@ using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using System.Net;
 
 namespace ApplicationAccess.Hosting.Rest
 {
@@ -200,6 +201,8 @@ namespace ApplicationAccess.Hosting.Rest
             {
                 exceptionToHttpErrorResponseConverter = new ExceptionToHttpErrorResponseConverter(0);
             }
+            // Add default exception to status code mappings
+            AddElementNotFoundExceptionHttpStatusCodeMappings(exceptionToHttpStatusCodeConverter);
             // Add configured exception to status code mappings
             foreach (Tuple<Type, System.Net.HttpStatusCode> currentMapping in parameters.ExceptionToHttpStatusCodeMappings)
             {
@@ -210,6 +213,8 @@ namespace ApplicationAccess.Hosting.Rest
             {
                 exceptionToHttpErrorResponseConverter.AddConversionFunction(currentExceptionType);
             }
+            // Add default exception to custom HttpErrorResponse conversion functions
+            AddElementNotFoundExceptionConversionFunctions(exceptionToHttpErrorResponseConverter);
             // Add configured exception to custom HttpErrorResponse conversion functions
             foreach (Tuple<Type, Func<Exception, HttpErrorResponse>> currentMapping in parameters.ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings)
             {
@@ -272,6 +277,102 @@ namespace ApplicationAccess.Hosting.Rest
             builder.Configuration.GetSection(optionsSectionName).Bind(optionsInstance);
             var context = new ValidationContext(optionsInstance);
             Validator.ValidateObject(optionsInstance, context, true);
+        }
+
+        /// <summary>
+        /// Adds mappings from *NotFoundException instances (e.g. <see cref="UserNotFoundException{T}"/> to HTTP status codes, to the specified <see cref="ExceptionToHttpStatusCodeConverter"/>.
+        /// </summary>
+        /// <param name="exceptionToHttpStatusCodeConverter">The <see cref="ExceptionToHttpStatusCodeConverter"/> to add the mappings to.</param>
+        protected void AddElementNotFoundExceptionHttpStatusCodeMappings(ExceptionToHttpStatusCodeConverter exceptionToHttpStatusCodeConverter)
+        {
+            exceptionToHttpStatusCodeConverter.AddMapping(typeof(UserNotFoundException<String>), HttpStatusCode.NotFound);
+            exceptionToHttpStatusCodeConverter.AddMapping(typeof(GroupNotFoundException<String>), HttpStatusCode.NotFound);
+            exceptionToHttpStatusCodeConverter.AddMapping(typeof(EntityTypeNotFoundException), HttpStatusCode.NotFound);
+            exceptionToHttpStatusCodeConverter.AddMapping(typeof(EntityNotFoundException), HttpStatusCode.NotFound);
+        }
+
+        /// <summary>
+        /// Adds conversion functions to <see cref="HttpErrorResponse"/> objects for *NotFoundException instances (e.g. <see cref="UserNotFoundException{T}"/>).
+        /// </summary>
+        /// <param name="exceptionToHttpErrorResponseConverter">The <see cref="ExceptionToHttpErrorResponseConverter"/> to add the conversion functions to.</param>
+        protected void AddElementNotFoundExceptionConversionFunctions(ExceptionToHttpErrorResponseConverter exceptionToHttpErrorResponseConverter)
+        {
+            exceptionToHttpErrorResponseConverter.AddConversionFunction
+            (
+                typeof(UserNotFoundException<String>),
+                (Exception exception) =>
+                {
+                    var userNotFoundException = (UserNotFoundException<String>)exception;
+                    var attributes = new List<Tuple<String, String>>()
+                    {
+                        new Tuple<String, String>("ParameterName", $"{userNotFoundException.ParamName}"), 
+                        new Tuple<String, String>("User", $"{userNotFoundException.User}")
+                    };
+                    return ConstructHttpErrorResponseFromException("UserNotFoundException", userNotFoundException, attributes);
+                }
+            );
+            exceptionToHttpErrorResponseConverter.AddConversionFunction
+            (
+                typeof(GroupNotFoundException<String>),
+                (Exception exception) =>
+                {
+                    var groupNotFoundException = (GroupNotFoundException<String>)exception;
+                    var attributes = new List<Tuple<String, String>>()
+                    {
+                        new Tuple<String, String>("ParameterName", $"{groupNotFoundException.ParamName}"),
+                        new Tuple<String, String>("Group", $"{groupNotFoundException.Group}")
+                    };
+                    return ConstructHttpErrorResponseFromException("GroupNotFoundException", groupNotFoundException, attributes);
+                }
+            );
+            exceptionToHttpErrorResponseConverter.AddConversionFunction
+            (
+                typeof(EntityTypeNotFoundException),
+                (Exception exception) =>
+                {
+                    var entityTypeNotFoundException = (EntityTypeNotFoundException)exception;
+                    var attributes = new List<Tuple<String, String>>()
+                    {
+                        new Tuple<String, String>("ParameterName", $"{entityTypeNotFoundException.ParamName}"),
+                        new Tuple<String, String>("EntityType", $"{entityTypeNotFoundException.EntityType}")
+                    };
+                    return ConstructHttpErrorResponseFromException(entityTypeNotFoundException.GetType().Name, entityTypeNotFoundException, attributes);
+                }
+            );
+            exceptionToHttpErrorResponseConverter.AddConversionFunction
+            (
+                typeof(EntityNotFoundException),
+                (Exception exception) =>
+                {
+                    var entityNotFoundException = (EntityNotFoundException)exception;
+                    var attributes = new List<Tuple<String, String>>()
+                    {
+                        new Tuple<String, String>("ParameterName", $"{entityNotFoundException.ParamName}"),
+                        new Tuple<String, String>("EntityType", $"{entityNotFoundException.EntityType}"), 
+                        new Tuple<String, String>("Entity", $"{entityNotFoundException.Entity}")
+                    };
+                    return ConstructHttpErrorResponseFromException(entityNotFoundException.GetType().Name, entityNotFoundException, attributes);
+                }
+            );
+        }
+
+        /// <summary>
+        /// Creates an <see cref="HttpErrorResponse"/> from the specified parameters.
+        /// </summary>
+        /// <param name="code">The 'code' property of the <see cref="HttpErrorResponse"/>.</param>
+        /// <param name="exception">The exception to map to the <see cref="HttpErrorResponse"/>.</param>
+        /// <param name="attributes">The values to map to the 'attributes' property of the <see cref="HttpErrorResponse"/>.</param>
+        /// <returns></returns>
+        protected HttpErrorResponse ConstructHttpErrorResponseFromException(String code, Exception exception, List<Tuple<String, String>> attributes)
+        {
+            if (exception.TargetSite == null)
+            {
+                return new HttpErrorResponse(code, exception.Message, attributes);
+            }
+            else
+            {
+                return new HttpErrorResponse(code, exception.Message, exception.TargetSite.Name, attributes);
+            }
         }
 
         protected void ThrowExceptionIfParametersPropertyIsNull(Object propertyValue, String propertyName, String parametersName)

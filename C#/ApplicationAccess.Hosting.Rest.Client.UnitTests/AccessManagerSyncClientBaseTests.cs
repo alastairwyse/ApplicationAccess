@@ -202,6 +202,16 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         }
 
         [Test]
+        public void AdditionalTests()
+        {
+            // rethrowing of ArgumentEWxception and derivations
+            // rethrowing of all ElementNotFound() exceptions
+            // need to change the names of these tests... don't just throw by error status anymore... now use that and code.
+
+            throw new NotImplementedException();
+        }
+
+        [Test]
         public void HandleNonSuccessResponseStatus_UnhandledStatusCodeWithHttpErrorResponseBody()
         {
             var testUrl = new Uri(baseUrl, "userToGroupMappings/user/user1/group/group1");

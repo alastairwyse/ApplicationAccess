@@ -140,6 +140,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual void RemoveUser(TUser user)
         {
             try
@@ -221,6 +222,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual void AddUserToGroupMapping(TUser user, TGroup group)
         {
             try
@@ -242,6 +244,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
             var returnGroups = new HashSet<TGroup>();
@@ -271,6 +274,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             try
@@ -295,9 +299,9 @@ namespace ApplicationAccess
         public virtual void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             if (userToGroupMap.ContainsNonLeafVertex(fromGroup) == false)
-                throw new ArgumentException($"Group '{fromGroup.ToString()}' does not exist.", nameof(fromGroup));
+                ThrowGroupDoesntExistException(fromGroup, nameof(fromGroup));
             if (userToGroupMap.ContainsNonLeafVertex(toGroup) == false)
-                throw new ArgumentException($"Group '{toGroup.ToString()}' does not exist.", nameof(toGroup));
+                ThrowGroupDoesntExistException(toGroup, nameof(toGroup));
             if (fromGroup.Equals(toGroup) == true)
                 throw new ArgumentException($"Parameters '{nameof(fromGroup)}' and '{nameof(toGroup)}' cannot contain the same group.", nameof(toGroup));
 
@@ -343,9 +347,9 @@ namespace ApplicationAccess
         public virtual void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             if (userToGroupMap.ContainsNonLeafVertex(fromGroup) == false)
-                throw new ArgumentException($"Group '{fromGroup.ToString()}' does not exist.", nameof(fromGroup));
+                ThrowGroupDoesntExistException(fromGroup, nameof(fromGroup));
             if (userToGroupMap.ContainsNonLeafVertex(toGroup) == false)
-                throw new ArgumentException($"Group '{toGroup.ToString()}' does not exist.", nameof(toGroup));
+                ThrowGroupDoesntExistException(toGroup, nameof(toGroup));
 
             try
             {
@@ -358,6 +362,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -377,6 +382,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -393,6 +399,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -535,6 +542,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -542,7 +550,7 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
             if (entities[entityType].Contains(entity) == false)
-                ThrowEntityDoesntExistException(entity, nameof(entity));
+                ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
             if (userToEntityMap.ContainsKey(user) == true && userToEntityMap[user].ContainsKey(entityType) == true && userToEntityMap[user][entityType].Contains(entity) == true)
                 throw new ArgumentException($"A mapping between user '{user.ToString()}' and entity '{entity}' with type '{entityType}' already exists.");
 
@@ -570,18 +578,21 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
             return GetUserToEntityMappingsImplementation(user);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
             return GetUserToEntityMappingsImplementation(user, entityType);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -589,7 +600,7 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
             if (entities[entityType].Contains(entity) == false)
-                ThrowEntityDoesntExistException(entity, nameof(entity));
+                ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
             if (userToEntityMap.ContainsKey(user) == false)
                 throw new ArgumentException($"A mapping between user '{user.ToString()}' and entity '{entity}' with type '{entityType}' doesn't exist.");
             if (userToEntityMap.ContainsKey(user) == true && userToEntityMap[user].ContainsKey(entityType) == false)
@@ -612,7 +623,7 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
             if (entities[entityType].Contains(entity) == false)
-                ThrowEntityDoesntExistException(entity, nameof(entity));
+                ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
             if (groupToEntityMap.ContainsKey(group) == true && groupToEntityMap[group].ContainsKey(entityType) == true && groupToEntityMap[group][entityType].Contains(entity) == true)
                 throw new ArgumentException($"A mapping between group '{group.ToString()}' and entity '{entity}' with type '{entityType}' already exists.");
 
@@ -676,7 +687,7 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
             if (entities[entityType].Contains(entity) == false)
-                ThrowEntityDoesntExistException(entity, nameof(entity));
+                ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
             if (groupToEntityMap.ContainsKey(group) == false)
                 throw new ArgumentException($"A mapping between group '{group.ToString()}' and entity '{entity}' with type '{entityType}' doesn't exist.");
             if (groupToEntityMap.ContainsKey(group) == true && groupToEntityMap[group].ContainsKey(entityType) == false)
@@ -742,7 +753,7 @@ namespace ApplicationAccess
             if (containsEntityType == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
             if (entitiesOfType.Contains(entity) == false)
-                ThrowEntityDoesntExistException(entity, nameof(entity));
+                ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
             Boolean containsUser = userToEntityMap.TryGetValue(user, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
             if (containsUser == true)
             {
@@ -782,6 +793,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -848,6 +860,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -886,6 +899,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
         public virtual HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -1060,7 +1074,7 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
             if (entities[entityType].Contains(entity) == false)
-                ThrowEntityDoesntExistException(entity, nameof(entity));
+                ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
 
             if (storeBidirectionalMappings == false)
             {
@@ -1186,32 +1200,32 @@ namespace ApplicationAccess
 
         protected void ThrowUserDoesntExistException(TUser user, String parameterName)
         {
-            throw new ArgumentException($"User '{user.ToString()}' does not exist.", parameterName);
+            throw new UserNotFoundException<TUser>($"User '{user.ToString()}' does not exist.", parameterName, user);
         }
 
         protected void ThrowUserDoesntExistException(TUser user, String parameterName, Exception innerException)
         {
-            throw new ArgumentException($"User '{user.ToString()}' does not exist.", parameterName, innerException);
+            throw new UserNotFoundException<TUser>($"User '{user.ToString()}' does not exist.", parameterName, user, innerException);
         }
 
         protected void ThrowGroupDoesntExistException(TGroup group, String parameterName)
         {
-            throw new ArgumentException($"Group '{group.ToString()}' does not exist.", parameterName);
+            throw new GroupNotFoundException<TGroup>($"Group '{group.ToString()}' does not exist.", parameterName, group);
         }
 
         protected void ThrowGroupDoesntExistException(TGroup group, String parameterName, Exception innerException)
         {
-            throw new ArgumentException($"Group '{group.ToString()}' does not exist.", parameterName, innerException);
+            throw new GroupNotFoundException<TGroup>($"Group '{group.ToString()}' does not exist.", parameterName, group, innerException);
         }
 
         protected void ThrowEntityTypeDoesntExistException(String entityType, String parameterName)
         {
-            throw new ArgumentException($"Entity type '{entityType}' does not exist.", parameterName);
+            throw new EntityTypeNotFoundException($"Entity type '{entityType}' does not exist.", parameterName, entityType);
         }
 
-        protected void ThrowEntityDoesntExistException(String entity, String parameterName)
+        protected void ThrowEntityDoesntExistException(String entityType, String entity, String parameterName)
         {
-            throw new ArgumentException($"Entity '{entity}' does not exist.", parameterName);
+            throw new EntityNotFoundException($"Entity '{entity}' does not exist.", parameterName, entityType, entity);
         }
 
         #endregion

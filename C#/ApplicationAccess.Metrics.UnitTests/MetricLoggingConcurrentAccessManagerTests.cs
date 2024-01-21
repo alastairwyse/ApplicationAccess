@@ -361,7 +361,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<UserRemoveTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.RemoveUser("user1");
             });
@@ -757,7 +757,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GroupRemoveTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.RemoveGroup("group2");
             });
@@ -1165,7 +1165,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetUserToGroupMappingsQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, false);
             });
@@ -1179,7 +1179,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQueryTime>()).Returns(testBeginId);
 
-            e = Assert.Throws<ArgumentException>(delegate
+            e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetUserToGroupMappings(testUser, true);
             });
@@ -1511,7 +1511,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testGroup, false);
             });
@@ -1525,7 +1525,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>()).Returns(testBeginId);
 
-            e = Assert.Throws<ArgumentException>(delegate
+            e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetGroupToGroupMappings(testGroup, true);
             });
@@ -2408,7 +2408,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<EntityTypeRemoveTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.RemoveEntityType("ProductType");
             });
@@ -2971,7 +2971,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<EntityRemoveTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityNotFoundException>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.RemoveEntity("BusinessUnit", "Marketing");
             });
@@ -3988,7 +3988,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<HasAccessToEntityForUserQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityNotFoundException>(delegate
             {
                 Boolean result = testMetricLoggingConcurrentAccessManager.HasAccessToEntity(testUser, testEntityType, "invalid entity");
             });
@@ -4053,7 +4053,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             mockMetricLogger.Begin(Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetApplicationComponentsAccessibleByUser(testUser);
             });
@@ -4116,7 +4116,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             mockMetricLogger.Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetApplicationComponentsAccessibleByGroup(testGroup);
             });
@@ -4182,7 +4182,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetEntitiesAccessibleByUser(testUser);
             });
@@ -4260,7 +4260,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetEntitiesAccessibleByUser(testUser, testEntityType);
             });
@@ -4338,7 +4338,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetEntitiesAccessibleByGroup(testGroup);
             });
@@ -4419,7 +4419,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             mockMetricLogger.ClearReceivedCalls();
             mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>()).Returns(testBeginId);
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testMetricLoggingConcurrentAccessManager.GetEntitiesAccessibleByGroup(testGroup, testEntityType);
             });

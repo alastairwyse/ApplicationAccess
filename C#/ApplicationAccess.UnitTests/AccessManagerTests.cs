@@ -129,13 +129,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveUser_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveUser("user1");
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -205,13 +206,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveGroup_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveGroup("group1");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -279,13 +281,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddGroup("group1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.AddUserToGroupMapping("user1", "group1");
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -293,25 +296,27 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddUser("user1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.AddUserToGroupMapping("user1", "group1");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
         public void GetUserToGroupMappings_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.GetUserToGroupMappings("user1", false).FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -366,13 +371,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddGroup("group1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveUserToGroupMapping("user1", "group1");
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -380,13 +386,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddUser("user1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveUserToGroupMapping("user1", "group1");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -409,13 +416,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddGroup("group1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.AddGroupToGroupMapping("group1", "group2");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group2' does not exist."));
             Assert.AreEqual("toGroup", e.ParamName);
+            Assert.AreEqual("group2", e.Group);
         }
 
         [Test]
@@ -423,13 +431,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddGroup("group2");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.AddGroupToGroupMapping("group1", "group2");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("fromGroup", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -486,13 +495,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetGroupToGroupMappings_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
-                testAccessManager.GetGroupToGroupMappings("group11", false).FirstOrDefault();
+                testAccessManager.GetGroupToGroupMappings("group1", false).FirstOrDefault();
             });
 
-            Assert.That(e.Message, Does.StartWith("Group 'group11' does not exist."));
+            Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -540,13 +550,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddGroup("group1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveGroupToGroupMapping("group1", "group2");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group2' does not exist."));
             Assert.AreEqual("toGroup", e.ParamName);
+            Assert.AreEqual("group2", e.Group);
         }
 
         [Test]
@@ -554,13 +565,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddGroup("group2");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveGroupToGroupMapping("group1", "group2");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("fromGroup", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -581,13 +593,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddUserToApplicationComponentAndAccessLevelMapping_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Create);
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -607,13 +620,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetUserToApplicationComponentAndAccessLevelMappings_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.GetUserToApplicationComponentAndAccessLevelMappings("user1").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -651,13 +665,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveUserToApplicationComponentAndAccessLevelMapping_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Create);
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -676,13 +691,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddGroupToApplicationComponentAndAccessLevelMapping_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.Create);
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -702,13 +718,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetGroupToApplicationComponentAndAccessLevelMappings_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings("group1").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -747,13 +764,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.Create);
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -807,13 +825,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveEntityType_EntityTypeDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.RemoveEntityType("ClientAccount");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
         }
 
         [Test]
@@ -918,13 +937,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddEntity_EntityTypeDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.AddEntity("ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
         }
 
         [Test]
@@ -959,13 +979,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetEntities_EntityTypeDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.GetEntities("ClientAccount").FirstOrDefault();
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
         }
 
         [Test]
@@ -982,13 +1003,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveEntity_EntityTypeDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.RemoveEntity("ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
         }
 
         [Test]
@@ -996,13 +1018,15 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityNotFoundException>(delegate
             {
                 testAccessManager.RemoveEntity("ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
             Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
         }
 
         [Test]
@@ -1131,13 +1155,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddUserToEntityMapping_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -1145,13 +1170,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddUser("user1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
         }
 
         [Test]
@@ -1160,13 +1186,15 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddUser("user1");
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityNotFoundException>(delegate
             {
                 testAccessManager.AddUserToEntityMapping("user1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
             Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
         }
 
         [Test]
@@ -1204,13 +1232,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetUserToEntityMappingsUserOverload_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.GetUserToEntityMappings("user1").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -1253,13 +1282,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.GetUserToEntityMappings("user1", "ClientAccount").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -1268,13 +1298,14 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddUser("user1");
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.GetUserToEntityMappings("user1", "BusinessUnit").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'BusinessUnit' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("BusinessUnit", e.EntityType);
         }
 
         [Test]
@@ -1320,13 +1351,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void RemoveUserToEntityMapping_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveUserToEntityMapping("user1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -1334,13 +1366,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddUser("user1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.RemoveUserToEntityMapping("user1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
         }
 
         [Test]
@@ -1349,13 +1382,15 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddUser("user1");
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityNotFoundException>(delegate
             {
                 testAccessManager.RemoveUserToEntityMapping("user1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
             Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
         }
 
         [Test]
@@ -1418,13 +1453,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void AddGroupToEntityMapping_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -1432,13 +1468,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddGroup("group1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
         }
 
         [Test]
@@ -1447,13 +1484,15 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddGroup("group1");
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityNotFoundException>(delegate
             {
                 testAccessManager.AddGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
             Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
         }
 
         [Test]
@@ -1492,13 +1531,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetGroupToEntityMappingsGroupOverload_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.GetGroupToEntityMappings("group1").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -1541,13 +1581,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.GetGroupToEntityMappings("group1", "ClientAccount").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -1556,13 +1597,14 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddGroup("group1");
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.GetGroupToEntityMappings("group1", "BusinessUnit").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'BusinessUnit' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("BusinessUnit", e.EntityType);
         }
 
         [Test]
@@ -1606,15 +1648,16 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void RemoveGroupToEntityMapping_UserDoesntExist()
+        public void RemoveGroupToEntityMapping_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.RemoveGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -1622,13 +1665,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddGroup("group1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.RemoveGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
         }
 
         [Test]
@@ -1637,13 +1681,15 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddGroup("group1");
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityNotFoundException>(delegate
             {
                 testAccessManager.RemoveGroupToEntityMapping("group1", "ClientAccount", "CompanyA");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
             Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
         }
 
         [Test]
@@ -1781,13 +1827,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddUser("user1");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.HasAccessToEntity("user1", "BusinessUnit", "Marketing");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'BusinessUnit' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("BusinessUnit", e.EntityType);
         }
 
         [Test]
@@ -1796,13 +1843,15 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddUser("user1");
             testAccessManager.AddEntityType("BusinessUnit");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityNotFoundException>(delegate
             {
                 testAccessManager.HasAccessToEntity("user1", "BusinessUnit", "Marketing");
             });
 
             Assert.That(e.Message, Does.StartWith("Entity 'Marketing' does not exist."));
             Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("BusinessUnit", e.EntityType);
+            Assert.AreEqual("Marketing", e.Entity);
         }
 
         [Test]
@@ -1866,13 +1915,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetApplicationComponentsAccessibleByUser_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.GetApplicationComponentsAccessibleByUser("user1");
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -1920,13 +1970,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetApplicationComponentsAccessibleByGroup_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.GetApplicationComponentsAccessibleByGroup("group1");
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -1983,13 +2034,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetEntitiesAccessibleByUserUserOverload_UserDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.GetEntitiesAccessibleByUser("user1").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -2050,13 +2102,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<UserNotFoundException<String>>(delegate
             {
                 testAccessManager.GetEntitiesAccessibleByUser("user1", "ClientAccount").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("User 'user1' does not exist."));
             Assert.AreEqual("user", e.ParamName);
+            Assert.AreEqual("user1", e.User);
         }
 
         [Test]
@@ -2065,13 +2118,14 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddUser("user1");
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.GetEntitiesAccessibleByUser("user1", "BusinessUnit").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'BusinessUnit' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("BusinessUnit", e.EntityType);
         }
 
         [Test]
@@ -2112,13 +2166,14 @@ namespace ApplicationAccess.UnitTests
         [Test]
         public void GetEntitiesAccessibleByGroupGroupOverload_GroupDoesntExist()
         {
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.GetEntitiesAccessibleByGroup("group1").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -2190,13 +2245,14 @@ namespace ApplicationAccess.UnitTests
         {
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
             {
                 testAccessManager.GetEntitiesAccessibleByGroup("group1", "ClientAccount").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
             Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
         }
 
         [Test]
@@ -2205,13 +2261,14 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddGroup("group1");
             testAccessManager.AddEntityType("ClientAccount");
 
-            var e = Assert.Throws<ArgumentException>(delegate
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
             {
                 testAccessManager.GetEntitiesAccessibleByGroup("group1", "BusinessUnit").Count();
             });
 
             Assert.That(e.Message, Does.StartWith("Entity type 'BusinessUnit' does not exist."));
             Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("BusinessUnit", e.EntityType);
         }
 
         [Test]

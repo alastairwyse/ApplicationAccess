@@ -21,6 +21,8 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
+using ApplicationAccess.Hosting.Models;
+using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
@@ -137,6 +139,104 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
                 JObject jsonResponse = ConvertHttpContentToJson(response.Content);
                 AssertJsonIsHttpErrorResponse(jsonResponse, "NotFoundException", $"Entity type '{entityType}' does not exist.");
                 AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ResourceId", entityType);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 404 status when a <see cref="UserNotFoundException{T}"/> is thrown.
+        /// </summary>
+        [Test]
+        [Order(0)]
+        public void UserNotFoundExceptionMappedToHttpErrorResponse()
+        {
+            const String user = "invalidUser";
+            const String requestUrl = $"api/v1/users/{user}";
+            var mockException = new UserNotFoundException<String>($"User '{user}' does not exist.", "user", user);
+            mockUserEventProcessor.When((processor) => processor.RemoveUser(user)).Do((callInfo) => throw mockException);
+
+            using (HttpResponseMessage response = client.DeleteAsync(requestUrl).Result)
+            {
+
+                mockUserEventProcessor.Received(1).RemoveUser(user);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, "UserNotFoundException", mockException.Message);
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ParameterName", "user");
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "User", user);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 404 status when a <see cref="GroupNotFoundException{T}"/> is thrown.
+        /// </summary>
+        [Test]
+        [Order(0)]
+        public void GroupNotFoundExceptionMappedToHttpErrorResponse()
+        {
+            const String group = "invalidGroup";
+            const String requestUrl = $"api/v1/groups/{group}";
+            var mockException = new GroupNotFoundException<String>($"Group '{group}' does not exist.", "group", group);
+            mockGroupEventProcessor.When((processor) => processor.RemoveGroup(group)).Do((callInfo) => throw mockException);
+
+            using (HttpResponseMessage response = client.DeleteAsync(requestUrl).Result)
+            {
+
+                mockGroupEventProcessor.Received(1).RemoveGroup(group);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, "GroupNotFoundException", mockException.Message);
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ParameterName", "group");
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Group", group);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 404 status when a <see cref="EntityTypeNotFoundException"/> is thrown.
+        /// </summary>
+        [Test]
+        [Order(0)]
+        public void EntityTypeNotFoundExceptionMappedToHttpErrorResponse()
+        {
+            const String entityType = "invalidEntityType";
+            const String requestUrl = $"api/v1/entityTypes/{entityType}";
+            var mockException = new EntityTypeNotFoundException($"Entity type '{entityType}' does not exist.", "entityType", entityType);
+            mockEntityEventProcessor.When((processor) => processor.RemoveEntityType(entityType)).Do((callInfo) => throw mockException);
+
+            using (HttpResponseMessage response = client.DeleteAsync(requestUrl).Result)
+            {
+
+                mockEntityEventProcessor.Received(1).RemoveEntityType(entityType);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, typeof(EntityTypeNotFoundException).Name, mockException.Message);
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ParameterName", "entityType");
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "EntityType", entityType);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Tests that controller methods return a <see cref="HttpErrorResponse"/> with 404 status when a <see cref="EntityNotFoundException"/> is thrown.
+        /// </summary>
+        [Test]
+        [Order(0)]
+        public void EntityNotFoundExceptionMappedToHttpErrorResponse()
+        {
+            const String entityType = "ClientAccount";
+            const String entity = "InvalidEntity";
+            const String requestUrl = $"api/v1/entityTypes/{entityType}/entities/{entity}";
+            var mockException = new EntityNotFoundException($"Entity '{entity}' does not exist.", "entityType", entityType, entity);
+            mockEntityEventProcessor.When((processor) => processor.RemoveEntity(entityType, entity)).Do((callInfo) => throw mockException);
+
+            using (HttpResponseMessage response = client.DeleteAsync(requestUrl).Result)
+            {
+
+                mockEntityEventProcessor.Received(1).RemoveEntity(entityType, entity);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                AssertJsonIsHttpErrorResponse(jsonResponse, typeof(EntityNotFoundException).Name, mockException.Message);
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "ParameterName", "entityType");
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "EntityType", entityType);
+                AssertHttpErrorResponseJsonContainsAttribute(jsonResponse, "Entity", entity);
                 Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             }
         }
