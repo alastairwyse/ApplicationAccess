@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Net;
@@ -165,7 +166,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
         public void HandleNonSuccessResponseStatus_400StatusCodeWithHttpErrorResponseBody()
         {
             var testUrl = new Uri(baseUrl, "userToGroupMappings/user/abc/group/group1");
-            const String errorCode = "ArgumentException";
+            const String errorCode = "UnrecognizedCode";
             const String errorMessage = "User 'abc' does not exist. (Parameter 'user')";
             var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage);
             using (var responseBody = new MemoryStream())
@@ -178,6 +179,203 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
                 });
 
                 Assert.That(e.Message, Does.StartWith(errorMessage));
+            }
+        }
+
+        [Test]
+        public void HandleNonSuccessResponseStatus_400StatusCodeWithArgumentExceptionHttpErrorResponseBody()
+        {
+            var testUrl = new Uri(baseUrl, "userToGroupMappings/user/abc/group/group1");
+            const String errorCode = "ArgumentException";
+            const String errorMessage = "User 'abc' does not exist. (Parameter 'user')";
+            var attributes = new List<Tuple<String, String>>() { Tuple.Create("ParameterName", "user") };
+            var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage, attributes);
+            using (var responseBody = new MemoryStream())
+            {
+                WriteSerializedHttpErrorResponseToStream(responseBodyHttpErrorResponse, responseBody);
+
+                var e = Assert.Throws<ArgumentException>(delegate
+                {
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.BadRequest, responseBody);
+                });
+
+                Assert.That(e.Message, Does.StartWith(errorMessage));
+                Assert.AreEqual("user", e.ParamName);
+            }
+        }
+
+        [Test]
+        public void HandleNonSuccessResponseStatus_400StatusCodeWithArgumentOutOfRangeExceptionHttpErrorResponseBody()
+        {
+            // Url doesn't relate to error/exception... can't find any use of ArgumentOutOfRangeException outside constructors
+            var testUrl = new Uri(baseUrl, "userToGroupMappings/user/abc/group/group1");
+            const String errorCode = "ArgumentOutOfRangeException";
+            const String errorMessage = "Parameter 'cachedEventCount' must be greater than or equal to 1. (Parameter 'cachedEventCount')";
+            var attributes = new List<Tuple<String, String>>() { Tuple.Create("ParameterName", "cachedEventCount") };
+            var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage, attributes);
+            using (var responseBody = new MemoryStream())
+            {
+                WriteSerializedHttpErrorResponseToStream(responseBodyHttpErrorResponse, responseBody);
+
+                var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+                {
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.BadRequest, responseBody);
+                });
+
+                Assert.That(e.Message, Does.StartWith(errorMessage));
+                Assert.AreEqual("cachedEventCount", e.ParamName);
+            }
+        }
+
+        [Test]
+        public void HandleNonSuccessResponseStatus_400StatusCodeWithArgumentNullExceptionHttpErrorResponseBody()
+        {
+            var testUrl = new Uri(baseUrl, "userToGroupMappings/user/%20/group/group1");
+            const String errorCode = "ArgumentNullException";
+            const String errorMessage = "Parameter 'user' cannot be null. (Parameter 'user')";
+            var attributes = new List<Tuple<String, String>>() { Tuple.Create("ParameterName", "user") };
+            var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage, attributes);
+            using (var responseBody = new MemoryStream())
+            {
+                WriteSerializedHttpErrorResponseToStream(responseBodyHttpErrorResponse, responseBody);
+
+                var e = Assert.Throws<ArgumentNullException>(delegate
+                {
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.BadRequest, responseBody);
+                });
+
+                Assert.That(e.Message, Does.StartWith(errorMessage));
+                Assert.AreEqual("user", e.ParamName);
+            }
+        }
+
+        [Test]
+        public void HandleNonSuccessResponseStatus_404StatusCodeWithHttpErrorResponseBody()
+        {
+            var testUrl = new Uri(baseUrl, "userToGroupMappings/user/abc/group/group1");
+            const String errorCode = "UnrecognizedCode";
+            const String errorMessage = "User 'abc' does not exist. (Parameter 'user')";
+            var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage);
+            using (var responseBody = new MemoryStream())
+            {
+                WriteSerializedHttpErrorResponseToStream(responseBodyHttpErrorResponse, responseBody);
+
+                var e = Assert.Throws<NotFoundException>(delegate
+                {
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.NotFound, responseBody);
+                });
+
+                Assert.That(e.Message, Does.StartWith(errorMessage));
+            }
+        }
+
+        [Test]
+        public void HandleNonSuccessResponseStatus_404StatusCodeWithUserNotFoundExceptionHttpErrorResponseBody()
+        {
+            var testUrl = new Uri(baseUrl, "userToGroupMappings/user/abc/group/group1");
+            const String errorCode = "UserNotFoundException";
+            const String errorMessage = "User 'abc' does not exist. (Parameter 'user')";
+            var attributes = new List<Tuple<String, String>>() 
+            {
+                Tuple.Create("ParameterName", "user"),
+                Tuple.Create("User", "abc"),
+            };
+            var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage, attributes);
+            using (var responseBody = new MemoryStream())
+            {
+                WriteSerializedHttpErrorResponseToStream(responseBodyHttpErrorResponse, responseBody);
+
+                var e = Assert.Throws<UserNotFoundException<String>>(delegate
+                {
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.NotFound, responseBody);
+                });
+
+                Assert.That(e.Message, Does.StartWith(errorMessage));
+                Assert.AreEqual("user", e.ParamName);
+                Assert.AreEqual("abc", e.User);
+            }
+        }
+
+        [Test]
+        public void HandleNonSuccessResponseStatus_404StatusCodeWithGroupNotFoundExceptionHttpErrorResponseBody()
+        {
+            var testUrl = new Uri(baseUrl, "userToGroupMappings/user/abc/group/group1");
+            const String errorCode = "GroupNotFoundException";
+            const String errorMessage = "Group 'group1' does not exist. (Parameter 'group')";
+            var attributes = new List<Tuple<String, String>>()
+            {
+                Tuple.Create("ParameterName", "group"),
+                Tuple.Create("Group", "group1"),
+            };
+            var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage, attributes);
+            using (var responseBody = new MemoryStream())
+            {
+                WriteSerializedHttpErrorResponseToStream(responseBodyHttpErrorResponse, responseBody);
+
+                var e = Assert.Throws<GroupNotFoundException<String>>(delegate
+                {
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Post, testUrl, HttpStatusCode.NotFound, responseBody);
+                });
+
+                Assert.That(e.Message, Does.StartWith(errorMessage));
+                Assert.AreEqual("group", e.ParamName);
+                Assert.AreEqual("group1", e.Group);
+            }
+        }
+
+        [Test]
+        public void HandleNonSuccessResponseStatus_404StatusCodeWithEntityTypeNotFoundExceptionHttpErrorResponseBody()
+        {
+            var testUrl = new Uri(baseUrl, "entityTypes/ClientAccount/entities/CompanyA");
+            const String errorCode = "EntityTypeNotFoundException";
+            const String errorMessage = "Entity type 'ClientAccount' does not exist. (Parameter 'entityType')";
+            var attributes = new List<Tuple<String, String>>()
+            {
+                Tuple.Create("ParameterName", "entityType"),
+                Tuple.Create("EntityType", "ClientAccount"),
+            };
+            var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage, attributes);
+            using (var responseBody = new MemoryStream())
+            {
+                WriteSerializedHttpErrorResponseToStream(responseBodyHttpErrorResponse, responseBody);
+
+                var e = Assert.Throws<EntityTypeNotFoundException>(delegate
+                {
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Delete, testUrl, HttpStatusCode.NotFound, responseBody);
+                });
+
+                Assert.That(e.Message, Does.StartWith(errorMessage));
+                Assert.AreEqual("entityType", e.ParamName);
+                Assert.AreEqual("ClientAccount", e.EntityType);
+            }
+        }
+
+        [Test]
+        public void HandleNonSuccessResponseStatus_404StatusCodeWithEntityNotFoundExceptionHttpErrorResponseBody()
+        {
+            var testUrl = new Uri(baseUrl, "entityTypes/ClientAccount/entities/CompanyA");
+            const String errorCode = "EntityNotFoundException";
+            const String errorMessage = "Entity 'CompanyA' does not exist. (Parameter 'entity')";
+            var attributes = new List<Tuple<String, String>>()
+            {
+                Tuple.Create("ParameterName", "entity"),
+                Tuple.Create("EntityType", "ClientAccount"),
+                Tuple.Create("Entity", "CompanyA"),
+            };
+            var responseBodyHttpErrorResponse = new HttpErrorResponse(errorCode, errorMessage, attributes);
+            using (var responseBody = new MemoryStream())
+            {
+                WriteSerializedHttpErrorResponseToStream(responseBodyHttpErrorResponse, responseBody);
+
+                var e = Assert.Throws<EntityNotFoundException>(delegate
+                {
+                    testAccessManagerClientBase.HandleNonSuccessResponseStatus(HttpMethod.Delete, testUrl, HttpStatusCode.NotFound, responseBody);
+                });
+
+                Assert.That(e.Message, Does.StartWith(errorMessage));
+                Assert.AreEqual("entity", e.ParamName);
+                Assert.AreEqual("ClientAccount", e.EntityType);
+                Assert.AreEqual("CompanyA", e.Entity);
             }
         }
 
@@ -199,16 +397,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.UnitTests
 
                 Assert.That(e.Message, Does.StartWith(errorMessage));
             }
-        }
-
-        [Test]
-        public void AdditionalTests()
-        {
-            // rethrowing of ArgumentEWxception and derivations
-            // rethrowing of all ElementNotFound() exceptions
-            // need to change the names of these tests... don't just throw by error status anymore... now use that and code.
-
-            throw new NotImplementedException();
         }
 
         [Test]

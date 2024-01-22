@@ -38,6 +38,6 @@ class EnumUniqueStringifier(UniqueStringifierBase[TEnum]):
         #try:
         class_definition = globals()["AccessLevel"]
         #class_definition = globals()[enum_type_and_value[0]]
-        return cls[enum_type_and_value[1]]
+        return [enum_type_and_value[1]]
         #except Exception as e:
             #raise ValueError("String '{0}' could not be converted to an enum type.".format(stringified_object)) from e
