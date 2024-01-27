@@ -315,20 +315,19 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             String testUser = "user1";
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(3);
-            var allClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1], clientsAndDescriptions[2] };
-            clientsAndDescriptions[0].Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(false));
-            clientsAndDescriptions[1].Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(true));
-            clientsAndDescriptions[2].Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(false));
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            clientAndDescription.Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(true));
             mockMetricLogger.Begin(Arg.Any<ContainsUserQueryTime>()).Returns(testBeginId);
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(allClients);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
 
             Boolean result = await testOperationCoordinator.ContainsUserAsync(testUser);
 
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            await clientsAndDescriptions[0].Client.Received(1).ContainsUserAsync(testUser);
-            await clientsAndDescriptions[1].Client.Received(1).ContainsUserAsync(testUser);
-            await clientsAndDescriptions[2].Client.Received(1).ContainsUserAsync(testUser);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).ContainsUserAsync(testUser);
             mockMetricLogger.Received(1).Begin(Arg.Any<ContainsUserQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ContainsUserQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ContainsUserQuery>());
@@ -337,21 +336,15 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(true, result);
 
 
-            clientsAndDescriptions[0].Client.ClearReceivedCalls();
-            clientsAndDescriptions[1].Client.ClearReceivedCalls();
-            clientsAndDescriptions[2].Client.ClearReceivedCalls();
+            clientAndDescription.Client.ClearReceivedCalls();
             mockMetricLogger.ClearReceivedCalls();
             mockShardClientManager.ClearReceivedCalls();
-            clientsAndDescriptions[0].Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(false));
-            clientsAndDescriptions[1].Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(false));
-            clientsAndDescriptions[2].Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(false));
+            clientAndDescription.Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(false));
 
             result = await testOperationCoordinator.ContainsUserAsync(testUser);
 
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            await clientsAndDescriptions[0].Client.Received(1).ContainsUserAsync(testUser);
-            await clientsAndDescriptions[1].Client.Received(1).ContainsUserAsync(testUser);
-            await clientsAndDescriptions[2].Client.Received(1).ContainsUserAsync(testUser);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).ContainsUserAsync(testUser);
             mockMetricLogger.Received(1).Begin(Arg.Any<ContainsUserQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ContainsUserQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ContainsUserQuery>());
@@ -365,29 +358,28 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             String testUser = "user1";
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(3);
-            var allClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1], clientsAndDescriptions[2] };
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
             var mockException = new Exception("Mock exception");
-            clientsAndDescriptions[0].Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(false));
-            clientsAndDescriptions[1].Client.ContainsUserAsync(testUser).Returns(Task.FromException<Boolean>(mockException));
-            clientsAndDescriptions[2].Client.ContainsUserAsync(testUser).Returns(Task.FromResult<Boolean>(false));
+            clientAndDescription.Client.ContainsUserAsync(testUser).Returns(Task.FromException<Boolean>(mockException));
             mockMetricLogger.Begin(Arg.Any<ContainsUserQueryTime>()).Returns(testBeginId);
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(allClients);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
                 await testOperationCoordinator.ContainsUserAsync(testUser);
             });
 
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            await clientsAndDescriptions[0].Client.Received(1).ContainsUserAsync(testUser);
-            await clientsAndDescriptions[1].Client.Received(1).ContainsUserAsync(testUser);
-            await clientsAndDescriptions[2].Client.Received(1).ContainsUserAsync(testUser);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).ContainsUserAsync(testUser);
             mockMetricLogger.Received(1).Begin(Arg.Any<ContainsUserQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ContainsUserQueryTime>());
             Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
-            Assert.That(e.Message, Does.StartWith($"Failed to check for user '{testUser}' in shard with configuration 'ShardDescription2'."));
+            Assert.That(e.Message, Does.StartWith($"Failed to check for user '{testUser}' in shard with configuration 'ShardDescription'."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -396,16 +388,18 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             String testUser = "user1";
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(2);
-            var allClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] };
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
             mockMetricLogger.Begin(Arg.Any<UserRemoveTime>()).Returns(testBeginId);
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(allClients);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
 
             await testOperationCoordinator.RemoveUserAsync(testUser);
 
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
-            await clientsAndDescriptions[0].Client.Received(1).RemoveUserAsync(testUser);
-            await clientsAndDescriptions[1].Client.Received(1).RemoveUserAsync(testUser);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Event, testUser);
+            await clientAndDescription.Client.Received(1).RemoveUserAsync(testUser);
             mockMetricLogger.Received(1).Begin(Arg.Any<UserRemoveTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<UserRemoveTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<UserRemoved>());
@@ -418,26 +412,28 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             String testUser = "user1";
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(2);
-            var allClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] };
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
             var mockException = new Exception("Mock exception");
             mockMetricLogger.Begin(Arg.Any<UserRemoveTime>()).Returns(testBeginId);
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(allClients);
-            clientsAndDescriptions[1].Client.RemoveUserAsync(testUser).Returns(Task.FromException(mockException));
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.RemoveUserAsync(testUser).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
                 await testOperationCoordinator.RemoveUserAsync(testUser);
             });
 
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
-            await clientsAndDescriptions[0].Client.Received(1).RemoveUserAsync(testUser);
-            await clientsAndDescriptions[1].Client.Received(1).RemoveUserAsync(testUser);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Event, testUser);
+            await clientAndDescription.Client.Received(1).RemoveUserAsync(testUser);
             mockMetricLogger.Received(1).Begin(Arg.Any<UserRemoveTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<UserRemoveTime>());
             Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
-            Assert.That(e.Message, Does.StartWith($"Failed to remove user '{testUser}' from shard with configuration 'ShardDescription2'."));
+            Assert.That(e.Message, Does.StartWith($"Failed to remove user '{testUser}' from shard with configuration 'ShardDescription'."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -445,22 +441,25 @@ namespace ApplicationAccess.Distribution.UnitTests
         public async Task AddGroupAsync()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(2);
+            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(3);
             String testGroup = "group1";
             mockMetricLogger.Begin(Arg.Any<GroupAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientsAndDescriptions[0]);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[1] });
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2] });
 
             await testOperationCoordinator.AddGroupAsync(testGroup);
 
             mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Event, testGroup);
             mockShardClientManager.Received(1).GetAllClients(DataElement.GroupToGroupMapping, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
             await clientsAndDescriptions[0].Client.Received(1).AddGroupAsync(testGroup);
             await clientsAndDescriptions[1].Client.Received(1).AddGroupAsync(testGroup);
+            await clientsAndDescriptions[2].Client.Received(1).AddGroupAsync(testGroup);
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupAddTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GroupAddTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GroupAdded>());
-            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
@@ -468,12 +467,13 @@ namespace ApplicationAccess.Distribution.UnitTests
         public async Task AddGroupAsync_ExceptionWhenAdding()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(2);
+            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(3);
             var mockException = new Exception("Mock exception");
             String testGroup = "group1";
             mockMetricLogger.Begin(Arg.Any<GroupAddTime>()).Returns(testBeginId);
             mockShardClientManager.GetClient(DataElement.Group, Operation.Event, testGroup).Returns(clientsAndDescriptions[0]);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[1] });
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2] });
             clientsAndDescriptions[1].Client.AddGroupAsync(testGroup).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
@@ -483,11 +483,10 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Event, testGroup);
             mockShardClientManager.Received(1).GetAllClients(DataElement.GroupToGroupMapping, Operation.Event);
-            await clientsAndDescriptions[0].Client.Received(1).AddGroupAsync(testGroup);
             await clientsAndDescriptions[1].Client.Received(1).AddGroupAsync(testGroup);
             mockMetricLogger.Received(1).Begin(Arg.Any<GroupAddTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupAddTime>());
-            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to add group '{testGroup}' to shard with configuration 'ShardDescription2'."));
             Assert.AreSame(mockException, e.InnerException);
@@ -499,8 +498,8 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testGroup = "group1";
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(4);
-            var userClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0] };
-            var groupClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[1], clientsAndDescriptions[2] };
+            var userClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] };
+            var groupClient = clientsAndDescriptions[2];
             var groupToGroupClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[3] };
             clientsAndDescriptions[0].Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(false));
             clientsAndDescriptions[1].Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(false));
@@ -508,13 +507,13 @@ namespace ApplicationAccess.Distribution.UnitTests
             clientsAndDescriptions[3].Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(true));
             mockMetricLogger.Begin(Arg.Any<ContainsGroupQueryTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
-            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupClients);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, testGroup).Returns(groupClient);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query).Returns(groupToGroupClients);
 
             Boolean result = await testOperationCoordinator.ContainsGroupAsync(testGroup);
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Query, testGroup);
             mockShardClientManager.Received(1).GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
             await clientsAndDescriptions[0].Client.Received(1).ContainsGroupAsync(testGroup);
             await clientsAndDescriptions[1].Client.Received(1).ContainsGroupAsync(testGroup);
@@ -542,7 +541,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             result = await testOperationCoordinator.ContainsGroupAsync(testGroup);
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Query, testGroup);
             mockShardClientManager.Received(1).GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
             await clientsAndDescriptions[0].Client.Received(1).ContainsGroupAsync(testGroup);
             await clientsAndDescriptions[1].Client.Received(1).ContainsGroupAsync(testGroup);
@@ -562,8 +561,8 @@ namespace ApplicationAccess.Distribution.UnitTests
             String testGroup = "group1";
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(4);
-            var userClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0] };
-            var groupClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[1], clientsAndDescriptions[2] };
+            var userClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] };
+            var groupClient = clientsAndDescriptions[2];
             var groupToGroupClients = new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[3] };
             var mockException = new Exception("Mock exception");
             clientsAndDescriptions[0].Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(false));
@@ -572,7 +571,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             clientsAndDescriptions[3].Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(true));
             mockMetricLogger.Begin(Arg.Any<ContainsGroupQueryTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
-            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupClients);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, testGroup).Returns(groupClient);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query).Returns(groupToGroupClients);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
@@ -581,12 +580,9 @@ namespace ApplicationAccess.Distribution.UnitTests
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Query, testGroup);
             mockShardClientManager.Received(1).GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
-            await clientsAndDescriptions[0].Client.Received(1).ContainsGroupAsync(testGroup);
-            await clientsAndDescriptions[1].Client.Received(1).ContainsGroupAsync(testGroup);
             await clientsAndDescriptions[2].Client.Received(1).ContainsGroupAsync(testGroup);
-            await clientsAndDescriptions[3].Client.Received(1).ContainsGroupAsync(testGroup);
             mockMetricLogger.Received(1).Begin(Arg.Any<ContainsGroupQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ContainsGroupQueryTime>());
             Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
@@ -743,6 +739,35 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetUserToGroupMappingsAsync_IncludeIndirectMappingsParameterFalseUserDoesntExist()
+        {
+            String testUser = "user1";
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetUserToGroupMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<UserNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetUserToGroupMappingsAsync(testUser, false);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetUserToGroupMappingsQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
+        }
+
+        [Test]
         public async Task GetUserToGroupMappingsAsync_IncludeIndirectMappingsParameterFalseExceptionWhenReading()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -845,6 +870,37 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(1, groupToGroupMappingShard2ClientAndDescription.Client.ReceivedCalls().Count());
             Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetUserToGroupMappingsAsync_IncludeIndirectMappingsParameterTrueUserDoesntExist()
+        {
+            String testUser = "user1";
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var userShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            // Mock the call to the user node to get the directly mapped groups
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(userShardClientAndDescription);
+            userShardClientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<UserNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetUserToGroupMappingsAsync(testUser, true);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await userShardClientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetUserToGroupMappingsWithIndirectMappingsQueryTime>());
+            Assert.AreEqual(1, userShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
         }
 
         [Test]
@@ -1030,6 +1086,37 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task AddGroupToGroupMappingAsync_ArgumentExceptionWhenAdding()
+        {
+            // This should cover 'fromGroup' and 'toGroup' containing the same group and circular references, as both are thrown as ArgumentExceptions
+
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testFromGroup = "group1";
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            var mockException = new ArgumentException($"Parameters '{nameof(testFromGroup)}' and '{nameof(testFromGroup)}' cannot contain the same group.", "toGroup");
+            mockMetricLogger.Begin(Arg.Any<GroupToGroupMappingAddTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.AddGroupToGroupMappingAsync(testFromGroup, testFromGroup).Returns(Task.FromException(mockException));
+
+            var e = Assert.ThrowsAsync<ArgumentException>(async delegate
+            {
+                await testOperationCoordinator.AddGroupToGroupMappingAsync(testFromGroup, testFromGroup);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Event, testFromGroup);
+            await clientAndDescription.Client.Received(1).AddGroupToGroupMappingAsync(testFromGroup, testFromGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GroupToGroupMappingAddTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GroupToGroupMappingAddTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
+        }
+
+        [Test]
         public async Task AddGroupToGroupMappingAsync_ExceptionWhenAdding()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -1090,6 +1177,33 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetGroupToGroupMappingsAsync_GroupDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testGroup = "group1";
+            GroupNotFoundException<String> mockException = GenerateGroupNotFoundException(testGroup);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToGroupMappingsAsync(testGroup, false).Returns(Task.FromException<List<String>>(mockException));
+
+            List<String> result = await testOperationCoordinator.GetGroupToGroupMappingsAsync(testGroup, false);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(testGroup, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsForGroupQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
         public async Task GetGroupToGroupMappingsAsync_ExceptionWhenReading()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -1146,6 +1260,33 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.IsTrue(result.Contains("group2"));
             Assert.IsTrue(result.Contains("group3"));
             Assert.IsTrue(result.Contains("group4"));
+        }
+
+        [Test]
+        public async Task GetGroupToGroupMappingsAsync_IncludeIndirectMappingsParameterTrueGroupDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testGroup = "group1";
+            GroupNotFoundException<String> mockException = GenerateGroupNotFoundException(testGroup);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToGroupMappingsAsync(testGroup, true).Returns(Task.FromException<List<String>>(mockException));
+
+            List<String> result = await testOperationCoordinator.GetGroupToGroupMappingsAsync(testGroup, true);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.GroupToGroupMapping, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(testGroup, true);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupMappingsForGroupWithIndirectMappingsQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(0, result.Count);
         }
 
         [Test]
@@ -1325,6 +1466,35 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetUserToApplicationComponentAndAccessLevelMappingsAsync_UserDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testUser = "user1";
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetUserToApplicationComponentAndAccessLevelMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.GetUserToApplicationComponentAndAccessLevelMappingsAsync(testUser).Returns(Task.FromException<List<Tuple<String, String>>>(mockException));
+
+            var e = Assert.ThrowsAsync<UserNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetUserToApplicationComponentAndAccessLevelMappingsAsync(testUser);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).GetUserToApplicationComponentAndAccessLevelMappingsAsync(testUser);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToApplicationComponentAndAccessLevelMappingsQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetUserToApplicationComponentAndAccessLevelMappingsQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
+        }
+
+        [Test]
         public async Task GetUserToApplicationComponentAndAccessLevelMappingsAsync_ExceptionWhenReading()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -1500,6 +1670,35 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains(new Tuple<String, String>("Summary", "View")));
             Assert.IsTrue(result.Contains(new Tuple<String, String>("Order", "Create")));
+        }
+
+        [Test]
+        public async Task GetGroupToApplicationComponentAndAccessLevelMappingsAsync_GroupDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testGroup = "group1";
+            GroupNotFoundException<String> mockException = GenerateGroupNotFoundException(testGroup);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(testGroup).Returns(Task.FromException<List<Tuple<String, String>>>(mockException));
+
+            var e = Assert.ThrowsAsync<GroupNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(testGroup);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToApplicationComponentAndAccessLevelMappingsAsync(testGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
         }
 
         [Test]
@@ -1880,6 +2079,38 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetEntitiesAsync_EntityTypeDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testEntityType = "ClientAccount";
+            EntityTypeNotFoundException mockException = GenerateEntityTypeNotFoundException(testEntityType);
+            List<DistributedClientAndShardDescription> clientsAndDescriptions = GenerateDistributedClientAndShardDescriptions(3);
+            clientsAndDescriptions[0].Client.GetEntitiesAsync(testEntityType).Returns(Task.FromResult<List<String>>(new List<String>() { "CompanyA", "CompanyB" }));
+            clientsAndDescriptions[1].Client.GetEntitiesAsync(testEntityType).Returns(Task.FromException<List<String>>(mockException));
+            clientsAndDescriptions[2].Client.GetEntitiesAsync(testEntityType).Returns(Task.FromResult<List<String>>(new List<String>() { "CompanyB", "CompanyC" }));
+            mockMetricLogger.Begin(Arg.Any<GetEntitiesQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[0], clientsAndDescriptions[1] });
+            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(new List<DistributedClientAndShardDescription>() { clientsAndDescriptions[2] });
+
+            var result = new List<String>(await testOperationCoordinator.GetEntitiesAsync(testEntityType));
+
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            await clientsAndDescriptions[0].Client.Received(1).GetEntitiesAsync(testEntityType);
+            await clientsAndDescriptions[1].Client.Received(1).GetEntitiesAsync(testEntityType);
+            await clientsAndDescriptions[2].Client.Received(1).GetEntitiesAsync(testEntityType);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesQuery>());
+            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("CompanyA"));
+            Assert.IsTrue(result.Contains("CompanyB"));
+            Assert.IsTrue(result.Contains("CompanyC"));
+        }
+
+        [Test]
         public async Task GetEntitiesAsync_ExceptionWhenReading()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -1900,9 +2131,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
-            await clientsAndDescriptions[0].Client.Received(1).GetEntitiesAsync(testEntityType);
             await clientsAndDescriptions[1].Client.Received(1).GetEntitiesAsync(testEntityType);
-            await clientsAndDescriptions[2].Client.Received(1).GetEntitiesAsync(testEntityType);
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesQueryTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetEntitiesQueryTime>());
             Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
@@ -2150,6 +2379,35 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetUserToEntityMappingsAsync_UserDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testUser = "user1";
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetUserToEntityMappingsForUserQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.GetUserToEntityMappingsAsync(testUser).Returns(Task.FromException<List<Tuple<String, String>>>(mockException));
+
+            var e = Assert.ThrowsAsync<UserNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetUserToEntityMappingsAsync(testUser);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).GetUserToEntityMappingsAsync(testUser);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToEntityMappingsForUserQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetUserToEntityMappingsForUserQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
+        }
+
+        [Test]
         public async Task GetUserToEntityMappingsAsync_ExceptionWhenReading()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -2207,6 +2465,64 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.IsTrue(result.Contains("CompanyA"));
             Assert.IsTrue(result.Contains("CompanyB"));
             Assert.IsTrue(result.Contains("CompanyC"));
+        }
+
+        [Test]
+        public async Task GetUserToEntityMappingsAsyncUserAndEntityTypeOverload_UserDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetUserToEntityMappingsForUserAndEntityTypeQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.GetUserToEntityMappingsAsync(testUser, testEntityType).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<UserNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetUserToEntityMappingsAsync(testUser, testEntityType);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).GetUserToEntityMappingsAsync(testUser, testEntityType);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToEntityMappingsForUserAndEntityTypeQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetUserToEntityMappingsForUserAndEntityTypeQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
+        }
+
+        [Test]
+        public async Task GetUserToEntityMappingsAsyncUserAndEntityTypeOverload_EntityTypeDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            EntityTypeNotFoundException mockException = GenerateEntityTypeNotFoundException(testEntityType);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetUserToEntityMappingsForUserAndEntityTypeQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(clientAndDescription);
+            clientAndDescription.Client.GetUserToEntityMappingsAsync(testUser, testEntityType).Returns(Task.FromException<List<String>>(mockException));
+
+            List<String> result = await testOperationCoordinator.GetUserToEntityMappingsAsync(testUser, testEntityType);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await clientAndDescription.Client.Received(1).GetUserToEntityMappingsAsync(testUser, testEntityType);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetUserToEntityMappingsForUserAndEntityTypeQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetUserToEntityMappingsForUserAndEntityTypeQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetUserToEntityMappingsForUserAndEntityTypeQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(0, result.Count);
         }
 
         [Test]
@@ -2389,6 +2705,35 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetGroupToEntityMappingsAsync_GroupDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testGroup = "group1";
+            GroupNotFoundException<String> mockException = GenerateGroupNotFoundException(testGroup);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetGroupToEntityMappingsForGroupQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToEntityMappingsAsync(testGroup).Returns(Task.FromException<List<Tuple<String, String>>>(mockException));
+
+            var e = Assert.ThrowsAsync<GroupNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetGroupToEntityMappingsAsync(testGroup);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToEntityMappingsAsync(testGroup);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToEntityMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetGroupToEntityMappingsForGroupQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
+        }
+
+        [Test]
         public async Task GetGroupToEntityMappingsAsync_ExceptionWhenReading()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -2446,6 +2791,64 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.IsTrue(result.Contains("CompanyA"));
             Assert.IsTrue(result.Contains("CompanyB"));
             Assert.IsTrue(result.Contains("CompanyC"));
+        }
+
+        [Test]
+        public async Task GetGroupToEntityMappingsAsyncGroupAndEntityTypeOverload_GroupDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            GroupNotFoundException<String> mockException = GenerateGroupNotFoundException(testGroup);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToEntityMappingsAsync(testGroup, testEntityType).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<GroupNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetGroupToEntityMappingsAsync(testGroup, testEntityType);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToEntityMappingsAsync(testGroup, testEntityType);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
+        }
+
+        [Test]
+        public async Task GetGroupToEntityMappingsAsyncGroupAndEntityTypeOverload_EntityTypeDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            EntityTypeNotFoundException mockException = GenerateEntityTypeNotFoundException(testEntityType);
+            var clientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "ShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, testGroup).Returns(clientAndDescription);
+            clientAndDescription.Client.GetGroupToEntityMappingsAsync(testGroup, testEntityType).Returns(Task.FromException<List<String>>(mockException));
+
+            List<String> result = await testOperationCoordinator.GetGroupToEntityMappingsAsync(testGroup, testEntityType);
+
+            mockShardClientManager.Received(1).GetClient(DataElement.Group, Operation.Query, testGroup);
+            await clientAndDescription.Client.Received(1).GetGroupToEntityMappingsAsync(testGroup, testEntityType);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(0, result.Count);
         }
 
         [Test]
@@ -2630,6 +3033,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
         }
 
+        [Test]
         public async Task HasAccessToApplicationComponentAsync_ResultFalse()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -2716,6 +3120,40 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription2.Client.ReceivedCalls().Count());
             Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task HasAccessToApplicationComponentAsync_UserDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testUser = "user1";
+            String testApplicationComponent = "Order";
+            String testAccessLevel = "Create";
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var userShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<HasAccessToApplicationComponentForUserQueryTime>()).Returns(testBeginId);
+            // Mock the call to check whether the user has access
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(userShardClientAndDescription);
+            // Mock the call to the user node to get the directly mapped groups
+            userShardClientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromException<List<String>>(mockException));
+
+            Boolean result = await testOperationCoordinator.HasAccessToApplicationComponentAsync(testUser, testApplicationComponent, testAccessLevel);
+
+            Assert.IsFalse(result);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await userShardClientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToApplicationComponentForUserQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToApplicationComponentForUserQuery>());
+            mockMetricLogger.Received(1).Add(Arg.Any<HasAccessToApplicationComponentGroupsMappedToUser>(), 0);
+            mockMetricLogger.Received(1).Add(Arg.Any<HasAccessToApplicationComponentGroupShardsQueried>(), 0);
+            Assert.AreEqual(1, userShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
         }
 
@@ -3075,6 +3513,39 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task HasAccessToEntityAsync_UserDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var userShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<HasAccessToEntityForUserQueryTime>()).Returns(testBeginId);
+            // Mock the call to the user node to get the directly mapped groups
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(userShardClientAndDescription);
+            userShardClientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromException<List<String>>(mockException));
+
+            Boolean result = await testOperationCoordinator.HasAccessToEntityAsync(testUser, testEntityType, testEntity);
+
+            Assert.IsFalse(result);
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await userShardClientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<HasAccessToEntityForUserQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<HasAccessToEntityForUserQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<HasAccessToEntityForUserQuery>());
+            mockMetricLogger.Received(1).Add(Arg.Any<HasAccessToEntityGroupsMappedToUser>(), 0);
+            mockMetricLogger.Received(1).Add(Arg.Any<HasAccessToEntityGroupShardsQueried>(), 0);
+            Assert.AreEqual(1, userShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
         public async Task HasAccessToEntityAsync_ExceptionWhenReadingUserToGroupMappings()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -3305,6 +3776,37 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetApplicationComponentsAccessibleByUserAsync_UserDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testUser = "user1";
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var userShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>()).Returns(testBeginId);
+            // Mock the call to get the mappings for the user
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(userShardClientAndDescription);
+            userShardClientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<UserNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetApplicationComponentsAccessibleByUserAsync(testUser);
+            });
+
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await userShardClientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>());
+            Assert.AreEqual(1, userShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
+        }
+
+        [Test]
         public async Task GetApplicationComponentsAccessibleByUserAsync_ExceptionWhenReadingUserToGroupMappings()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -3324,6 +3826,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             {
                 await testOperationCoordinator.GetApplicationComponentsAccessibleByUserAsync(testUser);
             });
+
             mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
             await userShardClientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
             mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByUserQueryTime>());
@@ -3735,6 +4238,36 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(1, groupShardClientAndDescription2.Client.ReceivedCalls().Count());
             Assert.AreEqual(3, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByUserAsync_UserDoesntExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String testUser = "user1";
+            UserNotFoundException<String> mockException = GenerateUserNotFoundException(testUser);
+            var userShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription"
+            );
+            mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>()).Returns(testBeginId);
+            // Mock the call to get the mappings for the user
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, testUser).Returns(userShardClientAndDescription);
+            userShardClientAndDescription.Client.GetUserToGroupMappingsAsync(testUser, false).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<UserNotFoundException<String>>(async delegate
+            {
+                await testOperationCoordinator.GetEntitiesAccessibleByUserAsync(testUser);
+            });
+            mockShardClientManager.Received(1).GetClient(DataElement.User, Operation.Query, testUser);
+            await userShardClientAndDescription.Client.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<GetEntitiesAccessibleByUserQueryTime>());
+            Assert.AreEqual(1, userShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreSame(mockException, e);
         }
 
         [Test]
@@ -4511,6 +5044,47 @@ namespace ApplicationAccess.Distribution.UnitTests
             }
 
             return returnList;
+        }
+
+        /// <summary>
+        /// Generates a mock <see cref="UserNotFoundException{T}"/>.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <returns>The <see cref="UserNotFoundException{T}"/>.</returns>
+        protected UserNotFoundException<String> GenerateUserNotFoundException(String user)
+        {
+            return new UserNotFoundException<String>($"User '{user}' does not exist.", "user", user);
+        }
+
+        /// <summary>
+        /// Generates a mock <see cref="GroupNotFoundException{T}"/>.
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <returns>The <see cref="GroupNotFoundException{T}"/>.</returns>
+        protected GroupNotFoundException<String> GenerateGroupNotFoundException(String group)
+        {
+            return new GroupNotFoundException<String>($"Group '{group}' does not exist.", "group", group);
+        }
+
+        /// <summary>
+        /// Generates a mock <see cref="EntityTypeNotFoundException"/>.
+        /// </summary>
+        /// <param name="entityType">The entity type.</param>
+        /// <returns>The <see cref="EntityTypeNotFoundException"/>.</returns>
+        protected EntityTypeNotFoundException GenerateEntityTypeNotFoundException(String entityType)
+        {
+            return new EntityTypeNotFoundException($"Entity type '{entityType}' does not exist.", "entityType", entityType);
+        }
+
+        /// <summary>
+        /// Generates a mock <see cref="EntityNotFoundException"/>.
+        /// </summary>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity.</param>
+        /// <returns>The <see cref="EntityNotFoundException"/>.</returns>
+        protected EntityNotFoundException GenerateEntityNotFoundException(String entityType, String entity)
+        {
+            return new EntityNotFoundException($"Entity '{entity}' does not exist.", "entity", entityType, entity);
         }
 
         /// <summary>
