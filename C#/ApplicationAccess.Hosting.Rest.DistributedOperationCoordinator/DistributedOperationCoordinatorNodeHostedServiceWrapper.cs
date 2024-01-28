@@ -265,23 +265,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 );
 
                 // Setup the DistributedOperationCoordinatorNode constructor parameters
-                var hashCodeGenerator = new DefaultStringHashCodeGenerator();
-                shardClientManager = new ShardClientManager<AccessManagerRestClientConfiguration>
-                (
-                    new ShardConfigurationSet<AccessManagerRestClientConfiguration>(Enumerable.Empty<ShardConfiguration<AccessManagerRestClientConfiguration>>()),
-                    clientFactory,
-                    hashCodeGenerator,
-                    hashCodeGenerator,
-                    metricLogger
-                );
-                shardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(shardConfigurationRefreshOptions.RefreshInterval);
-                distributedOperationCoordinator = new DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>
-                (
-                    shardClientManager,
-                    hashCodeGenerator,
-                    hashCodeGenerator,
-                    metricLogger
-                );
                 var clientConfigurationJsonSerializer = new AccessManagerRestClientConfigurationJsonSerializer();
                 IApplicationLogger shardConfigurationSetPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
@@ -295,6 +278,35 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                     accessManagerSqlServerConnectionOptions.OperationTimeout,
                     clientConfigurationJsonSerializer,
                     shardConfigurationSetPersisterLogger
+                );
+                var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+                // Read the initial shard configuration
+                logger.LogInformation($"Reading initial shard configuration...");
+                ShardConfigurationSet<AccessManagerRestClientConfiguration> initialConfiguration = null;
+                try
+                {
+                    initialConfiguration = shardConfigurationSetPersister.Read();
+                }
+                catch (Exception e)
+                {
+                    throw new ShardConfigurationRefreshException("Failed to read shard configuration from persistent storage.", e);
+                }
+                logger.LogInformation($"Completed reading initial shard configuration.");
+                shardClientManager = new ShardClientManager<AccessManagerRestClientConfiguration>
+                (
+                    initialConfiguration, 
+                    clientFactory,
+                    hashCodeGenerator,
+                    hashCodeGenerator,
+                    metricLogger
+                );
+                shardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(shardConfigurationRefreshOptions.RefreshInterval);
+                distributedOperationCoordinator = new DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>
+                (
+                    shardClientManager,
+                    hashCodeGenerator,
+                    hashCodeGenerator,
+                    metricLogger
                 );
             }
         }

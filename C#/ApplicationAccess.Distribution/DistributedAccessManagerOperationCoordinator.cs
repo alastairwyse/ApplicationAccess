@@ -1237,10 +1237,6 @@ namespace ApplicationAccess.Distribution
                 {
                     throw;
                 }
-                catch (EntityTypeNotFoundException)
-                {
-                    throw;
-                }
                 catch (Exception e)
                 {
                     throw new Exception($"Failed to retrieve user to group mappings from shard with configuration '{userClientAndDescription.ShardConfigurationDescription}'.", e);
@@ -1262,6 +1258,7 @@ namespace ApplicationAccess.Distribution
                     result.UnionWith(groupShardResult.Item1);
                 };
                 Func<Tuple<List<String>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
+                var rethrowExceptions = new HashSet<Type>() { typeof(EntityTypeNotFoundException) };
                 queryMetricData = await ExecuteQueryAgainstGroupShards
                 (
                     mappedGroups,
@@ -1269,7 +1266,7 @@ namespace ApplicationAccess.Distribution
                     new List<Tuple<Task<Tuple<List<String>, Guid>>, String>>() { userTaskAndShardDescription },
                     resultAction,
                     continuePredicate,
-                    new HashSet<Type>(),
+                    rethrowExceptions, 
                     $"retrieve entity mappings for user '{user}' and entity type '{entityType}' from"
                 );
             }
