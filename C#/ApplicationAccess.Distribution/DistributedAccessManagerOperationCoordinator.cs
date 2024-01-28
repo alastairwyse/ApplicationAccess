@@ -107,7 +107,20 @@ namespace ApplicationAccess.Distribution
                 aggregatedUsers.AddRange(users.Item1);
             };
             Func<Tuple<List<String>, Guid>, Boolean> continuePredicate = (Tuple<List<String>, Guid> users) => { return true; };
-            await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, "retrieve users from", beginId, new UsersPropertyQueryTime());
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks, 
+                taskToShardDescriptionMap, 
+                resultAction, 
+                continuePredicate,
+                rethrowExceptions, 
+                ignoreExceptions, 
+                "retrieve users from", 
+                beginId, 
+                new UsersPropertyQueryTime()
+            );
             metricLogger.End(beginId, new UsersPropertyQueryTime());
             metricLogger.Increment(new UsersPropertyQuery());
 
@@ -134,7 +147,20 @@ namespace ApplicationAccess.Distribution
                 aggregatedGroups.UnionWith(groups.Item1);
             };
             Func<Tuple<List<String>, Guid>, Boolean> continuePredicate = (Tuple<List<String>, Guid> groups) => { return true; };
-            await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, "retrieve groups from", beginId, new GroupsPropertyQueryTime());
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks, 
+                taskToShardDescriptionMap, 
+                resultAction, 
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions,
+                "retrieve groups from", 
+                beginId,
+                new GroupsPropertyQueryTime()
+            );
             metricLogger.End(beginId, new GroupsPropertyQueryTime());
             metricLogger.Increment(new GroupsPropertyQuery());
 
@@ -160,7 +186,20 @@ namespace ApplicationAccess.Distribution
                 aggregatedEntityTypes.UnionWith(entityTypes.Item1);
             };
             Func<Tuple<List<String>, Guid>, Boolean> continuePredicate = (Tuple<List<String>, Guid> entityTypes) => { return true; };
-            await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, "retrieve entity types from", beginId, new EntityTypesPropertyQueryTime());
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks, 
+                taskToShardDescriptionMap, 
+                resultAction, 
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions,
+                "retrieve entity types from", 
+                beginId, 
+                new EntityTypesPropertyQueryTime()
+            );
             metricLogger.End(beginId, new EntityTypesPropertyQueryTime());
             metricLogger.Increment(new EntityTypesPropertyQuery());
 
@@ -174,7 +213,7 @@ namespace ApplicationAccess.Distribution
             {
                 await client.AddUserAsync(user);
             };
-            await ProcessEventAsync(new UserAddTime(), new UserAdded(), DataElement.User, user, eventAction, $"add user '{user}' to");
+            await ProcessEventAsync(new UserAddTime(), new UserAdded(), DataElement.User, user, eventAction, new HashSet<Type>(), $"add user '{user}' to");
         }
 
         /// <inheritdoc/>
@@ -199,7 +238,7 @@ namespace ApplicationAccess.Distribution
             {
                 await client.RemoveUserAsync(user);
             };
-            await ProcessEventAsync(new UserRemoveTime(), new UserRemoved(), DataElement.User, user, eventAction, $"remove user '{user}' from");
+            await ProcessEventAsync(new UserRemoveTime(), new UserRemoved(), DataElement.User, user, eventAction, new HashSet<Type>(), $"remove user '{user}' from");
         }
 
         /// <inheritdoc/>
@@ -222,7 +261,20 @@ namespace ApplicationAccess.Distribution
             (shardTasks, taskToShardDescriptionMap) = CreateTasks<Guid>(clients, createTaskFunc);
             Action<Guid> resultAction = (Guid fakeResult) => { };
             Func<Guid, Boolean> continuePredicate = (Guid fakeResult) => { return true; };
-            await AwaitTaskCompletionAsync(shardTasks, taskToShardDescriptionMap, resultAction, continuePredicate, $"add group '{group}' to", beginId, new GroupAddTime());
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardTasks, 
+                taskToShardDescriptionMap,
+                resultAction, 
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions,
+                $"add group '{group}' to", 
+                beginId, 
+                new GroupAddTime()
+            );
             metricLogger.End(beginId, new GroupAddTime());
             metricLogger.Increment(new GroupAdded());
         }
@@ -271,6 +323,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.User,
                 user,
                 eventAction,
+                new HashSet<Type>(),
                 $"add a mapping between user '{user}' and group '{group}' to"
             );
         }
@@ -354,6 +407,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.User,
                 user,
                 eventAction,
+                new HashSet<Type>(),
                 $"remove mapping between user '{user}' and group '{group}' from"
             );
         }
@@ -428,6 +482,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.GroupToGroupMapping,
                 fromGroup,
                 eventAction,
+                new HashSet<Type>(),
                 $"remove mapping between groups '{fromGroup}' and '{toGroup}' from"
             );
         }
@@ -446,6 +501,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.User,
                 user,
                 eventAction,
+                new HashSet<Type>(),
                 $"add a mapping between user '{user}' application component '{applicationComponent}' and access level '{accessLevel}' to"
             );
         }
@@ -488,6 +544,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.User,
                 user,
                 eventAction,
+                new HashSet<Type>(),
                 $"remove mapping between user '{user}' application component '{applicationComponent}' and access level '{accessLevel}' from"
             );
         }
@@ -505,7 +562,8 @@ namespace ApplicationAccess.Distribution
                 new GroupToApplicationComponentAndAccessLevelMappingAdded(), 
                 DataElement.Group, 
                 group, 
-                eventAction, 
+                eventAction,
+                new HashSet<Type>(),
                 $"add a mapping between group '{group}' application component '{applicationComponent}' and access level '{accessLevel}' to"
             );
         }
@@ -548,6 +606,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.Group,
                 group,
                 eventAction,
+                new HashSet<Type>(),
                 $"remove mapping between group '{group}' application component '{applicationComponent}' and access level '{accessLevel}' from"
             );
         }
@@ -626,6 +685,7 @@ namespace ApplicationAccess.Distribution
                 taskToShardDescriptionMap, 
                 resultAction, 
                 continuePredicate,
+                new HashSet<Type>(),
                 ignoreExceptions, 
                 $"retrieve entities of type '{entityType}' from", 
                 beginId, 
@@ -679,6 +739,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.User,
                 user,
                 eventAction,
+                new HashSet<Type>(),
                 $"add a mapping between user '{user}' entity type '{entityType}' and entity '{entity}' to"
             );
         }
@@ -745,6 +806,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.User,
                 user,
                 eventAction,
+                new HashSet<Type>(),
                 $"remove mapping between user '{user}' entity type '{entityType}' and entity '{entity}' from"
             );
         }
@@ -763,6 +825,7 @@ namespace ApplicationAccess.Distribution
                 DataElement.Group,
                 group,
                 eventAction,
+                new HashSet<Type>(),
                 $"add a mapping between group '{group}' entity type '{entityType}' and entity '{entity}' to"
             );
         }
@@ -829,21 +892,10 @@ namespace ApplicationAccess.Distribution
                 DataElement.Group,
                 group,
                 eventAction,
+                new HashSet<Type>(),
                 $"remove mapping between group '{group}' entity type '{entityType}' and entity '{entity}' from"
             );
         }
-
-        // TODO: 'Up to' marker
-        //   1. review logic in each method in turn.... check proposed changes against list of errors from testing
-        //   2. add new unit tests to exercise changes
-        //   3. where protected method sigs need to be changed, don't change, but make overloads... in a new section or code demarked with region
-        //        with 'rethrowExceptions' and 'ignoreExceptions' parameters
-        //   4. when finished remove the old overloads (remaining references should be routed to the new with empty parameters)
-
-        // TODO For below
-        // If GetUserToGroupMappingsAsync() throws user not found, that should be ignored
-        // HasAccessToApplicationComponentAsync(user) returns false if user or component/access invalid so no need to do anything
-        // HasAccessToApplicationComponentAsync(groups) will ignore any invalid groups or 
 
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToApplicationComponentAsync(String user, String applicationComponent, String accessLevel)
@@ -901,6 +953,7 @@ namespace ApplicationAccess.Distribution
                     new List<Tuple<Task<Tuple<Boolean, Guid>>, String>>() { userTaskAndShardDescription },
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(), 
                     $"check access to application component '{applicationComponent}' at access level '{accessLevel}' in"
                 );
             }
@@ -965,6 +1018,7 @@ namespace ApplicationAccess.Distribution
                     }
                 };
                 Func<Tuple<Boolean, Guid>, Boolean> continuePredicate = (Tuple<Boolean, Guid> hasAccess) => { return !hasAccess.Item1; };
+                var rethrowExceptions = new HashSet<Type>() { typeof(EntityTypeNotFoundException), typeof(EntityNotFoundException) };
                 queryMetricData = await ExecuteQueryAgainstGroupShards
                 (
                     mappedGroups,
@@ -972,6 +1026,7 @@ namespace ApplicationAccess.Distribution
                     new List<Tuple<Task<Tuple<Boolean, Guid>>, String>>() { userTaskAndShardDescription },
                     resultAction,
                     continuePredicate,
+                    rethrowExceptions,
                     $"check access to entity '{entity}' with type '{entityType}' in"
                 );
             }
@@ -1039,6 +1094,7 @@ namespace ApplicationAccess.Distribution
                     new List<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>> () { userTaskAndShardDescription },
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(),
                     $"retrieve application component and access level mappings for user '{user}' from"
                 );
             }
@@ -1081,6 +1137,7 @@ namespace ApplicationAccess.Distribution
                     Enumerable.Empty<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>(),
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(),
                     $"retrieve application component and access level mappings for group '{group}' from"
                 );
             }
@@ -1144,6 +1201,7 @@ namespace ApplicationAccess.Distribution
                     new List<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>() { userTaskAndShardDescription },
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(),
                     $"retrieve entity mappings for user '{user}' from"
                 );
             }
@@ -1175,6 +1233,14 @@ namespace ApplicationAccess.Distribution
                 {
                     mappedGroups = await userClientAndDescription.Client.GetUserToGroupMappingsAsync(user, false);
                 }
+                catch (UserNotFoundException<String>)
+                {
+                    throw;
+                }
+                catch (EntityTypeNotFoundException)
+                {
+                    throw;
+                }
                 catch (Exception e)
                 {
                     throw new Exception($"Failed to retrieve user to group mappings from shard with configuration '{userClientAndDescription.ShardConfigurationDescription}'.", e);
@@ -1203,6 +1269,7 @@ namespace ApplicationAccess.Distribution
                     new List<Tuple<Task<Tuple<List<String>, Guid>>, String>>() { userTaskAndShardDescription },
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(),
                     $"retrieve entity mappings for user '{user}' and entity type '{entityType}' from"
                 );
             }
@@ -1245,6 +1312,7 @@ namespace ApplicationAccess.Distribution
                     Enumerable.Empty<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>(),
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(),
                     $"retrieve entity mappings for group '{group}' from"
                 );
             }
@@ -1287,6 +1355,7 @@ namespace ApplicationAccess.Distribution
                     Enumerable.Empty<Tuple<Task<Tuple<List<String>, Guid>>, String>>(),
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(),
                     $"retrieve entity mappings for group '{group}' and entity type {entityType} from"
                 );
             }
@@ -1330,6 +1399,7 @@ namespace ApplicationAccess.Distribution
         /// <param name="dataElement">The type of the element in the event.</param>
         /// <param name="elementValue">The value of the element.</param>
         /// <param name="eventFunc">An asyncronous function to execute against the client which connects to the shard which manages the element, and which processes the event.  Accepts a single parameter which is the client, and returns a <see cref="Task"/>.</param>
+        /// <param name="rethrowExceptions">A set of exceptions which should be rethrown directly if caught when processing the event against the shard.</param>
         /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "remove user 'user1' from".</param>
         /// <returns>The task object representing the asynronous operation.</returns>
         /// <remarks>Used by methods which execute an event against a single, specific shard, e.g. AddUserToApplicationComponentAndAccessLevelMappingAsync().</remarks>
@@ -1337,9 +1407,10 @@ namespace ApplicationAccess.Distribution
         (
             IntervalMetric intervalMetric,
             CountMetric countMetric,
-            DataElement dataElement, 
-            String elementValue, 
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventFunc, 
+            DataElement dataElement,
+            String elementValue,
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventFunc,
+            HashSet<Type> rethrowExceptions,
             String exceptionEventDescription
         )
         {
@@ -1352,6 +1423,10 @@ namespace ApplicationAccess.Distribution
             catch (Exception e)
             {
                 metricLogger.CancelBegin(beginId, intervalMetric);
+                if (rethrowExceptions.Contains(e.GetType()) == true)
+                {
+                    throw;
+                }
                 throw new Exception($"Failed to {exceptionEventDescription} shard with configuration '{client.ShardConfigurationDescription}'.", e);
             }
             metricLogger.End(beginId, intervalMetric);
@@ -1420,7 +1495,20 @@ namespace ApplicationAccess.Distribution
             (shardTasks, taskToShardDescriptionMap) = CreateTasks<Guid>(clients, wrappedEventFunc);
             Action<Guid> resultAction = (Guid fakeResult) => { };
             Func<Guid, Boolean> continuePredicate = (Guid fakeResult) => { return true; };
-            await AwaitTaskCompletionAsync(shardTasks, taskToShardDescriptionMap, resultAction, continuePredicate, exceptionEventDescription, beginId, intervalMetric);
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardTasks, 
+                taskToShardDescriptionMap,
+                resultAction, 
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions, 
+                exceptionEventDescription, 
+                beginId, 
+                intervalMetric
+            );
             metricLogger.End(beginId, intervalMetric);
             metricLogger.Increment(countMetric);
         }
@@ -1461,7 +1549,20 @@ namespace ApplicationAccess.Distribution
                 }
             };
             Func<Tuple<Boolean, Guid>, Boolean> continuePredicate = (Tuple<Boolean, Guid> shardResult) => { return !(shardResult.Item1); };
-            await AwaitTaskCompletionAsync(shardTasks, taskToShardDescriptionMap, resultAction, continuePredicate, $"check for {exceptionElementAndValue} in", beginId, intervalMetric);
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardTasks, 
+                taskToShardDescriptionMap, 
+                resultAction, 
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions,
+                $"check for {exceptionElementAndValue} in", 
+                beginId, 
+                intervalMetric
+            );
             metricLogger.End(beginId, intervalMetric);
             metricLogger.Increment(countMetric);
 
@@ -1477,6 +1578,9 @@ namespace ApplicationAccess.Distribution
         /// <param name="dataElement">The type of the element to retrieve the data for.</param>
         /// <param name="elementValue">The value of the element.</param>
         /// <param name="createTaskFunc">A function which accepts a client which connects to a shard (and associated description of the shard), and returns a task which resolves to the type of data to return.</param>
+        /// <param name="rethrowExceptions">A set of exceptions which should be rethrown directly if caught when retrieving data from the shard.</param>
+        /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when retrieving data from the shard.</param>
+        /// <param name="defaultReturnValue">The default return value, returned when an ignored exception occurs.</param>
         /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "retrieve user to group mappings for user 'user1' from".</param>
         /// <returns>The data elements.</returns>
         /// <remarks>Used by methods like GetUserToEntityMappingsAsync().</remarks>
@@ -1487,21 +1591,31 @@ namespace ApplicationAccess.Distribution
             DataElement dataElement,
             String elementValue,
             Func<DistributedClientAndShardDescription, Task<T>> createTaskFunc,
+            HashSet<Type> rethrowExceptions,
+            HashSet<Type> ignoreExceptions,
+            T defaultReturnValue,
             String exceptionEventDescription
         )
         {
             Guid beginId = metricLogger.Begin(intervalMetric);
             DistributedClientAndShardDescription client = shardClientManager.GetClient(dataElement, Operation.Query, elementValue);
             Task<T> shardTask = createTaskFunc(client);
-            T result = default(T);
+            T result = defaultReturnValue;
             try
             {
                 result = await shardTask;
             }
             catch (Exception e)
             {
-                metricLogger.CancelBegin(beginId, intervalMetric);
-                throw new Exception($"Failed to {exceptionEventDescription} shard with configuration '{client.ShardConfigurationDescription}'.", e);
+                if (ignoreExceptions.Contains(e.GetType()) == false)
+                {
+                    metricLogger.CancelBegin(beginId, intervalMetric);
+                    if (rethrowExceptions.Contains(e.GetType()) == true)
+                    {
+                        throw;
+                    }
+                    throw new Exception($"Failed to {exceptionEventDescription} shard with configuration '{client.ShardConfigurationDescription}'.", e);
+                }
             }
             metricLogger.End(beginId, intervalMetric);
             metricLogger.Increment(countMetric);
@@ -1518,16 +1632,18 @@ namespace ApplicationAccess.Distribution
         /// <param name="additionalTasksAndShardDescriptions">A collection of additional functions and descriptions of the shards they're executed against, which are executed alongside those in parameter <paramref name="createQueryTaskFunc"/>, and which returns the same type as the queries against the group nodes.  This can be used for queries which must also be executed against a user node to give a complete result (e.g. in method GetEntitiesAccessibleByUserAsync()).</param>
         /// <param name="resultAction">An action to invoke with the results of each query task.</param>
         /// <param name="continuePredicate">A function which returns a boolean which is called after the completion of each query task and subdequent processing of its results, and which indicates whether further tasks shouled be waited for.  Accepts a single parameter which is the result of each task.</param>
+        /// <param name="rethrowExceptions">A set of exceptions which should be rethrown directly if caught when executing a query against a shard.</param>
         /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error when executing the query.  E.g. "retrieve application components and access level for user 'user1' from".</param>
         /// <returns>An <see cref="ExecuteQueryAgainstGroupShardsMetricData"/> instance.</returns>
         /// <remarks>Used by methods which execute queries against multiple group shards, e.g. HasAccessToApplicationComponentAsync(), GetEntitiesAccessibleByGroupAsync()..</remarks>
         protected async Task<ExecuteQueryAgainstGroupShardsMetricData> ExecuteQueryAgainstGroupShards<T>
         (
             IEnumerable<String> groups,
-            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<T>> createQueryTaskFunc, 
+            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<T>> createQueryTaskFunc,
             IEnumerable<Tuple<Task<T>, String>> additionalTasksAndShardDescriptions,
             Action<T> resultAction,
-            Func<T, Boolean> continuePredicate, 
+            Func<T, Boolean> continuePredicate,
+            HashSet<Type> rethrowExceptions,
             String exceptionEventDescription
         )
         {
@@ -1549,7 +1665,18 @@ namespace ApplicationAccess.Distribution
                 shardReadTasks.Add(currentAdditionalTaskAndShardDescription.Item1);
                 taskToShardDescriptionMap.Add(currentAdditionalTaskAndShardDescription.Item1, currentAdditionalTaskAndShardDescription.Item2);
             }
-            await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, exceptionEventDescription, null, null);
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks,
+                taskToShardDescriptionMap,
+                resultAction,
+                continuePredicate,
+                rethrowExceptions,
+                new HashSet<Type>(),
+                exceptionEventDescription,
+                null,
+                null
+            );
 
             return new ExecuteQueryAgainstGroupShardsMetricData(groupsMappedToGroups, groupShardsQueried);
         }
@@ -1621,7 +1748,20 @@ namespace ApplicationAccess.Distribution
                 returnGroups.UnionWith(currentShardGroups);
             };
             Func<List<String>, Boolean> continuePredicate = (List<String> currentShardGroups) => { return true; };
-            await AwaitTaskCompletionAsync(shardReadTasks, taskToShardDescriptionMap, resultAction, continuePredicate, "retrieve group to group mappings from", null, null);
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks, 
+                taskToShardDescriptionMap, 
+                resultAction, 
+                continuePredicate,
+                rethrowExceptions, 
+                ignoreExceptions, 
+                "retrieve group to group mappings from", 
+                null, 
+                null
+            );
 
             return (returnGroups, returnGroups.Count);
         }
@@ -1634,156 +1774,7 @@ namespace ApplicationAccess.Distribution
         /// <param name="taskToShardDescriptionMap">A dictionary which maps each task to a description of the shard the client which created the task connected to.</param>
         /// <param name="resultAction">An action to invoke with the results of each task.</param>
         /// <param name="continuePredicate">A function which returns a boolean which is called after the completion of each task and subdequent processing of its results, and which indicates whether further tasks shouled be waited for.  Accepts a single parameter which is the result of each task.</param>
-        /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "remove user 'user1' from".</param>
-        /// <param name="intervalMetricBeginId">An optional <see cref="Guid"/> returned from a call to <see cref="IMetricLogger.Begin(IntervalMetric)"/> which is used to cancel the interval metric in the case of an error.</param>
-        /// <param name="cancelIntervalMetric">An optional <see cref="IntervalMetric"/> to cancel in the case of an error.</param>
-        /// <remarks>Parameter <paramref name="continuePredicate"/> could be used to return false, e.g. in the case of distributed operations which return true as soon as a call to a shard returns true (e.g. method ContainsUserAsync())."/></remarks>
-        protected async Task AwaitTaskCompletionAsync<T>
-        (
-            HashSet<Task<T>> shardTasks, 
-            Dictionary<Task<T>, String> taskToShardDescriptionMap, 
-            Action<T> resultAction, 
-            Func<T, Boolean> continuePredicate,
-            String exceptionEventDescription,
-            Nullable<Guid>intervalMetricBeginId, 
-            IntervalMetric cancelIntervalMetric
-        )
-        {
-            if (intervalMetricBeginId.HasValue == true && cancelIntervalMetric == null)
-                throw new ArgumentNullException($"Parameter '{nameof(cancelIntervalMetric)}' must be non-null if parameter '{nameof(intervalMetricBeginId)}' is non-null.");
-
-            while (shardTasks.Count > 0)
-            {
-                Task<T> completedTask = await Task.WhenAny(shardTasks);
-                try
-                {
-                    await completedTask;
-                }
-                catch (Exception e)
-                {
-                    if (intervalMetricBeginId.HasValue == true)
-                    {
-                        metricLogger.CancelBegin(intervalMetricBeginId.Value, cancelIntervalMetric);
-                    }
-                    throw new Exception($"Failed to {exceptionEventDescription} shard with configuration '{taskToShardDescriptionMap[completedTask]}'.", e);
-                }
-                resultAction(completedTask.Result);
-                shardTasks.Remove(completedTask);
-                if (continuePredicate(completedTask.Result) == false)
-                {
-                    return;
-                }
-            }
-        }
-
-        #endregion
-
-        #region TEMP Protected Members with better exception handling
-
-        /// <summary>
-        /// Processes a specified event against a single shard in the distributed environment.
-        /// </summary>
-        /// <param name="intervalMetric">An interval metric to log as part of processing.</param>
-        /// <param name="countMetric">A count metric to log as part of processing.</param>
-        /// <param name="dataElement">The type of the element in the event.</param>
-        /// <param name="elementValue">The value of the element.</param>
-        /// <param name="eventFunc">An asyncronous function to execute against the client which connects to the shard which manages the element, and which processes the event.  Accepts a single parameter which is the client, and returns a <see cref="Task"/>.</param>
-        /// <param name="rethrowExceptions">A set of exceptions which should be rethrown directly if caught when processing the event against the shard.</param>
-        /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "remove user 'user1' from".</param>
-        /// <returns>The task object representing the asynronous operation.</returns>
-        /// <remarks>Used by methods which execute an event against a single, specific shard, e.g. AddUserToApplicationComponentAndAccessLevelMappingAsync().</remarks>
-        protected async Task ProcessEventAsync
-        (
-            IntervalMetric intervalMetric,
-            CountMetric countMetric,
-            DataElement dataElement,
-            String elementValue,
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventFunc,
-            HashSet<Type> rethrowExceptions,
-            String exceptionEventDescription
-        )
-        {
-            Guid beginId = metricLogger.Begin(intervalMetric);
-            DistributedClientAndShardDescription client = shardClientManager.GetClient(dataElement, Operation.Event, elementValue);
-            try
-            {
-                await eventFunc(client.Client);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, intervalMetric);
-                if (rethrowExceptions.Contains(e.GetType()) == true)
-                {
-                    throw;
-                }
-                throw new Exception($"Failed to {exceptionEventDescription} shard with configuration '{client.ShardConfigurationDescription}'.", e);
-            }
-            metricLogger.End(beginId, intervalMetric);
-            metricLogger.Increment(countMetric);
-        }
-
-        /// <summary>
-        /// Returns data from a single shard in the distributed environment.
-        /// </summary>
-        /// <typeparam name="T">The type of data returned from the shard.</typeparam>
-        /// <param name="intervalMetric">An interval metric to log as part of the query.</param>
-        /// <param name="countMetric">A count metric to log after returning the data.</param>
-        /// <param name="dataElement">The type of the element to retrieve the data for.</param>
-        /// <param name="elementValue">The value of the element.</param>
-        /// <param name="createTaskFunc">A function which accepts a client which connects to a shard (and associated description of the shard), and returns a task which resolves to the type of data to return.</param>
-        /// <param name="rethrowExceptions">A set of exceptions which should be rethrown directly if caught when retrieving data from the shard.</param>
-        /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when retrieving data from the shard.</param>
-        /// <param name="defaultReturnValue">The default return value, returned when an ignored exception occurs.</param>
-        /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "retrieve user to group mappings for user 'user1' from".</param>
-        /// <returns>The data elements.</returns>
-        /// <remarks>Used by methods like GetUserToEntityMappingsAsync().</remarks>
-        protected async Task<T> GetElementsAsync<T>
-        (
-            QueryIntervalMetric intervalMetric,
-            QueryCountMetric countMetric,
-            DataElement dataElement,
-            String elementValue,
-            Func<DistributedClientAndShardDescription, Task<T>> createTaskFunc,
-            HashSet<Type> rethrowExceptions,
-            HashSet<Type> ignoreExceptions,
-            T defaultReturnValue, 
-            String exceptionEventDescription
-        )
-        {
-            Guid beginId = metricLogger.Begin(intervalMetric);
-            DistributedClientAndShardDescription client = shardClientManager.GetClient(dataElement, Operation.Query, elementValue);
-            Task<T> shardTask = createTaskFunc(client);
-            T result = defaultReturnValue;
-            try
-            {
-                result = await shardTask;
-            }
-            catch (Exception e)
-            {
-                if (ignoreExceptions.Contains(e.GetType()) == false)
-                {
-                    metricLogger.CancelBegin(beginId, intervalMetric);
-                    if (rethrowExceptions.Contains(e.GetType()) == true)
-                    {
-                        throw;
-                    }
-                    throw new Exception($"Failed to {exceptionEventDescription} shard with configuration '{client.ShardConfigurationDescription}'.", e);
-                }
-            }
-            metricLogger.End(beginId, intervalMetric);
-            metricLogger.Increment(countMetric);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Asyncronously waits for a collection of tasks to complete.
-        /// </summary>
-        /// <typeparam name="T">The type of object returned by each task.</typeparam>
-        /// <param name="shardTasks">The tasks for wait for.</param>
-        /// <param name="taskToShardDescriptionMap">A dictionary which maps each task to a description of the shard the client which created the task connected to.</param>
-        /// <param name="resultAction">An action to invoke with the results of each task.</param>
-        /// <param name="continuePredicate">A function which returns a boolean which is called after the completion of each task and subdequent processing of its results, and which indicates whether further tasks shouled be waited for.  Accepts a single parameter which is the result of each task.</param>
+        /// <param name="rethrowExceptions">A set of exceptions which should be rethrown directly if caught when executing a task.</param>
         /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when executing a task.</param>
         /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "remove user 'user1' from".</param>
         /// <param name="intervalMetricBeginId">An optional <see cref="Guid"/> returned from a call to <see cref="IMetricLogger.Begin(IntervalMetric)"/> which is used to cancel the interval metric in the case of an error.</param>
@@ -1795,6 +1786,7 @@ namespace ApplicationAccess.Distribution
             Dictionary<Task<T>, String> taskToShardDescriptionMap,
             Action<T> resultAction,
             Func<T, Boolean> continuePredicate,
+            HashSet<Type> rethrowExceptions,
             HashSet<Type> ignoreExceptions,
             String exceptionEventDescription,
             Nullable<Guid> intervalMetricBeginId,
@@ -1818,6 +1810,10 @@ namespace ApplicationAccess.Distribution
                         if (intervalMetricBeginId.HasValue == true)
                         {
                             metricLogger.CancelBegin(intervalMetricBeginId.Value, cancelIntervalMetric);
+                        }
+                        if (rethrowExceptions.Contains(e.GetType()) == true)
+                        {
+                            throw;
                         }
                         throw new Exception($"Failed to {exceptionEventDescription} shard with configuration '{taskToShardDescriptionMap[completedTask]}'.", e);
                     }
