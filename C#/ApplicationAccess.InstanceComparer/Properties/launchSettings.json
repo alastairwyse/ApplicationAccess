@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ApplicationAccess.InstanceComparer": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Temp\\AppAccess Config\\ComparerConfig.json\""
+    }
+  }
+}

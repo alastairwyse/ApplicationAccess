@@ -19,7 +19,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace ApplicationAccess.TestHarness.Configuration
 {
-    abstract class ConfigurationReaderBase
+    public abstract class ConfigurationReaderBase
     {
         /// <summary>The name of the type of configuration being read (for use in exception messages).</summary>
         protected String configurationTypeName;

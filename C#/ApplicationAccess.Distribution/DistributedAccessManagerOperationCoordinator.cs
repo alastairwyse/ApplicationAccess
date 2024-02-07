@@ -47,15 +47,12 @@ namespace ApplicationAccess.Distribution
         //   ...from each, but due to the additional Guid, the return type becomes...
         //     Task<Tuple<List<String>, Guid>>
         //   ...and the problem is made worse in the parameters of AwaitTaskCompletionAsync() which wrap the result T type in Tuples, Actions, etc...
-        //   Would be nice to simplify this at some point, but alternatives like changing the HashSet to a List will affect performance (see
-        //   https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/),
+        //   Would be nice to simplify this at some point.
         //
-        // TODO: Actually according to this article https://stackoverflow.com/questions/72271006/task-whenany-alternative-to-list-avoiding-on%C2%B2-issues there
-        //   are O(n) operations inside Task.WhenAny() (should have predicated that since its parameter is IEnumerable).  Should do some performance testing at
-        //   some point and see if there's a better alternative.
-        //
-        // TODO: Having lambda statements defined as class fields will improve performance over declaring dynamically within each method.
-
+        // TODO: AwaitTaskCompletionAsync() has some inefficiencies due to O(n^2) time complexity when iterating tasks (see https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/)
+        //   Could improve this by using continuation functions on each Task instead of using the Task.WhenAny() method (some examples linked to in this post https://stackoverflow.com/questions/72271006/task-whenany-alternative-to-list-avoiding-on%C2%B2-issues).
+        //   Get it working stably with Task.WhenAny() first and then refactor.
+        //   Not using Task.WhenAny() might also avoid having to use a HashSet to store Tasks, and hence also allow removing the returning of Guids outlined above.
 
         /// <summary>Manages the clients used to connect to shards managing the subsets of elements in the distributed access manager implementation.</summary>
         protected IShardClientManager<TClientConfiguration> shardClientManager;
@@ -575,8 +572,8 @@ namespace ApplicationAccess.Distribution
             {
                 return await client.Client.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
             };
-            var rethrowExceptions = new HashSet<Type>() { typeof(GroupNotFoundException<String>) };
-            var ignoreExceptions = new HashSet<Type>();
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>() { typeof(GroupNotFoundException<String>) };
 
             return await GetElementsAsync
             (
@@ -837,8 +834,8 @@ namespace ApplicationAccess.Distribution
             {
                 return await client.Client.GetGroupToEntityMappingsAsync(group);
             };
-            var rethrowExceptions = new HashSet<Type>() { typeof(GroupNotFoundException<String>) };
-            var ignoreExceptions = new HashSet<Type>();
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>() { typeof(GroupNotFoundException<String>) };
 
             return await GetElementsAsync
             (
@@ -861,8 +858,8 @@ namespace ApplicationAccess.Distribution
             {
                 return await client.Client.GetGroupToEntityMappingsAsync(group, entityType);
             };
-            var rethrowExceptions = new HashSet<Type>() { typeof(GroupNotFoundException<String>) };
-            var ignoreExceptions = new HashSet<Type>() { typeof(EntityTypeNotFoundException) };
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>() { typeof(GroupNotFoundException<String>), typeof(EntityTypeNotFoundException) };
 
             return await GetElementsAsync
             (
@@ -953,7 +950,8 @@ namespace ApplicationAccess.Distribution
                     new List<Tuple<Task<Tuple<Boolean, Guid>>, String>>() { userTaskAndShardDescription },
                     resultAction,
                     continuePredicate,
-                    new HashSet<Type>(), 
+                    new HashSet<Type>(),
+                    new HashSet<Type>(),
                     $"check access to application component '{applicationComponent}' at access level '{accessLevel}' in"
                 );
             }
@@ -1018,7 +1016,8 @@ namespace ApplicationAccess.Distribution
                     }
                 };
                 Func<Tuple<Boolean, Guid>, Boolean> continuePredicate = (Tuple<Boolean, Guid> hasAccess) => { return !hasAccess.Item1; };
-                var rethrowExceptions = new HashSet<Type>() { typeof(EntityTypeNotFoundException), typeof(EntityNotFoundException) };
+                var rethrowExceptions = new HashSet<Type>();
+                var ignoreExceptions = new HashSet<Type>() { typeof(EntityTypeNotFoundException), typeof(EntityNotFoundException) };
                 queryMetricData = await ExecuteQueryAgainstGroupShards
                 (
                     mappedGroups,
@@ -1027,6 +1026,7 @@ namespace ApplicationAccess.Distribution
                     resultAction,
                     continuePredicate,
                     rethrowExceptions,
+                    ignoreExceptions, 
                     $"check access to entity '{entity}' with type '{entityType}' in"
                 );
             }
@@ -1095,6 +1095,7 @@ namespace ApplicationAccess.Distribution
                     resultAction,
                     continuePredicate,
                     new HashSet<Type>(),
+                    new HashSet<Type>(),
                     $"retrieve application component and access level mappings for user '{user}' from"
                 );
             }
@@ -1137,6 +1138,7 @@ namespace ApplicationAccess.Distribution
                     Enumerable.Empty<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>(),
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(),
                     new HashSet<Type>(),
                     $"retrieve application component and access level mappings for group '{group}' from"
                 );
@@ -1202,6 +1204,7 @@ namespace ApplicationAccess.Distribution
                     resultAction,
                     continuePredicate,
                     new HashSet<Type>(),
+                    new HashSet<Type>(),
                     $"retrieve entity mappings for user '{user}' from"
                 );
             }
@@ -1258,7 +1261,8 @@ namespace ApplicationAccess.Distribution
                     result.UnionWith(groupShardResult.Item1);
                 };
                 Func<Tuple<List<String>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
-                var rethrowExceptions = new HashSet<Type>() { typeof(EntityTypeNotFoundException) };
+                var rethrowExceptions = new HashSet<Type>();
+                var ignoreExceptions = new HashSet<Type>() { typeof(EntityTypeNotFoundException) };
                 queryMetricData = await ExecuteQueryAgainstGroupShards
                 (
                     mappedGroups,
@@ -1266,7 +1270,8 @@ namespace ApplicationAccess.Distribution
                     new List<Tuple<Task<Tuple<List<String>, Guid>>, String>>() { userTaskAndShardDescription },
                     resultAction,
                     continuePredicate,
-                    rethrowExceptions, 
+                    rethrowExceptions,
+                    ignoreExceptions, 
                     $"retrieve entity mappings for user '{user}' and entity type '{entityType}' from"
                 );
             }
@@ -1310,6 +1315,7 @@ namespace ApplicationAccess.Distribution
                     resultAction,
                     continuePredicate,
                     new HashSet<Type>(),
+                    new HashSet<Type>(),
                     $"retrieve entity mappings for group '{group}' from"
                 );
             }
@@ -1352,6 +1358,7 @@ namespace ApplicationAccess.Distribution
                     Enumerable.Empty<Tuple<Task<Tuple<List<String>, Guid>>, String>>(),
                     resultAction,
                     continuePredicate,
+                    new HashSet<Type>(),
                     new HashSet<Type>(),
                     $"retrieve entity mappings for group '{group}' and entity type {entityType} from"
                 );
@@ -1630,6 +1637,7 @@ namespace ApplicationAccess.Distribution
         /// <param name="resultAction">An action to invoke with the results of each query task.</param>
         /// <param name="continuePredicate">A function which returns a boolean which is called after the completion of each query task and subdequent processing of its results, and which indicates whether further tasks shouled be waited for.  Accepts a single parameter which is the result of each task.</param>
         /// <param name="rethrowExceptions">A set of exceptions which should be rethrown directly if caught when executing a query against a shard.</param>
+        /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when executing a query against a shard.</param>
         /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error when executing the query.  E.g. "retrieve application components and access level for user 'user1' from".</param>
         /// <returns>An <see cref="ExecuteQueryAgainstGroupShardsMetricData"/> instance.</returns>
         /// <remarks>Used by methods which execute queries against multiple group shards, e.g. HasAccessToApplicationComponentAsync(), GetEntitiesAccessibleByGroupAsync()..</remarks>
@@ -1641,6 +1649,7 @@ namespace ApplicationAccess.Distribution
             Action<T> resultAction,
             Func<T, Boolean> continuePredicate,
             HashSet<Type> rethrowExceptions,
+            HashSet<Type> ignoreExceptions,
             String exceptionEventDescription
         )
         {
@@ -1669,7 +1678,7 @@ namespace ApplicationAccess.Distribution
                 resultAction,
                 continuePredicate,
                 rethrowExceptions,
-                new HashSet<Type>(),
+                ignoreExceptions,
                 exceptionEventDescription,
                 null,
                 null

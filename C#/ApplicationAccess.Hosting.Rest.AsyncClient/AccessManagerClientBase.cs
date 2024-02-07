@@ -500,7 +500,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         #region Finalize / Dispose Methods
 
         /// <summary>
-        /// Releases the unmanaged resources used by the ReaderNode.
+        /// Releases the unmanaged resources used by the AccessManagerClientBase.
         /// </summary>
         public void Dispose()
         {
