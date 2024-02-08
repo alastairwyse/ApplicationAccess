@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace ApplicationAccess.TestHarness.Configuration
 {
@@ -26,7 +27,7 @@ namespace ApplicationAccess.TestHarness.Configuration
     class AccessManagerRestClientConfiguration
     {
         public String AccessManagerQueryUrl;
-        public String AccessManagerEventUrl;
+        public IList<String> AccessManagerEventUrls;
         public Int32 RetryCount;
         public Int32 RetryInterval;
         public Boolean LogMetrics;

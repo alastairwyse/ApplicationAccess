@@ -482,8 +482,6 @@ namespace ApplicationAccess.TestHarness
                 Int32 previousInitiationTimeWindowSize = testHarnessConfiguration.PreviousOperationInitiationTimeWindowSize;
                 var metricsBufferFlushStrategies = new List<BufferFlushStrategyFactoryResult<IBufferProcessingStrategy>>();
                 var metricsLoggers = new List<SqlServerMetricLogger>();
-                var testAccessManagerQueryClients = new List<AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>>();
-                var testAccessManagerEventClients = new List<AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>>();
                 var testAccessManagerQueryProcessors = new List<IAccessManagerQueryProcessor<String, String, TestApplicationComponent, TestAccessLevel>>();
                 var testAccessManagerEventProcessors = new List<IAccessManagerEventProcessor<String, String, TestApplicationComponent, TestAccessLevel>>();
                 var operationGenerators = new List<IOperationGenerator>();
@@ -538,9 +536,6 @@ namespace ApplicationAccess.TestHarness
                         );
                     }
 
-                    // Need to add the client to two lists here as we need a list of IAccessManager to pass to the TestHarness, and Lists are not covariant
-                    //   But we also need a list of AccessManagerClient so we can call dispose on them (IAccessManager doesn't implement IDiposable)
-                    testAccessManagerQueryClients.Add(queryClient);
                     if (accessManagerRestClientConfiguration.LogIntervalMetrics == true)
                     {
                         // Setup a decorator metric logger around the client
@@ -557,41 +552,17 @@ namespace ApplicationAccess.TestHarness
                         testAccessManagerQueryProcessors.Add(queryClient);
                     }
                     // Setup AccessManager event clients for the current worker thread
-                    AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel> eventClient;
+                    IAccessManager<String, String, TestApplicationComponent, TestAccessLevel> eventClient;
                     if (accessManagerRestClientConfiguration.LogMetrics == true)
                     {
-                        eventClient = new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
-                        (
-                            new Uri(accessManagerRestClientConfiguration.AccessManagerEventUrl),
-                            httpClient,
-                            new StringUniqueStringifier(),
-                            new StringUniqueStringifier(),
-                            new EnumUniqueStringifier<TestApplicationComponent>(),
-                            new EnumUniqueStringifier<TestAccessLevel>(),
-                            accessManagerRestClientConfiguration.RetryCount,
-                            accessManagerRestClientConfiguration.RetryInterval,
-                            restClientLogger,
-                            // We pass the 'unfiltered' metric logger here, as it's only used for logging metrics when retries are required
-                            metricsLoggers.Last()
-                        );
+                        // We pass the 'unfiltered' metric logger here, as it's only used for logging metrics when retries are required
+                        eventClient = BuildEventClients(accessManagerRestClientConfiguration, httpClient, restClientLogger, metricsLoggers.Last());
                     }
                     else
                     {
-                        eventClient = new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
-                        (
-                            new Uri(accessManagerRestClientConfiguration.AccessManagerEventUrl),
-                            httpClient,
-                            new StringUniqueStringifier(),
-                            new StringUniqueStringifier(),
-                            new EnumUniqueStringifier<TestApplicationComponent>(),
-                            new EnumUniqueStringifier<TestAccessLevel>(),
-                            accessManagerRestClientConfiguration.RetryCount,
-                            accessManagerRestClientConfiguration.RetryInterval
-                        );
+                        eventClient = BuildEventClients(accessManagerRestClientConfiguration, httpClient);
                     }
 
-                    // Need to add the client to two lists here as we need a list of IAccessManager to pass to the TestHarness, and Lists are not covariant
-                    //   But we also need a list of AccessManagerClient so we can call dispose on them (IAccessManager doesn't implement IDiposable)
                     if (accessManagerRestClientConfiguration.LogIntervalMetrics == true)
                     {
                         // Setup a decorator metric logger around the client
@@ -676,13 +647,19 @@ namespace ApplicationAccess.TestHarness
                     finally
                     {
                         Console.WriteLine("Disposing AccessManager clients...");
-                        foreach (AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel> currentClient in testAccessManagerQueryClients)
+                        foreach (IAccessManagerQueryProcessor<String, String, TestApplicationComponent, TestAccessLevel> currentQueryProcessor in testAccessManagerQueryProcessors)
                         {
-                            currentClient.Dispose();
+                            if (currentQueryProcessor is IDisposable disposableQueryProcessor)
+                            {
+                                disposableQueryProcessor.Dispose();
+                            }
                         }
-                        foreach (AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel> currentClient in testAccessManagerEventClients)
+                        foreach (IAccessManagerEventProcessor<String, String, TestApplicationComponent, TestAccessLevel> currentEventProcessor in testAccessManagerEventProcessors)
                         {
-                            currentClient.Dispose();
+                            if (currentEventProcessor is IDisposable disposableEventProcessor)
+                            {
+                                disposableEventProcessor.Dispose();
+                            }
                         }
                         Console.WriteLine("Stopping and disposing 'metricsLoggers'...");
                         foreach (SqlServerMetricLogger currentmetricLogger in metricsLoggers)
@@ -708,6 +685,98 @@ namespace ApplicationAccess.TestHarness
                         Console.WriteLine("Testing Complete");
                     }
                 }
+            }
+        }
+
+        protected static IAccessManager<String, String, TestApplicationComponent, TestAccessLevel> BuildEventClients
+        (
+            AccessManagerRestClientConfiguration accessManagerRestClientConfiguration, 
+            HttpClient httpClient
+        )
+        {
+            if (accessManagerRestClientConfiguration.AccessManagerEventUrls.Count == 1)
+            {
+                return new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
+                (
+                    new Uri(accessManagerRestClientConfiguration.AccessManagerEventUrls[0]),
+                    httpClient,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new EnumUniqueStringifier<TestApplicationComponent>(),
+                    new EnumUniqueStringifier<TestAccessLevel>(),
+                    accessManagerRestClientConfiguration.RetryCount,
+                    accessManagerRestClientConfiguration.RetryInterval
+                );
+            }
+            else
+            {
+                var eventProcessors = new List<AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>>();
+                foreach (String currentEventProcessorUrl in accessManagerRestClientConfiguration.AccessManagerEventUrls)
+                {
+                    var currentEventProcessor = new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
+                    (
+                        new Uri(currentEventProcessorUrl),
+                        httpClient,
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier(),
+                        new EnumUniqueStringifier<TestApplicationComponent>(),
+                        new EnumUniqueStringifier<TestAccessLevel>(),
+                        accessManagerRestClientConfiguration.RetryCount,
+                        accessManagerRestClientConfiguration.RetryInterval
+                    );
+                    eventProcessors.Add(currentEventProcessor);
+                }
+
+                return new AccessManagerClientDistributor<String, String, TestApplicationComponent, TestAccessLevel>(eventProcessors);
+            }
+        }
+
+        protected static IAccessManager<String, String, TestApplicationComponent, TestAccessLevel> BuildEventClients
+        (
+            AccessManagerRestClientConfiguration accessManagerRestClientConfiguration,
+            HttpClient httpClient,
+            ApplicationLoggingLog4NetAdapter restClientLogger, 
+            SqlServerMetricLogger metricLogger
+        )
+        {
+            if (accessManagerRestClientConfiguration.AccessManagerEventUrls.Count == 1)
+            {
+                return new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
+                (
+                    new Uri(accessManagerRestClientConfiguration.AccessManagerEventUrls[0]),
+                    httpClient,
+                    new StringUniqueStringifier(),
+                    new StringUniqueStringifier(),
+                    new EnumUniqueStringifier<TestApplicationComponent>(),
+                    new EnumUniqueStringifier<TestAccessLevel>(),
+                    accessManagerRestClientConfiguration.RetryCount,
+                    accessManagerRestClientConfiguration.RetryInterval,
+                    restClientLogger, 
+                    metricLogger
+                );
+            }
+            else
+            {
+                var eventProcessors = new List<AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>>();
+                foreach (String currentEventProcessorUrl in accessManagerRestClientConfiguration.AccessManagerEventUrls)
+                {
+                    var currentEventProcessor = new AccessManagerClient<String, String, TestApplicationComponent, TestAccessLevel>
+                    (
+                        new Uri(currentEventProcessorUrl),
+                        httpClient,
+                        new StringUniqueStringifier(),
+                        new StringUniqueStringifier(),
+                        new EnumUniqueStringifier<TestApplicationComponent>(),
+                        new EnumUniqueStringifier<TestAccessLevel>(),
+                        accessManagerRestClientConfiguration.RetryCount,
+                        accessManagerRestClientConfiguration.RetryInterval, 
+                        restClientLogger,
+                        metricLogger
+                    );
+                    eventProcessors.Add(currentEventProcessor);
+                }
+
+                return new AccessManagerClientDistributor<String, String, TestApplicationComponent, TestAccessLevel>(eventProcessors);
             }
         }
 

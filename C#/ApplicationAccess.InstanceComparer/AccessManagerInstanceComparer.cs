@@ -20,7 +20,6 @@ using System.Linq;
 using ApplicationAccess.InstanceComparer.Configuration;
 using ApplicationAccess.Hosting.Rest.Client;
 using ApplicationLogging;
-using System.Reflection;
 
 namespace ApplicationAccess.InstanceComparer
 {

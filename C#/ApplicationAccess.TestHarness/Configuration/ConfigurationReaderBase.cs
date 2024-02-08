@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 
 namespace ApplicationAccess.TestHarness.Configuration
@@ -83,6 +84,17 @@ namespace ApplicationAccess.TestHarness.Configuration
                 throw new Exception($"{configurationTypeName} configuration property '{propertyName}' with value '{valueAsString}' could not be converted to a boolean.");
 
             return returnValue;
+        }
+
+        protected List<String> GetConfigurationValueAsStringList(String propertyName, IConfiguration configurationSection)
+        {
+            List<String> returnList = configurationSection.GetSection(propertyName).Get<List<String>>();
+            if (returnList == null)
+            {
+                throw new Exception($"Configuration property '{propertyName}' was not found or could not be converted to a list of Strings.");
+            }
+
+            return returnList;
         }
     }
 }
