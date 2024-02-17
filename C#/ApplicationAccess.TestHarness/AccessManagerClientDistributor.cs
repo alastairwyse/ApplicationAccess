@@ -63,10 +63,10 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void AddUser(TUser user)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
-            {
-                currentClient.AddUser(user);
-            }
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) => 
+            { 
+                client.AddUser(user); 
+            });
         }
 
         /// <inheritdoc />
@@ -78,19 +78,19 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveUser(TUser user)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveUser(user);
-            }
+                client.RemoveUser(user);
+            });
         }
 
         /// <inheritdoc />
         public void AddGroup(TGroup group)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddGroup(group);
-            }
+                client.AddGroup(group);
+            });
         }
 
         /// <inheritdoc />
@@ -102,19 +102,19 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveGroup(TGroup group)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveGroup(group);
-            }
+                client.RemoveGroup(group);
+            });
         }
 
         /// <inheritdoc />
         public void AddEntityType(String entityType)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddEntityType(entityType);
-            }
+                client.AddEntityType(entityType);
+            });
         }
 
         /// <inheritdoc />
@@ -126,19 +126,19 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveEntityType(String entityType)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveEntityType(entityType);
-            }
+                client.RemoveEntityType(entityType);
+            });
         }
 
         /// <inheritdoc />
         public void AddEntity(String entityType, String entity)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddEntity(entityType, entity);
-            }
+                client.AddEntity(entityType, entity);
+            });
         }
 
         /// <inheritdoc />
@@ -156,19 +156,19 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveEntity(String entityType, String entity)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveEntity(entityType, entity);
-            }
+                client.RemoveEntity(entityType, entity);
+            });
         }
 
         /// <inheritdoc />
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddUserToGroupMapping(user, group);
-            }
+                client.AddUserToGroupMapping(user, group);
+            });
         }
 
         /// <inheritdoc />
@@ -180,19 +180,19 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveUserToGroupMapping(user, group);
-            }
+                client.RemoveUserToGroupMapping(user, group);
+            });
         }
 
         /// <inheritdoc />
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddGroupToGroupMapping(fromGroup, toGroup);
-            }
+                client.AddGroupToGroupMapping(fromGroup, toGroup);
+            });
         }
 
         /// <inheritdoc />
@@ -204,22 +204,22 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveGroupToGroupMapping(fromGroup, toGroup);
-            }
+                client.RemoveGroupToGroupMapping(fromGroup, toGroup);
+            });
         }
 
         /// <inheritdoc />
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
-            }
+                client.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+            });
         }
-        /// <inheritdoc />
 
+        /// <inheritdoc />
         public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             throw new NotImplementedException();
@@ -228,19 +228,19 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
-            }
+                client.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+            });
         }
 
         /// <inheritdoc />
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
-            }
+                client.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            });
         }
 
         /// <inheritdoc />
@@ -252,19 +252,19 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
-            }
+                client.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            });
         }
 
         /// <inheritdoc />
         public void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddUserToEntityMapping(user, entityType, entity);
-            }
+                client.AddUserToEntityMapping(user, entityType, entity);
+            });
         }
 
         /// <inheritdoc />
@@ -282,19 +282,19 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveUserToEntityMapping(user, entityType, entity);
-            }
+                client.RemoveUserToEntityMapping(user, entityType, entity);
+            });
         }
 
         /// <inheritdoc />
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.AddGroupToEntityMapping(group, entityType, entity);
-            }
+                client.AddGroupToEntityMapping(group, entityType, entity);
+            });
         }
 
         /// <inheritdoc />
@@ -312,10 +312,10 @@ namespace ApplicationAccess.TestHarness
         /// <inheritdoc />
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
-            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
             {
-                currentClient.RemoveGroupToEntityMapping(group, entityType, entity);
-            }
+                client.RemoveGroupToEntityMapping(group, entityType, entity);
+            });
         }
 
         /// <inheritdoc />
@@ -365,6 +365,30 @@ namespace ApplicationAccess.TestHarness
         {
             throw new NotImplementedException();
         }
+
+        #region Private/Protected Methods
+
+        protected void InvokeAgainstAllClients(Action<IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>> clientAction)
+        {
+            var exceptions = new List<Exception>();
+            foreach (IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> currentClient in clients)
+            {
+                try
+                {
+                    clientAction(currentClient);
+                }
+                catch(Exception e)
+                {
+                    exceptions.Add(e);
+                }
+            }
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException(exceptions);
+            }
+        }
+
+        #endregion
 
         #region Finalize / Dispose Methods
 

@@ -32,7 +32,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
-    [ApiExplorerSettings(GroupName = "v1")]
+    [ApiExplorerSettings(GroupName = "EventBufferItems")]
     public class EventCacheController : ControllerBase
     {
         protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> eventPersister;
