@@ -4379,12 +4379,78 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentsAccessibleByGroupQuery>());
-            mockMetricLogger.Received(1).Add(Arg.Any<GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup>(), 6);
+            mockMetricLogger.Received(1).Add(Arg.Any<GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup>(), 5);
             mockMetricLogger.Received(1).Add(Arg.Any<GetApplicationComponentsAccessibleByGroupGroupShardsQueried>(), 3);
             Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription2.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription3.Client.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetApplicationComponentsAccessibleByGroupAsync_GroupNotMappedToAnyGroups()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var groupToGroupMappingShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupMappingShardDescription"
+            );
+            var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShardDescription1"
+            );
+            String testGroup = "group1";
+            var directlyMappedGroups = new List<String>() { testGroup };
+            var directlyMappedGroupsAndGroupToGroupClient = new List<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>>()
+            {
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupToGroupMappingShardClientAndDescription,
+                    directlyMappedGroups
+                )
+            };
+            var indirectlyMappedGroups = new List<String>() { };
+            var groupClient1Groups = new List<String>() { testGroup };
+            var indirectlyMappedGroupsAndGroupClients = new List<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>>()
+            {
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupShardClientAndDescription1,
+                    groupClient1Groups
+                )
+            };
+            var groupClient1ApplicationComponents = new List<Tuple<String, String>>()
+            {
+                Tuple.Create("Order", "View")
+            };
+            mockMetricLogger.Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>()).Returns(testBeginId);
+            // Mock the call to the group to group mapping node to get the indirectly mapped groups
+            mockShardClientManager.GetClients(DataElement.GroupToGroupMapping, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups))).Returns(directlyMappedGroupsAndGroupToGroupClient);
+            groupToGroupMappingShardClientAndDescription.Client.GetGroupToGroupMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups))).Returns(Task.FromResult<List<String>>(indirectlyMappedGroups));
+            // Mock the calls the group nodes to get the mappings
+            //  Since the groups is not mapped to any other groups, it's expected the parameter below will only contain the parameter group
+            mockShardClientManager.GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups))).Returns(indirectlyMappedGroupsAndGroupClients);
+            groupShardClientAndDescription1.Client.GetApplicationComponentsAccessibleByGroupsAsync(groupClient1Groups).Returns(Task.FromResult<List<Tuple<String, String>>>(groupClient1ApplicationComponents));
+
+            List<Tuple<String, String>> result = await testOperationCoordinator.GetApplicationComponentsAccessibleByGroupAsync(testGroup);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains(Tuple.Create("Order", "View")));
+            mockShardClientManager.Received(1).GetClients(DataElement.GroupToGroupMapping, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups)));
+            await groupToGroupMappingShardClientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups)));
+            mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups)));
+            await groupShardClientAndDescription1.Client.Received(1).GetApplicationComponentsAccessibleByGroupsAsync(groupClient1Groups);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetApplicationComponentsAccessibleByGroupQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentsAccessibleByGroupQuery>());
+            mockMetricLogger.Received(1).Add(Arg.Any<GetApplicationComponentsAccessibleByGroupGroupsMappedToGroup>(), 0);
+            mockMetricLogger.Received(1).Add(Arg.Any<GetApplicationComponentsAccessibleByGroupGroupShardsQueried>(), 1);
+            Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
             Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
         }
@@ -5188,7 +5254,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByGroupQuery>());
-            mockMetricLogger.Received(1).Add(Arg.Any<GetEntitiesAccessibleByGroupGroupsMappedToGroup>(), 6);
+            mockMetricLogger.Received(1).Add(Arg.Any<GetEntitiesAccessibleByGroupGroupsMappedToGroup>(), 5);
             mockMetricLogger.Received(1).Add(Arg.Any<GetEntitiesAccessibleByGroupGroupShardsQueried>(), 3);
             Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
@@ -5379,12 +5445,79 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByGroupQuery>());
-            mockMetricLogger.Received(1).Add(Arg.Any<GetEntitiesAccessibleByGroupGroupsMappedToGroup>(), 6);
+            mockMetricLogger.Received(1).Add(Arg.Any<GetEntitiesAccessibleByGroupGroupsMappedToGroup>(), 5);
             mockMetricLogger.Received(1).Add(Arg.Any<GetEntitiesAccessibleByGroupGroupShardsQueried>(), 3);
             Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription2.Client.ReceivedCalls().Count());
             Assert.AreEqual(1, groupShardClientAndDescription3.Client.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByGroupAsyncEntityTypeOverload_GroupNotMappedToAnyGroups()
+        {
+            // Test case which covers situation found during bulk/random testing, where if the group in the 'group' parameter is mapped to an entity, but not to any
+            //   groups, the entity was not returned.
+
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var groupToGroupMappingShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupMappingShardDescription"
+            );
+            var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShardDescription1"
+            );
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            var directlyMappedGroups = new List<String>() { testGroup };
+            var directlyMappedGroupsAndGroupToGroupClient = new List<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>>()
+            {
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupToGroupMappingShardClientAndDescription,
+                    directlyMappedGroups
+                )
+            };
+            var indirectlyMappedGroups = new List<String>() { };
+            var groupClient1Groups = new List<String>() { testGroup };
+            var indirectlyMappedGroupsAndGroupClients = new List<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>>()
+            {
+                new Tuple<DistributedClientAndShardDescription, IEnumerable<String>>
+                (
+                    groupShardClientAndDescription1,
+                    groupClient1Groups
+                )
+            };
+            var groupClient1Entities = new List<String>() { "CompanyA" };
+            mockMetricLogger.Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>()).Returns(testBeginId);
+            // Mock the call to the group to group mapping node to get the indirectly mapped groups
+            mockShardClientManager.GetClients(DataElement.GroupToGroupMapping, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups))).Returns(directlyMappedGroupsAndGroupToGroupClient);
+            groupToGroupMappingShardClientAndDescription.Client.GetGroupToGroupMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups))).Returns(Task.FromResult<List<String>>(indirectlyMappedGroups)); 
+            // Mock the calls the group nodes to get the mappings
+            //  Since the groups is not mapped to any other groups, it's expected the parameter below will only contain the parameter group
+            mockShardClientManager.GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups))).Returns(indirectlyMappedGroupsAndGroupClients);
+            groupShardClientAndDescription1.Client.GetEntitiesAccessibleByGroupsAsync(groupClient1Groups, testEntityType).Returns(Task.FromResult<List<String>>(groupClient1Entities));
+
+            List<String> result = await testOperationCoordinator.GetEntitiesAccessibleByGroupAsync(testGroup, testEntityType);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("CompanyA"));
+            mockShardClientManager.Received(1).GetClients(DataElement.GroupToGroupMapping, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups)));
+            await groupToGroupMappingShardClientAndDescription.Client.Received(1).GetGroupToGroupMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups)));
+            mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(directlyMappedGroups)));
+            await groupShardClientAndDescription1.Client.Received(1).GetEntitiesAccessibleByGroupsAsync(groupClient1Groups, testEntityType);
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntitiesAccessibleByGroupQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntitiesAccessibleByGroupQuery>());
+            mockMetricLogger.Received(1).Add(Arg.Any<GetEntitiesAccessibleByGroupGroupsMappedToGroup>(), 0);
+            mockMetricLogger.Received(1).Add(Arg.Any<GetEntitiesAccessibleByGroupGroupShardsQueried>(), 1);
+            Assert.AreEqual(1, groupToGroupMappingShardClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShardClientAndDescription1.Client.ReceivedCalls().Count());
             Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
             Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
         }

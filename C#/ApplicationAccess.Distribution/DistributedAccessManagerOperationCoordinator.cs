@@ -374,7 +374,7 @@ namespace ApplicationAccess.Distribution
                     }
                     // Get the groups and their clients mapped indirectly to the user
                     IEnumerable<String> allMappedGroupd;
-                    (allMappedGroupd, groupsMappedToUser) = await GetUniqueGroupToGroupMappingsAsync(mappedGroups);
+                    (allMappedGroupd, groupsMappedToUser) = await GetUniqueGroupToGroupMappingsAsync(mappedGroups, true);
                     result.AddRange(allMappedGroupd);
                 }
                 catch
@@ -952,7 +952,8 @@ namespace ApplicationAccess.Distribution
                     continuePredicate,
                     new HashSet<Type>(),
                     new HashSet<Type>(),
-                    $"check access to application component '{applicationComponent}' at access level '{accessLevel}' in"
+                    $"check access to application component '{applicationComponent}' at access level '{accessLevel}' in", 
+                    true
                 );
             }
             catch (UserNotFoundException<String>)
@@ -1027,7 +1028,8 @@ namespace ApplicationAccess.Distribution
                     continuePredicate,
                     rethrowExceptions,
                     ignoreExceptions, 
-                    $"check access to entity '{entity}' with type '{entityType}' in"
+                    $"check access to entity '{entity}' with type '{entityType}' in", 
+                    true
                 );
             }
             catch (UserNotFoundException<String>)
@@ -1096,7 +1098,8 @@ namespace ApplicationAccess.Distribution
                     continuePredicate,
                     new HashSet<Type>(),
                     new HashSet<Type>(),
-                    $"retrieve application component and access level mappings for user '{user}' from"
+                    $"retrieve application component and access level mappings for user '{user}' from", 
+                    true
                 );
             }
             catch
@@ -1140,7 +1143,8 @@ namespace ApplicationAccess.Distribution
                     continuePredicate,
                     new HashSet<Type>(),
                     new HashSet<Type>(),
-                    $"retrieve application component and access level mappings for group '{group}' from"
+                    $"retrieve application component and access level mappings for group '{group}' from",
+                    false
                 );
             }
             catch
@@ -1205,7 +1209,8 @@ namespace ApplicationAccess.Distribution
                     continuePredicate,
                     new HashSet<Type>(),
                     new HashSet<Type>(),
-                    $"retrieve entity mappings for user '{user}' from"
+                    $"retrieve entity mappings for user '{user}' from", 
+                    true
                 );
             }
             catch
@@ -1272,7 +1277,8 @@ namespace ApplicationAccess.Distribution
                     continuePredicate,
                     rethrowExceptions,
                     ignoreExceptions, 
-                    $"retrieve entity mappings for user '{user}' and entity type '{entityType}' from"
+                    $"retrieve entity mappings for user '{user}' and entity type '{entityType}' from", 
+                    true
                 );
             }
             catch
@@ -1316,7 +1322,8 @@ namespace ApplicationAccess.Distribution
                     continuePredicate,
                     new HashSet<Type>(),
                     new HashSet<Type>(),
-                    $"retrieve entity mappings for group '{group}' from"
+                    $"retrieve entity mappings for group '{group}' from", 
+                    false
                 );
             }
             catch
@@ -1360,7 +1367,8 @@ namespace ApplicationAccess.Distribution
                     continuePredicate,
                     new HashSet<Type>(),
                     new HashSet<Type>(),
-                    $"retrieve entity mappings for group '{group}' and entity type {entityType} from"
+                    $"retrieve entity mappings for group '{group}' and entity type {entityType} from", 
+                    false
                 );
             }
             catch
@@ -1639,8 +1647,9 @@ namespace ApplicationAccess.Distribution
         /// <param name="rethrowExceptions">A set of exceptions which should be rethrown directly if caught when executing a query against a shard.</param>
         /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when executing a query against a shard.</param>
         /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error when executing the query.  E.g. "retrieve application components and access level for user 'user1' from".</param>
+        /// <param name="includeParameterGroupsInMappingCount">Whether the groups in the <paramref name="groups"/> parameter should be included in the count of mapped groups in the returned metric data.</param>
         /// <returns>An <see cref="ExecuteQueryAgainstGroupShardsMetricData"/> instance.</returns>
-        /// <remarks>Used by methods which execute queries against multiple group shards, e.g. HasAccessToApplicationComponentAsync(), GetEntitiesAccessibleByGroupAsync()..</remarks>
+        /// <remarks>Used by methods which execute queries against multiple group shards, e.g. HasAccessToApplicationComponentAsync(), GetEntitiesAccessibleByGroupAsync().</remarks>
         protected async Task<ExecuteQueryAgainstGroupShardsMetricData> ExecuteQueryAgainstGroupShards<T>
         (
             IEnumerable<String> groups,
@@ -1650,14 +1659,15 @@ namespace ApplicationAccess.Distribution
             Func<T, Boolean> continuePredicate,
             HashSet<Type> rethrowExceptions,
             HashSet<Type> ignoreExceptions,
-            String exceptionEventDescription
+            String exceptionEventDescription,
+            Boolean includeParameterGroupsInMappingCount
         )
         {
             Int32 groupsMappedToGroups = 0;
             Int32 groupShardsQueried = 0;
             // Get the groups and their clients mapped indirectly to the inputted groups
             IEnumerable<String> allMappedGroups;
-            (allMappedGroups, groupsMappedToGroups) = await GetUniqueGroupToGroupMappingsAsync(groups);
+            (allMappedGroups, groupsMappedToGroups) = await GetUniqueGroupToGroupMappingsAsync(groups, includeParameterGroupsInMappingCount);
             IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> allClientsAndGroups = shardClientManager.GetClients(DataElement.Group, Operation.Query, allMappedGroups);
             // TODO: This is an O(n) operation, as it's not expected there would be a huge number of group shards.  However may want to look at improving this.
             groupShardsQueried = allClientsAndGroups.Count();
@@ -1733,10 +1743,11 @@ namespace ApplicationAccess.Distribution
         /// Gets a unique list of groups which are mapped both directly and indirectly a specified collection of groups.
         /// </summary>
         /// <param name="groups">The groups to retrieve the mappings for.</param>
+        /// <param name="includeParameterGroupsInMappingCount">Whether the groups in the <paramref name="groups"/> parameter should be included in the returned count of mapped groups.</param>
         /// <returns>A tuple containing: a unique list of groups which includes both the groups passed in the <paramref name="groups"/> parameter and the groups those groups are mapped to, and a count of those groups.</returns>
-        protected async Task<(IEnumerable<String>, Int32)> GetUniqueGroupToGroupMappingsAsync(IEnumerable<String> groups)
+        protected async Task<(IEnumerable<String>, Int32)> GetUniqueGroupToGroupMappingsAsync(IEnumerable<String> groups, Boolean includeParameterGroupsInMappingCount)
         {
-            var returnGroups = new HashSet<String>();
+            var returnGroups = new HashSet<String>(groups);
             // Get the groups and their clients mapped indirectly to the user
             IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> directlyMappedClientsAndGroups = shardClientManager.GetClients(DataElement.GroupToGroupMapping, Operation.Query, groups);
             // Create the tasks to retrieve the 'mapped to' groups
@@ -1769,7 +1780,14 @@ namespace ApplicationAccess.Distribution
                 null
             );
 
-            return (returnGroups, returnGroups.Count);
+            if (includeParameterGroupsInMappingCount == true)
+            {
+                return (returnGroups, returnGroups.Count);
+            }
+            else
+            {
+                return (returnGroups, returnGroups.Count - groups.Count());
+            }
         }
 
         /// <summary>
