@@ -258,7 +258,7 @@ BEGIN
     FROM    EventIdToTransactionTimeMap;
 
     IF (@LastTransactionTime IS NULL)
-      SET @LastTransactionTime = CONVERT(datetime2, '0001-01-01T00:00:00.0000000', 126);;
+      SET @LastTransactionTime = CONVERT(datetime2, '0001-01-01T00:00:00.0000000', 126);
 
     IF (@TransactionTime < @LastTransactionTime)
     BEGIN
@@ -352,6 +352,20 @@ BEGIN
 
     DECLARE @ErrorMessage  nvarchar(max);
     DECLARE @CurrentRowId  bigint;
+    
+    BEGIN TRANSACTION
+    
+    SELECT TOP 1 Id 
+    FROM   dbo.Users WITH (UPDLOCK, TABLOCKX);
+
+    SELECT TOP 1 Id 
+    FROM   dbo.UserToGroupMappings WITH (UPDLOCK, TABLOCKX);
+
+    SELECT TOP 1 Id 
+    FROM   dbo.UserToApplicationComponentAndAccessLevelMappings WITH (UPDLOCK, TABLOCKX);
+
+    SELECT TOP 1 Id 
+    FROM   dbo.UserToEntityMappings WITH (UPDLOCK, TABLOCKX);
 
     SELECT  @CurrentRowId = Id 
     FROM    dbo.Users 
@@ -360,11 +374,10 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
+        ROLLBACK TRANSACTION
         SET @ErrorMessage = N'No Users row exists for User ''' + ISNULL(@User, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
-
-    BEGIN TRANSACTION
 
     BEGIN TRY
         EXEC CreateEvent @EventId, @TransactionTime;
@@ -495,6 +508,23 @@ BEGIN
 
     DECLARE @ErrorMessage  nvarchar(max);
     DECLARE @CurrentRowId  bigint;
+    
+    BEGIN TRANSACTION
+    
+    SELECT TOP 1 Id 
+    FROM   dbo.Groups WITH (UPDLOCK, TABLOCKX);
+
+    SELECT TOP 1 Id 
+    FROM   dbo.UserToGroupMappings WITH (UPDLOCK, TABLOCKX);
+    
+    SELECT TOP 1 Id 
+    FROM   dbo.GroupToGroupMappings WITH (UPDLOCK, TABLOCKX);
+    
+    SELECT TOP 1 Id 
+    FROM   dbo.GroupToApplicationComponentAndAccessLevelMappings WITH (UPDLOCK, TABLOCKX);
+
+    SELECT TOP 1 Id 
+    FROM   dbo.GroupToEntityMappings WITH (UPDLOCK, TABLOCKX);
 
     SELECT  @CurrentRowId = Id 
     FROM    dbo.Groups 
@@ -503,11 +533,10 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
+        ROLLBACK TRANSACTION
         SET @ErrorMessage = N'No Groups row exists for Group ''' + ISNULL(@Group, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
-
-    BEGIN TRANSACTION
 
     BEGIN TRY
         EXEC CreateEvent @EventId, @TransactionTime;
@@ -1417,7 +1446,21 @@ BEGIN
 
     DECLARE @ErrorMessage  nvarchar(max);
     DECLARE @CurrentRowId  bigint;
+    
+    BEGIN TRANSACTION
+    
+    SELECT TOP 1 Id 
+    FROM   dbo.EntityTypes WITH (UPDLOCK, TABLOCKX);
+    
+    SELECT TOP 1 Id 
+    FROM   dbo.Entities WITH (UPDLOCK, TABLOCKX);
 
+    SELECT TOP 1 Id 
+    FROM   dbo.UserToEntityMappings WITH (UPDLOCK, TABLOCKX);
+
+    SELECT TOP 1 Id 
+    FROM   dbo.GroupToEntityMappings WITH (UPDLOCK, TABLOCKX);
+    
     SELECT  @CurrentRowId = Id 
     FROM    dbo.EntityTypes 
     WHERE   EntityType = @EntityType
@@ -1425,11 +1468,10 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
+        ROLLBACK TRANSACTION
         SET @ErrorMessage = N'No EntityTypes row exists for EntityType ''' + ISNULL(@EntityType, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
-
-    BEGIN TRANSACTION
 
     BEGIN TRY
         EXEC CreateEvent @EventId, @TransactionTime;
@@ -1569,7 +1611,18 @@ BEGIN
 
     DECLARE @ErrorMessage  nvarchar(max);
     DECLARE @CurrentRowId  bigint;
+    
+    BEGIN TRANSACTION
+    
+    SELECT TOP 1 Id 
+    FROM   dbo.Entities WITH (UPDLOCK, TABLOCKX);
 
+    SELECT TOP 1 Id 
+    FROM   dbo.UserToEntityMappings WITH (UPDLOCK, TABLOCKX);
+
+    SELECT TOP 1 Id 
+    FROM   dbo.GroupToEntityMappings WITH (UPDLOCK, TABLOCKX);
+    
     SELECT  @CurrentRowId = Id 
     FROM    dbo.Entities 
     WHERE   EntityTypeId = 
@@ -1584,11 +1637,10 @@ BEGIN
 
     IF (@CurrentRowId IS NULL)
     BEGIN
+        ROLLBACK TRANSACTION
         SET @ErrorMessage = N'No Entities row exists for EntityType ''' + ISNULL(@EntityType, '(null)') + ''', Entity ''' + ISNULL(@Entity, '(null)') + ''' and for transaction time ''' + CONVERT(nvarchar, @TransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
-
-    BEGIN TRANSACTION
 
     BEGIN TRY
         EXEC CreateEvent @EventId, @TransactionTime;
