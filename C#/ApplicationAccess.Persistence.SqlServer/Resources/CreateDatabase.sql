@@ -104,7 +104,7 @@ CREATE TABLE ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappi
     AccessLevelId           bigint     NOT NULL, 
     TransactionFrom         datetime2  NOT NULL, 
     TransactionTo           datetime2  NOT NULL
-)
+);
 
 CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsUserIndex ON ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings (UserId, ApplicationComponentId, AccessLevelId, TransactionTo);
 CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsTransactionIndex ON ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
@@ -117,7 +117,7 @@ CREATE TABLE ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMapp
     AccessLevelId           bigint     NOT NULL, 
     TransactionFrom         datetime2  NOT NULL, 
     TransactionTo           datetime2  NOT NULL
-)
+);
 
 CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsGroupIndex ON ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings (GroupId, ApplicationComponentId, AccessLevelId, TransactionTo);
 CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsTransactionIndex ON ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
@@ -128,7 +128,7 @@ CREATE TABLE ApplicationAccess.dbo.EntityTypes
     EntityType       nvarchar(450)  NOT NULL, 
     TransactionFrom  datetime2      NOT NULL, 
     TransactionTo    datetime2      NOT NULL
-)
+);
 
 CREATE INDEX EntityTypesEntityTypeIndex ON ApplicationAccess.dbo.EntityTypes (EntityType, TransactionTo);
 CREATE INDEX EntityTypesTransactionIndex ON ApplicationAccess.dbo.EntityTypes (TransactionFrom, TransactionTo);
@@ -140,7 +140,7 @@ CREATE TABLE ApplicationAccess.dbo.Entities
     Entity           nvarchar(450)  NOT NULL, 
     TransactionFrom  datetime2      NOT NULL, 
     TransactionTo    datetime2      NOT NULL
-)
+);
 
 CREATE INDEX EntitiesEntityIndex ON ApplicationAccess.dbo.Entities (EntityTypeId, Entity, TransactionTo);
 CREATE INDEX EntitiesTransactionIndex ON ApplicationAccess.dbo.Entities (TransactionFrom, TransactionTo);
@@ -153,7 +153,7 @@ CREATE TABLE ApplicationAccess.dbo.UserToEntityMappings
     EntityId         bigint     NOT NULL, 
     TransactionFrom  datetime2  NOT NULL, 
     TransactionTo    datetime2  NOT NULL
-)
+);
 
 CREATE INDEX UserToEntityMappingsUserIndex ON ApplicationAccess.dbo.UserToEntityMappings (UserId, EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX UserToEntityMappingsEntityIndex ON ApplicationAccess.dbo.UserToEntityMappings (EntityTypeId, EntityId, TransactionTo);
@@ -167,7 +167,7 @@ CREATE TABLE ApplicationAccess.dbo.GroupToEntityMappings
     EntityId         bigint     NOT NULL, 
     TransactionFrom  datetime2  NOT NULL, 
     TransactionTo    datetime2  NOT NULL
-)
+);
 
 CREATE INDEX GroupToEntityMappingsGroupIndex ON ApplicationAccess.dbo.GroupToEntityMappings (GroupId, EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX GroupToEntityMappingsEntityIndex ON ApplicationAccess.dbo.GroupToEntityMappings (EntityTypeId, EntityId, TransactionTo);
@@ -178,7 +178,7 @@ CREATE TABLE ApplicationAccess.dbo.SchemaVersions
     Id         bigint        NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     [Version]  nvarchar(20)  NOT NULL, 
     Created    datetime2     NOT NULL, 
-)
+);
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
