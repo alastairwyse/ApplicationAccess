@@ -109,7 +109,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.IntegrationTests", "ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.IntegrationTests\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.IntegrationTests.csproj", "{9DC12A78-A4F6-4B68-A3DB-22200C18B267}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.InstanceComparer", "ApplicationAccess.InstanceComparer\ApplicationAccess.InstanceComparer.csproj", "{09DFCDD4-89AD-4469-9DBD-9BBA6A8167AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.InstanceComparer", "ApplicationAccess.InstanceComparer\ApplicationAccess.InstanceComparer.csproj", "{09DFCDD4-89AD-4469-9DBD-9BBA6A8167AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Persistence.PostgreSql", "ApplicationAccess.Persistence.PostgreSql\ApplicationAccess.Persistence.PostgreSql.csproj", "{162E74C0-ED98-4F16-BED6-7DEE214666BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -333,6 +335,10 @@ Global
 		{09DFCDD4-89AD-4469-9DBD-9BBA6A8167AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09DFCDD4-89AD-4469-9DBD-9BBA6A8167AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09DFCDD4-89AD-4469-9DBD-9BBA6A8167AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{162E74C0-ED98-4F16-BED6-7DEE214666BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{162E74C0-ED98-4F16-BED6-7DEE214666BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{162E74C0-ED98-4F16-BED6-7DEE214666BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{162E74C0-ED98-4F16-BED6-7DEE214666BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
