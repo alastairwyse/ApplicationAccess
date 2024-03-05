@@ -1491,7 +1491,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
+        SET @ErrorMessage = N'Error occurred when removing User to Entity mappings for EntityType ''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1504,7 +1504,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
+        SET @ErrorMessage = N'Error occurred when removing Group to Entity mappings for EntityType ''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 
@@ -1517,7 +1517,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION
-        SET @ErrorMessage = N'Error occurred when removing Entities for EntityType''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
+        SET @ErrorMessage = N'Error occurred when removing Entities for EntityType ''' + ISNULL(@EntityType, '(null)') + '''; ' + ERROR_MESSAGE();
         THROW 50001, @ErrorMessage, 1;
     END CATCH
 

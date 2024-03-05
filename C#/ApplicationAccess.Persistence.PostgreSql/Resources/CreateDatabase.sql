@@ -305,19 +305,19 @@ BEGIN
     END;
 
     -- Insert the new row
-	BEGIN
-	    INSERT  
-		INTO    Users 
-				(
-					"User", 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					"User", 
-					TransactionTime, 
-					GetTemporalMaxDate()
-				);
+    BEGIN
+        INSERT  
+        INTO    Users 
+                (
+                    "User", 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    "User", 
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
     EXCEPTION
         WHEN OTHERS THEN
             RAISE EXCEPTION 'Error occurred when inserting User ''%''; %', COALESCE("User", '(null)'), SQLERRM;
@@ -343,19 +343,19 @@ DECLARE
 BEGIN 
 
     LOCK TABLE public.Users IN ACCESS EXCLUSIVE MODE;
-	
-	LOCK TABLE public.UserToGroupMappings IN ACCESS EXCLUSIVE MODE;
-	
-	LOCK TABLE public.UserToApplicationComponentAndAccessLevelMappings IN ACCESS EXCLUSIVE MODE;
-	
-	LOCK TABLE public.UserToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.UserToGroupMappings IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.UserToApplicationComponentAndAccessLevelMappings IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.UserToEntityMappings IN ACCESS EXCLUSIVE MODE;
 
     SELECT  Id 
-	INTO    CurrentRowId
+    INTO    CurrentRowId
     FROM    Users u
     WHERE   u."User" = $1 
       AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	  
+      
     IF (CurrentRowId IS NULL) THEN
         RAISE EXCEPTION 'No Users row exists for User ''%'' and for transaction time ''%''.', COALESCE("User", '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
         USING ERRCODE = 'no_data_found';
@@ -400,7 +400,7 @@ BEGIN
         WHEN OTHERS THEN
             RAISE EXCEPTION 'Error occurred when removing User to Entity mappings for User ''%''; %', COALESCE("User", '(null)'), SQLERRM;
     END;
-	
+    
     BEGIN
         UPDATE  Users 
         SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
@@ -435,19 +435,19 @@ BEGIN
     END;
 
     -- Insert the new row
-	BEGIN
-	    INSERT  
-		INTO    Groups 
-				(
-					"Group", 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					"Group", 
-					TransactionTime, 
-					GetTemporalMaxDate()
-				);
+    BEGIN
+        INSERT  
+        INTO    Groups 
+                (
+                    "Group", 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    "Group", 
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
     EXCEPTION
         WHEN OTHERS THEN
             RAISE EXCEPTION 'Error occurred when inserting Group ''%''; %', COALESCE("Group", '(null)'), SQLERRM;
@@ -473,21 +473,21 @@ DECLARE
 BEGIN 
 
     LOCK TABLE public.Groups IN ACCESS EXCLUSIVE MODE;
-	
-	LOCK TABLE public.UserToGroupMappings IN ACCESS EXCLUSIVE MODE;
-	
-	LOCK TABLE public.GroupToGroupMappings IN ACCESS EXCLUSIVE MODE;
-	
-	LOCK TABLE public.GroupToApplicationComponentAndAccessLevelMappings IN ACCESS EXCLUSIVE MODE;
-	
-	LOCK TABLE public.GroupToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.UserToGroupMappings IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.GroupToGroupMappings IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.GroupToApplicationComponentAndAccessLevelMappings IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.GroupToEntityMappings IN ACCESS EXCLUSIVE MODE;
 
     SELECT  Id 
-	INTO    CurrentRowId
+    INTO    CurrentRowId
     FROM    Groups g
     WHERE   g."Group" = $1 
       AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	  
+      
     IF (CurrentRowId IS NULL) THEN
         RAISE EXCEPTION 'No Groups row exists for Group ''%'' and for transaction time ''%''.', COALESCE("Group", '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
         USING ERRCODE = 'no_data_found';
@@ -547,7 +547,7 @@ BEGIN
         WHEN OTHERS THEN
             RAISE EXCEPTION 'Error occurred when removing Group to Entity mappings for Group ''%''; %', COALESCE("Group", '(null)'), SQLERRM;
     END;
-	
+    
     BEGIN
         UPDATE  Groups 
         SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
@@ -583,31 +583,31 @@ BEGIN
     END;
 
     -- Insert the new row
-	BEGIN
-	    INSERT  
-		INTO    UserToGroupMappings 
-				(
-                    UserId
-					GroupId, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					(
+    BEGIN
+        INSERT  
+        INTO    UserToGroupMappings 
+                (
+                    UserId, 
+                    GroupId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    (
                         SELECT  Id 
                         FROM    Users u
                         WHERE   u."User" = $1 
                           AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                     ), 
-					(
+                    (
                         SELECT  Id 
                         FROM    Groups g
                         WHERE   g."Group" = $2 
                           AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                     ), 
-					TransactionTime, 
-					GetTemporalMaxDate()
-				);
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
     EXCEPTION
         WHEN OTHERS THEN
             RAISE EXCEPTION 'Error occurred when inserting User to Group mapping between ''%'' and ''%''; %', COALESCE("User", '(null)'), COALESCE("Group", '(null)'), SQLERRM;
@@ -634,24 +634,24 @@ DECLARE
 BEGIN 
 
     SELECT  Id 
-	INTO    CurrentRowId
+    INTO    CurrentRowId
     FROM    UserToGroupMappings
     WHERE   UserId = 
             (
                 SELECT  Id 
                 FROM    Users u
-                WHERE   u."User" = %1 
+                WHERE   u."User" = $1 
                   AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
             )
       AND   GroupId = 
             (
                 SELECT  Id 
                 FROM    Groups g
-                WHERE   g."Group" = %2 
+                WHERE   g."Group" = $2 
                   AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
             )
       AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	  
+      
     IF (CurrentRowId IS NULL) THEN
         RAISE EXCEPTION 'No UserToGroupMappings row exists for User ''%'', Group ''%'' and for transaction time ''%''.', COALESCE("User", '(null)'), COALESCE("Group", '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
         USING ERRCODE = 'no_data_found';
@@ -664,7 +664,7 @@ BEGIN
             RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
     END;
 
-	BEGIN
+    BEGIN
         UPDATE  UserToGroupMappings 
         SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
         WHERE   Id = CurrentRowId;
@@ -699,31 +699,31 @@ BEGIN
     END;
 
     -- Insert the new row
-	BEGIN
-	    INSERT  
-		INTO    GroupToGroupMappings 
-				(
-                    FromGroupId
-					ToGroupId, 
-					TransactionFrom, 
-					TransactionTo 
-				)
-		VALUES  (
-					(
+    BEGIN
+        INSERT  
+        INTO    GroupToGroupMappings 
+                (
+                    FromGroupId, 
+                    ToGroupId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    (
                         SELECT  Id 
                         FROM    Groups g
                         WHERE   g."Group" = FromGroup
                           AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                     ), 
-					(
+                    (
                         SELECT  Id 
                         FROM    Groups g
                         WHERE   g."Group" = ToGroup
                           AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                     ), 
-					TransactionTime, 
-					GetTemporalMaxDate()
-				);
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
     EXCEPTION
         WHEN OTHERS THEN
             RAISE EXCEPTION 'Error occurred when inserting Group to Group mapping between ''%'' and ''%''; %', COALESCE(FromGroup, '(null)'), COALESCE(ToGroup, '(null)'), SQLERRM;
@@ -750,7 +750,7 @@ DECLARE
 BEGIN 
 
     SELECT  Id 
-	INTO    CurrentRowId
+    INTO    CurrentRowId
     FROM    GroupToGroupMappings
     WHERE   FromGroupId = 
             (
@@ -767,7 +767,7 @@ BEGIN
                   AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
             )
       AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
-	  
+  
     IF (CurrentRowId IS NULL) THEN
         RAISE EXCEPTION 'No GroupToGroupMappings row exists for FromGroup  ''%'', ToGroup  ''%'' and for transaction time ''%''.', COALESCE("User", '(null)'), COALESCE("Group", '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
         USING ERRCODE = 'no_data_found';
@@ -780,7 +780,7 @@ BEGIN
             RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
     END;
 
-	BEGIN
+    BEGIN
         UPDATE  GroupToGroupMappings 
         SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
         WHERE   Id = CurrentRowId;
@@ -806,8 +806,8 @@ CREATE PROCEDURE AddUserToApplicationComponentAndAccessLevelMapping
 LANGUAGE plpgsql 
 AS $$
 DECLARE
-    ApplicationComponentsId bigint;
-    AccessLevelsId bigint;
+    ApplicationComponentId bigint;
+    AccessLevelId bigint;
 BEGIN 
 
     BEGIN
@@ -817,50 +817,50 @@ BEGIN
             RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
     END;
 
-	BEGIN
-	    INSERT  
-		INTO    UserToApplicationComponentAndAccessLevelMappings 
-				(
+    BEGIN
+        INSERT  
+        INTO    UserToApplicationComponentAndAccessLevelMappings 
+                (
                     UserId, 
                     ApplicationComponentId, 
                     AccessLevelId, 
                     TransactionFrom, 
                     TransactionTo 
-				)
-		VALUES  (
-					(
+                )
+        VALUES  (
+                    (
                         SELECT  Id 
                         FROM    Users u
                         WHERE   u."User" = $1 
                           AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                     ), 
-					(
+                    (
                         SELECT  Id 
                         FROM    ApplicationComponents ac
-                        WHERE   ac.ApplicationComponent = %2
+                        WHERE   ac.ApplicationComponent = $2
                           AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                     ), 
-					(
+                    (
                         SELECT  Id 
                         FROM    AccessLevels al
-                        WHERE   al.AccessLevel = %3
+                        WHERE   al.AccessLevel = $3
                           AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                     ), 
-					TransactionTime, 
-					GetTemporalMaxDate()
-				);
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
     EXCEPTION
         WHEN not_null_violation THEN
             -- Insert failed due to 'not_null_violation' error
             --   Need to ensure ApplicationComponent and AccessLevel exist
 
             SELECT  Id 
-            INTO    ApplicationComponentsId 
+            INTO    ApplicationComponentId 
             FROM    ApplicationComponents ac
-            WHERE   ac.ApplicationComponent = %2
+            WHERE   ac.ApplicationComponent = $2
               AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
-            IF (ApplicationComponentsId IS NULL) THEN
+            IF (ApplicationComponentId IS NULL) THEN
                 BEGIN
                     -- Insert ApplicationComponent
                     INSERT  
@@ -871,7 +871,7 @@ BEGIN
                                 TransactionTo 
                             )
                     VALUES  (
-                                %2, 
+                                $2, 
                                 TransactionTime, 
                                 GetTemporalMaxDate()
                             );
@@ -884,7 +884,7 @@ BEGIN
             SELECT  Id 
             INTO    AccessLevelId 
             FROM    AccessLevels al
-            WHERE   al.AccessLevel = %3
+            WHERE   al.AccessLevel = $3
               AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
 
             IF (AccessLevelId IS NULL) THEN
@@ -898,7 +898,7 @@ BEGIN
                                 TransactionTo 
                             )
                     VALUES  (
-                                %3, 
+                                $3, 
                                 TransactionTime, 
                                 GetTemporalMaxDate()
                             );
@@ -929,13 +929,13 @@ BEGIN
                             (
                                 SELECT  Id 
                                 FROM    ApplicationComponents ac
-                                WHERE   ac.ApplicationComponent = %2
+                                WHERE   ac.ApplicationComponent = $2
                                 AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                             ), 
                             (
                                 SELECT  Id 
                                 FROM    AccessLevels al
-                                WHERE   al.AccessLevel = %3
+                                WHERE   al.AccessLevel = $3
                                 AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
                             ), 
                             TransactionTime, 
@@ -956,3 +956,888 @@ $$;
 
 --------------------------------------------------------------------------------
 -- RemoveUserToApplicationComponentAndAccessLevelMapping
+
+CREATE PROCEDURE RemoveUserToApplicationComponentAndAccessLevelMapping
+(
+    "User"                varchar, 
+    ApplicationComponent  varchar, 
+    AccessLevel           varchar, 
+    EventId               uuid, 
+    TransactionTime       timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    CurrentRowId  bigint;
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+BEGIN 
+
+    SELECT  Id 
+    INTO    CurrentRowId
+    FROM    UserToApplicationComponentAndAccessLevelMappings 
+    WHERE   UserId = 
+            (
+                SELECT  Id 
+                FROM    Users u 
+                WHERE   u."User" = $1
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    ApplicationComponentId = 
+            (
+                SELECT  Id 
+                FROM    ApplicationComponents ac
+                WHERE   ac.ApplicationComponent = $2
+                    AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    AccessLevelId = 
+            (
+                SELECT  Id 
+                FROM    AccessLevels al
+                WHERE   al.AccessLevel = $3
+                    AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+
+
+    IF (CurrentRowId IS NULL) THEN
+        RAISE EXCEPTION 'No UserToApplicationComponentAndAccessLevelMappings row exists for User ''%'', ApplicationComponent ''%'', AccessLevel ''%'' and for transaction time ''%''.', COALESCE("User", '(null)'), COALESCE(ApplicationComponent, '(null)'), COALESCE(AccessLevel, '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
+        USING ERRCODE = 'no_data_found';
+    END IF;
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    BEGIN
+        UPDATE  UserToApplicationComponentAndAccessLevelMappings 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   Id = CurrentRowId;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing User to ApplicationComponent and AccessLevel mapping for ''%'', ''%'' and ''%''; %', COALESCE("User", '(null)'), COALESCE(ApplicationComponent, '(null)'), COALESCE(AccessLevel, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- AddGroupToApplicationComponentAndAccessLevelMapping
+
+CREATE PROCEDURE AddGroupToApplicationComponentAndAccessLevelMapping
+(
+    "Group"               varchar, 
+    ApplicationComponent  varchar, 
+    AccessLevel           varchar, 
+    EventId               uuid, 
+    TransactionTime       timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    ApplicationComponentId bigint;
+    AccessLevelId bigint;
+BEGIN 
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    BEGIN
+        INSERT  
+        INTO    GroupToApplicationComponentAndAccessLevelMappings 
+                (
+                    GroupId, 
+                    ApplicationComponentId, 
+                    AccessLevelId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    (
+                        SELECT  Id 
+                        FROM    Groups g
+                        WHERE   g."Group" = $1 
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                    ), 
+                    (
+                        SELECT  Id 
+                        FROM    ApplicationComponents ac
+                        WHERE   ac.ApplicationComponent = $2
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                    ), 
+                    (
+                        SELECT  Id 
+                        FROM    AccessLevels al
+                        WHERE   al.AccessLevel = $3
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                    ), 
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
+    EXCEPTION
+        WHEN not_null_violation THEN
+            -- Insert failed due to 'not_null_violation' error
+            --   Need to ensure ApplicationComponent and AccessLevel exist
+
+            SELECT  Id 
+            INTO    ApplicationComponentId 
+            FROM    ApplicationComponents ac
+            WHERE   ac.ApplicationComponent = $2
+              AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+
+            IF (ApplicationComponentId IS NULL) THEN
+                BEGIN
+                    -- Insert ApplicationComponent
+                    INSERT  
+                    INTO    ApplicationComponents 
+                            (
+                                ApplicationComponent, 
+                                TransactionFrom, 
+                                TransactionTo 
+                            )
+                    VALUES  (
+                                $2, 
+                                TransactionTime, 
+                                GetTemporalMaxDate()
+                            );
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        RAISE EXCEPTION 'Error occurred when inserting ApplicationComponent ''%''; %', COALESCE(ApplicationComponent, '(null)'), SQLERRM;
+                END;
+            END IF;
+
+            SELECT  Id 
+            INTO    AccessLevelId 
+            FROM    AccessLevels al
+            WHERE   al.AccessLevel = $3
+              AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+
+            IF (AccessLevelId IS NULL) THEN
+                BEGIN
+                    -- Insert AccessLevel
+                    INSERT  
+                    INTO    AccessLevels 
+                            (
+                                AccessLevel, 
+                                TransactionFrom, 
+                                TransactionTo 
+                            )
+                    VALUES  (
+                                $3, 
+                                TransactionTime, 
+                                GetTemporalMaxDate()
+                            );
+                EXCEPTION
+                    WHEN OTHERS THEN
+                        RAISE EXCEPTION 'Error occurred when inserting AccessLevel ''%''; %', COALESCE(AccessLevel, '(null)'), SQLERRM;
+                END;
+            END IF;
+
+            -- Repeat the original insert
+            BEGIN
+                INSERT  
+                INTO    GroupToApplicationComponentAndAccessLevelMappings 
+                        (
+                            GroupId, 
+                            ApplicationComponentId, 
+                            AccessLevelId, 
+                            TransactionFrom, 
+                            TransactionTo 
+                        )
+                VALUES  (
+                            (
+                                SELECT  Id 
+                                FROM    Groups g 
+                                WHERE   g."Group" = $1 
+                                AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                            ), 
+                            (
+                                SELECT  Id 
+                                FROM    ApplicationComponents ac
+                                WHERE   ac.ApplicationComponent = $2
+                                AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                            ), 
+                            (
+                                SELECT  Id 
+                                FROM    AccessLevels al
+                                WHERE   al.AccessLevel = $3
+                                AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                            ), 
+                            TransactionTime, 
+                            GetTemporalMaxDate()
+                        );
+            EXCEPTION
+                WHEN OTHERS THEN    
+                    RAISE EXCEPTION 'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''%'', ''%'' and ''%''; %', COALESCE("Group", '(null)'), COALESCE(ApplicationComponent, '(null)'), COALESCE(AccessLevel, '(null)'), SQLERRM;
+            END;
+
+        WHEN OTHERS THEN
+            -- I.e. other exception in original INSERT
+            RAISE EXCEPTION 'Error occurred when inserting Group to ApplicationComponent and AccessLevel mapping between ''%'', ''%'' and ''%''; %', COALESCE("Group", '(null)'), COALESCE(ApplicationComponent, '(null)'), COALESCE(AccessLevel, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- RemoveGroupToApplicationComponentAndAccessLevelMapping
+
+CREATE PROCEDURE RemoveGroupToApplicationComponentAndAccessLevelMapping
+(
+    "Group"               varchar, 
+    ApplicationComponent  varchar, 
+    AccessLevel           varchar, 
+    EventId               uuid, 
+    TransactionTime       timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    CurrentRowId  bigint;
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+BEGIN 
+
+    SELECT  Id 
+    INTO    CurrentRowId
+    FROM    GroupToApplicationComponentAndAccessLevelMappings 
+    WHERE   GroupId = 
+            (
+                SELECT  Id 
+                FROM    Groups g 
+                WHERE   g."Group" = $1
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    ApplicationComponentId = 
+            (
+                SELECT  Id 
+                FROM    ApplicationComponents ac
+                WHERE   ac.ApplicationComponent = $2
+                    AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND    AccessLevelId = 
+            (
+                SELECT  Id 
+                FROM    AccessLevels al
+                WHERE   al.AccessLevel = $3
+                    AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+
+
+    IF (CurrentRowId IS NULL) THEN
+        RAISE EXCEPTION 'No GroupToApplicationComponentAndAccessLevelMappings row exists for Group ''%'', ApplicationComponent ''%'', AccessLevel ''%'' and for transaction time ''%''.', COALESCE("Group", '(null)'), COALESCE(ApplicationComponent, '(null)'), COALESCE(AccessLevel, '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
+        USING ERRCODE = 'no_data_found';
+    END IF;
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    BEGIN
+        UPDATE  GroupToApplicationComponentAndAccessLevelMappings 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   Id = CurrentRowId;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing Group to ApplicationComponent and AccessLevel mapping for ''%'', ''%'' and ''%''; %', COALESCE("Group", '(null)'), COALESCE(ApplicationComponent, '(null)'), COALESCE(AccessLevel, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- AddEntityType
+
+CREATE PROCEDURE AddEntityType
+(
+    EntityType       varchar, 
+    EventId          uuid, 
+    TransactionTime  timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+BEGIN 
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    -- Insert the new row
+    BEGIN
+        INSERT  
+        INTO    EntityTypes 
+                (
+                    EntityType, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    EntityType, 
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when inserting EntityType ''%''; %', COALESCE(EntityType, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- RemoveEntityType
+
+CREATE PROCEDURE RemoveEntityType
+(
+    EntityType       varchar, 
+    EventId          uuid, 
+    TransactionTime  timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    CurrentRowId  bigint;
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+BEGIN 
+
+    LOCK TABLE public.EntityTypes IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.Entities IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.UserToEntityMappings IN ACCESS EXCLUSIVE MODE;
+
+    LOCK TABLE public.GroupToEntityMappings IN ACCESS EXCLUSIVE MODE;
+
+    SELECT  Id 
+    INTO    CurrentRowId
+    FROM    EntityTypes et
+    WHERE   et.EntityType = $1 
+      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+      
+    IF (CurrentRowId IS NULL) THEN
+        RAISE EXCEPTION 'No EntityTypes row exists for EntityType ''%'' and for transaction time ''%''.', COALESCE(EntityType, '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
+        USING ERRCODE = 'no_data_found';
+    END IF;
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    -- Invalidate any UserToEntityMappings rows
+    BEGIN
+        UPDATE  UserToEntityMappings 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   EntityTypeId = CurrentRowId 
+          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing User to Entity mappings mappings for EntityType ''%''; %', COALESCE(EntityType, '(null)'), SQLERRM;
+    END;
+
+    -- Invalidate any GroupToEntityMappings rows
+    BEGIN
+        UPDATE  GroupToEntityMappings 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   EntityTypeId = CurrentRowId 
+          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing Group to Entity and AccessLevel mappings for EntityType ''%''; %', COALESCE(EntityType, '(null)'), SQLERRM;
+    END;
+
+    -- Invalidate any Entities rows
+    BEGIN
+        UPDATE  Entities 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   EntityTypeId = CurrentRowId 
+          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing Entities for EntityType ''%''; %', COALESCE(EntityType, '(null)'), SQLERRM;
+    END;
+    
+    BEGIN
+        UPDATE  EntityTypes 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   Id = CurrentRowId;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing EntityTypes ''%''; %', COALESCE(EntityTypes, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- AddEntity
+
+CREATE PROCEDURE AddEntity
+(
+    EntityType       varchar, 
+    Entity           varchar, 
+    EventId          uuid, 
+    TransactionTime  timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+BEGIN 
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    -- Insert the new row
+    BEGIN
+        INSERT  
+        INTO    Entities 
+                (
+                    EntityTypeId, 
+                    Entity, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    EntityTypes et 
+                        WHERE   et.EntityType = $1 
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    Entity, 
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when inserting Entity ''%'' of type ''%''; %', COALESCE(Entity, '(null)'), COALESCE(EntityType, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- RemoveEntity
+
+CREATE PROCEDURE RemoveEntity
+(
+    EntityType       varchar, 
+    Entity           varchar, 
+    EventId          uuid, 
+    TransactionTime  timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    CurrentRowId  bigint;
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+BEGIN 
+
+    LOCK TABLE public.Entities IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.UserToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    
+    LOCK TABLE public.GroupToEntityMappings IN ACCESS EXCLUSIVE MODE;
+
+    SELECT  Id 
+    INTO    CurrentRowId
+    FROM    Entities e
+    WHERE   e.EntityTypeId = 
+            (
+                SELECT  Id 
+                FROM    EntityTypes et 
+                WHERE   et.EntityType = $1 
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND   e.Entity = $2 
+      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+      
+    IF (CurrentRowId IS NULL) THEN
+        RAISE EXCEPTION 'No Entities row exists for EntityType ''%'', Entity ''%'' and for transaction time ''%''.', COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
+        USING ERRCODE = 'no_data_found';
+    END IF;
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    -- Invalidate any UserToEntityMappings rows
+    BEGIN
+        UPDATE  UserToEntityMappings 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   EntityTypeId = 
+                (
+                    SELECT  Id 
+                    FROM    EntityTypes et 
+                    WHERE   et.EntityType = $1 
+                      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                )
+          AND   EntityId = CurrentRowId
+          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing User to Entity mappings for EntityType ''%'' and Entity ''%''; %', COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), SQLERRM;
+    END;
+
+    -- Invalidate any GroupToEntityMappings rows
+    BEGIN
+        UPDATE  GroupToEntityMappings 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   EntityTypeId = 
+                (
+                    SELECT  Id 
+                    FROM    EntityTypes et 
+                    WHERE   et.EntityType = $1 
+                      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                )
+          AND   EntityId = CurrentRowId
+          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing Group to Entity mappings for EntityType ''%'' and Entity ''%''; %', COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), SQLERRM;
+    END;
+
+    BEGIN
+        UPDATE  Entities 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   Id = CurrentRowId;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing Entity ''%''; %', COALESCE(Entity, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- AddUserToEntityMapping
+
+CREATE PROCEDURE AddUserToEntityMapping
+(
+    "User"                varchar, 
+    EntityType            varchar, 
+    Entity                varchar, 
+    EventId               uuid, 
+    TransactionTime       timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+BEGIN 
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    BEGIN
+        INSERT  
+        INTO    UserToEntityMappings 
+                (
+                    UserId, 
+                    EntityTypeId, 
+                    EntityId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    Users u
+                        WHERE   u."User" = $1 
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    EntityTypes et 
+                        WHERE   et.EntityType = $2 
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    Entities e
+                        WHERE   e.EntityTypeId = 
+                                ( 
+                                    SELECT  Id 
+                                    FROM    EntityTypes et 
+                                    WHERE   et.EntityType = $2 
+                                      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                                )
+                          AND   e.Entity = $3 
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ),
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when inserting User to Entity mapping between ''%'', ''%'' and ''%''; %', COALESCE("User", '(null)'), COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- RemoveUserToEntityMapping
+
+CREATE PROCEDURE RemoveUserToEntityMapping
+(
+    "User"                varchar, 
+    EntityType            varchar, 
+    Entity                varchar, 
+    EventId               uuid, 
+    TransactionTime       timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    CurrentRowId  bigint;
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+BEGIN 
+
+    SELECT  Id 
+    INTO    CurrentRowId
+    FROM    UserToEntityMappings 
+    WHERE   UserId = 
+            (
+                SELECT  Id 
+                FROM    Users u
+                WHERE   u."User" = $1 
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND   EntityTypeId = 
+            (
+                SELECT  Id 
+                FROM    EntityTypes et 
+                WHERE   et.EntityType = $2 
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND   EntityId = 
+            (
+                SELECT  Id 
+                FROM    Entities e
+                WHERE   e.EntityTypeId = 
+                        ( 
+                            SELECT  Id 
+                            FROM    EntityTypes et 
+                            WHERE   et.EntityType = $2 
+                                AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                        )
+                  AND   e.Entity = $3 
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+
+    IF (CurrentRowId IS NULL) THEN
+        RAISE EXCEPTION 'No UserToEntityMappings row exists for User ''%'', EntityType ''%'', Entity ''%'' and for transaction time ''%''.', COALESCE("User", '(null)'), COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
+        USING ERRCODE = 'no_data_found';
+    END IF;
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    BEGIN
+        UPDATE  UserToEntityMappings 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   Id = CurrentRowId;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing User to Entity mapping for ''%'', ''%'' and ''%''; %', COALESCE("User", '(null)'), COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- AddGroupToEntityMapping
+
+CREATE PROCEDURE AddGroupToEntityMapping
+(
+    "Group"               varchar, 
+    EntityType            varchar, 
+    Entity                varchar, 
+    EventId               uuid, 
+    TransactionTime       timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+BEGIN 
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    BEGIN
+        INSERT  
+        INTO    GroupToEntityMappings 
+                (
+                    GroupId, 
+                    EntityTypeId, 
+                    EntityId, 
+                    TransactionFrom, 
+                    TransactionTo 
+                )
+        VALUES  (
+                    ( 
+                        SELECT  Id 
+                        FROM    Groups g
+                        WHERE   g."Group" = $1 
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    EntityTypes et 
+                        WHERE   et.EntityType = $2 
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ), 
+                    ( 
+                        SELECT  Id 
+                        FROM    Entities e
+                        WHERE   e.EntityTypeId = 
+                                ( 
+                                    SELECT  Id 
+                                    FROM    EntityTypes et 
+                                    WHERE   et.EntityType = $2 
+                                      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                                )
+                          AND   e.Entity = $3 
+                          AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                    ),
+                    TransactionTime, 
+                    GetTemporalMaxDate()
+                );
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when inserting Group to Entity mapping between ''%'', ''%'' and ''%''; %', COALESCE("Group", '(null)'), COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+--------------------------------------------------------------------------------
+-- RemoveGroupToEntityMapping
+
+CREATE PROCEDURE RemoveGroupToEntityMapping
+(
+    "Group"               varchar, 
+    EntityType            varchar, 
+    Entity                varchar, 
+    EventId               uuid, 
+    TransactionTime       timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    CurrentRowId  bigint;
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+BEGIN 
+
+    SELECT  Id 
+    INTO    CurrentRowId
+    FROM    GroupToEntityMappings 
+    WHERE   GroupId = 
+            (
+                SELECT  Id 
+                FROM    Groups g
+                WHERE   g."Group" = $1 
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo
+            )
+      AND   EntityTypeId = 
+            (
+                SELECT  Id 
+                FROM    EntityTypes et 
+                WHERE   et.EntityType = $2 
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND   EntityId = 
+            (
+                SELECT  Id 
+                FROM    Entities e
+                WHERE   e.EntityTypeId = 
+                        ( 
+                            SELECT  Id 
+                            FROM    EntityTypes et 
+                            WHERE   et.EntityType = $2 
+                                AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+                        )
+                  AND   e.Entity = $3 
+                  AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo 
+            )
+      AND   TransactionTime BETWEEN TransactionFrom AND TransactionTo;
+
+    IF (CurrentRowId IS NULL) THEN
+        RAISE EXCEPTION 'No GroupToEntityMappings row exists for Group ''%'', EntityType ''%'', Entity ''%'' and for transaction time ''%''.', COALESCE("Group", '(null)'), COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), TO_CHAR(LastTransactionTime, TimeStampCharFormat)
+        USING ERRCODE = 'no_data_found';
+    END IF;
+
+    BEGIN
+        CALL CreateEvent(EventId, TransactionTime);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred calling stored procedure ''CreateEvent''; %', SQLERRM;
+    END;
+
+    BEGIN
+        UPDATE  GroupToEntityMappings 
+        SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
+        WHERE   Id = CurrentRowId;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE EXCEPTION 'Error occurred when removing Group to Entity mapping for ''%'', ''%'' and ''%''; %', COALESCE("Group", '(null)'), COALESCE(EntityType, '(null)'), COALESCE(Entity, '(null)'), SQLERRM;
+    END;
+
+END;
+$$;
+
+
+
+
+CREATE PROCEDURE RemoveUserToApplicationComponentAndAccessLevelMapping
+(
+    "User"                varchar, 
+    ApplicationComponent  varchar, 
+    AccessLevel           varchar, 
+    EventId               uuid, 
+    TransactionTime       timestamptz
+)
+LANGUAGE plpgsql 
+AS $$
+DECLARE
+    CurrentRowId  bigint;
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+BEGIN 
+
+END;
+$$;
