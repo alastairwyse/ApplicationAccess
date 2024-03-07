@@ -185,26 +185,6 @@ CREATE TABLE public.SchemaVersions
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
--- Create User-defined Types
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-CREATE TYPE EventTableType 
-AS 
-(
-    Id            bigint,  
-    EventType     varchar, 
-    EventId       uuid, 
-    EventAction   varchar, 
-    OccurredTime  timestamptz, 
-    EventData1    varchar, 
-    EventData2    varchar, 
-    EventData3    varchar
-);
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Create Functions / Stored Procedures
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1821,23 +1801,188 @@ BEGIN
 END;
 $$;
 
+--------------------------------------------------------------------------------
+-- ProcessEvents
 
-
-
-CREATE PROCEDURE RemoveUserToApplicationComponentAndAccessLevelMapping
+CREATE OR REPLACE PROCEDURE ProcessEvents
 (
-    "User"                varchar, 
-    ApplicationComponent  varchar, 
-    AccessLevel           varchar, 
-    EventId               uuid, 
-    TransactionTime       timestamptz
+    Events json
 )
-LANGUAGE plpgsql 
+LANGUAGE 'plpgsql'
 AS $$
-DECLARE
-    CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
-BEGIN 
+DECLARE 
 
-END;
+    UserEventTypeValue varchar := 'user';
+    GroupEventTypeValue varchar := 'group';
+    UserToGroupMappingEventTypeValue varchar := 'userToGroupMapping';
+    GroupToGroupMappingEventTypeValue varchar := 'groupToGroupMapping';
+    UserToApplicationComponentAndAccessLevelMappingEventTypeValue varchar := 'userToApplicationComponentAndAccessLevelMapping';
+    GroupToApplicationComponentAndAccessLevelMappingEventTypeValue varchar := 'groupToApplicationComponentAndAccessLevelMapping';
+    EntityTypeEventTypeValue varchar := 'entityType';
+    EntityEventTypeValue varchar := 'entity';
+    UserToEntityMappingEventTypeValue varchar := 'userToEntityMapping';
+    GroupToEntityMappingEventTypeValue varchar := 'groupToEntityMapping';
+    AddEventActionValue varchar := 'add';
+    RemoveEventActionValue varchar := 'remove';
+
+    CurrentEventAsJson           json;
+    CurrentEventType             varchar;
+    CurrentEventIdAsString       varchar;
+    CurrentEventId               uuid;
+    CurrentEventAction           varchar;
+    CurrentOccurredTimeAsString  varchar;
+    CurrentOccurredTime          timestamptz;
+    CurrentEventData1            varchar;
+    CurrentEventData2            varchar;
+    CurrentEventData3            varchar;
+
+BEGIN
+
+    FOR CurrentEventAsJson IN 
+    SELECT  * 
+    FROM    json_array_elements(Events)
+    LOOP 
+    
+        -- Validate and convert the current array element
+        
+        CurrentEventType := CurrentEventAsJson->>'Type';
+        
+        CurrentEventIdAsString := CurrentEventAsJson->>'Id';
+        BEGIN
+            CurrentEventId := CurrentEventIdAsString::uuid;
+        EXCEPTION
+            WHEN OTHERS THEN
+                RAISE EXCEPTION 'Failed to convert event Id ''%'' to a uuid; %', COALESCE(CurrentEventIdAsString, '(null)'), SQLERRM;
+        END;
+        
+        CurrentEventAction := CurrentEventAsJson->>'Action';
+        IF (NOT(CurrentEventAction = AddEventActionValue OR CurrentEventAction = RemoveEventActionValue)) THEN
+            RAISE EXCEPTION 'Event Action contained invalid value ''%''.', COALESCE(CurrentEventAction, '(null)');
+        END IF;
+        
+        CurrentOccurredTimeAsString := CurrentEventAsJson->>'OccurredTime';
+        BEGIN
+            SELECT  TO_TIMESTAMP(CurrentOccurredTimeAsString, 'YYYY-MM-DD HH24:MI:ss.USTZH') AS timestamptz
+            INTO    CurrentOccurredTime;
+        EXCEPTION
+            WHEN OTHERS THEN
+                RAISE EXCEPTION 'Failed to convert event OccurredTime ''%'' to a timestamptz; %', COALESCE(CurrentOccurredTimeAsString, '(null)'), SQLERRM;
+        END;
+    
+        CurrentEventData1 := CurrentEventAsJson->>'Data1';
+        CurrentEventData2 := CurrentEventAsJson->>'Data2';
+        CurrentEventData3 := CurrentEventAsJson->>'Data3';
+    
+        BEGIN
+
+            -- Handle 'user' event
+            IF (CurrentEventType = UserEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddUser(CurrentEventData1, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveUser(CurrentEventData1, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            -- Handle 'group' event
+            ELSEIF (CurrentEventType = GroupEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddGroup(CurrentEventData1, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveGroup(CurrentEventData1, CurrentEventId, CurrentOccurredTime);
+                END IF;
+                
+            -- Handle 'user to group mapping' event    
+            ELSEIF (CurrentEventType = UserToGroupMappingEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddUserToGroupMapping(CurrentEventData1, CurrentEventData2, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveUserToGroupMapping(CurrentEventData1, CurrentEventData2, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            -- Handle 'group to group mapping' event
+            ELSEIF (CurrentEventType = GroupToGroupMappingEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddGroupToGroupMapping(CurrentEventData1, CurrentEventData2, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveGroupToGroupMapping(CurrentEventData1, CurrentEventData2, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            -- Handle 'user to application component and acccess level mapping' event
+            ELSEIF (CurrentEventType = UserToApplicationComponentAndAccessLevelMappingEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddUserToApplicationComponentAndAccessLevelMapping(CurrentEventData1, CurrentEventData2, CurrentEventData3, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveUserToApplicationComponentAndAccessLevelMapping(CurrentEventData1, CurrentEventData2, CurrentEventData3, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            -- Handle 'group to application component and acccess level mapping' event
+            ELSEIF (CurrentEventType = GroupToApplicationComponentAndAccessLevelMappingEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddGroupToApplicationComponentAndAccessLevelMapping(CurrentEventData1, CurrentEventData2, CurrentEventData3, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveGroupToApplicationComponentAndAccessLevelMapping(CurrentEventData1, CurrentEventData2, CurrentEventData3, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            -- Handle 'entity type' event
+            ELSEIF (CurrentEventType = EntityTypeEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddEntityType(CurrentEventData1, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveEntityType(CurrentEventData1, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            -- Handle 'entity' event
+            ELSEIF (CurrentEventType = EntityEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddEntity(CurrentEventData1, CurrentEventData2, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveEntity(CurrentEventData1, CurrentEventData2, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            -- Handle 'user to entity mapping' event
+            ELSEIF (CurrentEventType = UserToEntityMappingEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddUserToEntityMapping(CurrentEventData1, CurrentEventData2, CurrentEventData3, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveUserToEntityMapping(CurrentEventData1, CurrentEventData2, CurrentEventData3, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            -- Handle 'group to entity mapping' event
+            ELSEIF (CurrentEventType = GroupToEntityMappingEventTypeValue) THEN
+                IF (CurrentEventAction = AddEventActionValue) THEN
+                    CALL AddGroupToEntityMapping(CurrentEventData1, CurrentEventData2, CurrentEventData3, CurrentEventId, CurrentOccurredTime);
+                ELSE
+                    CALL RemoveGroupToEntityMapping(CurrentEventData1, CurrentEventData2, CurrentEventData3, CurrentEventId, CurrentOccurredTime);
+                END IF;
+            
+            ELSE
+                RAISE EXCEPTION 'Input JSON property ''Type'' contained unhandled event type ''%''.', COALESCE(CurrentEventType, '(null)');
+            END IF;
+
+        EXCEPTION
+            WHEN OTHERS THEN
+                RAISE EXCEPTION 'Error occurred processing events; %', SQLERRM;
+        END;
+    
+    END LOOP;
+
+END 
 $$;
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Update 'SchemaVersions' table
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+INSERT 
+INTO    SchemaVersions
+        (
+            Version, 
+            Created
+        )
+VALUES  (
+            '2.0.0', 
+            NOW()
+        );

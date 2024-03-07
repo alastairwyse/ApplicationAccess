@@ -4,6 +4,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+DROP PROCEDURE ProcessEvents;
 DROP PROCEDURE RemoveGroupToEntityMapping;
 DROP PROCEDURE AddGroupToEntityMapping;
 DROP PROCEDURE RemoveUserToEntityMapping;
@@ -27,15 +28,6 @@ DROP PROCEDURE AddUser;
 DROP PROCEDURE CreateEvent;
 DROP FUNCTION SubtractTemporalMinimumTimeUnit;
 DROP FUNCTION GetTemporalMaxDate;
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Drop User-defined Types
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-DROP TYPE EventTableType;
 
 
 --------------------------------------------------------------------------------
