@@ -65,31 +65,31 @@ $unixScriptFiles = @("ApplicationAccessComponentLauncher.sh", "Dockerfile")
 
 # Map the component to the relative location of the source code for that component
 if ($Component -eq 'Reader') {
-	$componentPath = '..\ApplicationAccess.Hosting.Rest.Reader'
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.Reader'
 }
 elseif ($Component -eq 'ReaderWriter') {
-	$componentPath = '..\ApplicationAccess.Hosting.Rest.ReaderWriter'
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.ReaderWriter'
 }
 elseif ($Component -eq 'Writer') {
-	$componentPath = '..\ApplicationAccess.Hosting.Rest.Writer'
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.Writer'
 }
 elseif ($Component -eq 'EventCache') {
-	$componentPath = '..\ApplicationAccess.Hosting.Rest.EventCache'
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.EventCache'
 }
 elseif ($Component -eq 'DependencyFreeReaderWriter') {
-	$componentPath = '..\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter'
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter'
 }
 elseif ($Component -eq 'DistributedReader') {
-	$componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedReader'
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedReader'
 }
 elseif ($Component -eq 'DistributedWriter') {
-	$componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedWriter'
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedWriter'
 }
 elseif ($Component -eq 'DistributedOperationCoordinator') {
-	$componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator'
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator'
 }
 else {
-	throw "Argument 'Component' contains invalid value '$($Component)'"
+    throw "Argument 'Component' contains invalid value '$($Component)'"
 }
 
 # Capture the current directory
@@ -97,11 +97,11 @@ $initialDirectory = Get-Location
 
 # Create the output folder
 try {
-	New-Item -Path $OutputFolder -ItemType Directory -Force
-	Remove-Item (Join-Path -Path $OutputFolder -ChildPath '*') -Recurse
+    New-Item -Path $OutputFolder -ItemType Directory -Force
+    Remove-Item (Join-Path -Path $OutputFolder -ChildPath '*') -Recurse
 }
 catch {
-	throw "Failed to create and clean output folder '$($OutputFolder)'"
+    throw "Failed to create and clean output folder '$($OutputFolder)'"
 }
 
 # Move to the component Directory
@@ -113,7 +113,7 @@ dotnet build -c Release -o $OutputFolder
 # Remove any unnecessary appsettings files from the build folder
 $appsettingsFiles = Get-ChildItem -Path $OutputFolder -Filter 'appsettings.*.json'
 foreach ($currentAppsettingsFile in $appsettingsFiles) {
-	$currentAppsettingsFilePath = Join-Path -Path $OutputFolder -ChildPath $currentAppsettingsFile
+    $currentAppsettingsFilePath = Join-Path -Path $OutputFolder -ChildPath $currentAppsettingsFile
     Remove-Item $currentAppsettingsFilePath
 }
 
@@ -123,10 +123,10 @@ dotnet build -c Release -o $OutputFolder
 
 # Set unix newlines in any script files used in the container
 foreach ($currentUnixScriptFile in $unixScriptFiles) {
-	$currentScriptFilePath = Join-Path -Path $OutputFolder -ChildPath $currentUnixScriptFile
-	$currentScriptFileContent = Get-Content -Path $currentScriptFilePath # -Raw
-	$currentScriptFileContent = $currentScriptFileContent -Join "`n"
-	Set-Content -Path $currentScriptFilePath -Value $currentScriptFileContent -Force -NoNewline
+    $currentScriptFilePath = Join-Path -Path $OutputFolder -ChildPath $currentUnixScriptFile
+    $currentScriptFileContent = Get-Content -Path $currentScriptFilePath # -Raw
+    $currentScriptFileContent = $currentScriptFileContent -Join "`n"
+    Set-Content -Path $currentScriptFilePath -Value $currentScriptFileContent -Force -NoNewline
 }
 
 # Store the output folder into a tar archive

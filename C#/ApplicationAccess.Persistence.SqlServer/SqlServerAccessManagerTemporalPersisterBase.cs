@@ -217,9 +217,9 @@ namespace ApplicationAccess.Persistence.SqlServer
                     g.[Group]
             FROM    UserToGroupMappings ug
                     INNER JOIN Users u
-		              ON ug.UserId = u.Id
+                      ON ug.UserId = u.Id
                     INNER JOIN Groups g
-		              ON ug.GroupId = g.Id
+                      ON ug.GroupId = g.Id
             WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ug.TransactionFrom AND ug.TransactionTo;";
 
             return ExecuteMultiResultQueryAndHandleException
@@ -243,12 +243,12 @@ namespace ApplicationAccess.Persistence.SqlServer
             @$" 
             SELECT  gg.Id, 
                     fg.[Group] AS 'FromGroup', 
-		            tg.[Group] AS 'ToGroup'
+                    tg.[Group] AS 'ToGroup'
             FROM    GroupToGroupMappings gg
                     INNER JOIN Groups fg
-		              ON gg.FromGroupId = fg.Id
+                      ON gg.FromGroupId = fg.Id
                     INNER JOIN Groups tg
-		              ON gg.ToGroupId = tg.Id
+                      ON gg.ToGroupId = tg.Id
             WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN gg.TransactionFrom AND gg.TransactionTo;";
 
             return ExecuteMultiResultQueryAndHandleException
@@ -272,14 +272,14 @@ namespace ApplicationAccess.Persistence.SqlServer
             @$" 
             SELECT  u.[User], 
                     ac.ApplicationComponent, 
-		            al.AccessLevel 
+                    al.AccessLevel 
             FROM    UserToApplicationComponentAndAccessLevelMappings uaa
                     INNER JOIN Users u
-		              ON uaa.UserId = u.Id
-		            INNER JOIN ApplicationComponents ac
-		              ON uaa.ApplicationComponentId = ac.Id
-		            INNER JOIN AccessLevels al
-		              ON uaa.AccessLevelId = al.Id
+                      ON uaa.UserId = u.Id
+                    INNER JOIN ApplicationComponents ac
+                      ON uaa.ApplicationComponentId = ac.Id
+                    INNER JOIN AccessLevels al
+                      ON uaa.AccessLevelId = al.Id
             WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN uaa.TransactionFrom AND uaa.TransactionTo;";
 
             return ExecuteMultiResultQueryAndHandleException
@@ -305,14 +305,14 @@ namespace ApplicationAccess.Persistence.SqlServer
             @$" 
             SELECT  g.[Group], 
                     ac.ApplicationComponent, 
-		            al.AccessLevel 
+                    al.AccessLevel 
             FROM    GroupToApplicationComponentAndAccessLevelMappings gaa
                     INNER JOIN Groups g
-		              ON gaa.GroupId = g.Id
-		            INNER JOIN ApplicationComponents ac
-		              ON gaa.ApplicationComponentId = ac.Id
-		            INNER JOIN AccessLevels al
-		              ON gaa.AccessLevelId = al.Id
+                      ON gaa.GroupId = g.Id
+                    INNER JOIN ApplicationComponents ac
+                      ON gaa.ApplicationComponentId = ac.Id
+                    INNER JOIN AccessLevels al
+                      ON gaa.AccessLevelId = al.Id
             WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN gaa.TransactionFrom AND gaa.TransactionTo;";
 
             return ExecuteMultiResultQueryAndHandleException
@@ -358,10 +358,10 @@ namespace ApplicationAccess.Persistence.SqlServer
             String query =
             @$" 
             SELECT  et.EntityType, 
-		            e.Entity 
+                    e.Entity 
             FROM    Entities e
                     INNER JOIN EntityTypes et
-		              ON e.EntityTypeId = et.Id
+                      ON e.EntityTypeId = et.Id
             WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN e.TransactionFrom AND e.TransactionTo;";
 
             return ExecuteMultiResultQueryAndHandleException
@@ -384,15 +384,15 @@ namespace ApplicationAccess.Persistence.SqlServer
             String query =
             @$" 
             SELECT  u.[User], 
-		            et.EntityType, 
-		            e.Entity
+                    et.EntityType, 
+                    e.Entity
             FROM    UserToEntityMappings ue
                     INNER JOIN Users u
-		              ON ue.UserId = u.Id
-		            INNER JOIN EntityTypes et
-		              ON ue.EntityTypeId = et.Id
-		            INNER JOIN Entities e
-		              ON ue.EntityId = e.Id
+                      ON ue.UserId = u.Id
+                    INNER JOIN EntityTypes et
+                      ON ue.EntityTypeId = et.Id
+                    INNER JOIN Entities e
+                      ON ue.EntityId = e.Id
             WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ue.TransactionFrom AND ue.TransactionTo;";
 
             return ExecuteMultiResultQueryAndHandleException
@@ -417,15 +417,15 @@ namespace ApplicationAccess.Persistence.SqlServer
             String query =
             @$" 
             SELECT  g.[Group], 
-		            et.EntityType, 
-		            e.Entity
+                    et.EntityType, 
+                    e.Entity
             FROM    GroupToEntityMappings ge
                     INNER JOIN Groups g
-		                ON ge.GroupId = g.Id
-		            INNER JOIN EntityTypes et
-		                ON ge.EntityTypeId = et.Id
-		            INNER JOIN Entities e
-		                ON ge.EntityId = e.Id
+                        ON ge.GroupId = g.Id
+                    INNER JOIN EntityTypes et
+                        ON ge.EntityTypeId = et.Id
+                    INNER JOIN Entities e
+                        ON ge.EntityId = e.Id
             WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ge.TransactionFrom AND ge.TransactionTo;";
 
             return ExecuteMultiResultQueryAndHandleException
@@ -679,7 +679,7 @@ namespace ApplicationAccess.Persistence.SqlServer
             @$" 
             SELECT  TOP(1)
                     CONVERT(nvarchar(40), EventId) AS 'EventId',
-		            CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
             FROM    EventIdToTransactionTimeMap
             WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126)
             ORDER   BY TransactionTime DESC;";
