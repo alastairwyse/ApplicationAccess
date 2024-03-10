@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
-    <Description>Unit tests for classes in the ApplicationAccess.Persistence.SqlServer namespace.</Description>
+    <Description>Unit tests for classes in the ApplicationAccess.Persistence.Sql.SqlServer namespace.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
   </ItemGroup>
 
 </Project>

@@ -17,7 +17,7 @@
 using System;
 using ApplicationMetrics;
 
-namespace ApplicationAccess.Persistence.SqlServer
+namespace ApplicationAccess.Persistence.Sql.SqlServer
 {
     #pragma warning disable 1591
 

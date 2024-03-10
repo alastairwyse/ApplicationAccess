@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Distribution.Persistence.SqlServer;
 using ApplicationAccess.Distribution.Serialization;
-using ApplicationAccess.Persistence.SqlServer;
+using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationLogging;
 using NSubstitute;
 using NUnit.Framework;

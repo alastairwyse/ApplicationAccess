@@ -27,10 +27,10 @@ using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
 
-namespace ApplicationAccess.Persistence.SqlServer.UnitTests
+namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalBulkPersister class.
+    /// Unit tests for the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister class.
     /// </summary>
     public class SqlServerAccessManagerTemporalBulkPersisterTests
     {

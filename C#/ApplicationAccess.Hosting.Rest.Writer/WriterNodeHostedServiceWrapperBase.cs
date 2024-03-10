@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
-using ApplicationAccess.Persistence.SqlServer;
+using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.Hosting.Rest.Client;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;

@@ -9,11 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.xml</DocumentationFile>
+    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

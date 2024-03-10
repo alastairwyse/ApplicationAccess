@@ -15,21 +15,22 @@
  */
 
 using System;
-using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 
-namespace ApplicationAccess.Persistence.SqlServer
+namespace ApplicationAccess.Persistence.Sql
 {
     /// <summary>
-    /// A wrapper interface around methods which execute stored procedures in SQL server, allowing those methods to be mocked in unit tests.
+    /// Generates queries used to read the current state of an AccessManager class from a SQL database.
     /// </summary>
-    public interface IStoredProcedureExecutionWrapper
+    public abstract class ReadQueryGeneratorBase
     {
         /// <summary>
-        /// Executes a stored procedure which does not return a result set.
+        /// Generates a query which returns all users in the database valid at the specified state time.
         /// </summary>
-        /// <param name="procedureName">The name of the stored procedure.</param>
-        /// <param name="parameters">The parameters to pass to the stored procedure.</param>
-        void Execute(String procedureName, IEnumerable<SqlParameter> parameters);
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
+        /// <returns>The query.</returns>
+        public String GenerateGetUsersQuery(DateTime stateTime)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

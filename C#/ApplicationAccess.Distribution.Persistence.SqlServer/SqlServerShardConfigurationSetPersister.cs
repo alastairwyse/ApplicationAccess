@@ -21,7 +21,7 @@ using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Distribution.Serialization;
-using ApplicationAccess.Persistence.SqlServer;
+using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.Serialization;
 using ApplicationLogging;
 

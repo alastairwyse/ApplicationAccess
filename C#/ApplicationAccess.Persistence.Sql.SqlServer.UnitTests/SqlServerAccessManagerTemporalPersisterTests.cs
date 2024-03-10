@@ -21,10 +21,10 @@ using ApplicationAccess.Utilities;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
-namespace ApplicationAccess.Persistence.SqlServer.UnitTests
+namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
+    /// Unit tests for the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister class.
     /// </summary>
     public class SqlServerAccessManagerTemporalPersisterTests
     {

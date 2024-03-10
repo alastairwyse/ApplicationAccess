@@ -18,10 +18,10 @@ using System;
 using ApplicationAccess.Utilities;
 using NUnit.Framework;
 
-namespace ApplicationAccess.Persistence.SqlServer.UnitTests
+namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase class.
+    /// Unit tests for the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterBase class.
     /// </summary>
     /// <remarks>Since <see cref="SqlServerPersisterBase"/> is abstract tests are performed through derived class <see cref="SqlServerAccessManagerTemporalPersister{TUser, TGroup, TComponent, TAccess}"/>.</remarks>
     public class SqlServerPersisterBaseTests

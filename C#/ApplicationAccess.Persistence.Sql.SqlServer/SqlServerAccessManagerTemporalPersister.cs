@@ -21,7 +21,7 @@ using Microsoft.Data.SqlClient;
 using ApplicationLogging;
 using ApplicationMetrics;
 
-namespace ApplicationAccess.Persistence.SqlServer
+namespace ApplicationAccess.Persistence.Sql.SqlServer
 {
     /// <summary>
     /// An implementation of <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/> and see <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a Microsoft SQL Server database.
@@ -73,7 +73,7 @@ namespace ApplicationAccess.Persistence.SqlServer
 #pragma warning restore 1591
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister class.
         /// </summary>
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
@@ -101,7 +101,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerAccessManagerTemporalPersister class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister class.
         /// </summary>
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>

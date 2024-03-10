@@ -35,7 +35,7 @@
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Utilities\ApplicationAccess.Hosting.Rest.Utilities.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting\ApplicationAccess.Hosting.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.Persistence.SqlServer\ApplicationAccess.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
     <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
   </ItemGroup>

@@ -22,7 +22,7 @@ using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
 using System.Data;
 
-namespace ApplicationAccess.Persistence.SqlServer
+namespace ApplicationAccess.Persistence.Sql.SqlServer
 {
     /// <summary>
     /// Base class providing common funcionality for classes which read and write to and from Microsoft SQL Server databases.
@@ -51,7 +51,7 @@ namespace ApplicationAccess.Persistence.SqlServer
         protected EventHandler<SqlRetryingEventArgs> connectionRetryAction;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.SqlServer.SqlServerPersisterBase class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterBase class.
         /// </summary>
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>

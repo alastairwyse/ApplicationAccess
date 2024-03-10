@@ -27,7 +27,7 @@ using ApplicationAccess.Distribution.Persistence.SqlServer;
 using ApplicationAccess.Distribution.Serialization;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
-using ApplicationAccess.Persistence.SqlServer;
+using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 using ApplicationLogging;
