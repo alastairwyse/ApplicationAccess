@@ -388,6 +388,9 @@
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.transactionSql126DateStyle">
             <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.queryGenerator">
+            <summary>Used to generate queries to read data in the Load() method.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.userStringifier">
             <summary>A string converter for users.</summary>
         </member>
@@ -668,6 +671,28 @@
             </summary>
             <param name="procedureName">The name of the stored procedure.</param>
             <param name="parameters">The parameters to pass to the stored procedure.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator">
+            <summary>
+            Generates queries used to read the current state of an AccessManager class from a SQL Server database.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.transactionSql126DateStyle">
+            <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.ReservedKeywordStartDelimiter">
+            <inheritdoc/>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.ReservedKeywordEndDelimiter">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.ConvertDateTimeToString(System.DateTime)">
+            <inheritdoc/>
         </member>
     </members>
 </doc>

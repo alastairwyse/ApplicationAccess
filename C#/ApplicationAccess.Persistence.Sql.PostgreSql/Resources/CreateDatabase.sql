@@ -22,7 +22,7 @@ TODO
 CREATE TABLE public.EventIdToTransactionTimeMap
 (
     EventId          uuid         NOT NULL PRIMARY KEY, 
-    TransactionTime  timestamptz  NOT NULL
+    TransactionTime  timestamp    NOT NULL
 );
 
 CREATE INDEX EventIdToTransactionTimeMapEventIdIndex ON public.EventIdToTransactionTimeMap (EventId);
@@ -32,8 +32,8 @@ CREATE TABLE public.Users
 (
     Id               bigserial      NOT NULL PRIMARY KEY,  
     "User"           varchar(450)   NOT NULL, 
-    TransactionFrom  timestamptz    NOT NULL, 
-    TransactionTo    timestamptz    NOT NULL
+    TransactionFrom  timestamp      NOT NULL, 
+    TransactionTo    timestamp      NOT NULL
 );
 
 CREATE INDEX UsersUserIndex ON public.Users ("User", TransactionTo);
@@ -43,8 +43,8 @@ CREATE TABLE public.Groups
 (
     Id               bigserial      NOT NULL PRIMARY KEY,  
     "Group"          varchar(450)   NOT NULL, 
-    TransactionFrom  timestamptz    NOT NULL, 
-    TransactionTo    timestamptz    NOT NULL
+    TransactionFrom  timestamp      NOT NULL, 
+    TransactionTo    timestamp      NOT NULL
 );
 
 CREATE INDEX GroupsGroupIndex ON public.Groups ("Group", TransactionTo);
@@ -55,8 +55,8 @@ CREATE TABLE public.UserToGroupMappings
     Id               bigserial    NOT NULL PRIMARY KEY,  
     UserId           bigint       NOT NULL, 
     GroupId          bigint       NOT NULL, 
-    TransactionFrom  timestamptz  NOT NULL, 
-    TransactionTo    timestamptz  NOT NULL
+    TransactionFrom  timestamp    NOT NULL, 
+    TransactionTo    timestamp    NOT NULL
 );
 
 CREATE INDEX UserToGroupMappingsUserIndex ON UserToGroupMappings (UserId, TransactionTo);
@@ -68,8 +68,8 @@ CREATE TABLE public.GroupToGroupMappings
     Id               bigserial    NOT NULL PRIMARY KEY,  
     FromGroupId      bigint       NOT NULL, 
     ToGroupId        bigint       NOT NULL, 
-    TransactionFrom  timestamptz  NOT NULL, 
-    TransactionTo    timestamptz  NOT NULL
+    TransactionFrom  timestamp    NOT NULL, 
+    TransactionTo    timestamp    NOT NULL
 );
 
 CREATE INDEX GroupToGroupMappingsFromGroupIndex ON GroupToGroupMappings (FromGroupId, TransactionTo);
@@ -80,8 +80,8 @@ CREATE TABLE public.ApplicationComponents
 (
     Id                    bigserial      NOT NULL PRIMARY KEY,  
     ApplicationComponent  varchar(450)   NOT NULL, 
-    TransactionFrom       timestamptz    NOT NULL, 
-    TransactionTo         timestamptz    NOT NULL
+    TransactionFrom       timestamp      NOT NULL, 
+    TransactionTo         timestamp      NOT NULL
 );
 
 CREATE INDEX ApplicationComponentsApplicationComponentIndex ON public.ApplicationComponents (ApplicationComponent, TransactionTo);
@@ -91,8 +91,8 @@ CREATE TABLE public.AccessLevels
 (
     Id               bigserial      NOT NULL PRIMARY KEY,  
     AccessLevel      varchar(450)   NOT NULL, 
-    TransactionFrom  timestamptz    NOT NULL, 
-    TransactionTo    timestamptz    NOT NULL
+    TransactionFrom  timestamp      NOT NULL, 
+    TransactionTo    timestamp      NOT NULL
 );
 
 CREATE INDEX AccessLevelsAccessLevelIndex ON public.AccessLevels (AccessLevel, TransactionTo);
@@ -104,8 +104,8 @@ CREATE TABLE public.UserToApplicationComponentAndAccessLevelMappings
     UserId                  bigint       NOT NULL, 
     ApplicationComponentId  bigint       NOT NULL, 
     AccessLevelId           bigint       NOT NULL, 
-    TransactionFrom         timestamptz  NOT NULL, 
-    TransactionTo           timestamptz  NOT NULL
+    TransactionFrom         timestamp    NOT NULL, 
+    TransactionTo           timestamp    NOT NULL
 );
 
 CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsUserIndex ON public.UserToApplicationComponentAndAccessLevelMappings (UserId, ApplicationComponentId, AccessLevelId, TransactionTo);
@@ -117,8 +117,8 @@ CREATE TABLE public.GroupToApplicationComponentAndAccessLevelMappings
     GroupId                 bigint       NOT NULL, 
     ApplicationComponentId  bigint       NOT NULL, 
     AccessLevelId           bigint       NOT NULL, 
-    TransactionFrom         timestamptz  NOT NULL, 
-    TransactionTo           timestamptz  NOT NULL
+    TransactionFrom         timestamp    NOT NULL, 
+    TransactionTo           timestamp    NOT NULL
 );
 
 CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsGroupIndex ON public.GroupToApplicationComponentAndAccessLevelMappings (GroupId, ApplicationComponentId, AccessLevelId, TransactionTo);
@@ -128,8 +128,8 @@ CREATE TABLE public.EntityTypes
 (
     Id               bigserial        NOT NULL PRIMARY KEY,  
     EntityType       varchar(450)     NOT NULL, 
-    TransactionFrom  timestamptz      NOT NULL, 
-    TransactionTo    timestamptz      NOT NULL
+    TransactionFrom  timestamp        NOT NULL, 
+    TransactionTo    timestamp        NOT NULL
 );
 
 CREATE INDEX EntityTypesEntityTypeIndex ON public.EntityTypes (EntityType, TransactionTo);
@@ -140,8 +140,8 @@ CREATE TABLE public.Entities
     Id               bigserial        NOT NULL PRIMARY KEY,  
     EntityTypeId     bigint           NOT NULL, 
     Entity           varchar(450)     NOT NULL, 
-    TransactionFrom  timestamptz      NOT NULL, 
-    TransactionTo    timestamptz      NOT NULL
+    TransactionFrom  timestamp        NOT NULL, 
+    TransactionTo    timestamp        NOT NULL
 );
 
 CREATE INDEX EntitiesEntityIndex ON public.Entities (EntityTypeId, Entity, TransactionTo);
@@ -153,8 +153,8 @@ CREATE TABLE public.UserToEntityMappings
     UserId           bigint       NOT NULL, 
     EntityTypeId     bigint       NOT NULL, 
     EntityId         bigint       NOT NULL, 
-    TransactionFrom  timestamptz  NOT NULL, 
-    TransactionTo    timestamptz  NOT NULL
+    TransactionFrom  timestamp    NOT NULL, 
+    TransactionTo    timestamp    NOT NULL
 );
 
 CREATE INDEX UserToEntityMappingsUserIndex ON public.UserToEntityMappings (UserId, EntityTypeId, EntityId, TransactionTo);
@@ -167,8 +167,8 @@ CREATE TABLE public.GroupToEntityMappings
     GroupId          bigint       NOT NULL, 
     EntityTypeId     bigint       NOT NULL, 
     EntityId         bigint       NOT NULL, 
-    TransactionFrom  timestamptz  NOT NULL, 
-    TransactionTo    timestamptz  NOT NULL
+    TransactionFrom  timestamp    NOT NULL, 
+    TransactionTo    timestamp    NOT NULL
 );
 
 CREATE INDEX GroupToEntityMappingsGroupIndex ON public.GroupToEntityMappings (GroupId, EntityTypeId, EntityId, TransactionTo);
@@ -179,7 +179,7 @@ CREATE TABLE public.SchemaVersions
 (
     Id         bigserial     NOT NULL PRIMARY KEY,  
     Version    varchar(20)   NOT NULL, 
-    Created    timestamptz   NOT NULL 
+    Created    timestamp     NOT NULL 
 );
 
 
@@ -193,10 +193,10 @@ CREATE TABLE public.SchemaVersions
 -- GetTemporalMaxDate
 
 CREATE FUNCTION GetTemporalMaxDate() 
-RETURNS timestamptz
+RETURNS timestamp
 AS 
 $$
-    SELECT  TO_TIMESTAMP('9999-12-31 23:59:59.999999+00', 'YYYY-MM-DD HH24:MI:ss.USTZH')  AS timestamptz;
+    SELECT  TO_TIMESTAMP('9999-12-31 23:59:59.999999', 'YYYY-MM-DD HH24:MI:ss.US')  AS timestamp;
 
 $$ LANGUAGE SQL;
 
@@ -205,9 +205,9 @@ $$ LANGUAGE SQL;
 
 CREATE FUNCTION SubtractTemporalMinimumTimeUnit
 (
-    InputTime  timestamptz
+    InputTime  timestamp
 )
-RETURNS timestamptz
+RETURNS timestamp
 AS
 $$
 BEGIN
@@ -221,13 +221,13 @@ $$ LANGUAGE plpgsql;
 CREATE PROCEDURE CreateEvent
 (
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
-    LastTransactionTime  timestamptz;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    LastTransactionTime  timestamp;
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     -- Check that the transaction time is greater than or equal to the last
@@ -236,7 +236,7 @@ BEGIN
     FROM    EventIdToTransactionTimeMap;
 
     IF (LastTransactionTime IS NULL) THEN
-        LastTransactionTime := TO_TIMESTAMP('0001-01-01 00:00:00.999999+00', 'YYYY-MM-DD HH24:MI:ss.USTZH') AS timestamptz;
+        LastTransactionTime := TO_TIMESTAMP('0001-01-01 00:00:00.999999', 'YYYY-MM-DD HH24:MI:ss.US') AS timestamp;
     END IF;
 
     IF (TransactionTime < LastTransactionTime) THEN
@@ -270,7 +270,7 @@ CREATE PROCEDURE AddUser
 (
     "User"           varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -313,13 +313,13 @@ CREATE PROCEDURE RemoveUser
 (
     "User"           varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     LOCK TABLE public.Users IN ACCESS EXCLUSIVE MODE;
@@ -400,7 +400,7 @@ CREATE PROCEDURE AddGroup
 (
     "Group"          varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -443,13 +443,13 @@ CREATE PROCEDURE RemoveGroup
 (
     "Group"          varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     LOCK TABLE public.Groups IN ACCESS EXCLUSIVE MODE;
@@ -548,7 +548,7 @@ CREATE PROCEDURE AddUserToGroupMapping
     "User"           varchar, 
     "Group"          varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -604,13 +604,13 @@ CREATE PROCEDURE RemoveUserToGroupMapping
     "User"           varchar, 
     "Group"          varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -664,7 +664,7 @@ CREATE PROCEDURE AddGroupToGroupMapping
     FromGroup        varchar, 
     ToGroup          varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -720,13 +720,13 @@ CREATE PROCEDURE RemoveGroupToGroupMapping
     FromGroup        varchar, 
     ToGroup          varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -781,7 +781,7 @@ CREATE PROCEDURE AddUserToApplicationComponentAndAccessLevelMapping
     ApplicationComponent  varchar, 
     AccessLevel           varchar, 
     EventId               uuid, 
-    TransactionTime       timestamptz
+    TransactionTime       timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -943,13 +943,13 @@ CREATE PROCEDURE RemoveUserToApplicationComponentAndAccessLevelMapping
     ApplicationComponent  varchar, 
     AccessLevel           varchar, 
     EventId               uuid, 
-    TransactionTime       timestamptz
+    TransactionTime       timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -1012,7 +1012,7 @@ CREATE PROCEDURE AddGroupToApplicationComponentAndAccessLevelMapping
     ApplicationComponent  varchar, 
     AccessLevel           varchar, 
     EventId               uuid, 
-    TransactionTime       timestamptz
+    TransactionTime       timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -1174,13 +1174,13 @@ CREATE PROCEDURE RemoveGroupToApplicationComponentAndAccessLevelMapping
     ApplicationComponent  varchar, 
     AccessLevel           varchar, 
     EventId               uuid, 
-    TransactionTime       timestamptz
+    TransactionTime       timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -1241,7 +1241,7 @@ CREATE PROCEDURE AddEntityType
 (
     EntityType       varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -1284,13 +1284,13 @@ CREATE PROCEDURE RemoveEntityType
 (
     EntityType       varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     LOCK TABLE public.EntityTypes IN ACCESS EXCLUSIVE MODE;
@@ -1372,7 +1372,7 @@ CREATE PROCEDURE AddEntity
     EntityType       varchar, 
     Entity           varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -1423,13 +1423,13 @@ CREATE PROCEDURE RemoveEntity
     EntityType       varchar, 
     Entity           varchar, 
     EventId          uuid, 
-    TransactionTime  timestamptz
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     LOCK TABLE public.Entities IN ACCESS EXCLUSIVE MODE;
@@ -1516,11 +1516,11 @@ $$;
 
 CREATE PROCEDURE AddUserToEntityMapping
 (
-    "User"                varchar, 
-    EntityType            varchar, 
-    Entity                varchar, 
-    EventId               uuid, 
-    TransactionTime       timestamptz
+    "User"           varchar, 
+    EntityType       varchar, 
+    Entity           varchar, 
+    EventId          uuid, 
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -1586,17 +1586,17 @@ $$;
 
 CREATE PROCEDURE RemoveUserToEntityMapping
 (
-    "User"                varchar, 
-    EntityType            varchar, 
-    Entity                varchar, 
-    EventId               uuid, 
-    TransactionTime       timestamptz
+    "User"           varchar, 
+    EntityType       varchar, 
+    Entity           varchar, 
+    EventId          uuid, 
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -1661,11 +1661,11 @@ $$;
 
 CREATE PROCEDURE AddGroupToEntityMapping
 (
-    "Group"               varchar, 
-    EntityType            varchar, 
-    Entity                varchar, 
-    EventId               uuid, 
-    TransactionTime       timestamptz
+    "Group"          varchar, 
+    EntityType       varchar, 
+    Entity           varchar, 
+    EventId          uuid, 
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
@@ -1731,17 +1731,17 @@ $$;
 
 CREATE PROCEDURE RemoveGroupToEntityMapping
 (
-    "Group"               varchar, 
-    EntityType            varchar, 
-    Entity                varchar, 
-    EventId               uuid, 
-    TransactionTime       timestamptz
+    "Group"          varchar, 
+    EntityType       varchar, 
+    Entity           varchar, 
+    EventId          uuid, 
+    TransactionTime  timestamp
 )
 LANGUAGE plpgsql 
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.USTZH';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -1831,7 +1831,7 @@ DECLARE
     CurrentEventId               uuid;
     CurrentEventAction           varchar;
     CurrentOccurredTimeAsString  varchar;
-    CurrentOccurredTime          timestamptz;
+    CurrentOccurredTime          timestamp;
     CurrentEventData1            varchar;
     CurrentEventData2            varchar;
     CurrentEventData3            varchar;
@@ -1862,11 +1862,11 @@ BEGIN
         
         CurrentOccurredTimeAsString := CurrentEventAsJson->>'OccurredTime';
         BEGIN
-            SELECT  TO_TIMESTAMP(CurrentOccurredTimeAsString, 'YYYY-MM-DD HH24:MI:ss.USTZH') AS timestamptz
+            SELECT  TO_TIMESTAMP(CurrentOccurredTimeAsString, 'YYYY-MM-DD HH24:MI:ss.US') AS timestamp
             INTO    CurrentOccurredTime;
         EXCEPTION
             WHEN OTHERS THEN
-                RAISE EXCEPTION 'Failed to convert event OccurredTime ''%'' to a timestamptz; %', COALESCE(CurrentOccurredTimeAsString, '(null)'), SQLERRM;
+                RAISE EXCEPTION 'Failed to convert event OccurredTime ''%'' to a timestamp; %', COALESCE(CurrentOccurredTimeAsString, '(null)'), SQLERRM;
         END;
     
         CurrentEventData1 := CurrentEventAsJson->>'Data1';

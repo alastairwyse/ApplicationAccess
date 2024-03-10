@@ -39,6 +39,8 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
         protected const String transactionSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
 
+        /// <summary>Used to generate queries to read data in the Load() method.</summary>
+        protected SqlServerReadQueryGenerator queryGenerator;
         /// <summary>A string converter for users.</summary>
         protected IUniqueStringifier<TUser> userStringifier;
         /// <summary>A string converter for groups.</summary>
@@ -73,6 +75,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             IApplicationLogger logger
         ) : base(connectionString, retryCount, retryInterval, operationTimeout, logger)
         {
+            queryGenerator = new SqlServerReadQueryGenerator();
             this.userStringifier = userStringifier;
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
@@ -169,11 +172,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all users in the database valid at the specified time.</returns>
         protected IEnumerable<TUser> GetUsers(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  [User] 
-            FROM    Users 
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
+            String query = queryGenerator.GenerateGetUsersQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -190,11 +189,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all groups in the database valid at the specified time.</returns>
         protected IEnumerable<TGroup> GetGroups(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  [Group] 
-            FROM    Groups 
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
+            String query = queryGenerator.GenerateGetGroupsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -211,16 +206,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all user to group mappings in the database valid at the specified state time.</returns>
         protected IEnumerable<Tuple<TUser, TGroup>> GetUserToGroupMappings(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  u.[User], 
-                    g.[Group]
-            FROM    UserToGroupMappings ug
-                    INNER JOIN Users u
-                      ON ug.UserId = u.Id
-                    INNER JOIN Groups g
-                      ON ug.GroupId = g.Id
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ug.TransactionFrom AND ug.TransactionTo;";
+            String query = queryGenerator.GenerateGetUserToGroupMappingsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -239,17 +225,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all group to group mappings in the database valid at the specified state time.</returns>
         protected IEnumerable<Tuple<TGroup, TGroup>> GetGroupToGroupMappings(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  gg.Id, 
-                    fg.[Group] AS 'FromGroup', 
-                    tg.[Group] AS 'ToGroup'
-            FROM    GroupToGroupMappings gg
-                    INNER JOIN Groups fg
-                      ON gg.FromGroupId = fg.Id
-                    INNER JOIN Groups tg
-                      ON gg.ToGroupId = tg.Id
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN gg.TransactionFrom AND gg.TransactionTo;";
+            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -268,19 +244,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all user to application component and access level mappings in the database valid at the specified state time.</returns>
         protected IEnumerable<Tuple<TUser, TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  u.[User], 
-                    ac.ApplicationComponent, 
-                    al.AccessLevel 
-            FROM    UserToApplicationComponentAndAccessLevelMappings uaa
-                    INNER JOIN Users u
-                      ON uaa.UserId = u.Id
-                    INNER JOIN ApplicationComponents ac
-                      ON uaa.ApplicationComponentId = ac.Id
-                    INNER JOIN AccessLevels al
-                      ON uaa.AccessLevelId = al.Id
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN uaa.TransactionFrom AND uaa.TransactionTo;";
+            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -301,19 +265,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all group to application component and access level mappings in the database valid at the specified state time.</returns>
         protected IEnumerable<Tuple<TGroup, TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  g.[Group], 
-                    ac.ApplicationComponent, 
-                    al.AccessLevel 
-            FROM    GroupToApplicationComponentAndAccessLevelMappings gaa
-                    INNER JOIN Groups g
-                      ON gaa.GroupId = g.Id
-                    INNER JOIN ApplicationComponents ac
-                      ON gaa.ApplicationComponentId = ac.Id
-                    INNER JOIN AccessLevels al
-                      ON gaa.AccessLevelId = al.Id
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN gaa.TransactionFrom AND gaa.TransactionTo;";
+            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -334,11 +286,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all entity types in the database valid at the specified time.</returns>
         protected IEnumerable<String> GetEntityTypes(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  EntityType
-            FROM    EntityTypes 
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN TransactionFrom AND TransactionTo;";
+            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -355,14 +303,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all entities in the database valid at the specified state time. Each tuple contains: the type of the entity, and the entity itself.</returns>
         protected IEnumerable<Tuple<String, String>> GetEntities(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  et.EntityType, 
-                    e.Entity 
-            FROM    Entities e
-                    INNER JOIN EntityTypes et
-                      ON e.EntityTypeId = et.Id
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN e.TransactionFrom AND e.TransactionTo;";
+            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -381,19 +322,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all user to entity mappings in the database valid at the specified state time.  Each tuple contains: the user, the type of the entity, and the entity.</returns>
         protected IEnumerable<Tuple<TUser, String, String>> GetUserToEntityMappings(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  u.[User], 
-                    et.EntityType, 
-                    e.Entity
-            FROM    UserToEntityMappings ue
-                    INNER JOIN Users u
-                      ON ue.UserId = u.Id
-                    INNER JOIN EntityTypes et
-                      ON ue.EntityTypeId = et.Id
-                    INNER JOIN Entities e
-                      ON ue.EntityId = e.Id
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ue.TransactionFrom AND ue.TransactionTo;";
+            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (
@@ -414,19 +343,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of all group to entity mappings in the database valid at the specified state time.  Each tuple contains: the group, the type of the entity, and the entity.</returns>
         protected IEnumerable<Tuple<TGroup, String, String>> GetGroupToEntityMappings(DateTime stateTime)
         {
-            String query =
-            @$" 
-            SELECT  g.[Group], 
-                    et.EntityType, 
-                    e.Entity
-            FROM    GroupToEntityMappings ge
-                    INNER JOIN Groups g
-                        ON ge.GroupId = g.Id
-                    INNER JOIN EntityTypes et
-                        ON ge.EntityTypeId = et.Id
-                    INNER JOIN Entities e
-                        ON ge.EntityId = e.Id
-            WHERE   CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126) BETWEEN ge.TransactionFrom AND ge.TransactionTo;";
+            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
 
             return ExecuteMultiResultQueryAndHandleException
             (

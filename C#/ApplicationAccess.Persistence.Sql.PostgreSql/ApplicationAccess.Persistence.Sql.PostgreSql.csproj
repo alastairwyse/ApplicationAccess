@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Description>Classes which write and read data associated with AccessManager classes to and from PostgreSQL databases.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />
@@ -10,6 +10,10 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Persistence.Sql\ApplicationAccess.Persistence.Sql.csproj" />
   </ItemGroup>
 
 </Project>
