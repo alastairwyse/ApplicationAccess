@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2022 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,30 +17,48 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Data;
-using Microsoft.Data.SqlClient;
+using System.Security.Cryptography;
+using System.Text;
+using ApplicationAccess.Persistence.Sql;
 using ApplicationLogging;
 using ApplicationMetrics;
-using ApplicationMetrics.MetricLoggers;
+using Npgsql;
+using NpgsqlTypes;
 
-namespace ApplicationAccess.Persistence.Sql.SqlServer
+namespace ApplicationAccess.Persistence.Sql.PostgreSql
 {
     /// <summary>
-    /// Base for classes which persist access manager events to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a Microsoft SQL Server database.
+    /// An implementation of <see cref="IAccessManagerTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> and see <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events in bulk to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a PostgreSQL database.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public abstract class SqlServerAccessManagerTemporalPersisterBase<TUser, TGroup, TComponent, TAccess> : SqlServerPersisterBase, IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess>
+    public class PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
+        // Connection command timeout is 30 sec by default... should offer as config param or extend
+        // COnnetionLifetime should be set to max
+        // Can set CA/root cert location on connection
+        // Should set encoding for string data
+        // IncludeErrorDetail
+        // SslCertificate
+        // Timeout
+        // TrustServerCrt
+        // Possible info on transient retry
+        //   https://learn.microsoft.com/en-us/azure/postgresql/single-server/concepts-connectivity
+        //   https://www.npgsql.org/doc/connection-string-parameters.html
+
         /// <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
         protected const Int32 columnSizeLimit = 450;
-        /// <summary>DateTime format string which matches the <see href="https://docs.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16#date-and-time-styles">Transact-SQL 126 date and time style</see>.</summary>
-        protected const String transactionSql126DateStyle = "yyyy-MM-ddTHH:mm:ss.fffffff";
+        /// <summary>DateTime format string which can be interpreted by the <see href="https://www.postgresql.org/docs/8.1/functions-formatting.html">PostgreSQL to_timestamp() function</see>.</summary>
+        protected const String postgreSQLTimestampFormat = "yyyy-MM-dd HH:mm:ss.ffffff";
 
+        /// <summary>The string to use to connect to the PostgreSQL database.</summary>
+        protected String connectionString;
+        /// <summary>The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</summary>
+        protected Int32 commandTimeout;
         /// <summary>Used to generate queries to read data in the Load() method.</summary>
-        protected SqlServerReadQueryGenerator queryGenerator;
+        protected PostgreSqlReadQueryGenerator queryGenerator;
         /// <summary>A string converter for users.</summary>
         protected IUniqueStringifier<TUser> userStringifier;
         /// <summary>A string converter for groups.</summary>
@@ -49,65 +67,70 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
         /// <summary>A string converter for access levels</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
+        /// <summary>The logger for general logging.</summary>
+        protected IApplicationLogger logger;
+        /// <summary>The logger for metrics.</summary>
+        protected IMetricLogger metricLogger;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister class.
         /// </summary>
-        /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
-        /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
-        /// <param name="retryInterval">The time in seconds between operation retries.</param>
-        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+        /// <param name="connectionString">The string to use to connect to the PostgreSQL database.</param>
+        /// <param name="commandTimeout">The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
         /// <param name="logger">The logger for general logging.</param>
-        public SqlServerAccessManagerTemporalPersisterBase
+        public PostgreSqlAccessManagerTemporalBulkPersister
         (
-            String connectionString,
-            Int32 retryCount,
-            Int32 retryInterval,
-            Int32 operationTimeout, 
+            String connectionString, 
+            Int32 commandTimeout,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
             IApplicationLogger logger
-        ) : base(connectionString, retryCount, retryInterval, operationTimeout, logger)
+        )
         {
-            queryGenerator = new SqlServerReadQueryGenerator();
+            if (String.IsNullOrWhiteSpace(connectionString) == true)
+                throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.", nameof(connectionString));
+            if (commandTimeout < 0)
+                throw new ArgumentOutOfRangeException(nameof(commandTimeout), $"Parameter '{nameof(commandTimeout)}' with value {commandTimeout} cannot be less than 0.");
+
+            this.connectionString = connectionString;
+            this.commandTimeout = commandTimeout;
+            queryGenerator = new PostgreSqlReadQueryGenerator();
             this.userStringifier = userStringifier;
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
+            this.logger = logger;
         }
 
+
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister class.
         /// </summary>
-        /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
-        /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
-        /// <param name="retryInterval">The time in seconds between operation retries.</param>
-        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+        /// <param name="connectionString">The string to use to connect to the PostgreSQL database.</param>
+        /// <param name="commandTimeout">The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public SqlServerAccessManagerTemporalPersisterBase
+        public PostgreSqlAccessManagerTemporalBulkPersister
         (
             String connectionString,
-            Int32 retryCount,
-            Int32 retryInterval,
-            Int32 operationTimeout,
+            Int32 commandTimeout,
             IUniqueStringifier<TUser> userStringifier,
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
             IApplicationLogger logger,
             IMetricLogger metricLogger
-        ) : this(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
+        ) : this(connectionString, commandTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
         {
             this.metricLogger = metricLogger;
         }
@@ -124,7 +147,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             // Get the transaction time corresponding to specified event id
             String query =
             @$" 
-            SELECT  CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            SELECT  TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime 
             FROM    EventIdToTransactionTimeMap
             WHERE   EventId = '{eventId.ToString()}';";
 
@@ -139,7 +162,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             {
                 if (stateTime == DateTime.MinValue)
                 {
-                    stateTime = DateTime.ParseExact(currentResult, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
+                    stateTime = DateTime.ParseExact(currentResult, postgreSQLTimestampFormat, DateTimeFormatInfo.InvariantInfo);
                     stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
                 }
                 else
@@ -160,7 +183,13 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <inheritdoc/>
         public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            return Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(transactionSql126DateStyle)}'.", nameof(stateTime)));
+            return Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(postgreSQLTimestampFormat)}'.", nameof(stateTime)));
+        }
+
+        /// <inheritdoc/>
+        public void PersistEvents(IList<TemporalEventBufferItemBase> events)
+        {
+            throw new NotImplementedException();
         }
 
         #region Private/Protected Methods
@@ -358,6 +387,62 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         }
 
         /// <summary>
+        /// Creates an <see cref="NpgsqlParameter"/>
+        /// </summary>
+        /// <param name="parameterType">The type of the parameter.</param>
+        /// <param name="parameterValue">The value of the parameter.</param>
+        /// <returns>The created parameter.</returns>
+        protected NpgsqlParameter CreateNpgsqlParameterWithValue(NpgsqlDbType parameterType, Object parameterValue)
+        {
+            var returnParameter = new NpgsqlParameter();
+            returnParameter.NpgsqlDbType = parameterType;
+            returnParameter.Value = parameterValue;
+
+            return returnParameter;
+        }
+
+        /// <summary>
+        /// Attempts to execute a stored procedure which does not return a result set.
+        /// </summary>
+        /// <param name="procedureName">The name of the stored procedure.</param>
+        /// <param name="parameters">The parameters to pass to the stored procedure.</param>
+        protected void ExecuteStoredProcedure(String procedureName, IList<NpgsqlParameter> parameters)
+        {
+            var parameterStringBuilder = new StringBuilder();
+            for (Int32 i = 0; i < parameters.Count; i++)
+            {
+                parameterStringBuilder.Append($"${i + 1}");
+                if (i != parameters.Count - 1)
+                {
+                    parameterStringBuilder.Append(", ");
+                }
+            }
+            String commandText = $"CALL {procedureName}({parameterStringBuilder.ToString()});";
+
+            try
+            {
+                var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+                using (NpgsqlDataSource dataSource = dataSourceBuilder.Build())
+                using (NpgsqlConnection connection = dataSource.OpenConnection())
+                using (var command = new NpgsqlCommand(commandText))
+                {
+                    command.Connection = connection;
+                    command.CommandTimeout = commandTimeout;
+                    foreach (NpgsqlParameter currentParameter in parameters)
+                    {
+                        command.Parameters.Add(currentParameter);
+                    }
+                    command.ExecuteNonQuery();
+                    connection.Close();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to execute stored procedure '{procedureName}' in PostgreSQL.", e);
+            }
+        }
+
+        /// <summary>
         /// Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
         /// </summary>
         /// <typeparam name="TReturn">The type of data returned from the query.</typeparam>
@@ -373,7 +458,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to execute query '{query}' in SQL Server.", e);
+                throw new Exception($"Failed to execute query '{query}' in PostgreSQL.", e);
             }
         }
 
@@ -403,7 +488,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to execute query '{query}' in SQL Server.", e);
+                throw new Exception($"Failed to execute query '{query}' in PostgreSQL.", e);
             }
         }
 
@@ -447,7 +532,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to execute query '{query}' in SQL Server.", e);
+                throw new Exception($"Failed to execute query '{query}' in PostgreSQL.", e);
             }
         }
 
@@ -461,23 +546,22 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <returns>A collection of items returned by the query.</returns>
         protected IEnumerable<T> ExecuteQueryAndConvertColumn<T>(String query, String columnToConvert, Func<String, T> conversionFromStringFunction)
         {
-            using (var connection = new SqlConnection(connectionString))
-            using (var command = new SqlCommand(query))
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            using (NpgsqlDataSource dataSource = dataSourceBuilder.Build())
+            using (NpgsqlConnection connection = dataSource.OpenConnection())
+            using (var command = new NpgsqlCommand(query))
             {
-                connection.RetryLogicProvider = SqlConfigurableRetryFactory.CreateFixedRetryProvider(sqlRetryLogicOption);
-                connection.RetryLogicProvider.Retrying += connectionRetryAction;
-                connection.Open();
                 command.Connection = connection;
-                command.CommandTimeout = operationTimeout;
-                using (SqlDataReader dataReader = command.ExecuteReader())
+                command.CommandTimeout = commandTimeout;
+                using (NpgsqlDataReader reader = command.ExecuteReader())
                 {
-                    while (dataReader.Read())
+                    while (reader.Read() == true)
                     {
-                        String currentDataItemAsString = (String)dataReader[columnToConvert];
-                        yield return conversionFromStringFunction.Invoke(currentDataItemAsString);
+                        String currentDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert));
+                        yield return conversionFromStringFunction(currentDataItemAsString);
                     }
                 }
-                connection.RetryLogicProvider.Retrying -= connectionRetryAction;
+                connection.Close();
             }
         }
 
@@ -501,26 +585,26 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             Func<String, TReturn2> returnType2ConversionFromStringFunction
         )
         {
-            using (var connection = new SqlConnection(connectionString))
-            using (var command = new SqlCommand(query))
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            using (NpgsqlDataSource dataSource = dataSourceBuilder.Build())
+            using (NpgsqlConnection connection = dataSource.OpenConnection())
+            using (var command = new NpgsqlCommand(query))
             {
-                connection.RetryLogicProvider = SqlConfigurableRetryFactory.CreateFixedRetryProvider(sqlRetryLogicOption);
-                connection.RetryLogicProvider.Retrying += connectionRetryAction;
-                connection.Open();
                 command.Connection = connection;
-                command.CommandTimeout = operationTimeout;
-                using (SqlDataReader dataReader = command.ExecuteReader())
+                command.CommandTimeout = commandTimeout;
+                using (NpgsqlDataReader reader = command.ExecuteReader())
                 {
-                    while (dataReader.Read())
+                    while (reader.Read() == true)
                     {
-                        String firstDataItemAsString = (String)dataReader[columnToConvert1];
-                        String secondDataItemAsString = (String)dataReader[columnToConvert2];
-                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction.Invoke(firstDataItemAsString);
-                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction.Invoke(secondDataItemAsString);
+                        String firstDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert1));
+                        String secondDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert2));
+                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction(firstDataItemAsString);
+                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction(secondDataItemAsString);
+
                         yield return new Tuple<TReturn1, TReturn2>(firstDataItemConverted, secondDataItemConverted);
                     }
                 }
-                connection.RetryLogicProvider.Retrying -= connectionRetryAction;
+                connection.Close();
             }
         }
 
@@ -549,28 +633,28 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             Func<String, TReturn3> returnType3ConversionFromStringFunction
         )
         {
-            using (var connection = new SqlConnection(connectionString))
-            using (var command = new SqlCommand(query))
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            using (NpgsqlDataSource dataSource = dataSourceBuilder.Build())
+            using (NpgsqlConnection connection = dataSource.OpenConnection())
+            using (var command = new NpgsqlCommand(query))
             {
-                connection.RetryLogicProvider = SqlConfigurableRetryFactory.CreateFixedRetryProvider(sqlRetryLogicOption);
-                connection.RetryLogicProvider.Retrying += connectionRetryAction;
-                connection.Open();
                 command.Connection = connection;
-                command.CommandTimeout = operationTimeout;
-                using (SqlDataReader dataReader = command.ExecuteReader())
+                command.CommandTimeout = commandTimeout;
+                using (NpgsqlDataReader reader = command.ExecuteReader())
                 {
-                    while (dataReader.Read())
+                    while (reader.Read() == true)
                     {
-                        String firstDataItemAsString = (String)dataReader[columnToConvert1];
-                        String secondDataItemAsString = (String)dataReader[columnToConvert2];
-                        String thirdDataItemAsString = (String)dataReader[columnToConvert3];
-                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction.Invoke(firstDataItemAsString);
-                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction.Invoke(secondDataItemAsString);
-                        TReturn3 thirdDataItemConverted = returnType3ConversionFromStringFunction.Invoke(thirdDataItemAsString);
+                        String firstDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert1));
+                        String secondDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert2));
+                        String thirdDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert3));
+                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction(firstDataItemAsString);
+                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction(secondDataItemAsString);
+                        TReturn3 thirdDataItemConverted = returnType3ConversionFromStringFunction(thirdDataItemAsString);
+
                         yield return new Tuple<TReturn1, TReturn2, TReturn3>(firstDataItemConverted, secondDataItemConverted, thirdDataItemConverted);
                     }
                 }
-                connection.RetryLogicProvider.Retrying -= connectionRetryAction;
+                connection.Close();
             }
         }
 
@@ -587,17 +671,17 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                 throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
             DateTime now = DateTime.UtcNow;
             if (stateTime > now)
-                throw new ArgumentException($"Parameter '{nameof(stateTime)}' will value '{stateTime.ToString(transactionSql126DateStyle)}' is greater than the current time '{now.ToString(transactionSql126DateStyle)}'.", nameof(stateTime));
+                throw new ArgumentException($"Parameter '{nameof(stateTime)}' will value '{stateTime.ToString(postgreSQLTimestampFormat)}' is greater than the current time '{now.ToString(postgreSQLTimestampFormat)}'.", nameof(stateTime));
 
             // Get the event id and transaction time equal to or immediately before the specified state time
             String query =
             @$" 
-            SELECT  TOP(1)
-                    CONVERT(nvarchar(40), EventId) AS 'EventId',
-                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            SELECT  EventId::varchar AS EventId,
+		            TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime
             FROM    EventIdToTransactionTimeMap
-            WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126)
-            ORDER   BY TransactionTime DESC;";
+            WHERE   TransactionTime <= TO_TIMESTAMP('{stateTime.ToString(postgreSQLTimestampFormat)}', 'YYYY-MM-DD HH24:MI:ss.US')::timestamp
+            ORDER   BY TransactionTime DESC
+            LIMIT   1;";
 
             IEnumerable<Tuple<Guid, DateTime>> queryResults = ExecuteMultiResultQueryAndHandleException
             (
@@ -607,7 +691,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                 (String cellValue) => { return Guid.Parse(cellValue); },
                 (String cellValue) =>
                 {
-                    var stateTime = DateTime.ParseExact(cellValue, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
+                    var stateTime = DateTime.ParseExact(cellValue, postgreSQLTimestampFormat, DateTimeFormatInfo.InvariantInfo);
                     stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
 
                     return stateTime;
