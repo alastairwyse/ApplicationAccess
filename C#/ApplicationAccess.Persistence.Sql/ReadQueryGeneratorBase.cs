@@ -37,6 +37,20 @@ namespace ApplicationAccess.Persistence.Sql
         }
 
         /// <summary>
+        /// Generates a query which returns the transaction (state) time of the specified event.
+        /// </summary>
+        /// <param name="eventId">The unique id of the event.</param>
+        /// <returns>The query.</returns>
+        public abstract String GenerateGetTransactionTimeOfEventQuery(Guid eventId);
+
+        /// <summary>
+        /// Generates a query which returns the properties of the event at or immediately before the specified transaction (state) time.
+        /// </summary>
+        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the event retrieve.</param>
+        /// <returns>The query.</returns>
+        public abstract String GenerateGetEventCorrespondingToStateTimeQuery(DateTime stateTime);
+
+        /// <summary>
         /// Generates a query which returns all users in the database valid at the specified state time.
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>

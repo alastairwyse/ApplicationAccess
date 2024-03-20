@@ -7,6 +7,12 @@
     <Authors>Alastair Wyse</Authors>
     <Company />
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
+    <ProjectReference Include="..\ApplicationAccess\ApplicationAccess.csproj" />
+  </ItemGroup>
 
 </Project>

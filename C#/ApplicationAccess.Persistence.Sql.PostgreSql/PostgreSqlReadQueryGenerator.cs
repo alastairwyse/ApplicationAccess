@@ -47,6 +47,33 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         {
         }
 
+        /// <inheritdoc/>
+        public override String GenerateGetTransactionTimeOfEventQuery(Guid eventId)
+        {
+            String query =
+            @$" 
+            SELECT  TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime 
+            FROM    EventIdToTransactionTimeMap
+            WHERE   EventId = '{eventId.ToString()}';";
+
+            return query;
+        }
+
+        /// <inheritdoc/>
+        public override String GenerateGetEventCorrespondingToStateTimeQuery(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  EventId::varchar AS EventId,
+		            TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime
+            FROM    EventIdToTransactionTimeMap
+            WHERE   TransactionTime <= TO_TIMESTAMP('{stateTime.ToString(postgreSQLTimestampFormat)}', 'YYYY-MM-DD HH24:MI:ss.US')::timestamp
+            ORDER   BY TransactionTime DESC
+            LIMIT   1;";
+
+            return query;
+        }
+
         #region Private/Protected Methods
 
         /// <inheritdoc/>

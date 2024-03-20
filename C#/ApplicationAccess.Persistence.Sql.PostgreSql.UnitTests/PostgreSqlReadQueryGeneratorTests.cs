@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2022 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,42 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             testPostgreSqlReadQueryGenerator = new PostgreSqlReadQueryGenerator();
         }
 
+        [Test]
+        public void GenerateGetTransactionTimeOfEventQuery()
+        {
+            String eventIdAsString = "2b4a64f4-c50f-495b-a880-2a17d025cb20";
+            Guid eventId = Guid.Parse(eventIdAsString);
+            String expectedQuery =
+            @$" 
+            SELECT  TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime 
+            FROM    EventIdToTransactionTimeMap
+            WHERE   EventId = '{eventId.ToString()}';";
+
+            String result = testPostgreSqlReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(eventId);
+
+            Assert.AreEqual(expectedQuery, result);
+        }
+
+        [Test]
+        public void GenerateGetEventCorrespondingToStateTimeQuery()
+        {
+            String expectedQuery =
+            @$" 
+            SELECT  EventId::varchar AS EventId,
+		            TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime
+            FROM    EventIdToTransactionTimeMap
+            WHERE   TransactionTime <= TO_TIMESTAMP('2024-03-10 11:45:33.123456', 'YYYY-MM-DD HH24:MI:ss.US')::timestamp
+            ORDER   BY TransactionTime DESC
+            LIMIT   1;";
+
+            String result = testPostgreSqlReadQueryGenerator.GenerateGetEventCorrespondingToStateTimeQuery(testOccurredTime);
+
+            Assert.AreEqual(expectedQuery, result);
+        }
+
         // Testing just GenerateGetUserToGroupMappingsQuery() should cover everything that's different between this class and SqlServerReadQueryGenerator
-        //   (i.e. reserved word delimiters and conversion from DateTime to string)
-        //   Everything else is common to base class ReadQueryGeneratorBase.
+        //   in terms of queries of main AccessManager elements (i.e. reserved word delimiters and conversion from DateTime to string)
+        //   Everything else (aside from abstract methods test above) is common to base class ReadQueryGeneratorBase.
 
         [Test]
         public void GenerateGetUserToGroupMappingsQuery()

@@ -6,6 +6,7 @@
     <Authors>Alastair Wyse</Authors>
     <Company />
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Persistence.Sql\ApplicationAccess.Persistence.Sql.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

@@ -67,8 +67,8 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             IApplicationLogger logger
         )
         {
-            if (String.IsNullOrWhiteSpace(connectionString) == true)
-                throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.", nameof(connectionString));
+            SqlServerPersisterUtilities<String, String, String, String>.ThrowExceptionIfConnectionStringParameterNullOrWhitespace(nameof(connectionString), connectionString);
+            SqlServerPersisterUtilities<String, String, String, String>.ThrowExceptionIfOperationTimeoutParameterLessThanZero(nameof(operationTimeout), operationTimeout);
             if (retryCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be less than 0.");
             if (retryCount > 59)

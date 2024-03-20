@@ -679,7 +679,7 @@ namespace ApplicationAccess.TestHarness
                         LogManager.Flush(10000);
                         if (testHarnessConfiguration.GeneratePrimaryAddOperations == false)
                         {
-                            // PrintUnmappedPrimaryElementCounts(dataElementStorer);
+                            PrintUnmappedPrimaryElementCounts(dataElementStorer);
                         }
 
                         Console.WriteLine("Testing Complete");

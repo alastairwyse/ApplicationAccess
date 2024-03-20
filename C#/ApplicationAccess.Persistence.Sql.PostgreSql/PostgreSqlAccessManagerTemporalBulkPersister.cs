@@ -16,14 +16,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.IO;
 using ApplicationAccess.Persistence.Sql;
 using ApplicationLogging;
 using ApplicationMetrics;
 using Npgsql;
 using NpgsqlTypes;
+using System.Data;
+using System.Security.Cryptography;
 
 namespace ApplicationAccess.Persistence.Sql.PostgreSql
 {
@@ -48,6 +50,36 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         //   https://learn.microsoft.com/en-us/azure/postgresql/single-server/concepts-connectivity
         //   https://www.npgsql.org/doc/connection-string-parameters.html
 
+        #pragma warning disable 1591
+
+        protected const String processEventsStoredProcedureName = "ProcessEvents";
+
+        // These values are used in the 'Type' property in the 'ProcessEvents' stored procedure JSON parameter
+        protected const String userEventTypeValue = "user";
+        protected const String groupEventTypeValue = "group";
+        protected const String userToGroupMappingEventTypeValue = "userToGroupMapping";
+        protected const String groupToGroupMappingEventTypeValue = "groupToGroupMapping";
+        protected const String userToApplicationComponentAndAccessLevelMappingEventTypeValue = "userToApplicationComponentAndAccessLevelMapping";
+        protected const String groupToApplicationComponentAndAccessLevelMappingEventTypeValue = "groupToApplicationComponentAndAccessLevelMapping";
+        protected const String entityTypeEventTypeValue = "entityType";
+        protected const String entityEventTypeValue = "entity";
+        protected const String userToEntityMappingEventTypeValue = "userToEntityMapping";
+        protected const String groupToEntityMappingEventTypeValue = "groupToEntityMapping";
+
+        // These values are used in the 'Action' property in the 'ProcessEvents' stored procedure JSON parameter
+        protected const String addEventActionValue = "add";
+        protected const String removeEventActionValue = "remove";
+
+        protected const String typePropertyName = "Type";
+        protected const String idPropertyName = "Id";
+        protected const String actionPropertyName = "Action";
+        protected const String occurredTimePropertyName = "OccurredTime";
+        protected const String data1PropertyName = "Data1";
+        protected const String data2PropertyName = "Data2";
+        protected const String data3PropertyName = "Data3";
+
+        #pragma warning restore 1591
+
         /// <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
         protected const Int32 columnSizeLimit = 450;
         /// <summary>DateTime format string which can be interpreted by the <see href="https://www.postgresql.org/docs/8.1/functions-formatting.html">PostgreSQL to_timestamp() function</see>.</summary>
@@ -57,8 +89,8 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         protected String connectionString;
         /// <summary>The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</summary>
         protected Int32 commandTimeout;
-        /// <summary>Used to generate queries to read data in the Load() method.</summary>
-        protected PostgreSqlReadQueryGenerator queryGenerator;
+        /// <summary>The datasource to use to create connections to PostgreSQL.</summary>
+        protected NpgsqlDataSource dataSource;
         /// <summary>A string converter for users.</summary>
         protected IUniqueStringifier<TUser> userStringifier;
         /// <summary>A string converter for groups.</summary>
@@ -67,10 +99,18 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
         /// <summary>A string converter for access levels</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
+        /// <summary>Used to execute queries and store procedures against PostgreSQL.</summary>
+        protected PostgreSqlPersisterUtilities<TUser, TGroup, TComponent, TAccess> persisterUtilities;
+        /// <summary>Maps types (subclasses of <see cref="TemporalEventBufferItemBase"/>) to actions which populate a JSON array element with details of an event of that type.</summary>
+        protected Dictionary<Type, Action<TemporalEventBufferItemBase, Utf8JsonWriter>> eventTypeToJsonDocumentPopulationOperationMap;
         /// <summary>The logger for general logging.</summary>
         protected IApplicationLogger logger;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
+        /// <summary>Wraps calls to execute stored procedures so that they can be mocked in unit tests.</summary>
+        protected IStoredProcedureExecutionWrapper storedProcedureExecutor;
+        /// <summary>Indicates whether the object has been disposed.</summary>
+        protected Boolean disposed;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister class.
@@ -95,19 +135,38 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         {
             if (String.IsNullOrWhiteSpace(connectionString) == true)
                 throw new ArgumentException($"Parameter '{nameof(connectionString)}' must contain a value.", nameof(connectionString));
-            if (commandTimeout < 0)
-                throw new ArgumentOutOfRangeException(nameof(commandTimeout), $"Parameter '{nameof(commandTimeout)}' with value {commandTimeout} cannot be less than 0.");
+            PostgreSqlPersisterUtilities<TUser, TGroup, TComponent, TAccess>.ThrowExceptionIfCommandTimeoutParameterLessThanZero(nameof(commandTimeout), commandTimeout);
 
             this.connectionString = connectionString;
             this.commandTimeout = commandTimeout;
-            queryGenerator = new PostgreSqlReadQueryGenerator();
+            NpgsqlDataSourceBuilder dataSourceBuilder;
+            try
+            {
+                dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+                dataSource = dataSourceBuilder.Build();
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to create {typeof(NpgsqlDataSource).Name} from connection string '{connectionString}'.", e);
+            }
             this.userStringifier = userStringifier;
             this.groupStringifier = groupStringifier;
             this.applicationComponentStringifier = applicationComponentStringifier;
             this.accessLevelStringifier = accessLevelStringifier;
+            this.persisterUtilities = new PostgreSqlPersisterUtilities<TUser, TGroup, TComponent, TAccess>
+            (
+                dataSource, 
+                commandTimeout, 
+                userStringifier, 
+                groupStringifier, 
+                applicationComponentStringifier, 
+                accessLevelStringifier
+            );
+            this.eventTypeToJsonDocumentPopulationOperationMap = CreateEventTypeToJsonDocumentPopulationOperationMap();
             this.logger = logger;
+            this.storedProcedureExecutor = new StoredProcedureExecutionWrapper((String procedureName, IList<NpgsqlParameter> parameters) => { ExecuteStoredProcedure(procedureName, parameters); });
+            disposed = false;
         }
-
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister class.
@@ -135,256 +194,85 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
             this.metricLogger = metricLogger;
         }
 
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister class.
+        /// </summary>
+        /// <param name="connectionString">The string to use to connect to the PostgreSQL database.</param>
+        /// <param name="commandTimeout">The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</param>
+        /// <param name="userStringifier">A string converter for users.</param>
+        /// <param name="groupStringifier">A string converter for groups.</param>
+        /// <param name="applicationComponentStringifier">A string converter for application components.</param>
+        /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        /// <param name="storedProcedureExecutor">A test (mock) <see cref="IStoredProcedureExecutionWrapper"/> object.</param>
+        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
+        public PostgreSqlAccessManagerTemporalBulkPersister
+        (
+            String connectionString,
+            Int32 commandTimeout,
+            IUniqueStringifier<TUser> userStringifier,
+            IUniqueStringifier<TGroup> groupStringifier,
+            IUniqueStringifier<TComponent> applicationComponentStringifier,
+            IUniqueStringifier<TAccess> accessLevelStringifier,
+            IApplicationLogger logger,
+            IMetricLogger metricLogger,
+            IStoredProcedureExecutionWrapper storedProcedureExecutor
+        ) : this(connectionString, commandTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger, metricLogger)
+        {
+            this.storedProcedureExecutor = storedProcedureExecutor;
+        }
+
         /// <inheritdoc/>
         public Tuple<Guid, DateTime> Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            return Load(DateTime.UtcNow, accessManagerToLoadTo, new PersistentStorageEmptyException("The database does not contain any existing events nor data."));
+            return persisterUtilities.Load(DateTime.UtcNow, accessManagerToLoadTo, new PersistentStorageEmptyException("The database does not contain any existing events nor data."));
         }
 
         /// <inheritdoc/>
         public Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            // Get the transaction time corresponding to specified event id
-            String query =
-            @$" 
-            SELECT  TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime 
-            FROM    EventIdToTransactionTimeMap
-            WHERE   EventId = '{eventId.ToString()}';";
-
-            IEnumerable<String> queryResults = ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "TransactionTime",
-                (String cellValue) => { return cellValue; }
-            );
-            DateTime stateTime = DateTime.MinValue;
-            foreach (String currentResult in queryResults)
-            {
-                if (stateTime == DateTime.MinValue)
-                {
-                    stateTime = DateTime.ParseExact(currentResult, postgreSQLTimestampFormat, DateTimeFormatInfo.InvariantInfo);
-                    stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
-                }
-                else
-                {
-                    throw new Exception($"Multiple EventIdToTransactionTimeMap rows were returned with EventId '{eventId.ToString()}'.");
-                }
-            }
-            if (stateTime == DateTime.MinValue)
-            {
-                throw new ArgumentException($"No EventIdToTransactionTimeMap rows were returned for EventId '{eventId.ToString()}'.", nameof(eventId));
-            }
-
-            LoadToAccessManager(stateTime, accessManagerToLoadTo);
-
-            return new Tuple<Guid, DateTime>(eventId, stateTime);
+            return persisterUtilities.Load(eventId, accessManagerToLoadTo);
         }
 
         /// <inheritdoc/>
         public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            return Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(postgreSQLTimestampFormat)}'.", nameof(stateTime)));
+            return persisterUtilities.Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(postgreSQLTimestampFormat)}'.", nameof(stateTime)));
         }
 
         /// <inheritdoc/>
         public void PersistEvents(IList<TemporalEventBufferItemBase> events)
         {
-            throw new NotImplementedException();
+            using (var memoryStream = new MemoryStream())
+            using (var writer = new Utf8JsonWriter(memoryStream))
+            {
+                writer.WriteStartArray();
+                foreach (TemporalEventBufferItemBase currentEventBufferItem in events)
+                {
+                    if (eventTypeToJsonDocumentPopulationOperationMap.ContainsKey(currentEventBufferItem.GetType()) == false)
+                        throw new Exception($"Encountered unhandled event buffer item type '{currentEventBufferItem.GetType().Name}'.");
+
+                    writer.WriteStartObject();
+                    Action<TemporalEventBufferItemBase, Utf8JsonWriter> jsonDocumentPopulationOperation = eventTypeToJsonDocumentPopulationOperationMap[currentEventBufferItem.GetType()];
+                    jsonDocumentPopulationOperation(currentEventBufferItem, writer);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+                writer.Flush();
+                memoryStream.Position = 0;
+                using (var eventsJson = JsonDocument.Parse(memoryStream))
+                {
+                    var parameters = new List<NpgsqlParameter>()
+                    {
+                        CreateNpgsqlParameterWithValue(NpgsqlDbType.Json, eventsJson)
+                    };
+                    storedProcedureExecutor.Execute(processEventsStoredProcedureName, parameters);
+                }
+            }
         }
 
         #region Private/Protected Methods
-
-        /// <summary>
-        /// Returns all users in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all users in the database valid at the specified time.</returns>
-        protected IEnumerable<TUser> GetUsers(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetUsersQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "User",
-                (String cellValue) => { return userStringifier.FromString(cellValue); }
-            );
-        }
-
-        /// <summary>
-        /// Returns all groups in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all groups in the database valid at the specified time.</returns>
-        protected IEnumerable<TGroup> GetGroups(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetGroupsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "Group",
-                (String cellValue) => { return groupStringifier.FromString(cellValue); }
-            );
-        }
-
-        /// <summary>
-        /// Returns all user to group mappings in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all user to group mappings in the database valid at the specified state time.</returns>
-        protected IEnumerable<Tuple<TUser, TGroup>> GetUserToGroupMappings(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetUserToGroupMappingsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "User",
-                "Group",
-                (String cell1Value) => { return userStringifier.FromString(cell1Value); },
-                (String cell2Value) => { return groupStringifier.FromString(cell2Value); }
-            );
-        }
-
-        /// <summary>
-        /// Returns all group to group mappings in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all group to group mappings in the database valid at the specified state time.</returns>
-        protected IEnumerable<Tuple<TGroup, TGroup>> GetGroupToGroupMappings(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "FromGroup",
-                "ToGroup",
-                (String cell1Value) => { return groupStringifier.FromString(cell1Value); },
-                (String cell2Value) => { return groupStringifier.FromString(cell2Value); }
-            );
-        }
-
-        /// <summary>
-        /// Returns all user to application component and access level mappings in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all user to application component and access level mappings in the database valid at the specified state time.</returns>
-        protected IEnumerable<Tuple<TUser, TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "User",
-                "ApplicationComponent",
-                "AccessLevel",
-                (String cell1Value) => { return userStringifier.FromString(cell1Value); },
-                (String cell2Value) => { return applicationComponentStringifier.FromString(cell2Value); },
-                (String cell3Value) => { return accessLevelStringifier.FromString(cell3Value); }
-            );
-        }
-
-        /// <summary>
-        /// Returns all group to application component and access level mappings in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all group to application component and access level mappings in the database valid at the specified state time.</returns>
-        protected IEnumerable<Tuple<TGroup, TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "Group",
-                "ApplicationComponent",
-                "AccessLevel",
-                (String cell1Value) => { return groupStringifier.FromString(cell1Value); },
-                (String cell2Value) => { return applicationComponentStringifier.FromString(cell2Value); },
-                (String cell3Value) => { return accessLevelStringifier.FromString(cell3Value); }
-            );
-        }
-
-        /// <summary>
-        /// Returns all entity types in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all entity types in the database valid at the specified time.</returns>
-        protected IEnumerable<String> GetEntityTypes(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "EntityType",
-                (String cellValue) => { return cellValue; }
-            );
-        }
-
-        /// <summary>
-        /// Returns all entities in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all entities in the database valid at the specified state time. Each tuple contains: the type of the entity, and the entity itself.</returns>
-        protected IEnumerable<Tuple<String, String>> GetEntities(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "EntityType",
-                "Entity",
-                (String cell1Value) => { return cell1Value; },
-                (String cell2Value) => { return cell2Value; }
-            );
-        }
-
-        /// <summary>
-        /// Returns all user to entity mappings in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all user to entity mappings in the database valid at the specified state time.  Each tuple contains: the user, the type of the entity, and the entity.</returns>
-        protected IEnumerable<Tuple<TUser, String, String>> GetUserToEntityMappings(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "User",
-                "EntityType",
-                "Entity",
-                (String cell1Value) => { return userStringifier.FromString(cell1Value); },
-                (String cell2Value) => { return cell2Value; },
-                (String cell3Value) => { return cell3Value; }
-            );
-        }
-
-        /// <summary>
-        /// Returns all group to entity mappings in the database valid at the specified state time.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <returns>A collection of all group to entity mappings in the database valid at the specified state time.  Each tuple contains: the group, the type of the entity, and the entity.</returns>
-        protected IEnumerable<Tuple<TGroup, String, String>> GetGroupToEntityMappings(DateTime stateTime)
-        {
-            String query = queryGenerator.GenerateGetGroupToGroupMappingsQuery(stateTime);
-
-            return ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "Group",
-                "EntityType",
-                "Entity",
-                (String cell1Value) => { return groupStringifier.FromString(cell1Value); },
-                (String cell2Value) => { return cell2Value; },
-                (String cell3Value) => { return cell3Value; }
-            );
-        }
 
         /// <summary>
         /// Creates an <see cref="NpgsqlParameter"/>
@@ -421,8 +309,6 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
 
             try
             {
-                var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-                using (NpgsqlDataSource dataSource = dataSourceBuilder.Build())
                 using (NpgsqlConnection connection = dataSource.OpenConnection())
                 using (var command = new NpgsqlCommand(commandText))
                 {
@@ -443,343 +329,256 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         }
 
         /// <summary>
-        /// Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
+        /// Returns a dictionary mapping types (subclasses of <see cref="TemporalEventBufferItemBase"/>) to actions which populate a JSON array element with details of an event of that type.
         /// </summary>
-        /// <typeparam name="TReturn">The type of data returned from the query.</typeparam>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
-        /// <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
-        /// <returns>A collection of items returned by the query.</returns>
-        protected IEnumerable<TReturn> ExecuteMultiResultQueryAndHandleException<TReturn>(String query, String columnToConvert, Func<String, TReturn> conversionFromStringFunction)
+        /// <returns>A dictionary keyed by type, whose value is an action which accepts a subclass of <see cref="TemporalEventBufferItemBase"/> (having the same type as the key), and a <see cref="Utf8JsonWriter"/>, and which populates a JSON array element with details of the event.</returns>
+        /// <remarks>Traditionally, the 'switch' statement in C# was preferred to multiple 'if / else' as apparently the compiler was able to use branch tables to more quickly move to a matching condition within the statement (instead of having to iterate on average 1/2 the cases each time with 'if / else').  However <see href="https://devblogs.microsoft.com/dotnet/new-features-in-c-7-0/#switch-statements-with-patterns">since C# 7 we're now able to use non-equality / range / pattern conditions within the 'switch' statement</see>.  I haven't been able to find any documentation as to whether this has had a negative impact on performance (although difficult to see how it cannot have), however to mitigate I'm putting all the processing routines for different <see cref="TemporalEventBufferItemBase"/> subclasses into a dictionary... hence the lookup speed should at least scale equivalently to the aforementioned branch tables.</remarks>
+        protected Dictionary<Type, Action<TemporalEventBufferItemBase, Utf8JsonWriter>> CreateEventTypeToJsonDocumentPopulationOperationMap()
         {
-            try
+            var returnDictionary = new Dictionary<Type, Action<TemporalEventBufferItemBase, Utf8JsonWriter>>()
             {
-                return ExecuteQueryAndConvertColumn(query, columnToConvert, conversionFromStringFunction);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to execute query '{query}' in PostgreSQL.", e);
-            }
-        }
-
-        /// <summary>
-        /// Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
-        /// </summary>
-        /// <typeparam name="TReturn1">The type of the first data item returned from the query.</typeparam>
-        /// <typeparam name="TReturn2">The type of the second data item returned from the query.</typeparam>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
-        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
-        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
-        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
-        /// <returns>A collection of tuples of the items returned by the query.</returns>
-        protected IEnumerable<Tuple<TReturn1, TReturn2>> ExecuteMultiResultQueryAndHandleException<TReturn1, TReturn2>
-        (
-            String query,
-            String columnToConvert1,
-            String columnToConvert2,
-            Func<String, TReturn1> returnType1ConversionFromStringFunction,
-            Func<String, TReturn2> returnType2ConversionFromStringFunction
-        )
-        {
-            try
-            {
-                return ExecuteQueryAndConvertColumn(query, columnToConvert1, columnToConvert2, returnType1ConversionFromStringFunction, returnType2ConversionFromStringFunction);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to execute query '{query}' in PostgreSQL.", e);
-            }
-        }
-
-        /// <summary>
-        /// Attempts to execute the specified query which is expected to return multiple rows, handling any resulting exception.
-        /// </summary>
-        /// <typeparam name="TReturn1">The type of the first data item returned from the query.</typeparam>
-        /// <typeparam name="TReturn2">The type of the second data item returned from the query.</typeparam>
-        /// <typeparam name="TReturn3">The type of the third data item returned from the query.</typeparam>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
-        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
-        /// <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
-        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
-        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
-        /// <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
-        /// <returns>A collection of tuples of the items returned by the query.</returns>
-        protected IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteMultiResultQueryAndHandleException<TReturn1, TReturn2, TReturn3>
-        (
-            String query,
-            String columnToConvert1,
-            String columnToConvert2,
-            String columnToConvert3,
-            Func<String, TReturn1> returnType1ConversionFromStringFunction,
-            Func<String, TReturn2> returnType2ConversionFromStringFunction,
-            Func<String, TReturn3> returnType3ConversionFromStringFunction
-        )
-        {
-            try
-            {
-                return ExecuteQueryAndConvertColumn
-                (
-                    query,
-                    columnToConvert1,
-                    columnToConvert2,
-                    columnToConvert3,
-                    returnType1ConversionFromStringFunction,
-                    returnType2ConversionFromStringFunction,
-                    returnType3ConversionFromStringFunction
-                );
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to execute query '{query}' in PostgreSQL.", e);
-            }
-        }
-
-        /// <summary>
-        /// Attempts to execute the specified query, converting a specified column from each row of the results to the specified type.
-        /// </summary>
-        /// <typeparam name="T">The type to convert to and return.</typeparam>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
-        /// <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
-        /// <returns>A collection of items returned by the query.</returns>
-        protected IEnumerable<T> ExecuteQueryAndConvertColumn<T>(String query, String columnToConvert, Func<String, T> conversionFromStringFunction)
-        {
-            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-            using (NpgsqlDataSource dataSource = dataSourceBuilder.Build())
-            using (NpgsqlConnection connection = dataSource.OpenConnection())
-            using (var command = new NpgsqlCommand(query))
-            {
-                command.Connection = connection;
-                command.CommandTimeout = commandTimeout;
-                using (NpgsqlDataReader reader = command.ExecuteReader())
                 {
-                    while (reader.Read() == true)
+                    typeof(UserEventBufferItem<TUser>), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
                     {
-                        String currentDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert));
-                        yield return conversionFromStringFunction(currentDataItemAsString);
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (UserEventBufferItem<TUser>)eventBufferItem;
+                        writer.WriteString(typePropertyName, userEventTypeValue);
+                        String userAsString = userStringifier.ToString(typedEventBufferItem.User);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.User), userAsString);
+                        writer.WriteString(data1PropertyName, userAsString);
+                    }
+                },
+                {
+                    typeof(GroupEventBufferItem<TGroup>), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (GroupEventBufferItem<TGroup>)eventBufferItem;
+                        writer.WriteString(typePropertyName, groupEventTypeValue);
+                        String groupAsString =  groupStringifier.ToString(typedEventBufferItem.Group);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Group), groupAsString);
+                        writer.WriteString(data1PropertyName, groupAsString);
+                    }
+                },
+                {
+                    typeof(UserToGroupMappingEventBufferItem<TUser, TGroup>), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (UserToGroupMappingEventBufferItem<TUser, TGroup>)eventBufferItem;
+                        writer.WriteString(typePropertyName, userToGroupMappingEventTypeValue);
+                        String userAsString = userStringifier.ToString(typedEventBufferItem.User);
+                        String groupAsString = groupStringifier.ToString(typedEventBufferItem.Group);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.User), userAsString);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Group), groupAsString);
+                        writer.WriteString(data1PropertyName, userAsString);
+                        writer.WriteString(data2PropertyName, groupAsString);
+                    }
+                },
+                {
+                    typeof(GroupToGroupMappingEventBufferItem<TGroup>), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (GroupToGroupMappingEventBufferItem<TGroup>)eventBufferItem;
+                        writer.WriteString(typePropertyName, groupToGroupMappingEventTypeValue);
+                        String fromGroupAsString = groupStringifier.ToString(typedEventBufferItem.FromGroup);
+                        String toGroupAsString = groupStringifier.ToString(typedEventBufferItem.ToGroup);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.FromGroup), fromGroupAsString);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.ToGroup), toGroupAsString);
+                        writer.WriteString(data1PropertyName, fromGroupAsString);
+                        writer.WriteString(data2PropertyName, toGroupAsString);
+                    }
+                },
+                {
+                    typeof(UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>)eventBufferItem;
+                        writer.WriteString(typePropertyName, userToApplicationComponentAndAccessLevelMappingEventTypeValue);
+                        String userAsString = userStringifier.ToString(typedEventBufferItem.User);
+                        String applicationComponentAsString = applicationComponentStringifier.ToString(typedEventBufferItem.ApplicationComponent);
+                        String accessLevelAsString = accessLevelStringifier.ToString(typedEventBufferItem.AccessLevel);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.User), userAsString);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.ApplicationComponent), applicationComponentAsString);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.AccessLevel), accessLevelAsString);
+                        writer.WriteString(data1PropertyName, userAsString);
+                        writer.WriteString(data2PropertyName, applicationComponentAsString);
+                        writer.WriteString(data3PropertyName, accessLevelAsString);
+                    }
+                },
+                {
+                    typeof(GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>)eventBufferItem;
+                        writer.WriteString(typePropertyName, groupToApplicationComponentAndAccessLevelMappingEventTypeValue);
+                        String groupAsString = groupStringifier.ToString(typedEventBufferItem.Group);
+                        String applicationComponentAsString = applicationComponentStringifier.ToString(typedEventBufferItem.ApplicationComponent);
+                        String accessLevelAsString = accessLevelStringifier.ToString(typedEventBufferItem.AccessLevel);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Group), groupAsString);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.ApplicationComponent), applicationComponentAsString);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.AccessLevel), accessLevelAsString);
+                        writer.WriteString(data1PropertyName, groupAsString);
+                        writer.WriteString(data2PropertyName, applicationComponentAsString);
+                        writer.WriteString(data3PropertyName, accessLevelAsString);
+                    }
+                },
+                {
+                    typeof(EntityTypeEventBufferItem), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (EntityTypeEventBufferItem)eventBufferItem;
+                        writer.WriteString(typePropertyName, entityTypeEventTypeValue);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.EntityType), typedEventBufferItem.EntityType);
+                        writer.WriteString(data1PropertyName, typedEventBufferItem.EntityType);
+                    }
+                },
+                {
+                    typeof(EntityEventBufferItem), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (EntityEventBufferItem)eventBufferItem;
+                        writer.WriteString(typePropertyName, entityEventTypeValue);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.EntityType), typedEventBufferItem.EntityType);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Entity), typedEventBufferItem.Entity);
+                        writer.WriteString(data1PropertyName, typedEventBufferItem.EntityType);
+                        writer.WriteString(data2PropertyName, typedEventBufferItem.Entity);
+                    }
+                },
+                {
+                    typeof(UserToEntityMappingEventBufferItem<TUser>), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (UserToEntityMappingEventBufferItem<TUser>)eventBufferItem;
+                        writer.WriteString(typePropertyName, userToEntityMappingEventTypeValue);
+                        String userAsString = userStringifier.ToString(typedEventBufferItem.User);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.User), userAsString);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.EntityType), typedEventBufferItem.EntityType);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Entity), typedEventBufferItem.Entity);
+                        writer.WriteString(data1PropertyName, userAsString);
+                        writer.WriteString(data2PropertyName, typedEventBufferItem.EntityType);
+                        writer.WriteString(data3PropertyName, typedEventBufferItem.Entity);
+                    }
+                },
+                {
+                    typeof(GroupToEntityMappingEventBufferItem<TGroup>), (TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer) =>
+                    {
+                        PopulateJsonElementWithTemporalEventBufferItemBaseProperties(eventBufferItem, writer);
+                        var typedEventBufferItem = (GroupToEntityMappingEventBufferItem<TGroup>)eventBufferItem;
+                        writer.WriteString(typePropertyName, groupToEntityMappingEventTypeValue);
+                        String groupAsString = groupStringifier.ToString(typedEventBufferItem.Group);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Group), groupAsString);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.EntityType), typedEventBufferItem.EntityType);
+                        ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Entity), typedEventBufferItem.Entity);
+                        writer.WriteString(data1PropertyName, groupAsString);
+                        writer.WriteString(data2PropertyName, typedEventBufferItem.EntityType);
+                        writer.WriteString(data3PropertyName, typedEventBufferItem.Entity);
                     }
                 }
-                connection.Close();
-            }
+            };
+
+            return returnDictionary;
         }
 
         /// <summary>
-        /// Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types.
+        /// Populates a JSON array element with base/common properties of the specified event buffer item.
         /// </summary>
-        /// <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
-        /// <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
-        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
-        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
-        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
-        /// <returns>A collection of items returned by the query.</returns>
-        protected IEnumerable<Tuple<TReturn1, TReturn2>> ExecuteQueryAndConvertColumn<TReturn1, TReturn2>
-        (
-            String query,
-            String columnToConvert1,
-            String columnToConvert2,
-            Func<String, TReturn1> returnType1ConversionFromStringFunction,
-            Func<String, TReturn2> returnType2ConversionFromStringFunction
-        )
+        /// <param name="eventBufferItem">The event buffer item.</param>
+        /// <param name="writer">The <see cref="Utf8JsonWriter"/> to write the properties to.</param>
+        protected void PopulateJsonElementWithTemporalEventBufferItemBaseProperties(TemporalEventBufferItemBase eventBufferItem, Utf8JsonWriter writer)
         {
-            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-            using (NpgsqlDataSource dataSource = dataSourceBuilder.Build())
-            using (NpgsqlConnection connection = dataSource.OpenConnection())
-            using (var command = new NpgsqlCommand(query))
+            writer.WriteString(idPropertyName, eventBufferItem.EventId);
+            if (eventBufferItem.EventAction == EventAction.Add)
             {
-                command.Connection = connection;
-                command.CommandTimeout = commandTimeout;
-                using (NpgsqlDataReader reader = command.ExecuteReader())
+                writer.WriteString(actionPropertyName, addEventActionValue);
+            }
+            else
+            {
+                writer.WriteString(actionPropertyName, removeEventActionValue);
+            }
+            writer.WriteString(occurredTimePropertyName, eventBufferItem.OccurredTime.ToString(postgreSQLTimestampFormat));
+        }
+
+        #pragma warning disable 1591
+
+        protected void ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(string propertyName, string stringifiedPropertyValue)
+        {
+            if (stringifiedPropertyValue.Length > columnSizeLimit)
+                throw new ArgumentOutOfRangeException(propertyName, $"Event property '{propertyName}' with stringified value '{stringifiedPropertyValue}' is longer than the maximum allowable column size of {columnSizeLimit}.");
+        }
+
+        #pragma warning restore 1591
+
+        #endregion
+
+        #region Finalize / Dispose Methods
+
+        /// <summary>
+        /// Releases the unmanaged resources used by the PostgreSqlAccessManagerTemporalBulkPersister.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #pragma warning disable 1591
+
+        ~PostgreSqlAccessManagerTemporalBulkPersister()
+        {
+            Dispose(false);
+        }
+
+        #pragma warning restore 1591
+
+        /// <summary>
+        /// Provides a method to free unmanaged resources used by this class.
+        /// </summary>
+        /// <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
                 {
-                    while (reader.Read() == true)
-                    {
-                        String firstDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert1));
-                        String secondDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert2));
-                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction(firstDataItemAsString);
-                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction(secondDataItemAsString);
-
-                        yield return new Tuple<TReturn1, TReturn2>(firstDataItemConverted, secondDataItemConverted);
-                    }
+                    // Free other state (managed objects).
+                    dataSource.Dispose();
                 }
-                connection.Close();
+                // Free your own state (unmanaged objects).
+
+                // Set large fields to null.
+
+                disposed = true;
             }
         }
 
-        /// <summary>
-        /// Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types.
-        /// </summary>
-        /// <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
-        /// <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
-        /// <typeparam name="TReturn3">The type of the third data item to convert to and return.</typeparam>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
-        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
-        /// <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
-        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
-        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
-        /// <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
-        /// <returns>A collection of items returned by the query.</returns>
-        protected IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteQueryAndConvertColumn<TReturn1, TReturn2, TReturn3>
-        (
-            String query,
-            String columnToConvert1,
-            String columnToConvert2,
-            String columnToConvert3,
-            Func<String, TReturn1> returnType1ConversionFromStringFunction,
-            Func<String, TReturn2> returnType2ConversionFromStringFunction,
-            Func<String, TReturn3> returnType3ConversionFromStringFunction
-        )
-        {
-            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-            using (NpgsqlDataSource dataSource = dataSourceBuilder.Build())
-            using (NpgsqlConnection connection = dataSource.OpenConnection())
-            using (var command = new NpgsqlCommand(query))
-            {
-                command.Connection = connection;
-                command.CommandTimeout = commandTimeout;
-                using (NpgsqlDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read() == true)
-                    {
-                        String firstDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert1));
-                        String secondDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert2));
-                        String thirdDataItemAsString = reader.GetString(reader.GetOrdinal(columnToConvert3));
-                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction(firstDataItemAsString);
-                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction(secondDataItemAsString);
-                        TReturn3 thirdDataItemConverted = returnType3ConversionFromStringFunction(thirdDataItemAsString);
+        #endregion
 
-                        yield return new Tuple<TReturn1, TReturn2, TReturn3>(firstDataItemConverted, secondDataItemConverted, thirdDataItemConverted);
-                    }
-                }
-                connection.Close();
-            }
-        }
+        #region Inner Classes
 
         /// <summary>
-        /// Loads the access manager with state corresponding to the specified timestamp from persistent storage.
+        /// Implementation of <see cref="IStoredProcedureExecutionWrapper"/> which allows executing stored procedures through a configurable <see cref="Action"/>.
         /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-        /// <param name="eventIdToTransactionTimeMapRowDoesntExistException">An exception to throw if no rows exist in the 'EventIdToTransactionTimeMap' table equal to or sequentially before the specified state time.</param>
-        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
-        protected Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo, Exception eventIdToTransactionTimeMapRowDoesntExistException)
+        protected class StoredProcedureExecutionWrapper : IStoredProcedureExecutionWrapper
         {
-            if (stateTime.Kind != DateTimeKind.Utc)
-                throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
-            DateTime now = DateTime.UtcNow;
-            if (stateTime > now)
-                throw new ArgumentException($"Parameter '{nameof(stateTime)}' will value '{stateTime.ToString(postgreSQLTimestampFormat)}' is greater than the current time '{now.ToString(postgreSQLTimestampFormat)}'.", nameof(stateTime));
+            /// <summary>The action which executes the stored procedures.</summary>
+            protected Action<String, IList<NpgsqlParameter>> executeAction;
 
-            // Get the event id and transaction time equal to or immediately before the specified state time
-            String query =
-            @$" 
-            SELECT  EventId::varchar AS EventId,
-		            TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime
-            FROM    EventIdToTransactionTimeMap
-            WHERE   TransactionTime <= TO_TIMESTAMP('{stateTime.ToString(postgreSQLTimestampFormat)}', 'YYYY-MM-DD HH24:MI:ss.US')::timestamp
-            ORDER   BY TransactionTime DESC
-            LIMIT   1;";
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister+StoredProcedureExecutionWrapper class.
+            /// </summary>
+            /// <param name="executeAction">The action which executes the stored procedures.</param>
+            public StoredProcedureExecutionWrapper(Action<String, IList<NpgsqlParameter>> executeAction)
+            {
+                this.executeAction = executeAction;
+            }
 
-            IEnumerable<Tuple<Guid, DateTime>> queryResults = ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "EventId",
-                "TransactionTime",
-                (String cellValue) => { return Guid.Parse(cellValue); },
-                (String cellValue) =>
-                {
-                    var stateTime = DateTime.ParseExact(cellValue, postgreSQLTimestampFormat, DateTimeFormatInfo.InvariantInfo);
-                    stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
-
-                    return stateTime;
-                }
-            );
-            Guid eventId = default(Guid);
-            DateTime transactionTime = DateTime.MinValue;
-            foreach (Tuple<Guid, DateTime> currentResult in queryResults)
+            /// <summary>
+            /// Executes a stored procedure which does not return a result set.
+            /// </summary>
+            /// <param name="procedureName">The name of the stored procedure.</param>
+            /// <param name="parameters">The parameters to pass to the stored procedure.</param>
+            public void Execute(String procedureName, IList<NpgsqlParameter> parameters)
             {
-                eventId = currentResult.Item1;
-                transactionTime = currentResult.Item2;
-                break;
-            }
-            if (transactionTime == DateTime.MinValue)
-                throw eventIdToTransactionTimeMapRowDoesntExistException;
-
-            LoadToAccessManager(transactionTime, accessManagerToLoadTo);
-
-            return new Tuple<Guid, DateTime>(eventId, transactionTime);
-        }
-
-        /// <summary>
-        /// Loads the access manager with state corresponding to the specified timestamp from persistent storage into the specified AccessManager instance.
-        /// </summary>
-        /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
-        /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-        protected void LoadToAccessManager(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
-        {
-            accessManagerToLoadTo.Clear();
-            foreach (TUser currentUser in GetUsers(stateTime))
-            {
-                accessManagerToLoadTo.AddUser(currentUser);
-            }
-            foreach (TGroup currentGroup in GetGroups(stateTime))
-            {
-                accessManagerToLoadTo.AddGroup(currentGroup);
-            }
-            foreach (Tuple<TUser, TGroup> currentUserToGroupMapping in GetUserToGroupMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddUserToGroupMapping(currentUserToGroupMapping.Item1, currentUserToGroupMapping.Item2);
-            }
-            foreach (Tuple<TGroup, TGroup> currentGroupToGroupMapping in GetGroupToGroupMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToGroupMapping(currentGroupToGroupMapping.Item1, currentGroupToGroupMapping.Item2);
-            }
-            foreach (Tuple<TUser, TComponent, TAccess> currentUserToApplicationComponentAndAccessLevelMapping in GetUserToApplicationComponentAndAccessLevelMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddUserToApplicationComponentAndAccessLevelMapping
-                (
-                    currentUserToApplicationComponentAndAccessLevelMapping.Item1,
-                    currentUserToApplicationComponentAndAccessLevelMapping.Item2,
-                    currentUserToApplicationComponentAndAccessLevelMapping.Item3
-                );
-            }
-            foreach (Tuple<TGroup, TComponent, TAccess> currentGroupToApplicationComponentAndAccessLevelMapping in GetGroupToApplicationComponentAndAccessLevelMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToApplicationComponentAndAccessLevelMapping
-                (
-                    currentGroupToApplicationComponentAndAccessLevelMapping.Item1,
-                    currentGroupToApplicationComponentAndAccessLevelMapping.Item2,
-                    currentGroupToApplicationComponentAndAccessLevelMapping.Item3
-                );
-            }
-            foreach (String currentEntityType in GetEntityTypes(stateTime))
-            {
-                accessManagerToLoadTo.AddEntityType(currentEntityType);
-            }
-            foreach (Tuple<String, String> currentEntityTypeAndEntity in GetEntities(stateTime))
-            {
-                accessManagerToLoadTo.AddEntity(currentEntityTypeAndEntity.Item1, currentEntityTypeAndEntity.Item2);
-            }
-            foreach (Tuple<TUser, String, String> currentUserToEntityMapping in GetUserToEntityMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddUserToEntityMapping
-                (
-                    currentUserToEntityMapping.Item1,
-                    currentUserToEntityMapping.Item2,
-                    currentUserToEntityMapping.Item3
-                );
-            }
-            foreach (Tuple<TGroup, String, String> currentGroupToEntityMapping in GetGroupToEntityMappings(stateTime))
-            {
-                accessManagerToLoadTo.AddGroupToEntityMapping
-                (
-                    currentGroupToEntityMapping.Item1,
-                    currentGroupToEntityMapping.Item2,
-                    currentGroupToEntityMapping.Item3
-                );
+                executeAction.Invoke(procedureName, parameters);
             }
         }
 

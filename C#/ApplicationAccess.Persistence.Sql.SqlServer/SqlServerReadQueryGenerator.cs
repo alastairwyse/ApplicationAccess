@@ -47,6 +47,33 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         {
         }
 
+        /// <inheritdoc/>
+        public override String GenerateGetTransactionTimeOfEventQuery(Guid eventId)
+        {
+            String query =
+            @$" 
+            SELECT  CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            FROM    EventIdToTransactionTimeMap
+            WHERE   EventId = '{eventId.ToString()}';";
+
+            return query;
+        }
+
+        /// <inheritdoc/>
+        public override String GenerateGetEventCorrespondingToStateTimeQuery(DateTime stateTime)
+        {
+            String query =
+            @$" 
+            SELECT  TOP(1)
+                    CONVERT(nvarchar(40), EventId) AS 'EventId',
+                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            FROM    EventIdToTransactionTimeMap
+            WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126)
+            ORDER   BY TransactionTime DESC;";
+
+            return query;
+        }
+
         #region Private/Protected Methods
 
         /// <inheritdoc/>

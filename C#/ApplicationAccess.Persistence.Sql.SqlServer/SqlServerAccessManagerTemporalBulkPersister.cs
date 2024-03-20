@@ -235,7 +235,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// Returns a dictionary mapping types (subclasses of <see cref="TemporalEventBufferItemBase"/>) to actions which populate a row in the staging table with details of an event of that type.
         /// </summary>
         /// <returns>A dictionary keyed by type, whose value is an action which accepts a subclass of <see cref="TemporalEventBufferItemBase"/> (having the same type as the key), and a <see cref="DataRow"/>, and which populates the row with details of the event.</returns>
-        /// <remarks>Traditionally, the 'switch' statement in C# was preferred to multiple 'if / else' as apparently the compiler was able to branch tables to more quickly move to a matching condition within the statement (instead of having to iterate on average 1/2 the cases each time with 'if / else').  However <see href="https://devblogs.microsoft.com/dotnet/new-features-in-c-7-0/#switch-statements-with-patterns">since C# 7 we're now able to use non-equality / range / pattern conditions within the 'switch' statement</see>.  I haven't been able to find any documentation as to whether this has had a negative impact on performance (although difficult to see how it cannot have), however to mitigate I'm putting all the processing routines for different <see cref="TemporalEventBufferItemBase"/> subclasses into a dictionary... hence the lookup speed should at least scale equivalently to the aforementioned branch tables.</remarks>
+        /// <remarks>Traditionally, the 'switch' statement in C# was preferred to multiple 'if / else' as apparently the compiler was able to use branch tables to more quickly move to a matching condition within the statement (instead of having to iterate on average 1/2 the cases each time with 'if / else').  However <see href="https://devblogs.microsoft.com/dotnet/new-features-in-c-7-0/#switch-statements-with-patterns">since C# 7 we're now able to use non-equality / range / pattern conditions within the 'switch' statement</see>.  I haven't been able to find any documentation as to whether this has had a negative impact on performance (although difficult to see how it cannot have), however to mitigate I'm putting all the processing routines for different <see cref="TemporalEventBufferItemBase"/> subclasses into a dictionary... hence the lookup speed should at least scale equivalently to the aforementioned branch tables.</remarks>
         protected Dictionary<Type, Action<TemporalEventBufferItemBase, DataRow>> CreateEventTypeToStagingTablePopulationOperationMap()
         {
             var returnDictionary = new Dictionary<Type, Action<TemporalEventBufferItemBase, DataRow>>()
@@ -356,7 +356,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                         ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.User), userAsString);
                         ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.EntityType), typedEventBufferItem.EntityType);
                         ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Entity), typedEventBufferItem.Entity);
-                        row[eventData1ColumnName] = typedEventBufferItem.User;
+                        row[eventData1ColumnName] = userAsString;
                         row[eventData2ColumnName] = typedEventBufferItem.EntityType;
                         row[eventData3ColumnName] = typedEventBufferItem.Entity;
                     }
@@ -371,7 +371,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                         ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Group), groupAsString);
                         ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.EntityType), typedEventBufferItem.EntityType);
                         ThrowExceptionIfStringifiedEventPropertyLargerThanVarCharLimit(nameof(typedEventBufferItem.Entity), typedEventBufferItem.Entity);
-                        row[eventData1ColumnName] = typedEventBufferItem.Group;
+                        row[eventData1ColumnName] = groupAsString;
                         row[eventData2ColumnName] = typedEventBufferItem.EntityType;
                         row[eventData3ColumnName] = typedEventBufferItem.Entity;
                     }
@@ -472,13 +472,13 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// </summary>
         protected class StoredProcedureExecutionWrapper : IStoredProcedureExecutionWrapper
         {
-            /// <summary>An action which executed the stored procedure.</summary>
+            /// <summary>The action which executes the stored procedures.</summary>
             protected Action<String, IEnumerable<SqlParameter>> executeAction;
 
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister+StoredProcedureExecutionWrapper class.
             /// </summary>
-            /// <param name="executeAction"></param>
+            /// <param name="executeAction">The action which executes the stored procedures.</param>
             public StoredProcedureExecutionWrapper(Action<String, IEnumerable<SqlParameter>> executeAction)
             {
                 this.executeAction = executeAction;

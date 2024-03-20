@@ -38,6 +38,39 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         }
 
         [Test]
+        public void GenerateGetTransactionTimeOfEventQuery()
+        {
+            String eventIdAsString = "2b4a64f4-c50f-495b-a880-2a17d025cb20";
+            Guid eventId = Guid.Parse(eventIdAsString);
+            String expectedQuery =
+            @$" 
+            SELECT  CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            FROM    EventIdToTransactionTimeMap
+            WHERE   EventId = '{eventIdAsString}';";
+
+            String result = testSqlServerReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(eventId);
+
+            Assert.AreEqual(expectedQuery, result);
+        }
+
+        [Test]
+        public void GenerateGetEventCorrespondingToStateTimeQuery()
+        {
+            String expectedQuery =
+            @$" 
+            SELECT  TOP(1)
+                    CONVERT(nvarchar(40), EventId) AS 'EventId',
+                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+            FROM    EventIdToTransactionTimeMap
+            WHERE   TransactionTime <= CONVERT(datetime2, '2024-03-10T11:45:33.1234567', 126)
+            ORDER   BY TransactionTime DESC;";
+
+            String result = testSqlServerReadQueryGenerator.GenerateGetEventCorrespondingToStateTimeQuery(testOccurredTime);
+
+            Assert.AreEqual(expectedQuery, result);
+        }
+
+        [Test]
         public void GenerateGetUsersQuery()
         {
             String expectedQuery =

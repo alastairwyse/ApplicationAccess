@@ -83,6 +83,10 @@ namespace ApplicationAccess.TestHarness
             workerThreadIterationAction = () =>
             {
                 Int32 waitTime = CalculateWaitTimeForNextOperation();
+                if (waitTime > 10000)
+                {
+                    Console.WriteLine($"WARNING: Waiting for {waitTime / 1000} seconds");
+                }
                 if (waitTime > 0)
                 {
                     Thread.Sleep(waitTime);
