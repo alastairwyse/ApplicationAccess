@@ -29,6 +29,9 @@ namespace ApplicationAccess.Persistence.Sql
         /// <summary>End delimiter for reserved keywords within a SQL query.</summary>
         protected abstract String ReservedKeywordEndDelimiter { get; }
 
+        /// <summary>Delimiter (start and end) for aliases within a SQL query (i.e. after the 'AS' keyword).</summary>
+        protected abstract String AliasDelimiter { get; }
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.ReadQueryGeneratorBase class.
         /// </summary>
@@ -113,8 +116,8 @@ namespace ApplicationAccess.Persistence.Sql
             String query =
             @$" 
             SELECT  gg.Id, 
-                    fg.{ReservedKeywordStartDelimiter}Group{ReservedKeywordEndDelimiter} AS 'FromGroup', 
-                    tg.{ReservedKeywordStartDelimiter}Group{ReservedKeywordEndDelimiter} AS 'ToGroup'
+                    fg.{ReservedKeywordStartDelimiter}Group{ReservedKeywordEndDelimiter} AS {AliasDelimiter}FromGroup{AliasDelimiter}, 
+                    tg.{ReservedKeywordStartDelimiter}Group{ReservedKeywordEndDelimiter} AS {AliasDelimiter}ToGroup{AliasDelimiter}
             FROM    GroupToGroupMappings gg
                     INNER JOIN Groups fg
                       ON gg.FromGroupId = fg.Id

@@ -33,7 +33,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
     {
         /// <summary>The string to use to connect to the SQL Server database.</summary>
         protected String connectionString;
-        /// <summary>The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
+        /// <summary>The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
         protected Int32 operationTimeout;
         /// <summary>The retry logic to use when connecting to and executing against the SQL Server database.</summary>
         protected SqlRetryLogicOption sqlRetryLogicOption;
@@ -68,7 +68,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities class.
         /// </summary>
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
-        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="sqlRetryLogicOption">The retry logic to use when connecting to and executing against the SQL Server database.</param>
         /// <param name="connectionRetryAction">The action to invoke if an action is retried due to a transient error.</param>
         /// <param name="userStringifier">A string converter for users.</param>

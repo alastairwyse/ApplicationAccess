@@ -4,14 +4,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-TODO
-
---CREATE DATABASE ApplicationAccess;
---GO
-
---USE ApplicationAccess;
---GO 
-
+CREATE DATABASE "ApplicationAccess";
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -496,7 +489,7 @@ BEGIN
         UPDATE  GroupToGroupMappings 
         SET     TransactionTo = SubtractTemporalMinimumTimeUnit(TransactionTime)
         WHERE   (
-                    FromGroupIdGroupId = CurrentRowId 
+                    FromGroupId = CurrentRowId 
                     OR
                     ToGroupId = CurrentRowId 
                 )

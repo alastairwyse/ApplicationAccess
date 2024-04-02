@@ -73,7 +73,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
-        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="jsonSerializer">JSON serializer for <typeparamref name="TClientConfiguration"/> objects.</param>
         /// <param name="logger">The logger for general logging.</param>
         public SqlServerShardConfigurationSetPersister
@@ -106,7 +106,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
-        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="jsonSerializer">JSON serializer for <typeparamref name="TClientConfiguration"/> objects.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="storedProcedureExecutor">A test (mock) <see cref="IStoredProcedureExecutionWrapper"/> object.</param>

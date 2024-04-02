@@ -47,8 +47,8 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
                     builder.Services.AddOptions<AccessManagerOptions>()
                         .Bind(builder.Configuration.GetSection(AccessManagerOptions.AccessManagerOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
-                    builder.Services.AddOptions<AccessManagerSqlServerConnectionOptions>()
-                        .Bind(builder.Configuration.GetSection(AccessManagerSqlServerConnectionOptions.AccessManagerSqlServerConnectionOptionsName))
+                    builder.Services.AddOptions<AccessManagerSqlDatabaseConnectionOptions>()
+                        .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<EventBufferFlushingOptions>()
                         .Bind(builder.Configuration.GetSection(EventBufferFlushingOptions.EventBufferFlushingOptionsName))

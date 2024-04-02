@@ -41,14 +41,17 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
               ""AccessManager"": {
                 ""StoreBidirectionalMappings"": true
               },
-              ""AccessManagerSqlServerConnection"": {
-                ""DataSource"": ""118.182.2.139"",
-                ""InitialCatalog"": ""ApplicationAccess"",
-                ""UserId"": ""sa"",
-                ""Password"": ""mypassword"",
-                ""RetryCount"": 10,
-                ""RetryInterval"": 20,
-                ""OperationTimeout"": 0
+              ""AccessManagerSqlDatabaseConnection"": {
+                ""DatabaseType"": ""SqlServer"",
+                ""ConnectionParameters"": {
+                  ""DataSource"": ""118.182.2.139"",
+                  ""InitialCatalog"": ""ApplicationAccess"",
+                  ""UserId"": ""sa"",
+                  ""Password"": ""mypassword"",
+                  ""RetryCount"": 10,
+                  ""RetryInterval"": 20,
+                  ""OperationTimeout"": 0
+                }
               },
               ""EventBufferFlushing"": {
                 ""BufferSizeLimit"": 50,

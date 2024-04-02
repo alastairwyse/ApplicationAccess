@@ -22,7 +22,7 @@ namespace ApplicationAccess.TestHarness.Configuration
     class DatabaseConnectionConfigurationReader : ConfigurationReaderBase
     {
         protected const String dataSourcePropertyName = "DataSource";
-        protected const String initialCataloguePropertyName = "InitialCatalogue";
+        protected const String initialCataloguePropertyName = "InitialCatalog";
         protected const String userIdPropertyName = "UserId";
         protected const String passwordPropertyName = "Password";
         protected const String retryCountPropertyName = "RetryCount";

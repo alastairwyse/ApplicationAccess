@@ -48,7 +48,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
         public DistributedReaderNodeHostedServiceWrapper
         (
             IOptions<AccessManagerOptions> accessManagerOptions,
-            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
+            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<EventCacheRefreshOptions> eventCacheRefreshOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -64,7 +64,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
             : base
         (
             accessManagerOptions,
-            accessManagerSqlServerConnectionOptions,
+            accessManagerSqlDatabaseConnectionOptions,
             eventCacheConnectionOptions,
             eventCacheRefreshOptions,
             metricLoggingOptions,

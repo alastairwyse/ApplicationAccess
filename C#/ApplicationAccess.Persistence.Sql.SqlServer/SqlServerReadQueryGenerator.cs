@@ -39,6 +39,12 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             get { return "]"; }
         }
 
+        /// <inheritdoc/>
+        protected override string AliasDelimiter
+        {
+            get { return "'"; }
+        }
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator class.
         /// </summary>

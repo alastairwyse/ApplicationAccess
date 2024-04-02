@@ -76,7 +76,7 @@
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -90,7 +90,7 @@
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -105,7 +105,7 @@
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -181,7 +181,7 @@
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -195,7 +195,7 @@
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -413,7 +413,7 @@
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -427,7 +427,7 @@
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="userStringifier">A string converter for users.</param>
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -459,7 +459,7 @@
             <summary>The time in seconds between operation retries.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterBase.operationTimeout">
-            <summary>The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
+            <summary>The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterBase.logger">
             <summary>The logger for general logging.</summary>
@@ -485,7 +485,7 @@
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
             <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
             <param name="retryInterval">The time in seconds between operation retries.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="logger">The logger for general logging.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterBase.GenerateSqlServerTransientErrorNumbers">
@@ -524,7 +524,7 @@
             <summary>The string to use to connect to the SQL Server database.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.operationTimeout">
-            <summary>The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
+            <summary>The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.sqlRetryLogicOption">
             <summary>The retry logic to use when connecting to and executing against the SQL Server database.</summary>
@@ -546,7 +546,7 @@
             Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities class.
             </summary>
             <param name="connectionString">The string to use to connect to the SQL Server database.</param>
-            <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+            <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
             <param name="sqlRetryLogicOption">The retry logic to use when connecting to and executing against the SQL Server database.</param>
             <param name="connectionRetryAction">The action to invoke if an action is retried due to a transient error.</param>
             <param name="userStringifier">A string converter for users.</param>
@@ -603,6 +603,9 @@
             <inheritdoc/>
         </member>
         <member name="P:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.ReservedKeywordEndDelimiter">
+            <inheritdoc/>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.AliasDelimiter">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerReadQueryGenerator.#ctor">

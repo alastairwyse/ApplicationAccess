@@ -23,15 +23,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Data.SqlClient;
 using ApplicationAccess.Distribution;
-using ApplicationAccess.Distribution.Persistence.SqlServer;
 using ApplicationAccess.Distribution.Serialization;
+using ApplicationAccess.Hosting.Metrics;
+using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
-using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
+using ApplicationAccess.Distribution.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
 {
@@ -42,7 +44,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
     public class DistributedOperationCoordinatorNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection
-        protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
+        protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected ShardConfigurationRefreshOptions shardConfigurationRefreshOptions;
         protected ShardConnectionOptions shardConnectionOptions;
         protected MetricLoggingOptions metricLoggingOptions;
@@ -56,8 +58,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         protected LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy shardConfigurationRefreshStrategy;
         /// <summary>Performs the underlying processing of operations.</summary>
         protected DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration> distributedOperationCoordinator;
-        /// <summary>Used to read shard configuration from a Microsoft SQL Server database.</summary>
-        protected SqlServerShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister;
+        /// <summary>Used to read shard configuration from a SQL database.</summary>
+        protected IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister;
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
         /// <summary>The logger for metrics.</summary>
@@ -70,7 +72,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         /// </summary>
         public DistributedOperationCoordinatorNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
+            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<ShardConfigurationRefreshOptions> shardConfigurationRefreshOptions,
             IOptions<ShardConnectionOptions> shardConnectionOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -79,7 +81,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger
         )
         {
-            this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
+            this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.shardConfigurationRefreshOptions = shardConfigurationRefreshOptions.Value;
             this.shardConnectionOptions = shardConnectionOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
@@ -98,7 +100,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             // Initialize the DistributedOperationCoordinatorNode constructor parameter members from configuration
             InitializeDistributedOperationCoordinatorNodeConstructorParameters
             (
-                accessManagerSqlServerConnectionOptions,
+                accessManagerSqlDatabaseConnectionOptions,
                 shardConfigurationRefreshOptions,
                 shardConnectionOptions, 
                 metricLoggingOptions,
@@ -153,7 +155,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 logger.LogInformation($"Completed stopping {nameof(metricLogger)}.");
             }
             logger.LogInformation($"Disposing objects...");
-            shardConfigurationSetPersister.Dispose();
+            if (shardConfigurationSetPersister is IDisposable)
+            {
+                ((IDisposable)shardConfigurationSetPersister).Dispose();
+            }
             shardClientManager.Dispose();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
@@ -175,24 +180,13 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         /// </summary>
         protected void InitializeDistributedOperationCoordinatorNodeConstructorParameters
         (
-            AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions,
+            AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions,
             ShardConfigurationRefreshOptions shardConfigurationRefreshOptions,
             ShardConnectionOptions shardConnectionOptions,
             MetricLoggingOptions metricLoggingOptions,
             ILoggerFactory loggerFactory
         )
         {
-            // Setup the database connection for the shard configuration
-            var accessManagerConnectionStringBuilder = new SqlConnectionStringBuilder();
-            accessManagerConnectionStringBuilder.DataSource = accessManagerSqlServerConnectionOptions.DataSource;
-            // TODO: Need to enable this once I find a way to inject cert details etc into
-            accessManagerConnectionStringBuilder.Encrypt = false;
-            accessManagerConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
-            accessManagerConnectionStringBuilder.InitialCatalog = accessManagerSqlServerConnectionOptions.InitialCatalog;
-            accessManagerConnectionStringBuilder.UserID = accessManagerSqlServerConnectionOptions.UserId;
-            accessManagerConnectionStringBuilder.Password = accessManagerSqlServerConnectionOptions.Password;
-            String accessManagerConnectionString = accessManagerConnectionStringBuilder.ConnectionString;
-
             if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
                 throw new Exception($"Configuration option '{nameof(metricLoggingOptions.MetricLoggingEnabled)}' must be set true for the DistributedOperationCoordinatorNode." );
@@ -206,20 +200,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                     sqlServerMetricLoggerCategoryName = $"{sqlServerMetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
                 }
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                switch (metricBufferProcessingOptions.BufferProcessingStrategy)
-                {
-                    case MetricBufferProcessingStrategyImplementation.SizeLimitedBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new SizeLimitedBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit);
-                        break;
-                    case MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new LoopingWorkerThreadBufferProcessor(metricBufferProcessingOptions.DequeueOperationLoopInterval);
-                        break;
-                    case MetricBufferProcessingStrategyImplementation.SizeLimitedLoopingWorkerThreadHybridBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit, metricBufferProcessingOptions.DequeueOperationLoopInterval);
-                        break;
-                    default:
-                        throw new Exception($"Encountered unhandled {nameof(MetricBufferProcessingStrategyImplementation)} '{metricBufferProcessingOptions.BufferProcessingStrategy}' while attempting to create {nameof(DistributedOperationCoordinatorNode<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>)} constructor parameters.");
-                }
+                var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
+                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions);
                 MetricsSqlServerConnectionOptions metricsSqlServerConnectionOptions = metricLoggingOptions.MetricsSqlServerConnection;
                 var metricsConnectionStringBuilder = new SqlConnectionStringBuilder();
                 metricsConnectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;
@@ -268,17 +250,27 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 var clientConfigurationJsonSerializer = new AccessManagerRestClientConfigurationJsonSerializer();
                 IApplicationLogger shardConfigurationSetPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
-                    loggerFactory.CreateLogger<SqlServerShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>>()
+                    loggerFactory.CreateLogger<IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>>()
                 );
-                shardConfigurationSetPersister = new SqlServerShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>
+
+                // Setup the persister to read the shard configuration
+                if (accessManagerSqlDatabaseConnectionOptions.DatabaseType != DatabaseType.SqlServer)
+                {
+                    throw new Exception($"Configuration option '{nameof(accessManagerSqlDatabaseConnectionOptions.DatabaseType)}' must be set to '{DatabaseType.SqlServer}' for the DistributedOperationCoordinatorNode.");
+                }
+                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
+                SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    accessManagerConnectionString,
-                    accessManagerSqlServerConnectionOptions.RetryCount,
-                    accessManagerSqlServerConnectionOptions.RetryInterval,
-                    accessManagerSqlServerConnectionOptions.OperationTimeout,
+                    accessManagerSqlDatabaseConnectionOptions.DatabaseType,
+                    accessManagerSqlDatabaseConnectionOptions.ConnectionParameters,
+                    AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName
+                );
+                var shardConfigurationSetPersisterFactory = new SqlShardConfigurationSetPersisterFactory<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>
+                (
                     clientConfigurationJsonSerializer,
                     shardConfigurationSetPersisterLogger
                 );
+                shardConfigurationSetPersister = shardConfigurationSetPersisterFactory.GetPersister(databaseConnectionParameters);
                 var hashCodeGenerator = new DefaultStringHashCodeGenerator();
                 // Read the initial shard configuration
                 logger.LogInformation($"Reading initial shard configuration...");

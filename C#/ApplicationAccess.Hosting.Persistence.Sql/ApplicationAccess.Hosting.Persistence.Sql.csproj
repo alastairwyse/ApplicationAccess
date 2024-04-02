@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>disable</Nullable>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <Description>Classes which facilitate persistence of data in an ApplicationAccess hosting environment.</Description>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence.SqlServer\ApplicationAccess.Distribution.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence\ApplicationAccess.Distribution.Persistence.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.PostgreSql\ApplicationAccess.Persistence.Sql.PostgreSql.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

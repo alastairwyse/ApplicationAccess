@@ -30,7 +30,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : SqlServerAccessManagerTemporalPersisterBase<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public class SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : SqlServerAccessManagerTemporalPersisterBase<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
         // TODO:
         //   Move 'storedProcedureExecutor' member to base class
@@ -100,7 +100,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
-        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -149,7 +149,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
-        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
@@ -180,7 +180,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <param name="connectionString">The string to use to connect to the SQL Server database.</param>
         /// <param name="retryCount">The number of times an operation against the SQL Server database should be retried in the case of execution failure.</param>
         /// <param name="retryInterval">The time in seconds between operation retries.</param>
-        /// <param name="operationTimeout">The timeout in seconds before terminating am operation against the SQL Server database.  A value of 0 indicates no limit.</param>
+        /// <param name="operationTimeout">The timeout in seconds before terminating an operation against the SQL Server database.  A value of 0 indicates no limit.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>

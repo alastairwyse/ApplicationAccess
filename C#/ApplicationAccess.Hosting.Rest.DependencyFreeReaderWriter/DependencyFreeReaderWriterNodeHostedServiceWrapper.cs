@@ -44,7 +44,7 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
         public DependencyFreeReaderWriterNodeHostedServiceWrapper
         (
             IOptions<AccessManagerOptions> accessManagerOptions,
-            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
+            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
@@ -61,7 +61,7 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
             : base
         (
             accessManagerOptions,
-            accessManagerSqlServerConnectionOptions,
+            accessManagerSqlDatabaseConnectionOptions, 
             eventBufferFlushingOptions,
             metricLoggingOptions,
             entityEventProcessorHolder,

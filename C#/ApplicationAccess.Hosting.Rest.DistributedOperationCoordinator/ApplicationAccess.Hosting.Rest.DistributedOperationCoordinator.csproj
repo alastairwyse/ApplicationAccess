@@ -32,8 +32,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence.SqlServer\ApplicationAccess.Distribution.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Metrics\ApplicationAccess.Hosting.Metrics.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Persistence.Sql\ApplicationAccess.Hosting.Persistence.Sql.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting\ApplicationAccess.Hosting.csproj" />
   </ItemGroup>

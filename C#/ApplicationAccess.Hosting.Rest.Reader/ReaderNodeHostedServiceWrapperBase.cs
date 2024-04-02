@@ -21,10 +21,13 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ApplicationAccess.Hosting.Metrics;
+using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Hosting.Rest.Client;
 using ApplicationAccess.Metrics;
-using ApplicationAccess.Persistence.Sql.SqlServer;
+using ApplicationAccess.Persistence;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationMetrics.MetricLoggers;
@@ -44,7 +47,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
     {
         // Members passed in via dependency injection
         protected AccessManagerOptions accessManagerOptions;
-        protected AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions;
+        protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
         protected EventCacheRefreshOptions eventCacheRefreshOptions;
         protected MetricLoggingOptions metricLoggingOptions;
@@ -60,7 +63,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         /// <summary>Interface to a cache for events which change the AccessManager, and which are used to refresh the reader node.</summary>
         protected EventCacheClient<String, String, String, String> eventCacheClient;
         /// <summary>Used to load data from the AccessManager.</summary>
-        protected SqlServerAccessManagerTemporalBulkPersister<String, String, String, String> persistentReader;
+        protected IAccessManagerTemporalBulkPersister<String, String, String, String> persistentReader;
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
         /// <summary>The logger for metrics.</summary>
@@ -77,7 +80,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         public ReaderNodeHostedServiceWrapperBase
         (
             IOptions<AccessManagerOptions> accessManagerOptions,
-            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
+            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<EventCacheRefreshOptions> eventCacheRefreshOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -90,7 +93,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         )
         {
             this.accessManagerOptions = accessManagerOptions.Value;
-            this.accessManagerSqlServerConnectionOptions = accessManagerSqlServerConnectionOptions.Value;
+            this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;
             this.eventCacheRefreshOptions = eventCacheRefreshOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
@@ -112,7 +115,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             // Initialize the ReaderNode constructor parameter members from configuration
             InitializeReaderNodeConstructorParameters
             (
-                accessManagerSqlServerConnectionOptions,
+                accessManagerSqlDatabaseConnectionOptions,
                 eventCacheConnectionOptions,
                 eventCacheRefreshOptions,
                 metricLoggingOptions,
@@ -194,7 +197,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         /// </summary>
         protected void InitializeReaderNodeConstructorParameters
         (
-            AccessManagerSqlServerConnectionOptions accessManagerSqlServerConnectionOptions,
+            AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions,
             EventCacheConnectionOptions eventCacheConnectionOptions,
             EventCacheRefreshOptions eventCacheRefreshOptions,
             MetricLoggingOptions metricLoggingOptions,
@@ -209,19 +212,19 @@ namespace ApplicationAccess.Hosting.Rest.Reader
 
             refreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(eventCacheRefreshOptions.RefreshInterval);
 
-            var accessManagerConnectionStringBuilder = new SqlConnectionStringBuilder();
-            accessManagerConnectionStringBuilder.DataSource = accessManagerSqlServerConnectionOptions.DataSource;
-            // TODO: Need to enable this once I find a way to inject cert details etc into
-            accessManagerConnectionStringBuilder.Encrypt = false;
-            accessManagerConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
-            accessManagerConnectionStringBuilder.InitialCatalog = accessManagerSqlServerConnectionOptions.InitialCatalog;
-            accessManagerConnectionStringBuilder.UserID = accessManagerSqlServerConnectionOptions.UserId;
-            accessManagerConnectionStringBuilder.Password = accessManagerSqlServerConnectionOptions.Password;
-            String accessManagerConnectionString = accessManagerConnectionStringBuilder.ConnectionString;
             IApplicationLogger eventPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
             (
-                loggerFactory.CreateLogger<SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>>()
+                loggerFactory.CreateLogger<IAccessManagerTemporalBulkPersister<String, String, String, String>>()
             );
+
+            var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
+            SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
+            (
+                accessManagerSqlDatabaseConnectionOptions.DatabaseType,
+                accessManagerSqlDatabaseConnectionOptions.ConnectionParameters,
+                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName
+            );
+
             Uri eventCacheClientBaseUri = null;
             try
             {
@@ -234,18 +237,15 @@ namespace ApplicationAccess.Hosting.Rest.Reader
 
             if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
-                persistentReader = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
+                var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
                 (
-                    accessManagerConnectionString,
-                    accessManagerSqlServerConnectionOptions.RetryCount,
-                    accessManagerSqlServerConnectionOptions.RetryInterval,
-                    accessManagerSqlServerConnectionOptions.OperationTimeout,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     eventPersisterLogger
                 );
+                persistentReader = eventPersisterFactory.GetPersister(databaseConnectionParameters);
                 eventCacheClient = new EventCacheClient<String, String, String, String>
                 (
                     eventCacheClientBaseUri,
@@ -260,20 +260,8 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             else
             {
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                switch (metricBufferProcessingOptions.BufferProcessingStrategy)
-                {
-                    case MetricBufferProcessingStrategyImplementation.SizeLimitedBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new SizeLimitedBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit);
-                        break;
-                    case MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new LoopingWorkerThreadBufferProcessor(metricBufferProcessingOptions.DequeueOperationLoopInterval);
-                        break;
-                    case MetricBufferProcessingStrategyImplementation.SizeLimitedLoopingWorkerThreadHybridBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit, metricBufferProcessingOptions.DequeueOperationLoopInterval);
-                        break;
-                    default:
-                        throw new Exception($"Encountered unhandled {nameof(MetricBufferProcessingStrategyImplementation)} '{metricBufferProcessingOptions.BufferProcessingStrategy}' while attempting to create {nameof(ReaderWriterNode<String, String, String, String>)} constructor parameters.");
-                }
+                var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
+                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions);
                 MetricsSqlServerConnectionOptions metricsSqlServerConnectionOptions = metricLoggingOptions.MetricsSqlServerConnection;
                 var metricsConnectionStringBuilder = new SqlConnectionStringBuilder();
                 metricsConnectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;
@@ -300,19 +288,16 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     true,
                     metricLoggerLogger
                 );
-                persistentReader = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
+                var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
                 (
-                    accessManagerConnectionString,
-                    accessManagerSqlServerConnectionOptions.RetryCount,
-                    accessManagerSqlServerConnectionOptions.RetryInterval,
-                    accessManagerSqlServerConnectionOptions.OperationTimeout,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    eventPersisterLogger,
+                    eventPersisterLogger, 
                     metricLogger
                 );
+                persistentReader = eventPersisterFactory.GetPersister(databaseConnectionParameters);
                 IApplicationLogger eventCacheClientLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
                     loggerFactory.CreateLogger<EventCacheClient<String, String, String, String>>()

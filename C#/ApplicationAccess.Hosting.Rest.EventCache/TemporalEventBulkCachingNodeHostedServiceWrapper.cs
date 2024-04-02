@@ -17,6 +17,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ApplicationAccess.Hosting.Metrics;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Persistence;
 using Microsoft.Data.SqlClient;
@@ -152,20 +153,8 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                switch (metricBufferProcessingOptions.BufferProcessingStrategy)
-                {
-                    case MetricBufferProcessingStrategyImplementation.SizeLimitedBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new SizeLimitedBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit);
-                        break;
-                    case MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new LoopingWorkerThreadBufferProcessor(metricBufferProcessingOptions.DequeueOperationLoopInterval);
-                        break;
-                    case MetricBufferProcessingStrategyImplementation.SizeLimitedLoopingWorkerThreadHybridBufferProcessor:
-                        metricLoggerBufferProcessingStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit, metricBufferProcessingOptions.DequeueOperationLoopInterval);
-                        break;
-                    default:
-                        throw new Exception($"Encountered unhandled {nameof(MetricBufferProcessingStrategyImplementation)} '{metricBufferProcessingOptions.BufferProcessingStrategy}' while attempting to create {nameof(TemporalEventBulkCachingNode<String, String, String, String>)} constructor parameters.");
-                }
+                var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
+                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions);
                 MetricsSqlServerConnectionOptions metricsSqlServerConnectionOptions = metricLoggingOptions.MetricsSqlServerConnection;
                 var connectionStringBuilder = new SqlConnectionStringBuilder();
                 connectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;

@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Description>Common utilities for classes in the ApplicationAccess and associated namespaces.</Description>
     <Authors>Alastair Wyse</Authors>
     <Company />

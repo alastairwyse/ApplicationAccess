@@ -44,7 +44,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         public DistributedWriterNodeHostedServiceWrapper
         (
             IOptions<AccessManagerOptions> accessManagerOptions,
-            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
+            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -58,7 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
             : base
         (
             accessManagerOptions,
-            accessManagerSqlServerConnectionOptions,
+            accessManagerSqlDatabaseConnectionOptions,
             eventBufferFlushingOptions,
             eventCacheConnectionOptions,
             metricLoggingOptions,

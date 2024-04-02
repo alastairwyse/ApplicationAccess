@@ -36,20 +36,8 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public class PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public class PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
-        // Connection command timeout is 30 sec by default... should offer as config param or extend
-        // COnnetionLifetime should be set to max
-        // Can set CA/root cert location on connection
-        // Should set encoding for string data
-        // IncludeErrorDetail
-        // SslCertificate
-        // Timeout
-        // TrustServerCrt
-        // Possible info on transient retry
-        //   https://learn.microsoft.com/en-us/azure/postgresql/single-server/concepts-connectivity
-        //   https://www.npgsql.org/doc/connection-string-parameters.html
-
         #pragma warning disable 1591
 
         protected const String processEventsStoredProcedureName = "ProcessEvents";

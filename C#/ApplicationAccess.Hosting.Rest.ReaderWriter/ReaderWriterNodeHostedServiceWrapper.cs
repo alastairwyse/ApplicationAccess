@@ -42,7 +42,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         public ReaderWriterNodeHostedServiceWrapper
         (
             IOptions<AccessManagerOptions> accessManagerOptions,
-            IOptions<AccessManagerSqlServerConnectionOptions> accessManagerSqlServerConnectionOptions,
+            IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
@@ -59,7 +59,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             :base
         (
             accessManagerOptions,
-            accessManagerSqlServerConnectionOptions,
+            accessManagerSqlDatabaseConnectionOptions,
             eventBufferFlushingOptions,
             metricLoggingOptions,
             entityEventProcessorHolder,
