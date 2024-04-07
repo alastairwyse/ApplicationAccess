@@ -160,7 +160,7 @@ namespace ApplicationAccess.Hosting.Rest
             var metricLoggingOptions = new MetricLoggingOptions();
             ValidateConfigurationSection(builder, metricLoggingOptions, MetricLoggingOptions.MetricLoggingOptionsName);
             ValidateConfigurationSection(builder, metricLoggingOptions.MetricBufferProcessing, MetricBufferProcessingOptions.MetricBufferProcessingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricsSqlServerConnection, MetricsSqlServerConnectionOptions.MetricsSqlServerConnectionOptionsName);
+            ValidateConfigurationSection(builder, metricLoggingOptions.MetricsSqlDatabaseConnection, MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection);
 
             // Register 'holder' classes for the interfaces that comprise IAccessManager
             //   See notes in remarks of class UserQueryProcessorHolder for an explanation
@@ -263,7 +263,7 @@ namespace ApplicationAccess.Hosting.Rest
             var metricLoggingOptions = new MetricLoggingOptions();
             ValidateConfigurationSection(builder, metricLoggingOptions, MetricLoggingOptions.MetricLoggingOptionsName);
             ValidateConfigurationSection(builder, metricLoggingOptions.MetricBufferProcessing, MetricBufferProcessingOptions.MetricBufferProcessingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricsSqlServerConnection, MetricsSqlServerConnectionOptions.MetricsSqlServerConnectionOptionsName);
+            ValidateConfigurationSection(builder, metricLoggingOptions.MetricsSqlDatabaseConnection, MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection);
         }
 
         /// <summary>

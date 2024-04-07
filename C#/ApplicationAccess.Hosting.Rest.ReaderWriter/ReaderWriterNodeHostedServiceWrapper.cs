@@ -31,7 +31,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         : ReaderWriterNodeHostedServiceWrapperBase<ReaderWriterNode<String, String, String, String>, MetricLoggingConcurrentAccessManager<String, String, String, String>>
     {
         /// <inheritdoc/>
-        protected override String SqlServerMetricLoggerCategoryName 
+        protected override String MetricLoggerCategoryName 
         {
             get { return "ApplicationAccessReaderWriterNode"; }
         }

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ using System;
 namespace ApplicationAccess.Hosting.Models.Options
 {
     /// <summary>
-    /// Container class storing options for connecting to the Microsoft SQL Server database which is used to log metrics, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
+    /// Container class storing options for connecting to a SQL database which is used to log metrics, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
     /// </summary>
-    public class MetricsSqlServerConnectionOptions : SqlServerConnectionOptions
+    public class MetricsSqlDatabaseConnectionOptions : SqlDatabaseConnectionOptions
     {
-        public const String MetricsSqlServerConnectionOptionsName = "MetricsSqlServerConnection";
+        public const String MetricsSqlDatabaseConnection = "MetricsSqlDatabaseConnection";
     }
 }

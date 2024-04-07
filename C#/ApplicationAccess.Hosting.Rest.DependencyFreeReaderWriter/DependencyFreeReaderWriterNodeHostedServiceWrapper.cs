@@ -33,7 +33,7 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
         : ReaderWriterNodeHostedServiceWrapperBase<DependencyFreeReaderWriterNode<String, String, String, String>, MetricLoggingDependencyFreeAccessManager<String, String, String, String>>
     {
         /// <inheritdoc/>
-        protected override String SqlServerMetricLoggerCategoryName
+        protected override String MetricLoggerCategoryName
         {
             get { return "ApplicationAccessDependencyFreeReaderWriterNode"; }
         }

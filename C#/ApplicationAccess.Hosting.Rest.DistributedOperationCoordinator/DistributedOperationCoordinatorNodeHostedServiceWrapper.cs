@@ -30,7 +30,6 @@ using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationMetrics.MetricLoggers;
-using ApplicationMetrics.MetricLoggers.SqlServer;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationAccess.Distribution.Persistence;
@@ -63,7 +62,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
         /// <summary>The logger for metrics.</summary>
-        protected SqlServerMetricLogger metricLogger;
+        protected MetricLoggerBuffer metricLogger;
         /// <summary>The <see cref="DistributedOperationCoordinatorNode{TClientConfiguration, TClientConfigurationJsonSerializer}"/></summary>
         protected DistributedOperationCoordinatorNode<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> distributedOperationCoordinatorNode;
 
@@ -194,40 +193,34 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             else
             {
                 // Setup metric logging
-                String sqlServerMetricLoggerCategoryName = "DistributedOperationCoordinatorNode";
+                String metricLoggerCategoryName = "DistributedOperationCoordinatorNode";
                 if (metricLoggingOptions.MetricCategorySuffix != "")
                 {
-                    sqlServerMetricLoggerCategoryName = $"{sqlServerMetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
+                    metricLoggerCategoryName = $"{metricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
                 }
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
                 var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
                 metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions);
-                MetricsSqlServerConnectionOptions metricsSqlServerConnectionOptions = metricLoggingOptions.MetricsSqlServerConnection;
-                var metricsConnectionStringBuilder = new SqlConnectionStringBuilder();
-                metricsConnectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;
-                // TODO: Need to enable this once I find a way to inject cert details etc into
-                metricsConnectionStringBuilder.Encrypt = false;
-                metricsConnectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
-                metricsConnectionStringBuilder.InitialCatalog = metricsSqlServerConnectionOptions.InitialCatalog;
-                metricsConnectionStringBuilder.UserID = metricsSqlServerConnectionOptions.UserId;
-                metricsConnectionStringBuilder.Password = metricsSqlServerConnectionOptions.Password;
-                String metricsConnectionString = metricsConnectionStringBuilder.ConnectionString;
+                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
+                SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
+                (
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType,
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
+                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection
+                );
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
-                    loggerFactory.CreateLogger<SqlServerMetricLogger>()
+                    loggerFactory.CreateLogger<MetricLoggerBuffer>()
                 );
-                metricLogger = new SqlServerMetricLogger
+                var metricLoggerFactory = new SqlMetricLoggerFactory
                 (
-                    sqlServerMetricLoggerCategoryName,
-                    metricsConnectionString,
-                    metricsSqlServerConnectionOptions.RetryCount,
-                    metricsSqlServerConnectionOptions.RetryInterval,
-                    metricsSqlServerConnectionOptions.OperationTimeout,
+                    metricLoggerCategoryName,
                     metricLoggerBufferProcessingStrategy,
                     IntervalMetricBaseTimeUnit.Nanosecond,
                     true,
                     metricLoggerLogger
                 );
+                metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
 
                 // Setup the DistributedAccessManagerAsyncClientFactory (required constructor parameter for ShardClientManager)
                 IApplicationLogger clientFactoryLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
@@ -258,7 +251,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 {
                     throw new Exception($"Configuration option '{nameof(accessManagerSqlDatabaseConnectionOptions.DatabaseType)}' must be set to '{DatabaseType.SqlServer}' for the DistributedOperationCoordinatorNode.");
                 }
-                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
                 SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
                     accessManagerSqlDatabaseConnectionOptions.DatabaseType,

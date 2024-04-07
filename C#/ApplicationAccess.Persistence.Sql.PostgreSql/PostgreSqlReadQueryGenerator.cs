@@ -46,7 +46,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.PostgreSqlReadQueryGenerator class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator class.
         /// </summary>
         public PostgreSqlReadQueryGenerator()
             : base()

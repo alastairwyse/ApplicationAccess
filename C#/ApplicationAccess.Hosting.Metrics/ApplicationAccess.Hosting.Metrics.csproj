@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Description>Classes which facilitate metric logging in an ApplicationAccess hosting environment.</Description>
     <Authors>Alastair Wyse</Authors>
@@ -12,10 +12,18 @@
 
   <ItemGroup>
     <PackageReference Include="ApplicationMetrics" Version="6.2.0" />
+    <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="2.2.0" />
+    <PackageReference Include="Npgsql" Version="8.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models.Options\ApplicationAccess.Hosting.Models.Options.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ApplicationMetrics.MetricLoggers.PostgreSql">
+      <HintPath>..\..\..\..\C#\ApplicationMetrics.MetricLoggers.PostgreSql\ApplicationMetrics.MetricLoggers.PostgreSql\bin\Release\netstandard2.1\ApplicationMetrics.MetricLoggers.PostgreSql.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

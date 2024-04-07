@@ -65,7 +65,9 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
                   ""BufferSizeLimit"": 500,
                   ""DequeueOperationLoopInterval"": 30000
                 },
-                ""MetricsSqlServerConnection"": {
+                ""MetricsSqlDatabaseConnection"": {
+                ""DatabaseType"": ""SqlServer"",
+                ""ConnectionParameters"": {
                   ""DataSource"": ""118.182.2.139"",
                   ""InitialCatalog"": ""ApplicationMetrics"",
                   ""UserId"": ""sa"",
@@ -73,6 +75,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
                   ""RetryCount"": 10,
                   ""RetryInterval"": 20,
                   ""OperationTimeout"": 0
+                  }
                 }
               },
               ""ErrorHandling"": {

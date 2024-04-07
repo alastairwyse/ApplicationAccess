@@ -315,13 +315,13 @@ DECLARE
     TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
-    LOCK TABLE public.Users IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.Users IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.UserToGroupMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.UserToGroupMappings IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.UserToApplicationComponentAndAccessLevelMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.UserToApplicationComponentAndAccessLevelMappings IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.UserToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.UserToEntityMappings IN EXCLUSIVE MODE;
 
     SELECT  Id 
     INTO    CurrentRowId
@@ -445,15 +445,15 @@ DECLARE
     TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
-    LOCK TABLE public.Groups IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.Groups IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.UserToGroupMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.UserToGroupMappings IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.GroupToGroupMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.GroupToGroupMappings IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.GroupToApplicationComponentAndAccessLevelMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.GroupToApplicationComponentAndAccessLevelMappings IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.GroupToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.GroupToEntityMappings IN EXCLUSIVE MODE;
 
     SELECT  Id 
     INTO    CurrentRowId
@@ -1286,13 +1286,13 @@ DECLARE
     TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
-    LOCK TABLE public.EntityTypes IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.EntityTypes IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.Entities IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.Entities IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.UserToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.UserToEntityMappings IN EXCLUSIVE MODE;
 
-    LOCK TABLE public.GroupToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.GroupToEntityMappings IN EXCLUSIVE MODE;
 
     SELECT  Id 
     INTO    CurrentRowId
@@ -1425,11 +1425,11 @@ DECLARE
     TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
 BEGIN 
 
-    LOCK TABLE public.Entities IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.Entities IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.UserToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.UserToEntityMappings IN EXCLUSIVE MODE;
     
-    LOCK TABLE public.GroupToEntityMappings IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE public.GroupToEntityMappings IN EXCLUSIVE MODE;
 
     SELECT  Id 
     INTO    CurrentRowId

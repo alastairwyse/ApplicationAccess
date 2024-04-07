@@ -18,6 +18,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using ApplicationAccess.Hosting.Metrics;
+using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Persistence;
 using Microsoft.Data.SqlClient;
@@ -27,7 +28,6 @@ using Microsoft.Extensions.Logging;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationMetrics.MetricLoggers;
-using ApplicationMetrics.MetricLoggers.SqlServer;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache
 {
@@ -48,7 +48,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
         /// <summary>The logger for metrics.</summary>
-        protected SqlServerMetricLogger metricLogger;
+        protected MetricLoggerBuffer metricLogger;
         /// <summary>The <see cref="TemporalEventBulkCachingNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
         protected TemporalEventBulkCachingNode<String, String, String, String> cachingNode;
 
@@ -144,10 +144,10 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         /// </summary>
         protected void InitializeCachingNodeConstructorParameters(MetricLoggingOptions metricLoggingOptions)
         {
-            String sqlServerMetricLoggerCategoryName = "ApplicationAccessEventCachingNode";
+            String metricLoggerCategoryName = "ApplicationAccessEventCachingNode";
             if (metricLoggingOptions.MetricCategorySuffix != "")
             {
-                sqlServerMetricLoggerCategoryName = $"{sqlServerMetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
+                metricLoggerCategoryName = $"{metricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
             }
 
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
@@ -155,32 +155,26 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
                 var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
                 metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions);
-                MetricsSqlServerConnectionOptions metricsSqlServerConnectionOptions = metricLoggingOptions.MetricsSqlServerConnection;
-                var connectionStringBuilder = new SqlConnectionStringBuilder();
-                connectionStringBuilder.DataSource = metricsSqlServerConnectionOptions.DataSource;
-                // TODO: Need to enable this once I find a way to inject cert details etc into
-                connectionStringBuilder.Encrypt = false;
-                connectionStringBuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
-                connectionStringBuilder.InitialCatalog = metricsSqlServerConnectionOptions.InitialCatalog;
-                connectionStringBuilder.UserID = metricsSqlServerConnectionOptions.UserId;
-                connectionStringBuilder.Password = metricsSqlServerConnectionOptions.Password;
-                String connectionString = connectionStringBuilder.ConnectionString;
+                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
+                SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
+                (
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType,
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
+                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection
+                );
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
-                    loggerFactory.CreateLogger<SqlServerMetricLogger>()
+                    loggerFactory.CreateLogger<MetricLoggerBuffer>()
                 );
-                metricLogger = new SqlServerMetricLogger
+                var metricLoggerFactory = new SqlMetricLoggerFactory
                 (
-                    sqlServerMetricLoggerCategoryName,
-                    connectionString,
-                    metricsSqlServerConnectionOptions.RetryCount,
-                    metricsSqlServerConnectionOptions.RetryInterval,
-                    metricsSqlServerConnectionOptions.OperationTimeout, 
-                    metricLoggerBufferProcessingStrategy, 
-                    IntervalMetricBaseTimeUnit.Nanosecond, 
+                    metricLoggerCategoryName,
+                    metricLoggerBufferProcessingStrategy,
+                    IntervalMetricBaseTimeUnit.Nanosecond,
                     true,
                     metricLoggerLogger
                 );
+                metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
             }
         }
     }

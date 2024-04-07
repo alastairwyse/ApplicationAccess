@@ -22,7 +22,7 @@ using NUnit.Framework.Internal;
 namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Persistence.Sql.SqlServer.PostgreSqlReadQueryGenerator class.
+    /// Unit tests for the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator class.
     /// </summary>
     public class PostgreSqlReadQueryGeneratorTests
     {

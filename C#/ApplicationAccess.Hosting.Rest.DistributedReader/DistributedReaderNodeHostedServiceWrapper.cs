@@ -37,7 +37,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
         protected DistributedGroupToGroupQueryProcessorHolder distributedGroupToGroupQueryProcessorHolder;
 
         /// <inheritdoc/>
-        protected override String SqlServerMetricLoggerCategoryName
+        protected override String MetricLoggerCategoryName
         {
             get { return "ApplicationAccessDistributedReaderNode"; }
         }

@@ -33,7 +33,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         : WriterNodeHostedServiceWrapperBase<DistributedWriterNode<String, String, String, String>, DistributedAccessManager<String, String, String, String>>
     {
         /// <inheritdoc/>
-        protected override String SqlServerMetricLoggerCategoryName
+        protected override String MetricLoggerCategoryName
         {
             get { return "ApplicationAccessDistributedWriterNode"; }
         }

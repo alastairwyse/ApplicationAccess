@@ -36,15 +36,15 @@ namespace ApplicationAccess.Hosting.Models.Options
         [Required(ErrorMessage = $"Configuration for '{nameof(MetricBufferProcessing)}' is required.")]
         public MetricBufferProcessingOptions? MetricBufferProcessing { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(MetricsSqlServerConnection)}' is required.")]
-        public MetricsSqlServerConnectionOptions? MetricsSqlServerConnection { get; set; }
+        [Required(ErrorMessage = $"Configuration for '{nameof(MetricsSqlDatabaseConnection)}' is required.")]
+        public MetricsSqlDatabaseConnectionOptions? MetricsSqlDatabaseConnection { get; set; }
 
         public MetricLoggingOptions()
         {
             MetricLoggingEnabled = false;
             MetricCategorySuffix = "";
             MetricBufferProcessing = null;
-            MetricsSqlServerConnection = null;
+            MetricsSqlDatabaseConnection = null;
         }
 
         #pragma warning restore 0649
