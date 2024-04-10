@@ -13,7 +13,7 @@ If you're a developer of GUI applications and/or APIs requiring user authorizati
 
 ## Data Elements and Mappings
 
-The central class which manages authorization is the [AccessManager](C%23/ApplicationAccess/AccessManager.cs).  It implements 3 main types of data mapping...
+The central class which manages authorization is the [AccessManager](ApplicationAccess/AccessManager.cs).  It implements 3 main types of data mapping...
 
 **Users and Groups**  
 Users and groups are stored in a directed graph, where users are stored as leaf vertices/nodes (or 'start' vertices in terms of directed traversal), and groups are stored as non-leaf vertices.  Storing user to group mapping in a graph structure has a number of benefits...
@@ -230,7 +230,7 @@ It's assumed the above calls to the 'HasAccessTo*' and 'GetEntitiesAccessibleBy*
 
 ### Serialization
 
-The [AccessManagerJsonSerializer](C%23/ApplicationAccess.Serialization/AccessManagerJsonSerializer.cs) class performs serialization of an AccessManager to and from JSON.  The Serialize() and Deserialize() methods require implementations of interface IUniqueStringifier&lt;T&gt; for the generic types representing users, groups, application components, and access levels.  Classes 'StringUniqueStringifier' and 'EnumUniqueStringifier&lt;T&gt;' are included to handle string and enum generic types... other  generic types would require a custom implementation of IUniqueStringifier&lt;T&gt;.
+The [AccessManagerJsonSerializer](ApplicationAccess.Serialization/AccessManagerJsonSerializer.cs) class performs serialization of an AccessManager to and from JSON.  The Serialize() and Deserialize() methods require implementations of interface IUniqueStringifier&lt;T&gt; for the generic types representing users, groups, application components, and access levels.  Classes 'StringUniqueStringifier' and 'EnumUniqueStringifier&lt;T&gt;' are included to handle string and enum generic types... other  generic types would require a custom implementation of IUniqueStringifier&lt;T&gt;.
 
 Serialization of the above access manager would be performed as follows...
 
@@ -280,16 +280,10 @@ For TUser and TGroup anything which uniquely identifies a user or a group is app
 
 The user to group mapping in the AccessManager class is implemented as a directed graph.  When the HasAccess*() methods are called, a depth-first traversal of the graph is performed starting at the specified user.  The traversal code will not re-traverse sections of the graph, in the case that a parent group has multiple paths to it.  Also in the case of a true result, traversal will stop as soon as a matching permission is found.  The cost of traversal scales roughly according to the average number of parent groups each user has.
 
-### Remove*() Method Performance
-
-Calling methods RemoveEntity() or RemoveEntityType() will iterate all user to entity and group to entity mappings in the AccessManager class, to ensure that any mappings to the entity or entity type are cleaned-up/removed.  Similarly calling the RemoveGroup() method will traverse the whole user/group graph to ensure that any mappings to the removed group are also removed.  Whilst there's a reasonable performance cost for calling any of these methods, at the same time it's assumed that they will be called relatively infrequently (as compared to HasAccess*() or GetUserToEntityMappings()).  If these Remove*() methods do need to be called frequently, the AccessManager could be subclassed or enhanced to create bi-directional mappings between users, groups, and entities, and in the user/group graph.
-
 
 ## Future Enhancements
 
-* Python version
-* Database persistence
-* Include JSON schema check in deserialization code
+* Many in progress
 
 ## Release History
 

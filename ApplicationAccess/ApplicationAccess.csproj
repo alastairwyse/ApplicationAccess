@@ -15,13 +15,13 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
-    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess\ApplicationAccess.xml</DocumentationFile>
+    <DocumentationFile>.\ApplicationAccess.xml</DocumentationFile>
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <PlatformTarget>x64</PlatformTarget>
-    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess\ApplicationAccess.xml</DocumentationFile>
+    <DocumentationFile>.\ApplicationAccess.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

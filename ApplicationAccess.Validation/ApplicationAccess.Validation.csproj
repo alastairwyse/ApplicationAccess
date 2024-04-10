@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Development\Multi-Language\ApplicationAccess\C#\ApplicationAccess.Validation\ApplicationAccess.Validation.xml</DocumentationFile>
+    <DocumentationFile>.\ApplicationAccess.Validation.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
