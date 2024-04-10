@@ -40,14 +40,15 @@ namespace ApplicationAccess.Persistence.Sql
         }
 
         /// <summary>
-        /// Generates a query which returns the transaction (state) time of the specified event.
+        /// Generates a query which returns the transaction (state) time and sequence number of the specified event.
         /// </summary>
         /// <param name="eventId">The unique id of the event.</param>
         /// <returns>The query.</returns>
+        /// <remarks>If multiple events occur at the same time as the specified event id, the transaction time and sequence numbers of all those events will be returned.</remarks>
         public abstract String GenerateGetTransactionTimeOfEventQuery(Guid eventId);
 
         /// <summary>
-        /// Generates a query which returns the properties of the event at or immediately before the specified transaction (state) time.
+        /// Generates a query which returns the properties of the event at or immediately before the specified transaction (state) time (and greatest sequence number if multiple states exist at the same time).
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the event retrieve.</param>
         /// <returns>The query.</returns>

@@ -58,9 +58,16 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         {
             String query =
             @$" 
-            SELECT  CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
-            FROM    EventIdToTransactionTimeMap
-            WHERE   EventId = '{eventId.ToString()}';";
+            SELECT  CONVERT(nvarchar(40), EventId) AS 'EventId',
+                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime', 
+                    CONVERT(nvarchar(30), TransactionSequence) AS 'TransactionSequence' 
+            FROM    EventIdToTransactionTimeMap 
+            WHERE   TransactionTime = 
+                    (
+                        SELECT  TransactionTime 
+                        FROM    EventIdToTransactionTimeMap 
+                        WHERE   EventId = '{eventId.ToString()}'
+                    );";
 
             return query;
         }
@@ -72,10 +79,12 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             @$" 
             SELECT  TOP(1)
                     CONVERT(nvarchar(40), EventId) AS 'EventId',
-                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime', 
+                    CONVERT(nvarchar(30), TransactionSequence) AS 'TransactionSequence' 
             FROM    EventIdToTransactionTimeMap
             WHERE   TransactionTime <= CONVERT(datetime2, '{stateTime.ToString(transactionSql126DateStyle)}', 126)
-            ORDER   BY TransactionTime DESC;";
+            ORDER   BY TransactionTime DESC, 
+                       TransactionSequence DESC;";
 
             return query;
         }

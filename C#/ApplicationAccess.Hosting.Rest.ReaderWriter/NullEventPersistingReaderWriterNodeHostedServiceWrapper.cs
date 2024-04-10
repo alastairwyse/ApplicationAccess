@@ -169,19 +169,19 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         protected class NullTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess>
         {
             /// <inheritdoc/>
-            public Tuple<Guid, DateTime> Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+            public AccessManagerState Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
             {
                 throw new PersistentStorageEmptyException($"Class '{this.GetType().Name}' cannot load.");
             }
 
             /// <inheritdoc/>
-            public Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+            public AccessManagerState Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
             {
                 throw new NotImplementedException();
             }
 
             /// <inheritdoc/>
-            public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+            public AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
             {
                 throw new NotImplementedException();
             }

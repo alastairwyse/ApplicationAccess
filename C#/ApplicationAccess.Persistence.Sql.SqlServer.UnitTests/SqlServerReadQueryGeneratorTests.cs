@@ -44,9 +44,16 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             Guid eventId = Guid.Parse(eventIdAsString);
             String expectedQuery =
             @$" 
-            SELECT  CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
-            FROM    EventIdToTransactionTimeMap
-            WHERE   EventId = '{eventIdAsString}';";
+            SELECT  CONVERT(nvarchar(40), EventId) AS 'EventId',
+                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime', 
+                    CONVERT(nvarchar(30), TransactionSequence) AS 'TransactionSequence' 
+            FROM    EventIdToTransactionTimeMap 
+            WHERE   TransactionTime = 
+                    (
+                        SELECT  TransactionTime 
+                        FROM    EventIdToTransactionTimeMap 
+                        WHERE   EventId = '{eventIdAsString}'
+                    );";
 
             String result = testSqlServerReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(eventId);
 
@@ -60,10 +67,12 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             @$" 
             SELECT  TOP(1)
                     CONVERT(nvarchar(40), EventId) AS 'EventId',
-                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime'
+                    CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime', 
+                    CONVERT(nvarchar(30), TransactionSequence) AS 'TransactionSequence' 
             FROM    EventIdToTransactionTimeMap
             WHERE   TransactionTime <= CONVERT(datetime2, '2024-03-10T11:45:33.1234567', 126)
-            ORDER   BY TransactionTime DESC;";
+            ORDER   BY TransactionTime DESC, 
+                       TransactionSequence DESC;";
 
             String result = testSqlServerReadQueryGenerator.GenerateGetEventCorrespondingToStateTimeQuery(testOccurredTime);
 

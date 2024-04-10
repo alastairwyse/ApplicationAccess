@@ -14,12 +14,13 @@ CREATE DATABASE "ApplicationAccess";
 
 CREATE TABLE public.EventIdToTransactionTimeMap
 (
-    EventId          uuid         NOT NULL PRIMARY KEY, 
-    TransactionTime  timestamp    NOT NULL
+    EventId              uuid         NOT NULL PRIMARY KEY, 
+    TransactionTime      timestamp    NOT NULL, 
+    TransactionSequence  integer      NOT NULL 
 );
 
 CREATE INDEX EventIdToTransactionTimeMapEventIdIndex ON public.EventIdToTransactionTimeMap (EventId);
-CREATE INDEX EventIdToTransactionTimeMapTransactionTimeIndex ON public.EventIdToTransactionTimeMap (TransactionTime);
+CREATE INDEX EventIdToTransactionTimeMapTransactionTimeIndex ON public.EventIdToTransactionTimeMap (TransactionTime, TransactionSequence);
 
 CREATE TABLE public.Users
 (
@@ -30,7 +31,7 @@ CREATE TABLE public.Users
 );
 
 CREATE INDEX UsersUserIndex ON public.Users ("User", TransactionTo);
-CREATE INDEX UsersTransactionIndex ON public.Users (TransactionFrom, TransactionTo);
+CREATE INDEX UsersTransactionIndex ON public.Users (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.Groups
 (
@@ -41,7 +42,7 @@ CREATE TABLE public.Groups
 );
 
 CREATE INDEX GroupsGroupIndex ON public.Groups ("Group", TransactionTo);
-CREATE INDEX GroupsTransactionIndex ON public.Groups (TransactionFrom, TransactionTo);
+CREATE INDEX GroupsTransactionIndex ON public.Groups (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.UserToGroupMappings
 (
@@ -54,7 +55,7 @@ CREATE TABLE public.UserToGroupMappings
 
 CREATE INDEX UserToGroupMappingsUserIndex ON UserToGroupMappings (UserId, TransactionTo);
 CREATE INDEX UserToGroupMappingsGroupIndex ON UserToGroupMappings (GroupId, TransactionTo);
-CREATE INDEX UserToGroupMappingsTransactionIndex ON UserToGroupMappings (TransactionFrom, TransactionTo);
+CREATE INDEX UserToGroupMappingsTransactionIndex ON UserToGroupMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.GroupToGroupMappings
 (
@@ -67,7 +68,7 @@ CREATE TABLE public.GroupToGroupMappings
 
 CREATE INDEX GroupToGroupMappingsFromGroupIndex ON GroupToGroupMappings (FromGroupId, TransactionTo);
 CREATE INDEX GroupToGroupMappingsToGroupIndex ON GroupToGroupMappings (ToGroupId, TransactionTo);
-CREATE INDEX GroupToGroupMappingsTransactionIndex ON GroupToGroupMappings (TransactionFrom, TransactionTo);
+CREATE INDEX GroupToGroupMappingsTransactionIndex ON GroupToGroupMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.ApplicationComponents
 (
@@ -78,7 +79,7 @@ CREATE TABLE public.ApplicationComponents
 );
 
 CREATE INDEX ApplicationComponentsApplicationComponentIndex ON public.ApplicationComponents (ApplicationComponent, TransactionTo);
-CREATE INDEX ApplicationComponentsTransactionIndex ON public.ApplicationComponents (TransactionFrom, TransactionTo);
+CREATE INDEX ApplicationComponentsTransactionIndex ON public.ApplicationComponents (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.AccessLevels
 (
@@ -89,7 +90,7 @@ CREATE TABLE public.AccessLevels
 );
 
 CREATE INDEX AccessLevelsAccessLevelIndex ON public.AccessLevels (AccessLevel, TransactionTo);
-CREATE INDEX AccessLevelsTransactionIndex ON public.AccessLevels (TransactionFrom, TransactionTo);
+CREATE INDEX AccessLevelsTransactionIndex ON public.AccessLevels (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.UserToApplicationComponentAndAccessLevelMappings
 (
@@ -102,7 +103,7 @@ CREATE TABLE public.UserToApplicationComponentAndAccessLevelMappings
 );
 
 CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsUserIndex ON public.UserToApplicationComponentAndAccessLevelMappings (UserId, ApplicationComponentId, AccessLevelId, TransactionTo);
-CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsTransIndex ON public.UserToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
+CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsTransIndex ON public.UserToApplicationComponentAndAccessLevelMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.GroupToApplicationComponentAndAccessLevelMappings
 (
@@ -115,7 +116,7 @@ CREATE TABLE public.GroupToApplicationComponentAndAccessLevelMappings
 );
 
 CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsGroupIndex ON public.GroupToApplicationComponentAndAccessLevelMappings (GroupId, ApplicationComponentId, AccessLevelId, TransactionTo);
-CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsTransIndex ON public.GroupToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
+CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsTransIndex ON public.GroupToApplicationComponentAndAccessLevelMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.EntityTypes
 (
@@ -126,7 +127,7 @@ CREATE TABLE public.EntityTypes
 );
 
 CREATE INDEX EntityTypesEntityTypeIndex ON public.EntityTypes (EntityType, TransactionTo);
-CREATE INDEX EntityTypesTransactionIndex ON public.EntityTypes (TransactionFrom, TransactionTo);
+CREATE INDEX EntityTypesTransactionIndex ON public.EntityTypes (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.Entities
 (
@@ -138,7 +139,7 @@ CREATE TABLE public.Entities
 );
 
 CREATE INDEX EntitiesEntityIndex ON public.Entities (EntityTypeId, Entity, TransactionTo);
-CREATE INDEX EntitiesTransactionIndex ON public.Entities (TransactionFrom, TransactionTo);
+CREATE INDEX EntitiesTransactionIndex ON public.Entities (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.UserToEntityMappings
 (
@@ -152,7 +153,7 @@ CREATE TABLE public.UserToEntityMappings
 
 CREATE INDEX UserToEntityMappingsUserIndex ON public.UserToEntityMappings (UserId, EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX UserToEntityMappingsEntityIndex ON public.UserToEntityMappings (EntityTypeId, EntityId, TransactionTo);
-CREATE INDEX UserToEntityMappingsTransactionIndex ON public.UserToEntityMappings (TransactionFrom, TransactionTo);
+CREATE INDEX UserToEntityMappingsTransactionIndex ON public.UserToEntityMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.GroupToEntityMappings
 (
@@ -166,7 +167,7 @@ CREATE TABLE public.GroupToEntityMappings
 
 CREATE INDEX GroupToEntityMappingsGroupIndex ON public.GroupToEntityMappings (GroupId, EntityTypeId, EntityId, TransactionTo);
 CREATE INDEX GroupToEntityMappingsEntityIndex ON public.GroupToEntityMappings (EntityTypeId, EntityId, TransactionTo);
-CREATE INDEX GroupToEntityMappingsTransactionIndex ON public.GroupToEntityMappings (TransactionFrom, TransactionTo);
+CREATE INDEX GroupToEntityMappingsTransactionIndex ON public.GroupToEntityMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.SchemaVersions
 (
@@ -219,14 +220,24 @@ CREATE PROCEDURE CreateEvent
 LANGUAGE plpgsql 
 AS $$
 DECLARE
-    LastTransactionTime  timestamp;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    LastTransactionTime      timestamp;
+    LastTransactionSequence  integer;
+    TransactionSequence      integer := 0;
+    TimeStampCharFormat      varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
-    -- Check that the transaction time is greater than or equal to the last
-    SELECT  MAX(EventIdToTransactionTimeMap.TransactionTime)
-    INTO    LastTransactionTime
-    FROM    EventIdToTransactionTimeMap;
+    -- Get the last transaction time and sequence
+    SELECT  EventIdToTransactionTimeMap.TransactionTime, 
+            MAX(EventIdToTransactionTimeMap.TransactionSequence) 
+    INTO    LastTransactionTime, 
+            LastTransactionSequence 
+    FROM    EventIdToTransactionTimeMap 
+    WHERE   EventIdToTransactionTimeMap.TransactionTime = 
+            (
+                SELECT  MAX(EventIdToTransactionTimeMap.TransactionTime) 
+                FROM    EventIdToTransactionTimeMap 
+            )
+    GROUP   BY EventIdToTransactionTimeMap.TransactionTime;
 
     IF (LastTransactionTime IS NULL) THEN
         LastTransactionTime := TO_TIMESTAMP('0001-01-01 00:00:00.999999', 'YYYY-MM-DD HH24:MI:ss.US') AS timestamp;
@@ -235,6 +246,8 @@ BEGIN
     IF (TransactionTime < LastTransactionTime) THEN
         RAISE EXCEPTION 'Parameter ''TransactionTime'' with value ''%'' must be greater than or equal to last transaction time ''%''.', TO_CHAR(TransactionTime, TimeStampCharFormat), TO_CHAR(LastTransactionTime, TimeStampCharFormat) 
         USING ERRCODE = 'invalid_parameter_value';
+    ELSIF (TransactionTime = LastTransactionTime) THEN
+        TransactionSequence := LastTransactionSequence + 1;
     END IF;
     
     BEGIN
@@ -242,11 +255,13 @@ BEGIN
         INTO    EventIdToTransactionTimeMap
                 (
                     EventId, 
-                    TransactionTime 
+                    TransactionTime, 
+                    TransactionSequence
                 )
         VALUES  (
                     EventId, 
-                    TransactionTime
+                    TransactionTime, 
+                    TransactionSequence 
                 );
     EXCEPTION
         WHEN OTHERS THEN
@@ -312,7 +327,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     LOCK TABLE public.Users IN EXCLUSIVE MODE;
@@ -442,7 +457,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     LOCK TABLE public.Groups IN EXCLUSIVE MODE;
@@ -603,7 +618,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -719,7 +734,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -942,7 +957,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -1173,7 +1188,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -1283,7 +1298,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     LOCK TABLE public.EntityTypes IN EXCLUSIVE MODE;
@@ -1422,7 +1437,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     LOCK TABLE public.Entities IN EXCLUSIVE MODE;
@@ -1589,7 +1604,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     SELECT  Id 
@@ -1734,7 +1749,7 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     CurrentRowId  bigint;
-    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI::ss.US';
+    TimeStampCharFormat  varchar := 'YYYY-MM-DD HH24:MI:ss.US';
 BEGIN 
 
     SELECT  Id 

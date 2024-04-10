@@ -33,23 +33,23 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventId">The id of the most recent event persisted into the access manager, at the desired state to load.</param>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        /// <returns>The state of the access manager loaded.</returns>
         /// <remarks>
         ///   <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
         ///   <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
         /// </remarks>
-        Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
+        AccessManagerState Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
 
         /// <summary>
         /// Loads the access manager with state corresponding to the specified timestamp from persistent storage.
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        /// <returns>The state of the access manager loaded.</returns>
         /// <remarks>
         ///   <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
         ///   <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
         /// </remarks>
-        Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
+        AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo);
     }
 }

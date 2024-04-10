@@ -48,9 +48,9 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public Tuple<Guid, DateTime> Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public AccessManagerState Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            Tuple<Guid, DateTime> stateInfo;
+            AccessManagerState stateInfo;
             Guid beginId = metricLogger.Begin(new LoadTime());
             try
             {
@@ -67,9 +67,9 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public AccessManagerState Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            Tuple<Guid, DateTime> stateInfo;
+            AccessManagerState stateInfo;
             Guid beginId = metricLogger.Begin(new LoadTime());
             try
             {
@@ -86,9 +86,9 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
-            Tuple<Guid, DateTime> stateInfo;
+            AccessManagerState stateInfo;
             Guid beginId = metricLogger.Begin(new LoadTime());
             try
             {

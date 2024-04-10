@@ -16,6 +16,8 @@
 
 using System;
 using System.Globalization;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
@@ -44,9 +46,16 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             Guid eventId = Guid.Parse(eventIdAsString);
             String expectedQuery =
             @$" 
-            SELECT  TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime 
-            FROM    EventIdToTransactionTimeMap
-            WHERE   EventId = '{eventId.ToString()}';";
+            SELECT  EventId::varchar AS EventId,
+                    TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime, 
+                    TransactionSequence::varchar AS TransactionSequence 
+            FROM    EventIdToTransactionTimeMap 
+            WHERE   TransactionTime = 
+                    (
+                        SELECT  TransactionTime 
+                        FROM    EventIdToTransactionTimeMap 
+                        WHERE   EventId = '2b4a64f4-c50f-495b-a880-2a17d025cb20'
+                    );";
 
             String result = testPostgreSqlReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(eventId);
 
@@ -58,12 +67,25 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         {
             String expectedQuery =
             @$" 
-            SELECT  EventId::varchar AS EventId,
-		            TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime
-            FROM    EventIdToTransactionTimeMap
-            WHERE   TransactionTime <= TO_TIMESTAMP('2024-03-10 11:45:33.123456', 'YYYY-MM-DD HH24:MI:ss.US')::timestamp
-            ORDER   BY TransactionTime DESC
-            LIMIT   1;";
+            SELECT  EventId::varchar                                                  AS EventId,
+                    TO_CHAR(EventTimeMap.TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime, 
+                    EventTimeMap.TransactionSequence::varchar                         AS TransactionSequence 
+            FROM    EventIdToTransactionTimeMap EventTimeMap
+                    INNER JOIN
+                    (
+                        SELECT  TransactionTime           AS TransactionTime, 
+                                MAX(TransactionSequence)  AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap
+                        WHERE   TransactionTime = 
+                                (
+                                    SELECT  MAX(TransactionTime)
+                                    FROM    EventIdToTransactionTimeMap
+                                    WHERE   TransactionTime <= TO_TIMESTAMP('2024-03-10 11:45:33.123456', 'YYYY-MM-DD HH24:MI:ss.US')::timestamp
+                                )
+                        GROUP   BY TransactionTime
+                    ) MaxValues
+                      ON EventTimeMap.TransactionTime = MaxValues.TransactionTime 
+                      AND EventTimeMap.TransactionSequence = MaxValues.TransactionSequence;";
 
             String result = testPostgreSqlReadQueryGenerator.GenerateGetEventCorrespondingToStateTimeQuery(testOccurredTime);
 

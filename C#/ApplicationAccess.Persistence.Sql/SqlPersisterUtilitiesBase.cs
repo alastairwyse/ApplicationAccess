@@ -75,9 +75,9 @@ namespace ApplicationAccess.Persistence.Sql
         /// Loads the access manager from a SQL database.
         /// </summary>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        /// <returns>The state of the access manager loaded.</returns>
         /// <exception cref="PersistentStorageEmptyException">The SQL database did not contain any existing events nor data.</exception>
-        public Tuple<Guid, DateTime> Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public AccessManagerState Load(AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             return Load(DateTime.UtcNow, accessManagerToLoadTo, new PersistentStorageEmptyException("The database does not contain any existing events nor data."));
         }
@@ -87,43 +87,53 @@ namespace ApplicationAccess.Persistence.Sql
         /// </summary>
         /// <param name="eventId">The id of the most recent event persisted into the access manager, at the desired state to load.</param>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        /// <returns>The state of the access manager loaded.</returns>
+        /// <exception cref="Exception">Multiple events were found with the specified 'eventId' and/or corresponding transaction time.</exception>
         /// <remarks>
         ///   <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
         ///   <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
         /// </remarks>
-        public Tuple<Guid, DateTime> Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public AccessManagerState Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             // Get the transaction time corresponding to specified event id
             String query = ReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(eventId);
 
-            IEnumerable<String> queryResults = ExecuteMultiResultQueryAndHandleException
+            IEnumerable<Tuple<DateTime, Int32>> queryResults = ExecuteMultiResultQueryAndHandleException
             (
                 query,
                 "TransactionTime",
-                (String cellValue) => { return cellValue; }
-            );
-            DateTime stateTime = DateTime.MinValue;
-            foreach (String currentResult in queryResults)
-            {
-                if (stateTime == DateTime.MinValue)
+                "TransactionSequence",
+                (String cellValue) =>
                 {
-                    stateTime = DateTime.ParseExact(currentResult, TimestampColumnFormatString, DateTimeFormatInfo.InvariantInfo);
+                    var stateTime = DateTime.ParseExact(cellValue, TimestampColumnFormatString, DateTimeFormatInfo.InvariantInfo);
                     stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
+
+                    return stateTime;
+                },
+                (String cellValue) => { return Int32.Parse(cellValue); }
+            );
+            DateTime transactionTime = DateTime.MinValue;
+            Int32 transactionSequence = Int32.MinValue;
+            foreach (Tuple<DateTime, Int32> currentResult in queryResults)
+            {
+                if (transactionTime == DateTime.MinValue)
+                {
+                    transactionTime = currentResult.Item1;
+                    transactionSequence = currentResult.Item2;
                 }
                 else
                 {
-                    throw new Exception($"Multiple EventIdToTransactionTimeMap rows were returned with EventId '{eventId.ToString()}'.");
+                    throw new Exception($"Multiple EventIdToTransactionTimeMap rows were returned with EventId '{eventId.ToString()}' and/or TransactionTime '{transactionTime.ToString(TimestampColumnFormatString)}'.");
                 }
             }
-            if (stateTime == DateTime.MinValue)
+            if (transactionTime == DateTime.MinValue)
             {
                 throw new ArgumentException($"No EventIdToTransactionTimeMap rows were returned for EventId '{eventId.ToString()}'.", nameof(eventId));
             }
 
-            LoadToAccessManager(stateTime, accessManagerToLoadTo);
+            LoadToAccessManager(transactionTime, accessManagerToLoadTo);
 
-            return new Tuple<Guid, DateTime>(eventId, stateTime);
+            return new AccessManagerState(eventId, transactionTime, transactionSequence);
         }
 
         /// <summary>
@@ -131,24 +141,24 @@ namespace ApplicationAccess.Persistence.Sql
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+        /// <returns>The state of the access manager loaded.</returns>
         /// <remarks>
         ///   <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
         ///   <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
         /// </remarks>
-        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
+        public AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             return Load(stateTime, accessManagerToLoadTo, new ArgumentException($"No EventIdToTransactionTimeMap rows were returned with TransactionTime less than or equal to '{stateTime.ToString(TimestampColumnFormatString)}'.", nameof(stateTime)));
         }
 
         /// <summary>
-        /// Loads the access manager with state corresponding to the specified timestamp from persistent storage.
+        /// Loads the access manager with state corresponding to the specified timestamp (and greatest sequence number if multiple states exist at the same timestamp) from persistent storage.
         /// </summary>
         /// <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
         /// <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
         /// <param name="eventIdToTransactionTimeMapRowDoesntExistException">An exception to throw if no rows exist in the 'EventIdToTransactionTimeMap' table equal to or sequentially before the specified state time.</param>
-        /// <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
-        public Tuple<Guid, DateTime> Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo, Exception eventIdToTransactionTimeMapRowDoesntExistException)
+        /// <returns>The state of the access manager loaded.</returns>
+        public AccessManagerState Load(DateTime stateTime, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo, Exception eventIdToTransactionTimeMapRowDoesntExistException)
         {
             if (stateTime.Kind != DateTimeKind.Utc)
                 throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));
@@ -159,11 +169,12 @@ namespace ApplicationAccess.Persistence.Sql
             // Get the event id and transaction time equal to or immediately before the specified state time
             String query = ReadQueryGenerator.GenerateGetEventCorrespondingToStateTimeQuery(stateTime);
 
-            IEnumerable<Tuple<Guid, DateTime>> queryResults = ExecuteMultiResultQueryAndHandleException
+            IEnumerable<Tuple<Guid, DateTime, Int32>> queryResults = ExecuteMultiResultQueryAndHandleException
             (
                 query,
                 "EventId",
                 "TransactionTime",
+                "TransactionSequence",
                 (String cellValue) => { return Guid.Parse(cellValue); },
                 (String cellValue) =>
                 {
@@ -171,14 +182,17 @@ namespace ApplicationAccess.Persistence.Sql
                     stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
 
                     return stateTime;
-                }
+                },
+                (String cellValue) => { return Int32.Parse(cellValue); } 
             );
             Guid eventId = default(Guid);
             DateTime transactionTime = DateTime.MinValue;
-            foreach (Tuple<Guid, DateTime> currentResult in queryResults)
+            Int32 transactionSequence = Int32.MinValue;
+            foreach (Tuple<Guid, DateTime, Int32> currentResult in queryResults)
             {
                 eventId = currentResult.Item1;
                 transactionTime = currentResult.Item2;
+                transactionSequence = currentResult.Item3;
                 break;
             }
             if (transactionTime == DateTime.MinValue)
@@ -186,7 +200,7 @@ namespace ApplicationAccess.Persistence.Sql
 
             LoadToAccessManager(transactionTime, accessManagerToLoadTo);
 
-            return new Tuple<Guid, DateTime>(eventId, transactionTime);
+            return new AccessManagerState(eventId, transactionTime, transactionSequence);
         }
 
         /// <summary>

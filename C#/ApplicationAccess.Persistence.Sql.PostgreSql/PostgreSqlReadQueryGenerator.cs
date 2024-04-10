@@ -58,9 +58,16 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         {
             String query =
             @$" 
-            SELECT  TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime 
-            FROM    EventIdToTransactionTimeMap
-            WHERE   EventId = '{eventId.ToString()}';";
+            SELECT  EventId::varchar AS EventId,
+                    TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime, 
+                    TransactionSequence::varchar AS TransactionSequence 
+            FROM    EventIdToTransactionTimeMap 
+            WHERE   TransactionTime = 
+                    (
+                        SELECT  TransactionTime 
+                        FROM    EventIdToTransactionTimeMap 
+                        WHERE   EventId = '{eventId.ToString()}'
+                    );";
 
             return query;
         }
@@ -68,14 +75,28 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         /// <inheritdoc/>
         public override String GenerateGetEventCorrespondingToStateTimeQuery(DateTime stateTime)
         {
+            // Below can be done more succinctly using a 'LIMIT' clause, however doing this resulted in table scans during testing.
             String query =
             @$" 
-            SELECT  EventId::varchar AS EventId,
-		            TO_CHAR(TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime
-            FROM    EventIdToTransactionTimeMap
-            WHERE   TransactionTime <= TO_TIMESTAMP('{stateTime.ToString(postgreSQLTimestampFormat)}', 'YYYY-MM-DD HH24:MI:ss.US')::timestamp
-            ORDER   BY TransactionTime DESC
-            LIMIT   1;";
+            SELECT  EventId::varchar                                                  AS EventId,
+                    TO_CHAR(EventTimeMap.TransactionTime, 'YYYY-MM-DD HH24:MI:ss.US') AS TransactionTime, 
+                    EventTimeMap.TransactionSequence::varchar                         AS TransactionSequence 
+            FROM    EventIdToTransactionTimeMap EventTimeMap
+                    INNER JOIN
+                    (
+                        SELECT  TransactionTime           AS TransactionTime, 
+                                MAX(TransactionSequence)  AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap
+                        WHERE   TransactionTime = 
+                                (
+                                    SELECT  MAX(TransactionTime)
+                                    FROM    EventIdToTransactionTimeMap
+                                    WHERE   TransactionTime <= TO_TIMESTAMP('{stateTime.ToString(postgreSQLTimestampFormat)}', 'YYYY-MM-DD HH24:MI:ss.US')::timestamp
+                                )
+                        GROUP   BY TransactionTime
+                    ) MaxValues
+                      ON EventTimeMap.TransactionTime = MaxValues.TransactionTime 
+                      AND EventTimeMap.TransactionSequence = MaxValues.TransactionSequence;";
 
             return query;
         }

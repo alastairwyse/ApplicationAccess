@@ -19,12 +19,13 @@ GO
 
 CREATE TABLE ApplicationAccess.dbo.EventIdToTransactionTimeMap
 (
-    EventId          uniqueidentifier  NOT NULL PRIMARY KEY, 
-    TransactionTime  datetime2         NOT NULL
+    EventId              uniqueidentifier  NOT NULL PRIMARY KEY, 
+    TransactionTime      datetime2         NOT NULL, 
+    TransactionSequence  int               NOT NULL, 
 );
 
 CREATE INDEX EventIdToTransactionTimeMapEventIdIndex ON ApplicationAccess.dbo.EventIdToTransactionTimeMap (EventId);
-CREATE INDEX EventIdToTransactionTimeMapTransactionTimeIndex ON ApplicationAccess.dbo.EventIdToTransactionTimeMap (TransactionTime);
+CREATE INDEX EventIdToTransactionTimeMapTransactionTimeIndex ON ApplicationAccess.dbo.EventIdToTransactionTimeMap (TransactionTime, TransactionSequence);
 
 CREATE TABLE ApplicationAccess.dbo.Users
 (
@@ -250,21 +251,34 @@ CREATE PROCEDURE dbo.CreateEvent
 AS
 BEGIN
 
-    DECLARE @LastTransactionTime  datetime2;
-    DECLARE @ErrorMessage         nvarchar(max);
+    DECLARE @LastTransactionTime      datetime2;
+    DECLARE @LastTransactionSequence  int; 
+    DECLARE @TransactionSequence      int; 
+    DECLARE @ErrorMessage             nvarchar(max);
 
-    -- Check that the transaction time is greater than or equal to the last
-    SELECT  @LastTransactionTime = MAX(TransactionTime)
-    FROM    EventIdToTransactionTimeMap;
+    SET @TransactionSequence = 0;
+
+    -- Get the last transaction time and sequence
+    SELECT  @LastTransactionTime = TransactionTime, 
+            @LastTransactionSequence = MAX(TransactionSequence)
+    FROM    EventIdToTransactionTimeMap 
+    WHERE   TransactionTime = (
+                                  SELECT  MAX(TransactionTime) 
+                                  FROM    EventIdToTransactionTimeMap 
+                              )
+    GROUP   BY TransactionTime;
 
     IF (@LastTransactionTime IS NULL)
-      SET @LastTransactionTime = CONVERT(datetime2, '0001-01-01T00:00:00.0000000', 126);
+        SET @LastTransactionTime = CONVERT(datetime2, '0001-01-01T00:00:00.0000000', 126);
 
     IF (@TransactionTime < @LastTransactionTime)
     BEGIN
         SET @ErrorMessage = N'Parameter ''TransactionTime'' with value ''' + CONVERT(nvarchar, @TransactionTime, 126) + ''' must be greater than or equal to last transaction time ''' + CONVERT(nvarchar, @LastTransactionTime, 126) + '''.';
         THROW 50001, @ErrorMessage, 1;
     END
+    IF (@TransactionTime = @LastTransactionTime)
+        SET @TransactionSequence = @LastTransactionSequence + 1;
+
 
     -- Insert the event id and timestamp for the transaction
     BEGIN TRY
@@ -272,11 +286,13 @@ BEGIN
         INTO    dbo.EventIdToTransactionTimeMap
                 (
                     EventId, 
-                    TransactionTime
+                    TransactionTime, 
+                    TransactionSequence
                 )
         VALUES  (
                     @EventId, 
-                    @TransactionTime
+                    @TransactionTime, 
+                    @TransactionSequence
                 );
     END TRY
     BEGIN CATCH

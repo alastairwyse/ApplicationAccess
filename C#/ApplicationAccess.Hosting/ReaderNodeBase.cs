@@ -338,8 +338,8 @@ namespace ApplicationAccess.Hosting
             Guid beginId = metricLogger.Begin(new ReaderNodeLoadTime());
             try
             {
-                Tuple<Guid, DateTime> state = persistentReader.Load(newAccessManager);
-                latestEventId = state.Item1;
+                AccessManagerState state = persistentReader.Load(newAccessManager);
+                latestEventId = state.EventId;
             }
             catch (PersistentStorageEmptyException pse)
             {

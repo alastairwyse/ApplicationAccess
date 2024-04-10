@@ -34,6 +34,36 @@
             </summary>
             <param name="eventBufferItem">The event to process/apply.</param>
         </member>
+        <member name="T:ApplicationAccess.Persistence.AccessManagerState">
+            <summary>
+            Container class holding properties which uniquely identify the persisted state of an AccessManager.
+            </summary>
+            <remarks>A unique persisted state can be identified by either the <see cref="P:ApplicationAccess.Persistence.AccessManagerState.EventId"/> property, or the <see cref="P:ApplicationAccess.Persistence.AccessManagerState.StateTime"/> and <see cref="P:ApplicationAccess.Persistence.AccessManagerState.StateSequence"/> properties in combination.</remarks>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerState.EventId">
+            <summary>
+            The unique id of the most recent event persisted into the access manager at the returned state.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerState.StateTime">
+            <summary>
+            The UTC timestamp the most recent event persisted into the access manager at the returned state occurred at.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.AccessManagerState.StateSequence">
+            <summary>
+            Sequence number used to distinguish events which occured at the same <see cref="P:ApplicationAccess.Persistence.AccessManagerState.StateTime"/> (higher numbers indicate later events.).
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerState.#ctor(System.Guid,System.DateTime,System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerState class.
+            </summary>
+            <param name="eventId">The unique id of the most recent event persisted into the access manager at the returned state.</param>
+            <param name="stateTime">The UTC timestamp the most recent event persisted into the access manager at the returned state occurred at.</param>
+            <param name="stateSequence">Sequence number used to distinguish events which occured at the same <see cref="P:ApplicationAccess.Persistence.AccessManagerState.StateTime"/> (higher numbers indicate later events.).</param>
+            <exception cref="T:System.ArgumentException">Parameter '<paramref name="stateTime"/>' must be expressed as UTC.</exception>
+        </member>
         <member name="T:ApplicationAccess.Persistence.AccessManagerTemporalEventBulkCache`4">
             <summary>
             Caches a predefined number of AccessManager <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> events, allowing writing of events in a bulk/consolidated operation.
@@ -1299,7 +1329,7 @@
             Loads the access manager from persistent storage.
             </summary>
             <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-            <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+            <returns>The state of the access manager loaded.</returns>
             <exception cref="T:ApplicationAccess.Persistence.PersistentStorageEmptyException">The persistent storage did not contain any existing events nor data.</exception>
         </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalBulkPersister`4">
@@ -1549,7 +1579,7 @@
             </summary>
             <param name="eventId">The id of the most recent event persisted into the access manager, at the desired state to load.</param>
             <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-            <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+            <returns>The state of the access manager loaded.</returns>
             <remarks>
               <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
               <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
@@ -1561,7 +1591,7 @@
             </summary>
             <param name="stateTime">The time equal to or sequentially after (in terms of event sequence) the state of the access manager to load.</param>
             <param name="accessManagerToLoadTo">The AccessManager instance to load in to.</param>
-            <returns>Values representing the state of the access manager loaded.  The returned tuple contains 2 values: The id of the most recent event persisted into the access manager at the returned state, and the UTC timestamp the event occurred at.</returns>
+            <returns>The state of the access manager loaded.</returns>
             <remarks>
               <para>Any existing items and mappings stored in parameter 'accessManagerToLoadTo' will be cleared.</para>
               <para>The AccessManager instance is passed as a parameter rather than returned from the method, to allow loading into types derived from AccessManager aswell as AccessManager itself.</para>
