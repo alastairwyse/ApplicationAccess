@@ -211,7 +211,7 @@ namespace ApplicationAccess.Persistence.Sql
         /// <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
         /// <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
         /// <returns>A collection of items returned by the query.</returns>
-        public IEnumerable<TReturn> ExecuteMultiResultQueryAndHandleException<TReturn>(String query, String columnToConvert, Func<String, TReturn> conversionFromStringFunction)
+        public virtual IEnumerable<TReturn> ExecuteMultiResultQueryAndHandleException<TReturn>(String query, String columnToConvert, Func<String, TReturn> conversionFromStringFunction)
         {
             try
             {
@@ -234,7 +234,7 @@ namespace ApplicationAccess.Persistence.Sql
         /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
         /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
         /// <returns>A collection of tuples of the items returned by the query.</returns>
-        public IEnumerable<Tuple<TReturn1, TReturn2>> ExecuteMultiResultQueryAndHandleException<TReturn1, TReturn2>
+        public virtual IEnumerable<Tuple<TReturn1, TReturn2>> ExecuteMultiResultQueryAndHandleException<TReturn1, TReturn2>
         (
             String query,
             String columnToConvert1,
@@ -267,7 +267,7 @@ namespace ApplicationAccess.Persistence.Sql
         /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
         /// <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
         /// <returns>A collection of tuples of the items returned by the query.</returns>
-        public IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteMultiResultQueryAndHandleException<TReturn1, TReturn2, TReturn3>
+        public virtual IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteMultiResultQueryAndHandleException<TReturn1, TReturn2, TReturn3>
         (
             String query,
             String columnToConvert1,
