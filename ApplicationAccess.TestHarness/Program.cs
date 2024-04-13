@@ -47,7 +47,6 @@ namespace ApplicationAccess.TestHarness
         protected static String persisterBufferFlushStrategyConfigurationFileProperty = "PersisterBufferFlushStrategyConfiguration";
         protected static String accessManagerRestClientConfigurationFileProperty = "AccessManagerRestClientConfiguration";
         protected static String operationGeneratorConfigurationFileProperty = "OperationGeneratorConfiguration";
-        protected static String accessManagerConfigurationFileProperty = "AccessManagerConfiguration";
         protected static String testHarnessConfigurationFileProperty = "TestHarnessConfiguration";
 
         protected static HashSet<String> validTestProfiles;
@@ -115,7 +114,6 @@ namespace ApplicationAccess.TestHarness
                 metricsBufferConfigurationFileProperty,
                 persisterBufferFlushStrategyConfigurationFileProperty,
                 operationGeneratorConfigurationFileProperty,
-                accessManagerConfigurationFileProperty, 
                 testHarnessConfigurationFileProperty
             })
             {
@@ -127,7 +125,6 @@ namespace ApplicationAccess.TestHarness
             MetricsBufferConfiguration metricsBufferConfiguration = new MetricsBufferConfigurationReader().Read(configurationRoot.GetSection(metricsBufferConfigurationFileProperty));
             PersisterBufferFlushStrategyConfiguration persisterBufferFlushStrategyConfiguration = new PersisterBufferFlushStrategyConfigurationReader().Read(configurationRoot.GetSection(persisterBufferFlushStrategyConfigurationFileProperty));
             OperationGeneratorConfiguration operationGeneratorConfiguration = new OperationGeneratorConfigurationReader().Read(configurationRoot.GetSection(operationGeneratorConfigurationFileProperty));
-            AccessManagerConfiguration accessManagerConfiguration = new AccessManagerConfigurationReader().Read(configurationRoot.GetSection(accessManagerConfigurationFileProperty));
             TestHarnessConfiguration testHarnessConfiguration = new TestHarnessConfigurationReader().Read(configurationRoot.GetSection(testHarnessConfigurationFileProperty));
 
             // Setup the test harness
@@ -223,7 +220,6 @@ namespace ApplicationAccess.TestHarness
                                     persisterBufferFlushStrategy,
                                     persister,
                                     persister,
-                                    accessManagerConfiguration.StoreBidirectionalMappings, 
                                     metricLogger
                                 )
                             )

@@ -96,10 +96,8 @@ namespace ApplicationAccess
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
         /// </summary>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
-        public DependencyFreeAccessManager(Boolean storeBidirectionalMappings)
-            : base(storeBidirectionalMappings)
+        public DependencyFreeAccessManager()
+            : base()
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
             throwIdempotencyExceptions = false;
@@ -109,10 +107,8 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
         /// </summary>
         /// <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
-        public DependencyFreeAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph, Boolean storeBidirectionalMappings)
-            : base(concurrentDirectedGraph, storeBidirectionalMappings)
+        public DependencyFreeAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph)
+            : base(concurrentDirectedGraph)
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
             throwIdempotencyExceptions = false;
@@ -122,11 +118,10 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
         /// </summary>
         /// <param name="collectionFactory">A mock collection factory.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public DependencyFreeAccessManager(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings, Boolean throwIdempotencyExceptions)
-            : base(collectionFactory, storeBidirectionalMappings)
+        public DependencyFreeAccessManager(ICollectionFactory collectionFactory, Boolean throwIdempotencyExceptions)
+            : base(collectionFactory)
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
             this.throwIdempotencyExceptions = throwIdempotencyExceptions;
@@ -136,14 +131,10 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.DependencyFreeAccessManager class.
         /// </summary>
         /// <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="throwIdempotencyExceptions">Whether idempotent operation exceptions should be thrown when an Add* or Remove* event is idempotent.</param>
-        /// <remarks>
-        ///   <para>If parameter <paramref name="storeBidirectionalMappings"/> is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</para>
-        ///   <para>Setting parameter <paramref name="throwIdempotencyExceptions"/> to true provides a mechanism for classes which subclass or compose this class to detect when an Add* or Remove* event method is called idempotently, and adjust their logic accordingly.  For example, a metric logging subclass of this class would set the parameter to true, and cancel and metric logging if and idempotent operation exception was caught.</para>
-        /// </remarks>
-        protected DependencyFreeAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph, Boolean storeBidirectionalMappings, Boolean throwIdempotencyExceptions)
-            : base(concurrentDirectedGraph, storeBidirectionalMappings)
+        /// <remarks>Setting parameter <paramref name="throwIdempotencyExceptions"/> to true provides a mechanism for classes which subclass or compose this class to detect when an Add* or Remove* event method is called idempotently, and adjust their logic accordingly.  For example, a metric logging subclass of this class would set the parameter to true, and cancel and metric logging if and idempotent operation exception was caught.</remarks>
+        protected DependencyFreeAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph, Boolean throwIdempotencyExceptions)
+            : base(concurrentDirectedGraph)
         {
             eventProcessor = new NullAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>();
             this.throwIdempotencyExceptions = throwIdempotencyExceptions;

@@ -47,7 +47,6 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         where TAccessManager : ConcurrentAccessManager<String, String, String, String>, IMetricLoggingComponent
     {
         // Members passed in via dependency injection
-        protected AccessManagerOptions accessManagerOptions;
         protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
@@ -80,7 +79,6 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// </summary>
         public WriterNodeHostedServiceWrapperBase
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
@@ -93,7 +91,6 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             ILogger<WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager>> logger
         )
         {
-            this.accessManagerOptions = accessManagerOptions.Value;
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;

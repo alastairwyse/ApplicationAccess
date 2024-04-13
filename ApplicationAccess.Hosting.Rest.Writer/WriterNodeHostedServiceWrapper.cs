@@ -41,7 +41,6 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// </summary>
         public WriterNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
@@ -55,7 +54,6 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         )
             : base
         (
-            accessManagerOptions,
             accessManagerSqlDatabaseConnectionOptions,
             eventBufferFlushingOptions,
             eventCacheConnectionOptions,
@@ -75,13 +73,13 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// <inheritdoc/>
         protected override WriterNode<String, String, String, String> InitializeWriterNode()
         {
-            return new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, accessManagerOptions.StoreBidirectionalMappings.Value);
+            return new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient);
         }
 
         /// <inheritdoc/>
         protected override WriterNode<String, String, String, String> InitializeWriterNodeWithMetricLogging()
         {
-            return new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
+            return new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
         }
 
         #endregion

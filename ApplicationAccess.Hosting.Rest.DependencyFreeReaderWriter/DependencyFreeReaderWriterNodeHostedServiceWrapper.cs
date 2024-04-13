@@ -43,7 +43,6 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
         /// </summary>
         public DependencyFreeReaderWriterNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -60,7 +59,6 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
         )
             : base
         (
-            accessManagerOptions,
             accessManagerSqlDatabaseConnectionOptions, 
             eventBufferFlushingOptions,
             metricLoggingOptions,
@@ -83,13 +81,13 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
         /// <inheritdoc/>
         protected override DependencyFreeReaderWriterNode<String, String, String, String> InitializeReaderWriterNode()
         {
-            return new DependencyFreeReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value);
+            return new DependencyFreeReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister);
         }
 
         /// <inheritdoc/>
         protected override DependencyFreeReaderWriterNode<String, String, String, String> InitializeReaderWriterNodeWithMetricLogging()
         {
-            return new DependencyFreeReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
+            return new DependencyFreeReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister);
         }
 
         #endregion

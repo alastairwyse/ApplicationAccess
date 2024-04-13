@@ -45,7 +45,6 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         where TAccessManager : ConcurrentAccessManager<String, String, String, String>, IMetricLoggingComponent
     {
         // Members passed in via dependency injection
-        protected AccessManagerOptions accessManagerOptions;
         protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
         protected EventCacheRefreshOptions eventCacheRefreshOptions;
@@ -78,7 +77,6 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         /// </summary>
         public ReaderNodeHostedServiceWrapperBase
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<EventCacheRefreshOptions> eventCacheRefreshOptions,
@@ -91,7 +89,6 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             ILogger<ReaderNodeHostedServiceWrapperBase<TReaderNode, TAccessManager>> logger
         )
         {
-            this.accessManagerOptions = accessManagerOptions.Value;
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;
             this.eventCacheRefreshOptions = eventCacheRefreshOptions.Value;

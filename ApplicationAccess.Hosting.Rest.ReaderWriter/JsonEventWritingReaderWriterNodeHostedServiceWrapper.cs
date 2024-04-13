@@ -35,7 +35,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     public class JsonEventWritingReaderWriterNodeHostedServiceWrapper : IHostedService
     {
         // Members passed in via dependency injection
-        protected AccessManagerOptions accessManagerOptions;
         protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
         protected MetricLoggingOptions metricLoggingOptions;
@@ -66,7 +65,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// </summary>
         public JsonEventWritingReaderWriterNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -82,7 +80,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             ILogger<ReaderWriterNodeHostedServiceWrapper> logger
         )
         {
-            this.accessManagerOptions = accessManagerOptions.Value;
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
@@ -115,7 +112,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             );
 
             // Create the ReaderWriterNode
-            readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, new NullTemporalPersistentReader<String, String, String, String>(), eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value);
+            readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, new NullTemporalPersistentReader<String, String, String, String>(), eventPersister);
 
             // Set the ReaderWriterNode on the 'holder' classes
             entityEventProcessorHolder.EntityEventProcessor = readerWriterNode;

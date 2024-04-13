@@ -37,8 +37,6 @@ namespace ApplicationAccess
         protected readonly IDictionary<TLeaf, ISet<TNonLeaf>> leafToNonLeafEdges;
         /// <summary>The edges which join non-leaf and non-left vertices within the graph.</summary>
         protected readonly IDictionary<TNonLeaf, ISet<TNonLeaf>> nonLeafToNonLeafEdges;
-        /// <summary>Whether to store bidirectional mappings for edges within the graph.</summary>
-        protected readonly Boolean storeBidirectionalMappings;
         /// <summary>The reverse of the edges in member 'leafToNonLeafEdges'.</summary>
         protected readonly IDictionary<TNonLeaf, ISet<TLeaf>> leafToNonLeafReverseEdges;
         /// <summary>The reverse of the edges in member 'nonLeafToNonLeafEdges'.</summary>
@@ -76,21 +74,15 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.DirectedGraphBase class.
         /// </summary>
         /// <param name="collectionFactory">Creates instances of collection classes.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings for edges in the graph are stored in both directions.  This avoids slow scanning of dictionaries which store the edge mappings in certain operations (like RemoveLeafToNonLeafEdge()), at the cost of addition storage and hence memory usage.</remarks>
-        public DirectedGraphBase(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings)
+        public DirectedGraphBase(ICollectionFactory collectionFactory)
         {
             this.collectionFactory = collectionFactory;
             leafVertices = this.collectionFactory.GetSetInstance<TLeaf>();
             nonLeafVertices = this.collectionFactory.GetSetInstance<TNonLeaf>();
             leafToNonLeafEdges = this.collectionFactory.GetDictionaryInstance<TLeaf, ISet<TNonLeaf>>();
             nonLeafToNonLeafEdges = this.collectionFactory.GetDictionaryInstance<TNonLeaf, ISet<TNonLeaf>>();
-            this.storeBidirectionalMappings = storeBidirectionalMappings;
-            if (storeBidirectionalMappings == true)
-            {
-                leafToNonLeafReverseEdges = this.collectionFactory.GetDictionaryInstance<TNonLeaf, ISet<TLeaf>>();
-                nonLeafToNonLeafReverseEdges = this.collectionFactory.GetDictionaryInstance<TNonLeaf, ISet<TNonLeaf>>();
-            }
+            leafToNonLeafReverseEdges = this.collectionFactory.GetDictionaryInstance<TNonLeaf, ISet<TLeaf>>();
+            nonLeafToNonLeafReverseEdges = this.collectionFactory.GetDictionaryInstance<TNonLeaf, ISet<TNonLeaf>>();
         }
 
         /// <summary>
@@ -103,11 +95,8 @@ namespace ApplicationAccess
             nonLeafVertices.Clear();
             leafToNonLeafEdges.Clear();
             nonLeafToNonLeafEdges.Clear();
-            if (storeBidirectionalMappings == true)
-            {
-                leafToNonLeafReverseEdges.Clear();
-                nonLeafToNonLeafReverseEdges.Clear();
-            }
+            leafToNonLeafReverseEdges.Clear();
+            nonLeafToNonLeafReverseEdges.Clear();
         }
 
         /// <summary>
@@ -142,12 +131,9 @@ namespace ApplicationAccess
 
             if (leafToNonLeafEdges.ContainsKey(leafVertex) == true)
             {
-                if (storeBidirectionalMappings == true)
+                foreach (TNonLeaf currentToVertex in leafToNonLeafEdges[leafVertex])
                 {
-                    foreach (TNonLeaf currentToVertex in leafToNonLeafEdges[leafVertex])
-                    {
-                        leafToNonLeafReverseEdges[currentToVertex].Remove(leafVertex);
-                    }
+                    leafToNonLeafReverseEdges[currentToVertex].Remove(leafVertex);
                 }
                 leafToNonLeafEdges.Remove(leafVertex);
             }
@@ -207,14 +193,11 @@ namespace ApplicationAccess
                 leafToNonLeafEdges.Add(fromVertex, collectionFactory.GetSetInstance<TNonLeaf>());
             }
             leafToNonLeafEdges[fromVertex].Add(toVertex);
-            if (storeBidirectionalMappings == true)
+            if (leafToNonLeafReverseEdges.ContainsKey(toVertex) == false)
             {
-                if (leafToNonLeafReverseEdges.ContainsKey(toVertex) == false)
-                {
-                    leafToNonLeafReverseEdges.Add(toVertex, collectionFactory.GetSetInstance<TLeaf>());
-                }
-                leafToNonLeafReverseEdges[toVertex].Add(fromVertex);
+                leafToNonLeafReverseEdges.Add(toVertex, collectionFactory.GetSetInstance<TLeaf>());
             }
+            leafToNonLeafReverseEdges[toVertex].Add(fromVertex);
         }
 
         /// <summary>
@@ -240,10 +223,7 @@ namespace ApplicationAccess
                 throw new LeafToNonLeafEdgeNotFoundException<TLeaf, TNonLeaf>($"An edge does not exist between vertices '{fromVertex.ToString()}' and '{toVertex.ToString()}'.", fromVertex, toVertex);
 
             leafToNonLeafEdges[fromVertex].Remove(toVertex);
-            if (storeBidirectionalMappings == true)
-            {
-                leafToNonLeafReverseEdges[toVertex].Remove(fromVertex);
-            }
+            leafToNonLeafReverseEdges[toVertex].Remove(fromVertex);
         }
 
         /// <summary>
@@ -281,14 +261,11 @@ namespace ApplicationAccess
                 nonLeafToNonLeafEdges.Add(fromVertex, collectionFactory.GetSetInstance<TNonLeaf>());
             }
             nonLeafToNonLeafEdges[fromVertex].Add(toVertex);
-            if (storeBidirectionalMappings == true)
+            if (nonLeafToNonLeafReverseEdges.ContainsKey(toVertex) == false)
             {
-                if (nonLeafToNonLeafReverseEdges.ContainsKey(toVertex) == false)
-                {
-                    nonLeafToNonLeafReverseEdges.Add(toVertex, collectionFactory.GetSetInstance<TNonLeaf>());
-                }
-                nonLeafToNonLeafReverseEdges[toVertex].Add(fromVertex);
+                nonLeafToNonLeafReverseEdges.Add(toVertex, collectionFactory.GetSetInstance<TNonLeaf>());
             }
+            nonLeafToNonLeafReverseEdges[toVertex].Add(fromVertex);
         }
 
         /// <summary>
@@ -314,10 +291,7 @@ namespace ApplicationAccess
                 throw new NonLeafToNonLeafEdgeNotFoundException<TNonLeaf>($"An edge does not exist between vertices '{fromVertex.ToString()}' and '{toVertex.ToString()}'.", fromVertex, toVertex);
 
             nonLeafToNonLeafEdges[fromVertex].Remove(toVertex);
-            if (storeBidirectionalMappings == true)
-            {
-                nonLeafToNonLeafReverseEdges[toVertex].Remove(fromVertex);
-            }
+            nonLeafToNonLeafReverseEdges[toVertex].Remove(fromVertex);
         }
 
         /// <summary>
@@ -368,69 +342,31 @@ namespace ApplicationAccess
             // Remove the edges connected 'from' the vertex
             if (nonLeafToNonLeafEdges.ContainsKey(nonLeafVertex) == true)
             {
-                if (storeBidirectionalMappings == true)
+                foreach (TNonLeaf currentToVertex in nonLeafToNonLeafEdges[nonLeafVertex])
                 {
-                    foreach (TNonLeaf currentToVertex in nonLeafToNonLeafEdges[nonLeafVertex])
-                    {
-                        nonLeafToNonLeafReverseEdges[currentToVertex].Remove(nonLeafVertex);
-                    }
+                    nonLeafToNonLeafReverseEdges[currentToVertex].Remove(nonLeafVertex);
                 }
                 nonLeafToNonLeafEdges.Remove(nonLeafVertex);
             }
 
-            if (storeBidirectionalMappings == false)
+            // Remove the edges connected 'to' the vertex
+            if (leafToNonLeafReverseEdges.ContainsKey(nonLeafVertex) == true)
             {
-                // Find the edges connected 'to' the vertex
-                var connectedLeafVertices = new HashSet<TLeaf>();
-                var connectedNonLeafVertices = new HashSet<TNonLeaf>();
-                foreach (KeyValuePair<TLeaf, ISet<TNonLeaf>> currentKvp in leafToNonLeafEdges)
+                foreach (TLeaf currentFromVertex in leafToNonLeafReverseEdges[nonLeafVertex])
                 {
-                    if (currentKvp.Value.Contains(nonLeafVertex) == true)
-                    {
-                        connectedLeafVertices.Add(currentKvp.Key);
-                    }
+                    leafToNonLeafEdges[currentFromVertex].Remove(nonLeafVertex);
+                    leafToNonLeafEdgePostRemovalAction.Invoke(currentFromVertex, nonLeafVertex);
                 }
-                foreach (KeyValuePair<TNonLeaf, ISet<TNonLeaf>> currentKvp in nonLeafToNonLeafEdges)
-                {
-                    if (currentKvp.Value.Contains(nonLeafVertex) == true)
-                    {
-                        connectedNonLeafVertices.Add(currentKvp.Key);
-                    }
-                }
-
-                // Remove the edges connected 'to' the vertex
-                foreach (TLeaf currentConnectedLeafVertex in connectedLeafVertices)
-                {
-                    leafToNonLeafEdges[currentConnectedLeafVertex].Remove(nonLeafVertex);
-                    leafToNonLeafEdgePostRemovalAction.Invoke(currentConnectedLeafVertex, nonLeafVertex);
-                }
-                foreach (TNonLeaf currentConnectedNonLeafVertex in connectedNonLeafVertices)
-                {
-                    nonLeafToNonLeafEdges[currentConnectedNonLeafVertex].Remove(nonLeafVertex);
-                    nonLeafToNonLeafEdgePostRemovalAction.Invoke(currentConnectedNonLeafVertex, nonLeafVertex);
-                }
+                leafToNonLeafReverseEdges.Remove(nonLeafVertex);
             }
-            else
+            if (nonLeafToNonLeafReverseEdges.ContainsKey(nonLeafVertex) == true)
             {
-                // Remove the edges connected 'to' the vertex
-                if (leafToNonLeafReverseEdges.ContainsKey(nonLeafVertex) == true)
+                foreach (TNonLeaf currentFromVertex in nonLeafToNonLeafReverseEdges[nonLeafVertex])
                 {
-                    foreach (TLeaf currentFromVertex in leafToNonLeafReverseEdges[nonLeafVertex])
-                    {
-                        leafToNonLeafEdges[currentFromVertex].Remove(nonLeafVertex);
-                        leafToNonLeafEdgePostRemovalAction.Invoke(currentFromVertex, nonLeafVertex);
-                    }
-                    leafToNonLeafReverseEdges.Remove(nonLeafVertex);
+                    nonLeafToNonLeafEdges[currentFromVertex].Remove(nonLeafVertex);
+                    nonLeafToNonLeafEdgePostRemovalAction.Invoke(currentFromVertex, nonLeafVertex);
                 }
-                if (nonLeafToNonLeafReverseEdges.ContainsKey(nonLeafVertex) == true)
-                {
-                    foreach (TNonLeaf currentFromVertex in nonLeafToNonLeafReverseEdges[nonLeafVertex])
-                    {
-                        nonLeafToNonLeafEdges[currentFromVertex].Remove(nonLeafVertex);
-                        nonLeafToNonLeafEdgePostRemovalAction.Invoke(currentFromVertex, nonLeafVertex);
-                    }
-                    nonLeafToNonLeafReverseEdges.Remove(nonLeafVertex);
-                }
+                nonLeafToNonLeafReverseEdges.Remove(nonLeafVertex);
             }
 
             // Remove the vertex

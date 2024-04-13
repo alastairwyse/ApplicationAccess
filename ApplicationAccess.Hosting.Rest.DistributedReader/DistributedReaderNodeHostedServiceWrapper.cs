@@ -47,7 +47,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
         /// </summary>
         public DistributedReaderNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<EventCacheRefreshOptions> eventCacheRefreshOptions,
@@ -63,7 +62,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
         )
             : base
         (
-            accessManagerOptions,
             accessManagerSqlDatabaseConnectionOptions,
             eventCacheConnectionOptions,
             eventCacheRefreshOptions,
@@ -85,13 +83,13 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
         /// <inheritdoc/>
         protected override DistributedReaderNode<String, String, String, String> InitializeReaderNode()
         {
-            return new DistributedReaderNode<String, String, String, String>(refreshStrategy, eventCacheClient, persistentReader, accessManagerOptions.StoreBidirectionalMappings.Value);
+            return new DistributedReaderNode<String, String, String, String>(refreshStrategy, eventCacheClient, persistentReader);
         }
 
         /// <inheritdoc/>
         protected override DistributedReaderNode<String, String, String, String> InitializeReaderNodeWithMetricLogging()
         {
-            return new DistributedReaderNode<String, String, String, String>(refreshStrategy, eventCacheClient, persistentReader, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
+            return new DistributedReaderNode<String, String, String, String>(refreshStrategy, eventCacheClient, persistentReader, metricLogger);
         }
 
         /// <inheritdoc/>

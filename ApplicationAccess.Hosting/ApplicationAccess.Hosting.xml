@@ -188,28 +188,24 @@
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
             <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingDependencyFreeAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingDependencyFreeAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.DependencyFreeReaderWriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.DependencyFreeReaderWriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.InitializeAccessManager(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.DependencyFreeReaderWriterNode`4.InitializeAccessManager">
             <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2">
@@ -406,35 +402,30 @@
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
             <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.DistributedReaderNode class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.DistributedReaderNode class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.DistributedReaderNode class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
@@ -475,7 +466,7 @@
             <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.DistributedWriterNode class.
             </summary>
@@ -483,10 +474,8 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.DistributedWriterNode class.
             </summary>
@@ -494,11 +483,9 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.InitializeAccessManager(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.DistributedWriterNode`4.InitializeAccessManager">
             <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Hosting.IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy">
@@ -742,35 +729,30 @@
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
             <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNode`4.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNode class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
@@ -798,9 +780,6 @@
         <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.persistentReader">
             <summary>Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</summary>
         </member>
-        <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.storeBidirectionalMappings">
-            <summary>Whether to store bidirectional mappings between elements.</summary>
-        </member>
         <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.concurrentAccessManager">
             <summary>The AccessManager which stores the permissions and authorizations for the application.</summary>
         </member>
@@ -819,35 +798,30 @@
         <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeBase class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeBase class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger,ApplicationAccess.Utilities.IDateTimeProvider)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeBase class.
             </summary>
             <param name="refreshStrategy">The strategy/methodology to use to refresh the contents of the reader node.</param>
             <param name="eventCache">Cache for events which change the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted.</param>
             <param name="persistentReader">Reader which allows retriving the complete state of the <see cref="T:ApplicationAccess.IAccessManager`4"/> being hosted from persistent storage.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
@@ -1005,49 +979,41 @@
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
             <remarks>Note that as per remarks for <see cref="T:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4"/> interval metrics are not logged for <see cref="T:ApplicationAccess.IAccessManagerQueryProcessor`4"/> methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/>, or perform simple dictionary and set lookups (e.g. <see cref="M:ApplicationAccess.Metrics.MetricLoggingConcurrentAccessManager`4.ContainsUser(`0)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="T:System.Collections.Generic.IEnumerable`1"/> the metric logging must wrap the code that enumerates the result.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNode class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.InitializeAccessManager(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNode`4.InitializeAccessManager">
             <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Hosting.ReaderWriterNodeBase`5">
@@ -1082,47 +1048,39 @@
         <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderWriterNodeBase class.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Load(System.Boolean)">
             <summary>
@@ -1262,19 +1220,17 @@
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.RemoveGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
             <summary>
             Initializes members which are common between all constructors.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.InitializeAccessManager(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.InitializeAccessManager">
             <summary>
             Initializes a new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance used to read and write the permissions and authorizations.
             </summary>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <returns>The new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance.</returns>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.Dispose">
@@ -1339,7 +1295,7 @@
             <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
             <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
             </summary>
@@ -1347,10 +1303,8 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
             </summary>
@@ -1358,10 +1312,8 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
             </summary>
@@ -1369,11 +1321,9 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNode class.
             </summary>
@@ -1381,11 +1331,9 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNode`4.InitializeAccessManager(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNode`4.InitializeAccessManager">
             <inheritdoc/>
         </member>
         <member name="T:ApplicationAccess.Hosting.WriterNodeBase`5">
@@ -1419,7 +1367,7 @@
         <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
             </summary>
@@ -1427,10 +1375,8 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
             </summary>
@@ -1438,10 +1384,8 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
             </summary>
@@ -1449,11 +1393,9 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},System.Boolean,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.
             </summary>
@@ -1461,9 +1403,7 @@
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
             <param name="eventPersister">Used to persist changes to the AccessManager.</param>
             <param name="eventCache">Cache for events which change the AccessManager.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <param name="metricLogger">The logger for metrics.</param>
-            <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         </member>
         <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.Load(System.Boolean)">
             <summary>
@@ -1531,19 +1471,17 @@
         <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.RemoveGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.Initialize(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
             <summary>
             Initializes members which are common between all constructors.
             </summary>
             <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="T:ApplicationAccess.Persistence.IAccessManagerEventBuffer`4"/> instance used by the node.</param>
             <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.InitializeAccessManager(System.Boolean)">
+        <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.InitializeAccessManager">
             <summary>
             Initializes a new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance used for underlying writing/storage of permissions and authorizations.
             </summary>
-            <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             <returns>The new <see cref="T:ApplicationAccess.ConcurrentAccessManager`4"/> instance.</returns>
         </member>
         <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.Dispose">

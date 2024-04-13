@@ -55,7 +55,7 @@ namespace ApplicationAccess.Persistence.Sql.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerPersisterUtilities.Load(DateTime.Now, new AccessManager<String, String, String, String>(false));
+                testSqlServerPersisterUtilities.Load(DateTime.Now, new AccessManager<String, String, String, String>());
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' must be expressed as UTC."));
@@ -67,7 +67,7 @@ namespace ApplicationAccess.Persistence.Sql.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerPersisterUtilities.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>(false));
+                testSqlServerPersisterUtilities.Load(DateTime.MaxValue.ToUniversalTime(), new AccessManager<String, String, String, String>());
             });
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'stateTime' will value '{DateTime.MaxValue.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff")}' is greater than the current time '"));
@@ -99,7 +99,7 @@ namespace ApplicationAccess.Persistence.Sql.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerPersisterUtilities.Load(DateTime.UtcNow, new AccessManager<String, String, String, String>(false), testException);
+                testSqlServerPersisterUtilities.Load(DateTime.UtcNow, new AccessManager<String, String, String, String>(), testException);
             });
 
             Assert.AreSame(testException, e);
@@ -145,7 +145,7 @@ namespace ApplicationAccess.Persistence.Sql.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerPersisterUtilities.Load(testGuid1, new AccessManager<String, String, String, String>(false));
+                testSqlServerPersisterUtilities.Load(testGuid1, new AccessManager<String, String, String, String>());
             });
 
             Assert.That(e.Message, Does.StartWith($"Multiple EventIdToTransactionTimeMap rows were returned with EventId '00000000-0000-0000-0000-000000000001' and/or TransactionTime '2024-04-11T14:06:00.0000000'."));
@@ -190,7 +190,7 @@ namespace ApplicationAccess.Persistence.Sql.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerPersisterUtilities.Load(testGuid, new AccessManager<String, String, String, String>(false));
+                testSqlServerPersisterUtilities.Load(testGuid, new AccessManager<String, String, String, String>());
             });
 
             Assert.That(e.Message, Does.StartWith($"Multiple EventIdToTransactionTimeMap rows were returned with EventId '00000000-0000-0000-0000-000000000001' and/or TransactionTime '2024-04-11T14:06:00.0000000'."));
@@ -221,7 +221,7 @@ namespace ApplicationAccess.Persistence.Sql.UnitTests
 
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                testSqlServerPersisterUtilities.Load(testGuid, new AccessManager<String, String, String, String>(false));
+                testSqlServerPersisterUtilities.Load(testGuid, new AccessManager<String, String, String, String>());
             });
 
             Assert.That(e.Message, Does.StartWith($"No EventIdToTransactionTimeMap rows were returned for EventId '00000000-0000-0000-0000-000000000001'."));

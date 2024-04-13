@@ -49,7 +49,7 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
-            testDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
+            testDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, mockMetricLogger);
         }
 
         [TearDown]
@@ -59,47 +59,22 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
-        public void Constructor_ConcurrentAccessManagerStoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
-        {
-            DistributedReaderNode<String, String, ApplicationScreen, AccessLevel> testDistributedDistributedReaderNode;
-            var fieldNamePath = new List<String>() { "concurrentAccessManager", "storeBidirectionalMappings" };
-            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDistributedDistributedReaderNode);
-
-
-            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDistributedDistributedReaderNode);
-
-
-            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, false, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDistributedDistributedReaderNode);
-
-
-            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDistributedDistributedReaderNode);
-        }
-
-        [Test]
         public void Constructor_MetricLoggerParameterSetCorrectlyOnComposedFields()
         {
             DistributedReaderNode<String, String, ApplicationScreen, AccessLevel> testDistributedDistributedReaderNode;
             var fieldNamePath = new List<String>() { "metricLogger" };
-            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true);
+            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader);
 
             NonPublicFieldAssert.IsOfType<ApplicationMetrics.MetricLoggers.NullMetricLogger>(fieldNamePath, testDistributedDistributedReaderNode);
 
 
-            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true, mockMetricLogger);
+            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, mockMetricLogger);
 
             NonPublicFieldAssert.IsOfType<MetricLoggerBaseTypeInclusionFilter>(fieldNamePath, testDistributedDistributedReaderNode);
 
 
             fieldNamePath = new List<String>() { "metricLogger", "filteredMetricLogger" };
-            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, true, mockMetricLogger);
+            testDistributedDistributedReaderNode = new DistributedReaderNode<String, String, ApplicationScreen, AccessLevel>(mockRefreshStrategy, mockEventCache, mockPersistentReader, mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDistributedDistributedReaderNode, true);
         }

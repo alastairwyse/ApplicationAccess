@@ -35,13 +35,13 @@ namespace ApplicationAccess.Serialization.UnitTests
         protected void SetUp()
         {
             testDirectedGraphJsonSerializer = new DirectedGraphJsonSerializer();
-            directionGraphToDeserializeTo = new DirectedGraph<String, String>(false);
+            directionGraphToDeserializeTo = new DirectedGraph<String, String>();
         }
 
         [Test]
         public void Serialize_EmptyGraph()
         {
-            var testDirectedGraph = new DirectedGraph<String, String>(false);
+            var testDirectedGraph = new DirectedGraph<String, String>();
             var comparisonDocument = new JObject(); 
             comparisonDocument.Add("leafVertices", new JArray());
             comparisonDocument.Add("leafToNonLeafEdges", new JArray());
@@ -56,7 +56,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         [Test]
         public void Serialize()
         {
-            var testDirectedGraph = new DirectedGraph<String, String>(false);
+            var testDirectedGraph = new DirectedGraph<String, String>();
             CreatePersonGroupGraph(testDirectedGraph);
             var comparisonDocument = new JObject();
             var leafVertices = new JArray();
@@ -254,7 +254,7 @@ namespace ApplicationAccess.Serialization.UnitTests
             testJsonDocument.Add("nonLeafVertices", new JArray());
             testJsonDocument.Add("nonLeafToNonLeafEdges", new JArray());
             ((JArray)testJsonDocument["leafVertices"]).Add("InvalidAccessLevel");
-            var directionGraphToDeserializeTo = new DirectedGraph<AccessLevel, String>(false);
+            var directionGraphToDeserializeTo = new DirectedGraph<AccessLevel, String>();
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
@@ -273,7 +273,7 @@ namespace ApplicationAccess.Serialization.UnitTests
             testJsonDocument.Add("nonLeafVertices", new JArray());
             testJsonDocument.Add("nonLeafToNonLeafEdges", new JArray());
             ((JArray)testJsonDocument["nonLeafVertices"]).Add("InvalidAccessLevel");
-            var directionGraphToDeserializeTo = new DirectedGraph<String, AccessLevel>(false);
+            var directionGraphToDeserializeTo = new DirectedGraph<String, AccessLevel>();
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
@@ -392,7 +392,7 @@ namespace ApplicationAccess.Serialization.UnitTests
                     new JProperty("nonLeafVertices", new String[] { "Grp1" })
                 )
             );
-            var directionGraphToDeserializeTo2 = new DirectedGraph<AccessLevel, String>(false);
+            var directionGraphToDeserializeTo2 = new DirectedGraph<AccessLevel, String>();
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
@@ -413,7 +413,7 @@ namespace ApplicationAccess.Serialization.UnitTests
                     new JProperty("nonLeafVertices", new String[] { "InvalidAccessLevel" })
                 )
             );
-            var directionGraphToDeserializeTo3 = new DirectedGraph<String, AccessLevel>(false);
+            var directionGraphToDeserializeTo3 = new DirectedGraph<String, AccessLevel>();
 
             e = Assert.Throws<DeserializationException>(delegate
             {
@@ -553,7 +553,7 @@ namespace ApplicationAccess.Serialization.UnitTests
                     new JProperty("nonLeafVertices", new String[] { "View" })
                 )
             );
-            var directionGraphToDeserializeTo2 = new DirectedGraph<String, AccessLevel>(false);
+            var directionGraphToDeserializeTo2 = new DirectedGraph<String, AccessLevel>();
 
             var e = Assert.Throws<DeserializationException>(delegate
             {
@@ -709,7 +709,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         [Test]
         public void SerializeDeserialize()
         {
-            var testDirectedGraph = new DirectedGraph<String, String>(false);
+            var testDirectedGraph = new DirectedGraph<String, String>();
             CreatePersonGroupGraph(testDirectedGraph);
 
             JObject serializedGraph = testDirectedGraphJsonSerializer.Serialize<String, String>(testDirectedGraph, new StringUniqueStringifier(), new StringUniqueStringifier());

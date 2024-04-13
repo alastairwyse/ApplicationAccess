@@ -33,7 +33,7 @@ namespace ApplicationAccess.Validation.UnitTests
         [SetUp]
         protected void SetUp()
         {
-            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false);
+            testConcurrentAccessManager = new ConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>();
             testConcurrentAccessManagerEventValidator = new ConcurrentAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(testConcurrentAccessManager);
         }
 

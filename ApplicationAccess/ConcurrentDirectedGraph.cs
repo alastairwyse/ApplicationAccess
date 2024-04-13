@@ -44,24 +44,18 @@ namespace ApplicationAccess
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
         /// </summary>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings for edges in the graph are stored in both directions.  This avoids slow scanning of dictionaries which store the edge mappings in certain operations (like RemoveLeafToNonLeafEdge()), at the cost of addition storage and hence memory usage.</remarks>
-        public ConcurrentDirectedGraph(Boolean storeBidirectionalMappings)
-            : this(true, storeBidirectionalMappings)
+        public ConcurrentDirectedGraph()
+            : this(true)
         {
         }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
         /// </summary>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
         /// <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
-        /// <remarks>
-        /// <para>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set true.</para>
-        /// <para>If parameter 'storeBidirectionalMappings' is set to True, mappings for edges in the graph are stored in both directions.  This avoids slow scanning of dictionaries which store the edge mappings in certain operations (like RemoveLeafToNonLeafEdge()), at the cost of addition storage and hence memory usage.</para>
-        /// </remarks>
-        public ConcurrentDirectedGraph(Boolean storeBidirectionalMappings, Boolean acquireLocks)
-            : base(new ConcurrentCollectionFactory(), storeBidirectionalMappings)
+        /// <remarks>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set true.</remarks>
+        public ConcurrentDirectedGraph(Boolean acquireLocks)
+            : base(new ConcurrentCollectionFactory())
         {
             this.acquireLocks = acquireLocks;
             lockManager = new LockManager();
@@ -72,11 +66,10 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.ConcurrentDirectedGraph class.
         /// </summary>
         /// <param name="collectionFactory">A mock collection factory.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings for edges within the graph.</param>
         /// <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public ConcurrentDirectedGraph(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings, Boolean acquireLocks)
-            : base(collectionFactory, storeBidirectionalMappings)
+        public ConcurrentDirectedGraph(ICollectionFactory collectionFactory, Boolean acquireLocks)
+            : base(collectionFactory)
         {
             this.acquireLocks = acquireLocks;
             lockManager = new LockManager();

@@ -63,11 +63,9 @@ namespace ApplicationAccess.Metrics
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingDependencyFreeAccessManager class.
         /// </summary>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
-        public MetricLoggingDependencyFreeAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
-            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, false, new MappingMetricLogger(metricLogger)), storeBidirectionalMappings, true)
+        public MetricLoggingDependencyFreeAccessManager(IMetricLogger metricLogger)
+            : base(new MetricLoggingConcurrentDirectedGraph<TUser, TGroup>(false, new MappingMetricLogger(metricLogger)), true)
         {
             // Casting should never fail, since we just newed the 'userToGroupMap' and 'MetricLogger' properties to these types.
             //   TODO: Find a cleaner way to do this... ideally don't want to expose the 'MetricLoggingConcurrentDirectedGraph.MetricLogger' property at all.

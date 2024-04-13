@@ -40,9 +40,6 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 },
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
-                    builder.Services.AddOptions<AccessManagerOptions>()
-                        .Bind(builder.Configuration.GetSection(AccessManagerOptions.AccessManagerOptionsName))
-                        .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<AccessManagerSqlDatabaseConnectionOptions>()
                         .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();

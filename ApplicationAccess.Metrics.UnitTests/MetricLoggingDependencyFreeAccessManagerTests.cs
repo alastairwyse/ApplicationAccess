@@ -54,7 +54,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockEventProcessor = Substitute.For<IAccessManagerEventProcessor<String, String, ApplicationScreen, AccessLevel>>();
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             testMetricLoggingDependencyFreeAccessManager.EventProcessor = mockEventProcessor;
             testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             // Test version of class exposes a setter, so that the test version of the decorator can be set after construction
@@ -62,37 +62,11 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
-        public void Constructor_StoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
-        {
-            MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
-            var fieldNamePath = new List<String>() { "storeBidirectionalMappings" };
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingDependencyFreeAccessManager);
-
-
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingDependencyFreeAccessManager);
-
-
-            fieldNamePath = new List<String>() { "userToGroupMap", "storeBidirectionalMappings" };
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingDependencyFreeAccessManager);
-
-
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingDependencyFreeAccessManager);
-        }
-
-        [Test]
         public void Constructor_MappingMetricLoggerParameterSetCorrectlyOnComposedFields()
         {
             MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
             var fieldNamePath = new List<String>() { "mappingMetricLogger" };
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testMetricLoggingDependencyFreeAccessManager);
         }
@@ -102,12 +76,12 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
             var fieldNamePath = new List<String>() { "throwIdempotencyExceptions" };
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingDependencyFreeAccessManager);
 
 
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingDependencyFreeAccessManager);
         }
@@ -117,12 +91,12 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
             var fieldNamePath = new List<String>() { "userToGroupMap", "acquireLocks" };
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingDependencyFreeAccessManager);
 
 
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingDependencyFreeAccessManager);
         }
@@ -132,7 +106,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingDependencyFreeAccessManager;
             var fieldNamePath = new List<String>() { "userToGroupMap", "metricLogger" };
-            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testMetricLoggingDependencyFreeAccessManager);
         }
@@ -2688,7 +2662,7 @@ namespace ApplicationAccess.Metrics.UnitTests
             {
                 wrappingActionOrder.Add(postEventProcessingActionInvokedText);
             };
-            var testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManagerWithOverriddenEventMethod<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger, preEventProcessingAction, postEventProcessingAction);
+            var testMetricLoggingDependencyFreeAccessManager = new MetricLoggingDependencyFreeAccessManagerWithOverriddenEventMethod<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger, preEventProcessingAction, postEventProcessingAction);
             testMetricLoggingDependencyFreeAccessManager.EventProcessor = mockEventProcessor;
             testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             // Test version of class exposes a setter, so that the test version of the decorator can be set after construction
@@ -2888,10 +2862,9 @@ namespace ApplicationAccess.Metrics.UnitTests
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Metrics.UnitTests.MetricLoggingDependencyFreeAccessManagerTests+MetricLoggingDependencyFreeAccessManagerWithProtectedMembers class.
             /// </summary>
-            /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
-            public MetricLoggingDependencyFreeAccessManagerWithProtectedMembers(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
-                : base(storeBidirectionalMappings, metricLogger)
+            public MetricLoggingDependencyFreeAccessManagerWithProtectedMembers(IMetricLogger metricLogger)
+                : base(metricLogger)
             {
             }
         }
@@ -2939,18 +2912,16 @@ namespace ApplicationAccess.Metrics.UnitTests
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Metrics.UnitTests.MetricLoggingDependencyFreeAccessManagerTests+MetricLoggingDependencyFreeAccessManagerWithOverriddenEventMethod class.
             /// </summary>
-            /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
             /// <param name="preEventProcessingAction">Action to invoke before the 'baseAction' in overridden event methods.</param>
             /// <param name="postEventProcessingAction">Action to invoke after the 'baseAction' in overridden event methods.</param>
             public MetricLoggingDependencyFreeAccessManagerWithOverriddenEventMethod
             (
-                Boolean storeBidirectionalMappings,
                 IMetricLogger metricLogger,
                 Action preEventProcessingAction,
                 Action postEventProcessingAction
             )
-                : base(storeBidirectionalMappings, metricLogger)
+                : base(metricLogger)
             {
                 this.preEventProcessingAction = preEventProcessingAction;
                 this.postEventProcessingAction = postEventProcessingAction;

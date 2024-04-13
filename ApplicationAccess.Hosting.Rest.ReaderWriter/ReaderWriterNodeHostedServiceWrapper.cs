@@ -41,7 +41,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// </summary>
         public ReaderWriterNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
@@ -58,7 +57,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         )
             :base
         (
-            accessManagerOptions,
             accessManagerSqlDatabaseConnectionOptions,
             eventBufferFlushingOptions,
             metricLoggingOptions,
@@ -81,13 +79,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// <inheritdoc/>
         protected override ReaderWriterNode<String, String, String, String> InitializeReaderWriterNode()
         {
-            return new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value);
+            return new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister);
         }
 
         /// <inheritdoc/>
         protected override ReaderWriterNode<String, String, String, String> InitializeReaderWriterNodeWithMetricLogging()
         {
-            return new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
+            return new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, metricLogger);
         }
 
         #endregion

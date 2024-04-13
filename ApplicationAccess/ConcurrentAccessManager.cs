@@ -43,10 +43,8 @@ namespace ApplicationAccess
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.ConcurrentAccessManager class.
         /// </summary>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
-        public ConcurrentAccessManager(Boolean storeBidirectionalMappings)
-            : base(new ConcurrentCollectionFactory(), new ConcurrentDirectedGraph<TUser, TGroup>(storeBidirectionalMappings, false), storeBidirectionalMappings)
+        public ConcurrentAccessManager()
+            : base(new ConcurrentCollectionFactory(), new ConcurrentDirectedGraph<TUser, TGroup>(false))
         {
             lockManager = new LockManager();
             InitializeLockObjects();
@@ -56,10 +54,8 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.ConcurrentAccessManager class.
         /// </summary>
         /// <param name="concurrentDirectedGraph">The ConcurrentDirectedGraph instance to use to store users and groups.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
-        public ConcurrentAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph, Boolean storeBidirectionalMappings)
-            : base(new ConcurrentCollectionFactory(), concurrentDirectedGraph, storeBidirectionalMappings)
+        public ConcurrentAccessManager(ConcurrentDirectedGraph<TUser, TGroup> concurrentDirectedGraph)
+            : base(new ConcurrentCollectionFactory(), concurrentDirectedGraph)
         {
             lockManager = new LockManager();
             InitializeLockObjects();
@@ -69,10 +65,8 @@ namespace ApplicationAccess
         /// Initialises a new instance of the ApplicationAccess.ConcurrentAccessManager class.
         /// </summary>
         /// <param name="collectionFactory">A mock collection factory.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public ConcurrentAccessManager(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings)
-            : base(collectionFactory, new ConcurrentDirectedGraph<TUser, TGroup>(collectionFactory, storeBidirectionalMappings, false), storeBidirectionalMappings)
+        public ConcurrentAccessManager(ICollectionFactory collectionFactory)
+            : base(collectionFactory, new ConcurrentDirectedGraph<TUser, TGroup>(collectionFactory, false))
         {
             lockManager = new LockManager();
             InitializeLockObjects();

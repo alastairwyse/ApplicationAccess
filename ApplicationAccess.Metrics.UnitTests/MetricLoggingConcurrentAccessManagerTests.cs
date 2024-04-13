@@ -46,36 +46,10 @@ namespace ApplicationAccess.Metrics.UnitTests
         protected void SetUp()
         {
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             testMetricLoggingWrapper = new ConcurrentAccessManagerMetricLoggerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             // Test version of class exposes a setter, so that the test version of the wrapper can be set after construction
             testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
-        }
-
-        [Test]
-        public void Constructor_StoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
-        {
-            MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
-            var fieldNamePath = new List<String>() { "storeBidirectionalMappings" };
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingConcurrentAccessManager);
-
-
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingConcurrentAccessManager);
-
-
-            fieldNamePath = new List<String>() { "userToGroupMap", "storeBidirectionalMappings" };
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testMetricLoggingConcurrentAccessManager);
-
-
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingConcurrentAccessManager);
         }
 
         [Test]
@@ -83,7 +57,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
             var fieldNamePath = new List<String>() { "mappingMetricLogger" };
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testMetricLoggingConcurrentAccessManager);
         }
@@ -93,12 +67,12 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
             var fieldNamePath = new List<String>() { "userToGroupMap", "acquireLocks" };
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingConcurrentAccessManager);
 
 
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testMetricLoggingConcurrentAccessManager);
         }
@@ -108,7 +82,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         {
             MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel> testMetricLoggingConcurrentAccessManager;
             var fieldNamePath = new List<String>() { "userToGroupMap", "metricLogger" };
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testMetricLoggingConcurrentAccessManager);
         }
@@ -2629,7 +2603,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         [Test]
         public void RemoveEntityType_BidirectionalMappingsTrue()
         {
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
 
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -3122,7 +3096,7 @@ namespace ApplicationAccess.Metrics.UnitTests
         [Test]
         public void RemoveEntity_BidirectionalMappingsTrue()
         {
-            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testMetricLoggingConcurrentAccessManager = new MetricLoggingConcurrentAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
             testMetricLoggingConcurrentAccessManager.MetricLoggingWrapper = testMetricLoggingWrapper;
 
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -4638,10 +4612,9 @@ namespace ApplicationAccess.Metrics.UnitTests
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Metrics.UnitTests.MetricLoggingConcurrentAccessManagerTests+MetricLoggingConcurrentAccessManagerWithProtectedMembers class.
             /// </summary>
-            /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
-            public MetricLoggingConcurrentAccessManagerWithProtectedMembers(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
-                : base(storeBidirectionalMappings, metricLogger)
+            public MetricLoggingConcurrentAccessManagerWithProtectedMembers(IMetricLogger metricLogger)
+                : base(metricLogger)
             {
             }
         }

@@ -43,8 +43,6 @@ namespace ApplicationAccess
         protected readonly IDictionary<TUser, IDictionary<String, ISet<String>>> userToEntityMap;
         /// <summary>A dictionary which stores group to entity mappings.  The value stores another dictionary whose key contains the entity type and whose value contains the name of all entities of the specified type which are mapped to the group.</summary>
         protected readonly IDictionary<TGroup, IDictionary<String, ISet<String>>> groupToEntityMap;
-        /// <summary>Whether to store bidirectional mappings between elements.</summary>
-        protected readonly Boolean storeBidirectionalMappings;
         /// <summary>The reverse of the mappings in member 'userToEntityMap'.</summary>
         protected readonly IDictionary<String, IDictionary<String, ISet<TUser>>> userToEntityReverseMap;
         /// <summary>The reverse of the mappings in member 'groupToEntityMap'.</summary>
@@ -82,9 +80,7 @@ namespace ApplicationAccess
         /// </summary>
         /// <param name="collectionFactory">>Creates instances of collection classes.</param>
         /// <param name="userToGroupMap">The user to group map the access manager should use internally.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
-        public AccessManagerBase(ICollectionFactory collectionFactory, DirectedGraphBase<TUser, TGroup> userToGroupMap, Boolean storeBidirectionalMappings)
+        public AccessManagerBase(ICollectionFactory collectionFactory, DirectedGraphBase<TUser, TGroup> userToGroupMap)
         {
             this.collectionFactory = collectionFactory;
             this.userToGroupMap = userToGroupMap;
@@ -93,12 +89,8 @@ namespace ApplicationAccess
             entities = this.collectionFactory.GetDictionaryInstance<String, ISet<String>>();
             userToEntityMap = this.collectionFactory.GetDictionaryInstance<TUser, IDictionary<String, ISet<String>>>();
             groupToEntityMap = this.collectionFactory.GetDictionaryInstance<TGroup, IDictionary<String, ISet<String>>>();
-            this.storeBidirectionalMappings = storeBidirectionalMappings;
-            if (storeBidirectionalMappings == true)
-            {
-                userToEntityReverseMap = this.collectionFactory.GetDictionaryInstance<String, IDictionary<String, ISet<TUser>>>();
-                groupToEntityReverseMap = this.collectionFactory.GetDictionaryInstance<String, IDictionary<String, ISet<TGroup>>>();
-            }
+            userToEntityReverseMap = this.collectionFactory.GetDictionaryInstance<String, IDictionary<String, ISet<TUser>>>();
+            groupToEntityReverseMap = this.collectionFactory.GetDictionaryInstance<String, IDictionary<String, ISet<TGroup>>>();
         }
 
         /// <summary>
@@ -113,11 +105,8 @@ namespace ApplicationAccess
             entities.Clear();
             userToEntityMap.Clear();
             groupToEntityMap.Clear();
-            if (storeBidirectionalMappings == true)
-            {
-                userToEntityReverseMap.Clear();
-                groupToEntityReverseMap.Clear();
-            }
+            userToEntityReverseMap.Clear();
+            groupToEntityReverseMap.Clear();
         }
 
         /// <inheritdoc/>
@@ -157,14 +146,11 @@ namespace ApplicationAccess
             }
             if (userToEntityMap.ContainsKey(user) == true)
             {
-                if (storeBidirectionalMappings == true)
+                foreach (String currentEntityType in userToEntityMap[user].Keys)
                 {
-                    foreach (String currentEntityType in userToEntityMap[user].Keys)
+                    foreach (String currentEntity in userToEntityMap[user][currentEntityType])
                     {
-                        foreach (String currentEntity in userToEntityMap[user][currentEntityType])
-                        {
-                            userToEntityReverseMap[currentEntityType][currentEntity].Remove(user);
-                        }
+                        userToEntityReverseMap[currentEntityType][currentEntity].Remove(user);
                     }
                 }
                 userToEntityMap.Remove(user);
@@ -207,14 +193,11 @@ namespace ApplicationAccess
             }
             if (groupToEntityMap.ContainsKey(group) == true)
             {
-                if (storeBidirectionalMappings == true)
+                foreach (String currentEntityType in groupToEntityMap[group].Keys)
                 {
-                    foreach (String currentEntityType in groupToEntityMap[group].Keys)
+                    foreach (String currentEntity in groupToEntityMap[group][currentEntityType])
                     {
-                        foreach (String currentEntity in groupToEntityMap[group][currentEntityType])
-                        {
-                            groupToEntityReverseMap[currentEntityType][currentEntity].Remove(group);
-                        }
+                        groupToEntityReverseMap[currentEntityType][currentEntity].Remove(group);
                     }
                 }
                 groupToEntityMap.Remove(group);
@@ -563,18 +546,15 @@ namespace ApplicationAccess
                 userToEntityMap[user].Add(entityType, collectionFactory.GetSetInstance<String>());
             }
             userToEntityMap[user][entityType].Add(entity);
-            if (storeBidirectionalMappings == true)
+            if (userToEntityReverseMap.ContainsKey(entityType) == false)
             {
-                if (userToEntityReverseMap.ContainsKey(entityType) == false)
-                {
-                    userToEntityReverseMap.Add(entityType, collectionFactory.GetDictionaryInstance<String, ISet<TUser>>());
-                }
-                if (userToEntityReverseMap[entityType].ContainsKey(entity) == false)
-                {
-                    userToEntityReverseMap[entityType].Add(entity, collectionFactory.GetSetInstance<TUser>());
-                }
-                userToEntityReverseMap[entityType][entity].Add(user);
+                userToEntityReverseMap.Add(entityType, collectionFactory.GetDictionaryInstance<String, ISet<TUser>>());
             }
+            if (userToEntityReverseMap[entityType].ContainsKey(entity) == false)
+            {
+                userToEntityReverseMap[entityType].Add(entity, collectionFactory.GetSetInstance<TUser>());
+            }
+            userToEntityReverseMap[entityType][entity].Add(user);
         }
 
         /// <inheritdoc/>
@@ -609,10 +589,7 @@ namespace ApplicationAccess
                 throw new ArgumentException($"A mapping between user '{user.ToString()}' and entity '{entity}' with type '{entityType}' doesn't exist.");
 
             userToEntityMap[user][entityType].Remove(entity);
-            if (storeBidirectionalMappings == true)
-            {
-                userToEntityReverseMap[entityType][entity].Remove(user);
-            }
+            userToEntityReverseMap[entityType][entity].Remove(user);
         }
 
         /// <inheritdoc/>
@@ -636,18 +613,15 @@ namespace ApplicationAccess
                 groupToEntityMap[group].Add(entityType, collectionFactory.GetSetInstance<String>());
             }
             groupToEntityMap[group][entityType].Add(entity);
-            if (storeBidirectionalMappings == true)
+            if (groupToEntityReverseMap.ContainsKey(entityType) == false)
             {
-                if (groupToEntityReverseMap.ContainsKey(entityType) == false)
-                {
-                    groupToEntityReverseMap.Add(entityType, collectionFactory.GetDictionaryInstance<String, ISet<TGroup>>());
-                }
-                if (groupToEntityReverseMap[entityType].ContainsKey(entity) == false)
-                {
-                    groupToEntityReverseMap[entityType].Add(entity, collectionFactory.GetSetInstance<TGroup>());
-                }
-                groupToEntityReverseMap[entityType][entity].Add(group);
+                groupToEntityReverseMap.Add(entityType, collectionFactory.GetDictionaryInstance<String, ISet<TGroup>>());
             }
+            if (groupToEntityReverseMap[entityType].ContainsKey(entity) == false)
+            {
+                groupToEntityReverseMap[entityType].Add(entity, collectionFactory.GetSetInstance<TGroup>());
+            }
+            groupToEntityReverseMap[entityType][entity].Add(group);
         }
 
         /// <inheritdoc/>
@@ -696,10 +670,7 @@ namespace ApplicationAccess
                 throw new ArgumentException($"A mapping between group '{group.ToString()}' and entity '{entity}' with type '{entityType}' doesn't exist.");
 
             groupToEntityMap[group][entityType].Remove(entity); 
-            if (storeBidirectionalMappings == true)
-            {
-                groupToEntityReverseMap[entityType][entity].Remove(group);
-            }
+            groupToEntityReverseMap[entityType][entity].Remove(group);
         }
 
         /// <inheritdoc/>
@@ -1006,57 +977,35 @@ namespace ApplicationAccess
             if (entities.ContainsKey(entityType) == false)
                 ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
 
-            if (storeBidirectionalMappings == false)
+            if (userToEntityReverseMap.ContainsKey(entityType)  == true)
             {
-                foreach (KeyValuePair<TUser, IDictionary<String, ISet<String>>> currentKvp in userToEntityMap)
+                var usersMappedToEntityType = new HashSet<TUser>();
+                foreach (String currentEntity in userToEntityReverseMap[entityType].Keys)
                 {
-                    if (currentKvp.Value.ContainsKey(entityType) == true)
-                    {
-                        userToEntityTypeMappingPreRemovalAction.Invoke(currentKvp.Key, entityType, currentKvp.Value[entityType], currentKvp.Value[entityType].Count);
-                        currentKvp.Value.Remove(entityType);
-                    }
+                    // TODO: Performance could still be impoved here, as we're iterating all entities of the entity type we're deleting,  to obtain a consolidated set of users mapped from the entity type (and 'through' the entities)
+                    //   This is an improvement on previous code where 'userToEntityReverseMap' member didn't exist, but could still be improved potentially by storing another 'reverse map' from entity type directly to user
+                    usersMappedToEntityType.UnionWith(userToEntityReverseMap[entityType][currentEntity]);
                 }
-                foreach (KeyValuePair<TGroup, IDictionary<String, ISet<String>>> currentKvp in groupToEntityMap)
+                foreach (TUser currentUser in usersMappedToEntityType)
                 {
-                    if (currentKvp.Value.ContainsKey(entityType) == true)
-                    {
-                        groupToEntityTypeMappingPreRemovalAction.Invoke(currentKvp.Key, entityType, currentKvp.Value[entityType], currentKvp.Value[entityType].Count);
-                        currentKvp.Value.Remove(entityType);
-                    }
+                    userToEntityTypeMappingPreRemovalAction.Invoke(currentUser, entityType, userToEntityMap[currentUser][entityType], userToEntityMap[currentUser][entityType].Count);
+                    userToEntityMap[currentUser].Remove(entityType);
                 }
+                userToEntityReverseMap.Remove(entityType);
             }
-            else
+            if (groupToEntityReverseMap.ContainsKey(entityType) == true)
             {
-                if (userToEntityReverseMap.ContainsKey(entityType)  == true)
+                var groupsMappedToEntityType = new HashSet<TGroup>();
+                foreach (String currentEntity in groupToEntityReverseMap[entityType].Keys)
                 {
-                    var usersMappedToEntityType = new HashSet<TUser>();
-                    foreach (String currentEntity in userToEntityReverseMap[entityType].Keys)
-                    {
-                        // TODO: Performance could still be impoved here, as we're iterating all entities of the entity type we're deleting,  to obtain a consolidated set of users mapped from the entity type (and 'through' the entities)
-                        //   This is an improvement on previous code where 'userToEntityReverseMap' member didn't exist, but could still be improved potentially by storing another 'reverse map' from entity type directly to user
-                        usersMappedToEntityType.UnionWith(userToEntityReverseMap[entityType][currentEntity]);
-                    }
-                    foreach (TUser currentUser in usersMappedToEntityType)
-                    {
-                        userToEntityTypeMappingPreRemovalAction.Invoke(currentUser, entityType, userToEntityMap[currentUser][entityType], userToEntityMap[currentUser][entityType].Count);
-                        userToEntityMap[currentUser].Remove(entityType);
-                    }
-                    userToEntityReverseMap.Remove(entityType);
+                    groupsMappedToEntityType.UnionWith(groupToEntityReverseMap[entityType][currentEntity]);
                 }
-                if (groupToEntityReverseMap.ContainsKey(entityType) == true)
+                foreach (TGroup currentGroup in groupsMappedToEntityType)
                 {
-                    var groupsMappedToEntityType = new HashSet<TGroup>();
-                    foreach (String currentEntity in groupToEntityReverseMap[entityType].Keys)
-                    {
-                        groupsMappedToEntityType.UnionWith(groupToEntityReverseMap[entityType][currentEntity]);
-                    }
-                    foreach (TGroup currentGroup in groupsMappedToEntityType)
-                    {
-                        groupToEntityTypeMappingPreRemovalAction.Invoke(currentGroup, entityType, groupToEntityMap[currentGroup][entityType], groupToEntityMap[currentGroup][entityType].Count);
-                        groupToEntityMap[currentGroup].Remove(entityType);
-                    }
-                    groupToEntityReverseMap.Remove(entityType);
+                    groupToEntityTypeMappingPreRemovalAction.Invoke(currentGroup, entityType, groupToEntityMap[currentGroup][entityType], groupToEntityMap[currentGroup][entityType].Count);
+                    groupToEntityMap[currentGroup].Remove(entityType);
                 }
+                groupToEntityReverseMap.Remove(entityType);
             }
 
             entities.Remove(entityType);
@@ -1076,45 +1025,23 @@ namespace ApplicationAccess
             if (entities[entityType].Contains(entity) == false)
                 ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
 
-            if (storeBidirectionalMappings == false)
+            if (userToEntityReverseMap.ContainsKey(entityType) && userToEntityReverseMap[entityType].ContainsKey(entity))
             {
-                foreach (KeyValuePair<TUser, IDictionary<String, ISet<String>>> currentKvp in userToEntityMap)
+                foreach (TUser currentUser in userToEntityReverseMap[entityType][entity])
                 {
-                    if (currentKvp.Value.ContainsKey(entityType) == true && currentKvp.Value[entityType].Contains(entity) == true)
-                    {
-                        currentKvp.Value[entityType].Remove(entity);
-                        userToEntityMappingPostRemovalAction.Invoke(currentKvp.Key, entityType, entity);
-                    }
+                    userToEntityMap[currentUser][entityType].Remove(entity);
+                    userToEntityMappingPostRemovalAction.Invoke(currentUser, entityType, entity);
                 }
-                foreach (KeyValuePair<TGroup, IDictionary<String, ISet<String>>> currentKvp in groupToEntityMap)
-                {
-                    if (currentKvp.Value.ContainsKey(entityType) == true && currentKvp.Value[entityType].Contains(entity) == true)
-                    {
-                        currentKvp.Value[entityType].Remove(entity);
-                        groupToEntityMappingPostRemovalAction.Invoke(currentKvp.Key, entityType, entity);
-                    }
-                }
+                userToEntityReverseMap[entityType].Remove(entity);
             }
-            else
+            if (groupToEntityReverseMap.ContainsKey(entityType) && groupToEntityReverseMap[entityType].ContainsKey(entity))
             {
-                if (userToEntityReverseMap.ContainsKey(entityType) && userToEntityReverseMap[entityType].ContainsKey(entity))
+                foreach (TGroup currentGroup in groupToEntityReverseMap[entityType][entity])
                 {
-                    foreach (TUser currentUser in userToEntityReverseMap[entityType][entity])
-                    {
-                        userToEntityMap[currentUser][entityType].Remove(entity);
-                        userToEntityMappingPostRemovalAction.Invoke(currentUser, entityType, entity);
-                    }
-                    userToEntityReverseMap[entityType].Remove(entity);
+                    groupToEntityMap[currentGroup][entityType].Remove(entity);
+                    groupToEntityMappingPostRemovalAction.Invoke(currentGroup, entityType, entity);
                 }
-                if (groupToEntityReverseMap.ContainsKey(entityType) && groupToEntityReverseMap[entityType].ContainsKey(entity))
-                {
-                    foreach (TGroup currentGroup in groupToEntityReverseMap[entityType][entity])
-                    {
-                        groupToEntityMap[currentGroup][entityType].Remove(entity);
-                        groupToEntityMappingPostRemovalAction.Invoke(currentGroup, entityType, entity);
-                    }
-                    groupToEntityReverseMap[entityType].Remove(entity);
-                }
+                groupToEntityReverseMap[entityType].Remove(entity);
             }
 
             entities[entityType].Remove(entity);

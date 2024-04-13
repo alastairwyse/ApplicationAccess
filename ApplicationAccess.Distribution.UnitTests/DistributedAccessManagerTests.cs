@@ -39,33 +39,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         protected void SetUp()
         {
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
-        }
-
-        [Test]
-        public void Constructor_StoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
-        {
-            DistributedAccessManager<String, String, ApplicationScreen, AccessLevel> testDistributedAccessManager;
-            var fieldNamePath = new List<String>() { "storeBidirectionalMappings" };
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDistributedAccessManager);
-
-
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDistributedAccessManager);
-
-
-            fieldNamePath = new List<String>() { "userToGroupMap", "storeBidirectionalMappings" };
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDistributedAccessManager);
-
-
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDistributedAccessManager);
+            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
         }
 
         [Test]
@@ -73,7 +47,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             DistributedAccessManager<String, String, ApplicationScreen, AccessLevel> testDistributedAccessManager;
             var fieldNamePath = new List<String>() { "mappingMetricLogger" };
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testDistributedAccessManager);
         }
@@ -83,12 +57,12 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             DistributedAccessManager<String, String, ApplicationScreen, AccessLevel> testDistributedAccessManager;
             var fieldNamePath = new List<String>() { "userToGroupMap", "acquireLocks" };
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDistributedAccessManager);
 
 
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(false, mockMetricLogger);
+            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDistributedAccessManager);
         }
@@ -98,7 +72,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             DistributedAccessManager<String, String, ApplicationScreen, AccessLevel> testDistributedAccessManager;
             var fieldNamePath = new List<String>() { "userToGroupMap", "metricLogger" };
-            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(true, mockMetricLogger);
+            testDistributedAccessManager = new DistributedAccessManager<String, String, ApplicationScreen, AccessLevel>(mockMetricLogger);
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testDistributedAccessManager);
         }

@@ -39,16 +39,13 @@ namespace ApplicationAccess.Hosting
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
         /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
         /// <param name="eventCache">Cache for events which change the AccessManager.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public DistributedWriterNode
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventCache,
-            Boolean storeBidirectionalMappings
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, storeBidirectionalMappings)
+            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventCache
+        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache)
         {
             var eventDistributor = new AccessManagerTemporalEventBulkPersisterDistributor<TUser, TGroup, TComponent, TAccess>
             (
@@ -66,18 +63,15 @@ namespace ApplicationAccess.Hosting
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
         /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
         /// <param name="eventCache">Cache for events which change the AccessManager.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public DistributedWriterNode
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventCache,
-            Boolean storeBidirectionalMappings,
             IMetricLogger metricLogger
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, storeBidirectionalMappings, metricLogger)
+        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, eventCache, metricLogger)
         {
             var eventDistributor = new AccessManagerTemporalEventBulkPersisterDistributor<TUser, TGroup, TComponent, TAccess>
             (
@@ -91,9 +85,9 @@ namespace ApplicationAccess.Hosting
         #region Private/Protected Methods
 
         /// <inheritdoc/>
-        protected override DistributedAccessManager<TUser, TGroup, TComponent, TAccess> InitializeAccessManager(Boolean storeBidirectionalMappings)
+        protected override DistributedAccessManager<TUser, TGroup, TComponent, TAccess> InitializeAccessManager()
         {
-            return new DistributedAccessManager<TUser, TGroup, TComponent, TAccess>(storeBidirectionalMappings, metricLogger);
+            return new DistributedAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
         }
 
         #endregion

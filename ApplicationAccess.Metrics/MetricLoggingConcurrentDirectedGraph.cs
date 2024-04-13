@@ -54,11 +54,9 @@ namespace ApplicationAccess.Metrics
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingConcurrentDirectedGraph class.
         /// </summary>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
-        public MetricLoggingConcurrentDirectedGraph(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
-            : base(storeBidirectionalMappings, true)
+        public MetricLoggingConcurrentDirectedGraph(IMetricLogger metricLogger)
+            : base(true)
         {
             leafToNonLeafEdgeCount = 0;
             nonLeafToNonLeafEdgeCount = 0;
@@ -69,15 +67,11 @@ namespace ApplicationAccess.Metrics
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingConcurrentDirectedGraph class.
         /// </summary>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>
-        /// <para>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set true.</para>
-        /// <para>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the manager are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</para>
-        /// </remarks>
-        public MetricLoggingConcurrentDirectedGraph(Boolean storeBidirectionalMappings, Boolean acquireLocks, IMetricLogger metricLogger)
-            : base(storeBidirectionalMappings, acquireLocks)
+        /// <remarks>Parameter 'acquireLocks' should be set false where the ConcurrentDirectedGraph is used/composed within another class which acquires relevant locks before calling modification methods.  In all other cases, 'acquireLocks' should be set true.</remarks>
+        public MetricLoggingConcurrentDirectedGraph(Boolean acquireLocks, IMetricLogger metricLogger)
+            : base(acquireLocks)
         {
             leafToNonLeafEdgeCount = 0;
             nonLeafToNonLeafEdgeCount = 0;
@@ -89,12 +83,11 @@ namespace ApplicationAccess.Metrics
         /// Initialises a new instance of the ApplicationAccess.Metrics.MetricLoggingConcurrentDirectedGraph class.
         /// </summary>
         /// <param name="collectionFactory">A mock collection factory.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="acquireLocks">Whether locks should be acquired before modifying underlying collection objects.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public MetricLoggingConcurrentDirectedGraph(ICollectionFactory collectionFactory, Boolean storeBidirectionalMappings, Boolean acquireLocks, IMetricLogger metricLogger)
-            : base(collectionFactory, storeBidirectionalMappings, acquireLocks)
+        public MetricLoggingConcurrentDirectedGraph(ICollectionFactory collectionFactory, Boolean acquireLocks, IMetricLogger metricLogger)
+            : base(collectionFactory, acquireLocks)
         {
             leafToNonLeafEdgeCount = 0;
             nonLeafToNonLeafEdgeCount = 0;

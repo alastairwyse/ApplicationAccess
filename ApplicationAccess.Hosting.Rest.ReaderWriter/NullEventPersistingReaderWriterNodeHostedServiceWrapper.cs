@@ -33,7 +33,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     {
 
         // Members passed in via dependency injection
-        protected AccessManagerOptions accessManagerOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
         protected EntityEventProcessorHolder entityEventProcessorHolder;
         protected EntityQueryProcessorHolder entityQueryProcessorHolder;
@@ -62,7 +61,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// </summary>
         public NullEventPersistingReaderWriterNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
             EntityQueryProcessorHolder entityQueryProcessorHolder,
@@ -76,7 +74,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             ILogger<ReaderWriterNodeHostedServiceWrapper> logger
         )
         {
-            this.accessManagerOptions = accessManagerOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
             this.entityEventProcessorHolder = entityEventProcessorHolder;
             this.entityQueryProcessorHolder = entityQueryProcessorHolder;
@@ -101,7 +98,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             InitializeReaderWriterNodeConstructorParameters(eventBufferFlushingOptions);
 
             // Create the ReaderWriterNode
-            readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, new NullTemporalPersistentReader<String, String, String, String>(), eventPersister, accessManagerOptions.StoreBidirectionalMappings.Value);
+            readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, new NullTemporalPersistentReader<String, String, String, String>(), eventPersister);
 
             // Set the ReaderWriterNode on the 'holder' classes
             entityEventProcessorHolder.EntityEventProcessor = readerWriterNode;

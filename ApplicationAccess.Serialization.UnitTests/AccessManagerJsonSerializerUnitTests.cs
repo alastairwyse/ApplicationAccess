@@ -35,16 +35,16 @@ namespace ApplicationAccess.Serialization.UnitTests
         protected void SetUp()
         {
             testAccessManagerJsonSerializer = new AccessManagerJsonSerializer();
-            accessManagerToDeserializeTo = new AccessManager<String, String, ApplicationScreen, AccessLevel>(false);
+            accessManagerToDeserializeTo = new AccessManager<String, String, ApplicationScreen, AccessLevel>();
         }
 
         [Test]
         public void Serialize_EmptyGraph()
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
-            var testAccessManager = new AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false);
+            var testAccessManager = new AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>();
             var comparisonDocument = new JObject();
-            comparisonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            comparisonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             comparisonDocument.Add("userToComponentMap", new JArray());
             comparisonDocument.Add("groupToComponentMap", new JArray());
             comparisonDocument.Add("entityTypes", new JArray());
@@ -67,7 +67,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         public void Serialize()
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
-            var testAccessManager = new AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(false);
+            var testAccessManager = new AccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>();
             CreateTestData(testAccessManager);
             JObject serializedDirectedGraph = directedGraphSerializer.Serialize<String, String>(testAccessManager.UserToGroupMap, new StringUniqueStringifier(), new StringUniqueStringifier());
             var screenStringifier = new EnumUniqueStringifier<ApplicationScreen>();
@@ -242,7 +242,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
             testJsonDocument.Add("userToEntityMap", new JArray());
@@ -270,7 +270,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
             testJsonDocument.Add("userToEntityMap", new JArray());
@@ -298,7 +298,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("userToEntityMap", new JArray());
@@ -326,7 +326,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -354,7 +354,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -410,7 +410,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JObject());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -439,7 +439,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JObject());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -468,7 +468,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JObject());
@@ -497,7 +497,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -526,7 +526,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -583,7 +583,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -617,7 +617,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -651,7 +651,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -686,7 +686,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -721,7 +721,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -758,7 +758,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -798,7 +798,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -838,7 +838,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -879,7 +879,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -919,7 +919,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         public void Deserialize_FailureToDeserializeUserToComponentMapElement()
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
-            var testUserToGroupMap = new DirectedGraph<String, String>(false);
+            var testUserToGroupMap = new DirectedGraph<String, String>();
             testUserToGroupMap.AddLeafVertex("User1");
             var testJsonDocument = new JObject();
             testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(testUserToGroupMap, new StringUniqueStringifier(), new StringUniqueStringifier()));
@@ -1037,7 +1037,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1071,7 +1071,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1105,7 +1105,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1140,7 +1140,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1175,7 +1175,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1212,7 +1212,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1252,7 +1252,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1292,7 +1292,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1333,7 +1333,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1373,7 +1373,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         public void Deserialize_FailureToDeserializeGroupToComponentMapElement()
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
-            var testUserToGroupMap = new DirectedGraph<String, String>(false);
+            var testUserToGroupMap = new DirectedGraph<String, String>();
             testUserToGroupMap.AddNonLeafVertex("Group1");
             var testJsonDocument = new JObject();
             testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(testUserToGroupMap, new StringUniqueStringifier(), new StringUniqueStringifier()));
@@ -1491,7 +1491,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1525,7 +1525,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1559,7 +1559,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1594,7 +1594,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1629,7 +1629,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1660,7 +1660,7 @@ namespace ApplicationAccess.Serialization.UnitTests
 
 
             testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1701,7 +1701,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1736,7 +1736,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1770,7 +1770,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1804,7 +1804,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1839,7 +1839,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1874,7 +1874,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1917,7 +1917,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -1960,7 +1960,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -2032,7 +2032,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -2066,7 +2066,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -2100,7 +2100,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -2135,7 +2135,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -2170,7 +2170,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -2213,7 +2213,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         {
             var directedGraphSerializer = new DirectedGraphJsonSerializer();
             var testJsonDocument = new JObject();
-            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(false), new StringUniqueStringifier(), new StringUniqueStringifier()));
+            testJsonDocument.Add("userToGroupMap", directedGraphSerializer.Serialize<String, String>(new DirectedGraph<String, String>(), new StringUniqueStringifier(), new StringUniqueStringifier()));
             testJsonDocument.Add("userToComponentMap", new JArray());
             testJsonDocument.Add("groupToComponentMap", new JArray());
             testJsonDocument.Add("entityTypes", new JArray());
@@ -2254,7 +2254,7 @@ namespace ApplicationAccess.Serialization.UnitTests
         [Test]
         public void SerializeDeserialize()
         {
-            var testAccessManager = new AccessManager<String, String, ApplicationScreen, AccessLevel>(false);
+            var testAccessManager = new AccessManager<String, String, ApplicationScreen, AccessLevel>();
             CreateTestData(testAccessManager);
 
             JObject serializedAccessManager = testAccessManagerJsonSerializer.Serialize<String, String, ApplicationScreen, AccessLevel>
@@ -2569,8 +2569,8 @@ namespace ApplicationAccess.Serialization.UnitTests
         /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         protected class AccessManagerWithProtectedMembers<TUser, TGroup, TComponent, TAccess> : AccessManager<TUser, TGroup, TComponent, TAccess>
         {
-            public AccessManagerWithProtectedMembers(Boolean storeBidirectionalMappings)
-                : base(storeBidirectionalMappings)
+            public AccessManagerWithProtectedMembers()
+                : base()
             {
             }
 

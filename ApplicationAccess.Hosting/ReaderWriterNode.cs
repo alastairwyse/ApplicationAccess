@@ -39,15 +39,12 @@ namespace ApplicationAccess.Hosting
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
         /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public ReaderWriterNode
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            Boolean storeBidirectionalMappings
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, storeBidirectionalMappings)
+            IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister
+        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister)
         {
             eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister);
         }
@@ -58,15 +55,12 @@ namespace ApplicationAccess.Hosting
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
         /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public ReaderWriterNode
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
-            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            Boolean storeBidirectionalMappings
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, storeBidirectionalMappings)
+            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister
+        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister)
         {
             eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister);
         }
@@ -77,17 +71,14 @@ namespace ApplicationAccess.Hosting
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
         /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public ReaderWriterNode
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            Boolean storeBidirectionalMappings,
             IMetricLogger metricLogger
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, storeBidirectionalMappings, metricLogger)
+        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, metricLogger)
         {
             eventBuffer = new AccessManagerTemporalEventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister, metricLogger);
         }
@@ -98,17 +89,14 @@ namespace ApplicationAccess.Hosting
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
         /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        /// <remarks>If parameter 'storeBidirectionalMappings' is set to True, mappings between elements in the access manager underlying the node are stored in both directions.  This avoids slow scanning of dictionaries which store the mappings in certain operations (like RemoveEntityType()), at the cost of addition storage and hence memory usage.</remarks>
         public ReaderWriterNode
         (
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
-            Boolean storeBidirectionalMappings,
             IMetricLogger metricLogger
-        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, storeBidirectionalMappings, metricLogger)
+        ) : base(eventBufferFlushStrategy, persistentReader, eventPersister, metricLogger)
         {
             eventBuffer = new AccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventPersister, metricLogger);
         }
@@ -116,9 +104,9 @@ namespace ApplicationAccess.Hosting
         #region Private/Protected Methods
 
         /// <inheritdoc/>
-        protected override MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> InitializeAccessManager(Boolean storeBidirectionalMappings)
+        protected override MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess> InitializeAccessManager()
         {
-            return new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(storeBidirectionalMappings, metricLogger);
+            return new MetricLoggingConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>(metricLogger);
         }
 
         #endregion

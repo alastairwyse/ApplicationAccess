@@ -38,9 +38,6 @@ namespace ApplicationAccess.Hosting.LaunchPreparer.UnitTests
             String testInputString = @"
             {
               ""AllowedHosts"": ""*"",
-              ""AccessManager"": {
-                ""StoreBidirectionalMappings"": true
-              },
               ""AccessManagerSqlDatabaseConnection"": {
                 ""DatabaseType"": ""SqlServer"",
                 ""ConnectionParameters"": {

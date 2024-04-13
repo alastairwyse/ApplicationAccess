@@ -33,10 +33,9 @@ namespace ApplicationAccess.Distribution
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManager class.
         /// </summary>
-        /// <param name="storeBidirectionalMappings">Whether to store bidirectional mappings between elements.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public DistributedAccessManager(Boolean storeBidirectionalMappings, IMetricLogger metricLogger)
-            : base(storeBidirectionalMappings, metricLogger)
+        public DistributedAccessManager(IMetricLogger metricLogger)
+            : base(metricLogger)
         {
         }
 

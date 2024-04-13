@@ -43,7 +43,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         /// </summary>
         public DistributedWriterNodeHostedServiceWrapper
         (
-            IOptions<AccessManagerOptions> accessManagerOptions,
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
@@ -57,7 +56,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         )
             : base
         (
-            accessManagerOptions,
             accessManagerSqlDatabaseConnectionOptions,
             eventBufferFlushingOptions,
             eventCacheConnectionOptions,
@@ -77,13 +75,13 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         /// <inheritdoc/>
         protected override DistributedWriterNode<String, String, String, String> InitializeWriterNode()
         {
-            return new DistributedWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, accessManagerOptions.StoreBidirectionalMappings.Value);
+            return new DistributedWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient);
         }
 
         /// <inheritdoc/>
         protected override DistributedWriterNode<String, String, String, String> InitializeWriterNodeWithMetricLogging()
         {
-            return new DistributedWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, accessManagerOptions.StoreBidirectionalMappings.Value, metricLogger);
+            return new DistributedWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
         }
 
         #endregion

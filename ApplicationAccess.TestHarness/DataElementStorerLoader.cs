@@ -34,7 +34,7 @@ namespace ApplicationAccess.TestHarness
         public void Load(IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> reader, IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, Boolean throwExceptionIfStorageIsEmpty)
         {
             // Read into a temporary/intermediate AccessManager instance
-            var intermediateAccessManager = new AccessManager<TUser, TGroup, TComponent, TAccess>(false);
+            var intermediateAccessManager = new AccessManager<TUser, TGroup, TComponent, TAccess>();
             try
             {
                 reader.Load(intermediateAccessManager);

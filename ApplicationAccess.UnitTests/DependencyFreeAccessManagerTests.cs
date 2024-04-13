@@ -37,43 +37,8 @@ namespace ApplicationAccess.UnitTests
         protected void SetUp()
         {
             mockEventProcessor = Substitute.For<IAccessManagerEventProcessor<String, String, ApplicationScreen, AccessLevel>>();
-            testDependencyFreeAccessManager = new DependencyFreeAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(true);
+            testDependencyFreeAccessManager = new DependencyFreeAccessManagerWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>();
             testDependencyFreeAccessManager.EventProcessor = mockEventProcessor;
-        }
-
-        [Test]
-        public void Constructor_StoreBidirectionalMappingsParameterSetCorrectlyOnComposedFields()
-        {
-            DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testDependencyFreeAccessManager;
-            var fieldNamePath = new List<String>() { "storeBidirectionalMappings" };
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDependencyFreeAccessManager);
-
-
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
-
-
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(false), true);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDependencyFreeAccessManager);
-
-
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true), false);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
-
-
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), true, false);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDependencyFreeAccessManager);
-
-
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), false, true);
-
-            NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
         }
 
         [Test]
@@ -81,32 +46,32 @@ namespace ApplicationAccess.UnitTests
         {
             DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel> testDependencyFreeAccessManager;
             var fieldNamePath = new List<String>() { "throwIdempotencyExceptions" };
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(true);
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>();
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
 
 
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(false);
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>();
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
 
 
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true), true);
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true));
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
 
 
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true), true);
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentDirectedGraph<String, String>(true));
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
 
 
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), false, true);
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), true);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, true, testDependencyFreeAccessManager);
 
 
-            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), true, false);
+            testDependencyFreeAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>(new ConcurrentCollectionFactory(), false);
 
             NonPublicFieldAssert.HasValue<Boolean>(fieldNamePath, false, testDependencyFreeAccessManager);
         }
@@ -1053,8 +1018,8 @@ namespace ApplicationAccess.UnitTests
                 get { return groupToEntityMap; }
             }
 
-            public DependencyFreeAccessManagerWithProtectedMembers(Boolean storeBidirectionalMappings)
-                : base(storeBidirectionalMappings)
+            public DependencyFreeAccessManagerWithProtectedMembers()
+                : base()
             {
             }
 
