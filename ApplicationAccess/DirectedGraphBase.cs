@@ -211,6 +211,16 @@ namespace ApplicationAccess
         }
 
         /// <summary>
+        /// Gets the edges connected from the specified non-leaf vertex to leaf vertices in the reverse direction.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to retrieve the reverse edges for.</param>
+        /// <returns>A collection of leaf vertices the specified vertex is connected to by a reverse edge.</returns>
+        public IEnumerable<TLeaf> GetLeafReverseEdges(TNonLeaf nonLeafVertex)
+        {
+            return GetLeafReverseEdges(nonLeafVertex, true);
+        }
+
+        /// <summary>
         /// Removes the edge from the graph between the specified leaf and non-leaf vertices.
         /// </summary>
         /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
@@ -279,6 +289,16 @@ namespace ApplicationAccess
         }
 
         /// <summary>
+        /// Gets the edges connected from the specified non-leaf vertex in the reverse direction.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to retrieve the reverse edges for.</param>
+        /// <returns>A collection of non-leaf vertices the specified vertex is connected to by a reverse edge.</returns>
+        public IEnumerable<TNonLeaf> GetNonLeafReverseEdges(TNonLeaf nonLeafVertex)
+        {
+            return GetNonLeafReverseEdges(nonLeafVertex, true);
+        }
+
+        /// <summary>
         /// Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
         /// </summary>
         /// <param name="fromVertex">The vertex which is the 'from' vertex the edge connects.</param>
@@ -325,6 +345,19 @@ namespace ApplicationAccess
 
             // TODO: Will traverse depth-first using recursion as it's not expected that the paths will become very deep.  Might need to change to a stack implementation if this changes.
             TraverseFromNonLeafRecurse(startVertex, new HashSet<TNonLeaf>(), vertexAction);
+        }
+
+        /// <summary>
+        /// Traverses the graph in the reverse direction, invoking the specified actions at each vertex (including the start vertex).
+        /// </summary>
+        /// <param name="startVertex">The non-leaf vertex to begin traversing at.</param>
+        /// <param name="nonLeafVertexAction">The action to perform at each non-leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        /// <param name="leafVertexAction">The action to perform at each leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        public void TraverseReverseFromNonLeaf(TNonLeaf startVertex, Func<TNonLeaf, Boolean> nonLeafVertexAction, Func<TLeaf, Boolean> leafVertexAction)
+        {
+            ThrowExceptionIfNonLeafVertexDoesntExistInGraph(startVertex, nameof(startVertex));
+
+            TraverseReverseFromNonLeafRecurse(startVertex, new HashSet<TNonLeaf>(), new HashSet<TLeaf>(), nonLeafVertexAction, leafVertexAction);
         }
 
         #region Private/Protected Methods
@@ -445,6 +478,60 @@ namespace ApplicationAccess
         }
 
         /// <summary>
+        /// Recurses to a non-leaf vertex in the reverse direction as part of a traversal, invoking the specified actions.
+        /// </summary>
+        /// <param name="nextVertex">The non-leaf vertex to recurse to.</param>
+        /// <param name="visitedNonLeafVertices">The set of non-leaf vertices which have already been visited as part of the traversal.</param>
+        /// <param name="visitedLeafVertices">The set of leaf vertices which have already been visited as part of the traversal.</param>
+        /// <param name="nonLeafVertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current non-leaf vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        /// <param name="leafVertexAction">The action to perform at each leaf vertex connected from the specified non-leaf vertex in the reverse direction.  Accepts a single parameter which is the leaf vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        /// <returns>Whether or not traversal should continue.</returns>
+        protected Boolean TraverseReverseFromNonLeafRecurse(TNonLeaf nextVertex, HashSet<TNonLeaf> visitedNonLeafVertices, HashSet<TLeaf> visitedLeafVertices, Func<TNonLeaf, Boolean> nonLeafVertexAction, Func<TLeaf, Boolean> leafVertexAction)
+        {
+            Boolean keepTraversing = nonLeafVertexAction.Invoke(nextVertex);
+            if (keepTraversing == false)
+            {
+                return keepTraversing;
+            }
+            visitedNonLeafVertices.Add(nextVertex);
+            Boolean leafEdgesExist = leafToNonLeafReverseEdges.TryGetValue(nextVertex, out ISet<TLeaf> leafEdgeVertices);
+            if (leafEdgesExist == true)
+            {
+                // TODO: In cases where we only want to traverse to non-leaf vertices we waste quite a few cycles here iterating sets and calling empty lambdas on them
+                //   Another option would be to have an overload of this method which omitted 'leafVertexAction' and skipped this part
+                foreach (TLeaf currentLeaf in leafEdgeVertices)
+                {
+                    if (visitedLeafVertices.Contains(currentLeaf) == false)
+                    {
+                        keepTraversing = leafVertexAction(currentLeaf);
+                    }
+                    if (keepTraversing == false)
+                    {
+                        return keepTraversing;
+                    }
+                    visitedLeafVertices.Add(currentLeaf);
+                }
+            }
+            Boolean nonLeafEdgesExist = nonLeafToNonLeafReverseEdges.TryGetValue(nextVertex, out ISet<TNonLeaf> nonLeafEdgeVertices);
+            if (nonLeafEdgesExist == true)
+            {
+                foreach (TNonLeaf currentNonLeaf in nonLeafEdgeVertices)
+                {
+                    if (visitedNonLeafVertices.Contains(currentNonLeaf) == false)
+                    {
+                        keepTraversing = TraverseReverseFromNonLeafRecurse(currentNonLeaf, visitedNonLeafVertices, visitedLeafVertices, nonLeafVertexAction, leafVertexAction);
+                    }
+                    if (keepTraversing == false)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return keepTraversing;
+        }
+
+        /// <summary>
         /// Gets the edges connected from the specified leaf vertex.
         /// </summary>
         /// <param name="leafVertex">The leaf vertex to retrieve the edges for.</param>
@@ -453,18 +540,19 @@ namespace ApplicationAccess
         protected IEnumerable<TNonLeaf> GetLeafEdges(TLeaf leafVertex, Boolean checkVertexExists)
         {
             // TODO: Would like to not have to copy the items to a List here, but...
-            //   1. If I just return the ISet<TNonLeaf> it has problem implications for the ConcurrentAccessManager (since it's using the ConcurrentSet class which has unimplemented methods)
+            //   1. If I just return the ISet<TNonLeaf> it has problem implications for the ConcurrentAccessManager (since it's using the ConcurrentSet class which has unimplemented methods... e.g. CopyTo() which is used even when you pass to the constructor of a List)
             //   2. If I do a yield in the foreach, the AccessManagerBase class can't catch the LeafVertexNotFoundException and rethrow as something else
             //   Hence copying to list was only option I could find which resolved both of the above
-            //   Same applies for GetNonLeafEdges()
+            //   Same applies for GetLeafReverseEdges(), GetNonLeafEdges(), GetNonLeafReverseEdges()
 
             if (checkVertexExists == true)
                 ThrowExceptionIfLeafVertexDoesntExistInGraph(leafVertex, nameof(leafVertex));
 
-            if (leafToNonLeafEdges.ContainsKey(leafVertex) == true)
+            Boolean leafVertexExists = leafToNonLeafEdges.TryGetValue(leafVertex, out ISet<TNonLeaf> connectedEdgeVertices);
+            if (leafVertexExists == true)
             {
-                var returnList = new List<TNonLeaf>(leafToNonLeafEdges[leafVertex].Count);
-                foreach (TNonLeaf currentNonLeafVertex in leafToNonLeafEdges[leafVertex])
+                var returnList = new List<TNonLeaf>(connectedEdgeVertices.Count);
+                foreach (TNonLeaf currentNonLeafVertex in connectedEdgeVertices)
                 {
                     returnList.Add(currentNonLeafVertex);
                 }
@@ -474,6 +562,34 @@ namespace ApplicationAccess
             else
             {
                 return Enumerable.Empty<TNonLeaf>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the edges connected from the specified non-leaf vertex to leaf vertices in the reverse direction.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to retrieve the reverse edges for.</param>
+        /// <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
+        /// <returns>A collection of leaf vertices the specified vertex is connected to by a reverse edge.</returns>
+        protected IEnumerable<TLeaf> GetLeafReverseEdges(TNonLeaf nonLeafVertex, Boolean checkVertexExists)
+        {
+            if (checkVertexExists == true)
+                ThrowExceptionIfNonLeafVertexDoesntExistInGraph(nonLeafVertex, nameof(nonLeafVertex));
+
+            Boolean nonLeafVertexExists = leafToNonLeafReverseEdges.TryGetValue(nonLeafVertex, out ISet<TLeaf> connectedEdgeVertices);
+            if (nonLeafVertexExists == true)
+            {
+                var returnList = new List<TLeaf>(connectedEdgeVertices.Count);
+                foreach (TLeaf currentLeafVertex in connectedEdgeVertices)
+                {
+                    returnList.Add(currentLeafVertex);
+                }
+
+                return returnList;
+            }
+            else
+            {
+                return Enumerable.Empty<TLeaf>();
             }
         }
 
@@ -488,10 +604,39 @@ namespace ApplicationAccess
             if (checkVertexExists == true)
                 ThrowExceptionIfNonLeafVertexDoesntExistInGraph(nonLeafVertex, nameof(nonLeafVertex));
 
-            if (nonLeafToNonLeafEdges.ContainsKey(nonLeafVertex) == true)
+            Boolean nonLeafVertexExists = nonLeafToNonLeafEdges.TryGetValue(nonLeafVertex, out ISet<TNonLeaf> connectedEdgeVertices);
+            if (nonLeafVertexExists == true)
             {
-                var returnList = new List<TNonLeaf>(nonLeafToNonLeafEdges[nonLeafVertex].Count);
-                foreach (TNonLeaf currentNonLeafVertex in nonLeafToNonLeafEdges[nonLeafVertex])
+                var returnList = new List<TNonLeaf>(connectedEdgeVertices.Count);
+                foreach (TNonLeaf currentNonLeafVertex in connectedEdgeVertices)
+                {
+                    returnList.Add(currentNonLeafVertex);
+                }
+
+                return returnList;
+            }
+            else
+            {
+                return Enumerable.Empty<TNonLeaf>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the edges connected from the specified non-leaf vertex in the reverse direction.
+        /// </summary>
+        /// <param name="nonLeafVertex">The non-leaf vertex to retrieve the reverse edges for.</param>
+        /// <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
+        /// <returns>A collection of non-leaf vertices the specified vertex is connected to by a reverse edge.</returns>
+        public IEnumerable<TNonLeaf> GetNonLeafReverseEdges(TNonLeaf nonLeafVertex, Boolean checkVertexExists)
+        {
+            if (checkVertexExists == true)
+                ThrowExceptionIfNonLeafVertexDoesntExistInGraph(nonLeafVertex, nameof(nonLeafVertex));
+
+            Boolean nonLeafVertexExists = nonLeafToNonLeafReverseEdges.TryGetValue(nonLeafVertex, out ISet<TNonLeaf> connectedEdgeVertices);
+            if (nonLeafVertexExists == true)
+            {
+                var returnList = new List<TNonLeaf>(connectedEdgeVertices.Count);
+                foreach (TNonLeaf currentNonLeafVertex in connectedEdgeVertices)
                 {
                     returnList.Add(currentNonLeafVertex);
                 }

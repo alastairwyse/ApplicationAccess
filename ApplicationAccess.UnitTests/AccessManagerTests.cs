@@ -36,13 +36,6 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
-        public void Constructor()
-        {
-            Assert.IsNotNull(testAccessManager.UserToEntityReverseMap);
-            Assert.IsNotNull(testAccessManager.GroupToEntityReverseMap);
-        }
-
-        [Test]
         public void Clear()
         {
             testAccessManager.AddUser("user1");
@@ -72,6 +65,8 @@ namespace ApplicationAccess.UnitTests
             Assert.AreEqual(0, testAccessManager.Groups.Count());
             Assert.IsFalse(testAccessManager.UserToComponentMapContainsKey("user2"));
             Assert.IsFalse(testAccessManager.GroupToComponentMapContainsKey("group1"));
+            Assert.AreEqual(0, testAccessManager.UserToComponentReverseMap.Count());
+            Assert.AreEqual(0, testAccessManager.GroupToComponentReverseMap.Count());
             Assert.AreEqual(0, testAccessManager.Entities.Count());
             Assert.AreEqual(0, testAccessManager.UserToEntityMap.Count());
             Assert.AreEqual(0, testAccessManager.GroupToEntityMap.Count());
@@ -127,18 +122,16 @@ namespace ApplicationAccess.UnitTests
             Assert.IsTrue(testAccessManager.Users.Contains("user2"));
             Assert.IsFalse(testAccessManager.UserToComponentMapContainsKey("user1"));
             Assert.IsTrue(testAccessManager.UserToComponentMapContainsKey("user2"));
+            Assert.IsTrue(testAccessManager.UserToComponentReverseMap.ContainsKey(ApplicationScreen.Order));
+            Assert.IsTrue(testAccessManager.UserToComponentReverseMap[ApplicationScreen.Order].ContainsKey(AccessLevel.Create));
+            Assert.IsFalse(testAccessManager.UserToComponentReverseMap[ApplicationScreen.Order][AccessLevel.Create].Contains("user1"));
+            Assert.IsTrue(testAccessManager.UserToComponentReverseMap[ApplicationScreen.Order][AccessLevel.Create].Contains("user2"));
             Assert.IsFalse(testAccessManager.UserToEntityMap.ContainsKey("user1"));
             Assert.IsTrue(testAccessManager.UserToEntityMap.ContainsKey("user2"));
             Assert.IsTrue(testAccessManager.UserToEntityReverseMap.ContainsKey("ClientAccount"));
             Assert.IsTrue(testAccessManager.UserToEntityReverseMap["ClientAccount"].ContainsKey("CompanyA"));
             Assert.IsTrue(testAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Contains("user2"));
             Assert.AreEqual(1, testAccessManager.UserToEntityReverseMap["ClientAccount"]["CompanyA"].Count);
-        }
-
-        [Test]
-        public void RemoveUser_BidirectionalMappingsTrue()
-        {
-
         }
 
         [Test]
@@ -186,6 +179,10 @@ namespace ApplicationAccess.UnitTests
             Assert.IsTrue(testAccessManager.Groups.Contains("group2"));
             Assert.IsFalse(testAccessManager.GroupToComponentMapContainsKey("group1"));
             Assert.IsTrue(testAccessManager.GroupToComponentMapContainsKey("group2"));
+            Assert.IsTrue(testAccessManager.GroupToComponentReverseMap.ContainsKey(ApplicationScreen.Order));
+            Assert.IsTrue(testAccessManager.GroupToComponentReverseMap[ApplicationScreen.Order].ContainsKey(AccessLevel.Create));
+            Assert.IsFalse(testAccessManager.GroupToComponentReverseMap[ApplicationScreen.Order][AccessLevel.Create].Contains("group1"));
+            Assert.IsTrue(testAccessManager.GroupToComponentReverseMap[ApplicationScreen.Order][AccessLevel.Create].Contains("group2"));
             Assert.IsFalse(testAccessManager.GroupToEntityMap.ContainsKey("group1"));
             Assert.IsTrue(testAccessManager.GroupToEntityMap.ContainsKey("group2"));
             Assert.IsTrue(testAccessManager.GroupToEntityReverseMap.ContainsKey("ClientAccount"));
@@ -298,6 +295,109 @@ namespace ApplicationAccess.UnitTests
             Assert.AreEqual(2, mappings.Count);
             Assert.IsTrue(mappings.Contains("group3"));
             Assert.IsTrue(mappings.Contains("group4"));
+        }
+
+        [Test]
+        public void GetGroupToUserMappings_GroupDoesntExist()
+        {
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
+            {
+                testAccessManager.GetGroupToUserMappings("group1", false).FirstOrDefault();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
+            Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
+
+
+            e = Assert.Throws<GroupNotFoundException<String>>(delegate
+            {
+                testAccessManager.GetGroupToUserMappings("group1", true).FirstOrDefault();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
+            Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
+        }
+
+        [Test]
+        public void GetGroupToUserMappings()
+        {
+            CreateUserGroupGraph(testAccessManager);
+
+            HashSet<String> result = testAccessManager.GetGroupToUserMappings("Grp10", false);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp10", true);
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp8", false);
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp8", true);
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp9", false);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp9", true);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp5", false);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp5", true);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp6", false);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp6", true);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp7", false);
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetGroupToUserMappings("Grp7", true);
+
+            Assert.AreEqual(0, result.Count);
         }
 
         [Test]
@@ -480,6 +580,109 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void GetGroupToGroupReverseMappings_GroupDoesntExist()
+        {
+            var e = Assert.Throws<GroupNotFoundException<String>>(delegate
+            {
+                testAccessManager.GetGroupToGroupReverseMappings("group1", false).FirstOrDefault();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
+            Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
+
+
+            e = Assert.Throws<GroupNotFoundException<String>>(delegate
+            {
+                testAccessManager.GetGroupToGroupReverseMappings("group1", true).FirstOrDefault();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Group 'group1' does not exist."));
+            Assert.AreEqual("group", e.ParamName);
+            Assert.AreEqual("group1", e.Group);
+        }
+
+        [Test]
+        public void GetGroupToGroupReverseMappings()
+        {
+            CreateUserGroupGraph(testAccessManager);
+
+            HashSet<String> result = testAccessManager.GetGroupToGroupReverseMappings("Grp10", false);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp9"));
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp10", true);
+
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp9"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+           result = testAccessManager.GetGroupToGroupReverseMappings("Grp8", false);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp8", true);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp9", false);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp9", true);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp5", false);
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp5", true);
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp6", false);
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp6", true);
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp7", false);
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = testAccessManager.GetGroupToGroupReverseMappings("Grp7", true);
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
         public void RemoveGroupToGroupMapping_ToGroupDoesntExist()
         {
             testAccessManager.AddGroup("group1");
@@ -552,6 +755,19 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void AddUserToApplicationComponentAndAccessLevelMapping()
+        {
+            testAccessManager.AddUser("user1");
+
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Create);
+
+            Assert.IsTrue(testAccessManager.UserToComponentMapContainsKey("user1"));
+            Assert.IsTrue(testAccessManager.UserToComponentReverseMap.ContainsKey(ApplicationScreen.Order));
+            Assert.IsTrue(testAccessManager.UserToComponentReverseMap[ApplicationScreen.Order].ContainsKey(AccessLevel.Create));
+            Assert.IsTrue(testAccessManager.UserToComponentReverseMap[ApplicationScreen.Order][AccessLevel.Create].Contains("user1"));
+        }
+
+        [Test]
         public void GetUserToApplicationComponentAndAccessLevelMappings_UserDoesntExist()
         {
             var e = Assert.Throws<UserNotFoundException<String>>(delegate
@@ -597,6 +813,170 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void GetApplicationComponentAndAccessLevelToUserMappings_NoMappingsOrApplicationComponentAndOrAccessLevelDontExist()
+        {
+            IEnumerable<String> result = testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.View, false);
+
+            Assert.AreEqual(0, result.Count());
+
+
+            result = testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.View, true);
+
+            Assert.AreEqual(0, result.Count());
+        }
+
+        [Test]
+        public void GetApplicationComponentAndAccessLevelToUserMappings()
+        {
+            CreateUserGroupGraph(testAccessManager);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp10", ApplicationScreen.Order, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp8", ApplicationScreen.Order, AccessLevel.Create);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp9", ApplicationScreen.Order, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp5", ApplicationScreen.Order, AccessLevel.Delete);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp5", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp6", ApplicationScreen.Summary, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp6", ApplicationScreen.ManageProducts, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp7", ApplicationScreen.Summary, AccessLevel.Create);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("Per8", ApplicationScreen.Summary, AccessLevel.Modify);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("Per8", ApplicationScreen.Summary, AccessLevel.Delete);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("Per9", ApplicationScreen.Summary, AccessLevel.Delete);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("Per9", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("Per10", ApplicationScreen.ManageProducts, AccessLevel.Create);
+
+            var result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Order, AccessLevel.View, false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Order, AccessLevel.View, true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Order, AccessLevel.Create, false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Order, AccessLevel.Create, true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Order, AccessLevel.Modify, false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Order, AccessLevel.Modify, true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Order, AccessLevel.Delete, false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Order, AccessLevel.Delete, true));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Summary, AccessLevel.View, false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Summary, AccessLevel.View, true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Summary, AccessLevel.Create, false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Summary, AccessLevel.Create, true));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Summary, AccessLevel.Modify, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Summary, AccessLevel.Modify, true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Summary, AccessLevel.Delete, false));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.Summary, AccessLevel.Delete, true));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.View, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.View, true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Modify, false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Modify, true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+            Assert.IsTrue(result.Contains("Per10"));
+        }
+
+        [Test]
         public void RemoveUserToApplicationComponentAndAccessLevelMapping_UserDoesntExist()
         {
             var e = Assert.Throws<UserNotFoundException<String>>(delegate
@@ -620,6 +1000,20 @@ namespace ApplicationAccess.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith("A mapping between user 'user1' application component 'Order' and access level 'Create' doesn't exist."));
+        }
+
+        [Test]
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping()
+        {
+            testAccessManager.AddUser("user1");
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Create);
+
+            testAccessManager.RemoveUserToApplicationComponentAndAccessLevelMapping("user1", ApplicationScreen.Order, AccessLevel.Create);
+
+            Assert.IsFalse(testAccessManager.UserToComponentMapContainsKey("user1"));
+            Assert.IsTrue(testAccessManager.UserToComponentReverseMap.ContainsKey(ApplicationScreen.Order));
+            Assert.IsTrue(testAccessManager.UserToComponentReverseMap[ApplicationScreen.Order].ContainsKey(AccessLevel.Create));
+            Assert.IsFalse(testAccessManager.UserToComponentReverseMap[ApplicationScreen.Order][AccessLevel.Create].Contains("user1"));
         }
 
         [Test]
@@ -647,6 +1041,19 @@ namespace ApplicationAccess.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith("A mapping between group 'group1' application component 'Order' and access level 'Create' already exists."));
+        }
+
+        [Test]
+        public void AddGroupToApplicationComponentAndAccessLevelMapping()
+        {
+            testAccessManager.AddGroup("group1");
+
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.Create);
+
+            Assert.IsTrue(testAccessManager.GroupToComponentMapContainsKey("group1"));
+            Assert.IsTrue(testAccessManager.GroupToComponentReverseMap.ContainsKey(ApplicationScreen.Order));
+            Assert.IsTrue(testAccessManager.GroupToComponentReverseMap[ApplicationScreen.Order].ContainsKey(AccessLevel.Create));
+            Assert.IsTrue(testAccessManager.GroupToComponentReverseMap[ApplicationScreen.Order][AccessLevel.Create].Contains("group1"));
         }
 
         [Test]
@@ -696,6 +1103,157 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void GetApplicationComponentAndAccessLevelToGroupMappings_NoMappingsOrApplicationComponentAndOrAccessLevelDontExist()
+        {
+            IEnumerable<String> result = testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.View, false);
+
+            Assert.AreEqual(0, result.Count());
+
+
+            result = testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.View, true);
+
+            Assert.AreEqual(0, result.Count());
+        }
+
+        [Test]
+        public void GetApplicationComponentAndAccessLevelToGroupMappings()
+        {
+            CreateUserGroupGraph(testAccessManager);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp10", ApplicationScreen.Order, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp8", ApplicationScreen.Order, AccessLevel.Create);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp8", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp9", ApplicationScreen.Order, AccessLevel.Modify);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp9", ApplicationScreen.ManageProducts, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp5", ApplicationScreen.Order, AccessLevel.Delete);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp5", ApplicationScreen.Summary, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp6", ApplicationScreen.Summary, AccessLevel.View);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp6", ApplicationScreen.Summary, AccessLevel.Create);
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("Grp7", ApplicationScreen.Summary, AccessLevel.Modify);
+            testAccessManager.AddUserToApplicationComponentAndAccessLevelMapping("Per10", ApplicationScreen.Summary, AccessLevel.Delete);
+
+            var result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Order, AccessLevel.View, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Order, AccessLevel.View, true));
+
+            Assert.AreEqual(6, result.Count);
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp9"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Order, AccessLevel.Create, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Order, AccessLevel.Create, true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.View, false));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.View, true));
+
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp9"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Order, AccessLevel.Modify, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Order, AccessLevel.Modify, true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Grp9"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Order, AccessLevel.Delete, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Order, AccessLevel.Delete, true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Summary, AccessLevel.View, false));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Summary, AccessLevel.View, true));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Summary, AccessLevel.Create, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Summary, AccessLevel.Create, true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Summary, AccessLevel.Modify, false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Summary, AccessLevel.Modify, true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Summary, AccessLevel.Delete, false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.Summary, AccessLevel.Delete, true));
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping_GroupDoesntExist()
         {
             var e = Assert.Throws<GroupNotFoundException<String>>(delegate
@@ -719,6 +1277,20 @@ namespace ApplicationAccess.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith("A mapping between group 'group1' application component 'Order' and access level 'Create' doesn't exist."));
+        }
+
+        [Test]
+        public void RemoveGroupToApplicationComponentAndAccessLevelMapping()
+        {
+            testAccessManager.AddGroup("group1");
+            testAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.Create);
+
+            testAccessManager.RemoveGroupToApplicationComponentAndAccessLevelMapping("group1", ApplicationScreen.Order, AccessLevel.Create);
+
+            Assert.IsFalse(testAccessManager.GroupToComponentMapContainsKey("group1"));
+            Assert.IsTrue(testAccessManager.GroupToComponentReverseMap.ContainsKey(ApplicationScreen.Order));
+            Assert.IsTrue(testAccessManager.GroupToComponentReverseMap[ApplicationScreen.Order].ContainsKey(AccessLevel.Create));
+            Assert.IsFalse(testAccessManager.GroupToComponentReverseMap[ApplicationScreen.Order][AccessLevel.Create].Contains("group1"));
         }
 
         [Test]
@@ -1191,6 +1763,220 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void GetEntityToUserMappings_EntityTypeDoesntExist()
+        {
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
+            {
+                testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyA", false).Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
+            Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+
+
+            e = Assert.Throws<EntityTypeNotFoundException>(delegate
+            {
+                testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyA", true).Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
+            Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+        }
+
+        [Test]
+        public void GetEntityToUserMappings_EntityDoesntExist()
+        {
+            testAccessManager.AddEntityType("ClientAccount");
+
+            var e = Assert.Throws<EntityNotFoundException>(delegate
+            {
+                testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyA", false).Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
+            Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
+
+
+            e = Assert.Throws<EntityNotFoundException>(delegate
+            {
+                testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyA", true).Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
+            Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
+        }
+
+        [Test]
+        public void GetEntityToUserMappings()
+        {
+            CreateUserGroupGraph(testAccessManager);
+            testAccessManager.AddEntityType("ClientAccount");
+            testAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testAccessManager.AddEntity("ClientAccount", "CompanyE");
+            testAccessManager.AddEntity("ClientAccount", "CompanyF");
+            testAccessManager.AddEntity("ClientAccount", "CompanyG");
+            testAccessManager.AddEntityType("BusinessUnit");
+            testAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testAccessManager.AddEntity("BusinessUnit", "Sales");
+            testAccessManager.AddEntity("BusinessUnit", "IT");
+            testAccessManager.AddEntity("BusinessUnit", "HR");
+            testAccessManager.AddGroupToEntityMapping("Grp10", "ClientAccount", "CompanyA");
+            testAccessManager.AddGroupToEntityMapping("Grp8", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("Grp9", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("Grp5", "ClientAccount", "CompanyD");
+            testAccessManager.AddGroupToEntityMapping("Grp5", "ClientAccount", "CompanyE");
+            testAccessManager.AddGroupToEntityMapping("Grp6", "BusinessUnit", "Marketing");
+            testAccessManager.AddGroupToEntityMapping("Grp6", "ClientAccount", "CompanyE");
+            testAccessManager.AddGroupToEntityMapping("Grp7", "BusinessUnit", "Sales");
+            testAccessManager.AddUserToEntityMapping("Per8", "BusinessUnit", "IT");
+            testAccessManager.AddUserToEntityMapping("Per8", "BusinessUnit", "HR");
+            testAccessManager.AddUserToEntityMapping("Per9", "BusinessUnit", "HR");
+            testAccessManager.AddUserToEntityMapping("Per9", "ClientAccount", "CompanyF");
+            testAccessManager.AddUserToEntityMapping("Per10", "ClientAccount", "CompanyG");
+
+            var result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyA", false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyA", true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyB", false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyB", true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyC", false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyC", true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyD", false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyD", true));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("BusinessUnit", "Marketing", false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("BusinessUnit", "Marketing", true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("BusinessUnit", "Sales", false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("BusinessUnit", "Sales", true));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("BusinessUnit", "IT", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("BusinessUnit", "IT", true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("BusinessUnit", "HR", false));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("BusinessUnit", "HR", true));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyF", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyF", true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyG", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyG", true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Per10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyE", false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToUserMappings("ClientAccount", "CompanyE", true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Per8"));
+            Assert.IsTrue(result.Contains("Per9"));
+            Assert.IsTrue(result.Contains("Per10"));
+        }
+
+        [Test]
         public void RemoveUserToEntityMapping_UserDoesntExist()
         {
             var e = Assert.Throws<UserNotFoundException<String>>(delegate
@@ -1487,6 +2273,203 @@ namespace ApplicationAccess.UnitTests
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains("CompanyA"));
             Assert.IsTrue(result.Contains("CompanyB"));
+        }
+
+        [Test]
+        public void GetEntityToGroupMappings_EntityTypeDoesntExist()
+        {
+            var e = Assert.Throws<EntityTypeNotFoundException>(delegate
+            {
+                testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyA", false).Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
+            Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+
+
+            e = Assert.Throws<EntityTypeNotFoundException>(delegate
+            {
+                testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyA", true).Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity type 'ClientAccount' does not exist."));
+            Assert.AreEqual("entityType", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+        }
+
+        [Test]
+        public void GetEntityToGroupMappings_EntityDoesntExist()
+        {
+            testAccessManager.AddEntityType("ClientAccount");
+
+            var e = Assert.Throws<EntityNotFoundException>(delegate
+            {
+                testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyA", false).Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
+            Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
+
+
+            e = Assert.Throws<EntityNotFoundException>(delegate
+            {
+                testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyA", true).Count();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Entity 'CompanyA' does not exist."));
+            Assert.AreEqual("entity", e.ParamName);
+            Assert.AreEqual("ClientAccount", e.EntityType);
+            Assert.AreEqual("CompanyA", e.Entity);
+        }
+
+        [Test]
+        public void GetEntityToGroupMappings()
+        {
+            CreateUserGroupGraph(testAccessManager);
+            testAccessManager.AddEntityType("ClientAccount");
+            testAccessManager.AddEntity("ClientAccount", "CompanyA");
+            testAccessManager.AddEntity("ClientAccount", "CompanyB");
+            testAccessManager.AddEntity("ClientAccount", "CompanyC");
+            testAccessManager.AddEntity("ClientAccount", "CompanyD");
+            testAccessManager.AddEntity("ClientAccount", "CompanyF");
+            testAccessManager.AddEntityType("BusinessUnit");
+            testAccessManager.AddEntity("BusinessUnit", "Marketing");
+            testAccessManager.AddEntity("BusinessUnit", "Sales");
+            testAccessManager.AddEntity("BusinessUnit", "IT");
+            testAccessManager.AddEntity("BusinessUnit", "HR");
+            testAccessManager.AddGroupToEntityMapping("Grp10", "ClientAccount", "CompanyA");
+            testAccessManager.AddGroupToEntityMapping("Grp8", "ClientAccount", "CompanyB");
+            testAccessManager.AddGroupToEntityMapping("Grp8", "ClientAccount", "CompanyF");
+            testAccessManager.AddGroupToEntityMapping("Grp9", "ClientAccount", "CompanyC");
+            testAccessManager.AddGroupToEntityMapping("Grp9", "ClientAccount", "CompanyF");
+            testAccessManager.AddGroupToEntityMapping("Grp5", "ClientAccount", "CompanyD");
+            testAccessManager.AddGroupToEntityMapping("Grp5", "BusinessUnit", "Marketing");
+            testAccessManager.AddGroupToEntityMapping("Grp6", "BusinessUnit", "Marketing");
+            testAccessManager.AddGroupToEntityMapping("Grp6", "BusinessUnit", "Sales");
+            testAccessManager.AddGroupToEntityMapping("Grp7", "BusinessUnit", "IT");
+            testAccessManager.AddUserToEntityMapping("Per10", "BusinessUnit", "HR");
+
+            var result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyA", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp10"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyA", true));
+
+            Assert.AreEqual(6, result.Count);
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp9"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyB", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyB", true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyF", false));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyF", true));
+
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp9"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyC", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp9"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyC", true));
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Grp9"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyD", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("ClientAccount", "CompanyD", true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("BusinessUnit", "Marketing", false));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("BusinessUnit", "Marketing", true));
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("BusinessUnit", "Sales", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("BusinessUnit", "Sales", true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp6"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("BusinessUnit", "IT", false));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("BusinessUnit", "IT", true));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Grp7"));
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("BusinessUnit", "HR", false));
+
+            Assert.AreEqual(0, result.Count);
+
+
+            result = new HashSet<String>(testAccessManager.GetEntityToGroupMappings("BusinessUnit", "HR", true));
         }
 
         [Test]
@@ -2264,6 +3247,20 @@ namespace ApplicationAccess.UnitTests
 
             Assert.AreEqual(0, testAccessManager.UserToGroupMap.LeafVertices.Count());
             Assert.AreEqual(0, testAccessManager.UserToGroupMap.NonLeafVertices.Count());
+            foreach (ApplicationScreen currentScreen in testAccessManager.UserToComponentReverseMap.Keys)
+            {
+                foreach (AccessLevel currentAccessLevel in testAccessManager.UserToComponentReverseMap[currentScreen].Keys)
+                {
+                    Assert.AreEqual(0, testAccessManager.UserToComponentReverseMap[currentScreen][currentAccessLevel].Count);
+                }
+            }
+            foreach (ApplicationScreen currentScreen in testAccessManager.GroupToComponentReverseMap.Keys)
+            {
+                foreach (AccessLevel currentAccessLevel in testAccessManager.GroupToComponentReverseMap[currentScreen].Keys)
+                {
+                    Assert.AreEqual(0, testAccessManager.GroupToComponentReverseMap[currentScreen][currentAccessLevel].Count);
+                }
+            }
             Assert.AreEqual(0, testAccessManager.Entities.Count());
             Assert.AreEqual(0, testAccessManager.UserToEntityMap.Count());
             Assert.AreEqual(0, testAccessManager.GroupToEntityMap.Count);
@@ -2317,6 +3314,51 @@ namespace ApplicationAccess.UnitTests
             testAccessManager.AddGroupToEntityMapping("group6", "BusinessUnit", "Accounting");
         }
 
+        #region Private/Protected Methods
+
+        // Creates the following graph of users and groups
+        //
+        //                             ----------------Grp10
+        //                            /        --------/  |
+        //                           /        /           |
+        //                        Grp8       Grp9         |
+        //                       /    \     / |  \        |
+        //                      /      \   /  |   \       |
+        // Groups           Grp5        Grp6  |    Grp7   |
+        //                /      \          \ |           |
+        // Users      Per8        Per9       Per10--------|
+        //
+        /// <summary>
+        /// Creates a sample user and group model within the specified <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/>.
+        /// </summary>
+        /// <param name="inputAccessManager">The AccessManager to create the sample model in.</param>
+        /// <remarks>Designed for testing of reverse mappings.</remarks>
+        protected void CreateUserGroupGraph(AccessManager<String, String, ApplicationScreen, AccessLevel> inputAccessManager)
+        {
+            inputAccessManager.AddUser("Per8");
+            inputAccessManager.AddUser("Per9");
+            inputAccessManager.AddUser("Per10");
+            inputAccessManager.AddGroup("Grp5");
+            inputAccessManager.AddGroup("Grp6");
+            inputAccessManager.AddGroup("Grp7");
+            inputAccessManager.AddGroup("Grp8");
+            inputAccessManager.AddGroup("Grp9");
+            inputAccessManager.AddGroup("Grp10");
+            inputAccessManager.AddUserToGroupMapping("Per8", "Grp5");
+            inputAccessManager.AddUserToGroupMapping("Per9", "Grp5");
+            inputAccessManager.AddUserToGroupMapping("Per10", "Grp6");
+            inputAccessManager.AddUserToGroupMapping("Per10", "Grp9");
+            inputAccessManager.AddUserToGroupMapping("Per10", "Grp10");
+            inputAccessManager.AddGroupToGroupMapping("Grp5", "Grp8");
+            inputAccessManager.AddGroupToGroupMapping("Grp6", "Grp8");
+            inputAccessManager.AddGroupToGroupMapping("Grp6", "Grp9");
+            inputAccessManager.AddGroupToGroupMapping("Grp7", "Grp9");
+            inputAccessManager.AddGroupToGroupMapping("Grp8", "Grp10");
+            inputAccessManager.AddGroupToGroupMapping("Grp9", "Grp10");
+        }
+
+        #endregion
+
         #region Nested Classes
 
         /// <summary>
@@ -2332,6 +3374,18 @@ namespace ApplicationAccess.UnitTests
             public DirectedGraphBase<TUser, TGroup> UserToGroupMap
             {
                 get { return userToGroupMap; }
+            }
+
+            /// <summary>The reverse of the mappings in member 'userToComponentMap'.</summary>
+            public IDictionary<TComponent, IDictionary<TAccess, ISet<TUser>>> UserToComponentReverseMap
+            {
+                get { return userToComponentReverseMap; }
+            }
+
+            /// <summary>The reverse of the mappings in member 'groupToComponentMap'.</summary>
+            public IDictionary<TComponent, IDictionary<TAccess, ISet<TGroup>>> GroupToComponentReverseMap
+            {
+                get { return groupToComponentReverseMap; }
             }
 
             /// <summary>Holds all valid entity types and values within the manager.  The Dictionary key holds the types of all entities, and each respective value holds the valid entity values within that type (e.g. the entity type could be 'ClientAccount', and values could be the names of all client accounts).</summary>

@@ -51,6 +51,10 @@ namespace ApplicationAccess.Distribution
         //
         // TODO: AwaitTaskCompletionAsync() has some inefficiencies due to O(n^2) time complexity when iterating tasks (see https://devblogs.microsoft.com/pfxteam/processing-tasks-as-they-complete/)
         //   Could improve this by using continuation functions on each Task instead of using the Task.WhenAny() method (some examples linked to in this post https://stackoverflow.com/questions/72271006/task-whenany-alternative-to-list-avoiding-on%C2%B2-issues).
+        //   Did some testing with this and running 2000 concurrent tasks, and even in worst recorded case, WhenAny() gave just a 10% performance hit over continuation functions
+        //     so the actual performance penality is not nearly as bad as O(n) vs O(n^2) should be.
+        //     (for 5000 concurrent tasks the performance hit rose to 28%).
+        //   Should improve this at some point, but possibly not as bad (hence not as urgent) as it appears.  2000 tasks would mean a 2000 shard distributed deployment, which is very large. 
         //   Get it working stably with Task.WhenAny() first and then refactor.
         //   Not using Task.WhenAny() might also avoid having to use a HashSet to store Tasks, and hence also allow removing the returning of Guids outlined above.
 
@@ -391,6 +395,54 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
+        public async Task<List<String>> GetGroupToUserMappingsAsync(String group, Boolean includeIndirectMappings)
+        {
+            IEnumerable<String> returnUsers = null;
+            Int32 returnUsersCount = 0;
+            if (includeIndirectMappings == false)
+            {
+                Guid beginId = metricLogger.Begin(new GetGroupToUserMappingsForGroupQueryTime());
+                try
+                {
+                    (returnUsers, returnUsersCount) = await GetGroupToUserMappingsAsync(new List<String> { group });
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetGroupToUserMappingsForGroupQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetGroupToUserMappingsForGroupQueryTime());
+                metricLogger.Increment(new GetGroupToUserMappingsForGroupQuery());
+
+                return new List<String>(returnUsers);
+            }
+            else
+            {
+                Guid beginId = metricLogger.Begin(new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                var mappedGroups = new HashSet<String>();
+                try
+                {
+                    (IEnumerable<String> reverseMappedGroups, Int32 returnGroupsCount) = await GetGroupToGroupReverseMappingsAsync(new List<String>() { group });
+                    mappedGroups.UnionWith(reverseMappedGroups);
+                    if (mappedGroups.Contains(group) == false)
+                    {
+                        mappedGroups.Add(group);
+                    }
+                    (returnUsers, returnUsersCount) = await GetGroupToUserMappingsAsync(mappedGroups);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetGroupToUserMappingsForGroupWithIndirectMappingsQuery());
+
+                return new List<String>(returnUsers);
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToGroupMappingAsync(String user, String group)
         {
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
@@ -466,6 +518,69 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
+        public async Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
+        {
+            if (includeIndirectMappings == false)
+            {
+                var returnGroups = new HashSet<String>();
+                Guid beginId = metricLogger.Begin(new GetGroupToGroupReverseMappingsForGroupQueryTime());
+                IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
+                // Create the tasks to retrieve the groups
+                var shardReadTasks = new HashSet<Task<List<String>>>();
+                var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
+                foreach (DistributedClientAndShardDescription currentClient in clients)
+                {
+                    Task<List<String>> currentTask = currentClient.Client.GetGroupToGroupReverseMappingsAsync(group, includeIndirectMappings);
+                    taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
+                    shardReadTasks.Add(currentTask);
+                }
+                // Wait for the tasks to complete
+                Action<List<String>> resultAction = (List<String> currentShardGroups) =>
+                {
+                    returnGroups.UnionWith(currentShardGroups);
+                };
+                Func<List<String>, Boolean> continuePredicate = (List<String> currentShardGroups) => { return true; };
+                var rethrowExceptions = new HashSet<Type>();
+                var ignoreExceptions = new HashSet<Type>() { typeof(GroupNotFoundException<String>) };
+                await AwaitTaskCompletionAsync
+                (
+                    shardReadTasks,
+                    taskToShardDescriptionMap,
+                    resultAction,
+                    continuePredicate,
+                    rethrowExceptions,
+                    ignoreExceptions,
+                    "retrieve group to group reverse mappings from",
+                    beginId,
+                    new GetGroupToGroupReverseMappingsForGroupQueryTime()
+                );
+                metricLogger.End(beginId, new GetGroupToGroupReverseMappingsForGroupQueryTime());
+                metricLogger.Increment(new GetGroupToGroupReverseMappingsForGroupQuery());
+
+                return new List<String>(returnGroups);
+            }
+            else
+            {
+                IEnumerable<String> returnGroups = null;
+                Int32 returnGroupsCount = 0;
+                Guid beginId = metricLogger.Begin(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                try
+                {
+                    (returnGroups, returnGroupsCount) = await GetGroupToGroupReverseMappingsAsync(new List<String>() { group });
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQuery());
+
+                return new List<String>(returnGroups);
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
@@ -528,6 +643,34 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
+        public async Task<List<String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
+        {
+            IntervalMetric intervalMetric = null;
+            CountMetric countMetric = null;
+            if (includeIndirectMappings == false)
+            {
+                intervalMetric = new GetApplicationComponentAndAccessLevelToUserMappingsQueryTime();
+                countMetric = new GetApplicationComponentAndAccessLevelToUserMappingsQuery();
+            }
+            else
+            {
+                intervalMetric = new GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime();
+                countMetric = new GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQuery();
+            }
+
+            return await GetElementToUserMappingsAsync
+            (
+                applicationComponent,
+                accessLevel,
+                includeIndirectMappings,
+                GetApplicationComponentAndAccessLevelToUserDirectMappingsAsync,
+                GetApplicationComponentAndAccessLevelToGroupDirectMappingsAsync,
+                intervalMetric,
+                countMetric
+            );
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
         {
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
@@ -586,6 +729,33 @@ namespace ApplicationAccess.Distribution
                 ignoreExceptions,
                 new List<Tuple<String, String>>(),
                 $"retrieve group to application component and access level mappings for group '{group}' from"
+            );
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
+        {
+            IntervalMetric intervalMetric = null;
+            CountMetric countMetric = null;
+            if (includeIndirectMappings == false)
+            {
+                intervalMetric = new GetApplicationComponentAndAccessLevelToGroupMappingsQueryTime();
+                countMetric = new GetApplicationComponentAndAccessLevelToGroupMappingsQuery();
+            }
+            else
+            {
+                intervalMetric = new GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime();
+                countMetric = new GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQuery();
+            }
+
+            return await GetElementToGroupMappingsAsync
+            (
+                applicationComponent,
+                accessLevel,
+                includeIndirectMappings,
+                GetApplicationComponentAndAccessLevelToGroupDirectMappingsAsync,
+                intervalMetric,
+                countMetric
             );
         }
 
@@ -790,6 +960,34 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
+        public async Task<List<String>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            IntervalMetric intervalMetric = null;
+            CountMetric countMetric = null;
+            if (includeIndirectMappings == false)
+            {
+                intervalMetric = new GetEntityToUserMappingsQueryTime();
+                countMetric = new GetEntityToUserMappingsQuery();
+            }
+            else
+            {
+                intervalMetric = new GetEntityToUserMappingsWithIndirectMappingsQueryTime();
+                countMetric = new GetEntityToUserMappingsWithIndirectMappingsQuery();
+            }
+
+            return await GetElementToUserMappingsAsync
+            (
+                entityType,
+                entity,
+                includeIndirectMappings,
+                GetEntityToUserDirectMappingsAsync,
+                GetEntityToGroupDirectMappingsAsync,
+                intervalMetric,
+                countMetric
+            );
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToEntityMappingAsync(String user, String entityType, String entity)
         {
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> eventAction = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
@@ -872,6 +1070,33 @@ namespace ApplicationAccess.Distribution
                 ignoreExceptions,
                 new List<String>(),
                 $"retrieve group to entity mappings for group '{group}' and entity type '{entityType}' from"
+            );
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            IntervalMetric intervalMetric = null;
+            CountMetric countMetric = null;
+            if (includeIndirectMappings == false)
+            {
+                intervalMetric = new GetEntityToGroupMappingsQueryTime();
+                countMetric = new GetEntityToGroupMappingsQuery();
+            }
+            else
+            {
+                intervalMetric = new GetEntityToGroupMappingsWithIndirectMappingsQueryTime();
+                countMetric = new GetEntityToGroupMappingsWithIndirectMappingsQuery();
+            }
+
+            return await GetElementToGroupMappingsAsync
+            (
+                entityType,
+                entity,
+                includeIndirectMappings, 
+                GetEntityToGroupDirectMappingsAsync,
+                intervalMetric,
+                countMetric
             );
         }
 
@@ -1636,10 +1861,10 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <summary>
-        /// Executes a specified query against the group shards which manage a set of groups.
+        /// Executes a specified query against the shards which manage sets of groups.
         /// </summary>
         /// <typeparam name="T">The type of data returned by the query.</typeparam>
-        /// <param name="groups">The groups to run the query.</param>
+        /// <param name="groups">The groups to run the query for.</param>
         /// <param name="createQueryTaskFunc">A function which creates a task which executes the query and returns the results from a single group node.  Accepts 2 parameters: the client (and its description) which connects to the group shard, and the subset of the <paramref name="groups"/> parameter which are managed by that shard, and returns a task which returns the results of the query.</param>
         /// <param name="additionalTasksAndShardDescriptions">A collection of additional functions and descriptions of the shards they're executed against, which are executed alongside those in parameter <paramref name="createQueryTaskFunc"/>, and which returns the same type as the queries against the group nodes.  This can be used for queries which must also be executed against a user node to give a complete result (e.g. in method GetEntitiesAccessibleByUserAsync()).</param>
         /// <param name="resultAction">An action to invoke with the results of each query task.</param>
@@ -1740,11 +1965,11 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <summary>
-        /// Gets a unique list of groups which are mapped both directly and indirectly a specified collection of groups.
+        /// Gets a unique collection of groups which are mapped both directly and indirectly a specified collection of groups.
         /// </summary>
         /// <param name="groups">The groups to retrieve the mappings for.</param>
         /// <param name="includeParameterGroupsInMappingCount">Whether the groups in the <paramref name="groups"/> parameter should be included in the returned count of mapped groups.</param>
-        /// <returns>A tuple containing: a unique list of groups which includes both the groups passed in the <paramref name="groups"/> parameter and the groups those groups are mapped to, and a count of those groups.</returns>
+        /// <returns>A tuple containing: a unique collection of groups which includes both the groups passed in the <paramref name="groups"/> parameter and the groups those groups are mapped to, and a count of those groups.</returns>
         protected async Task<(IEnumerable<String>, Int32)> GetUniqueGroupToGroupMappingsAsync(IEnumerable<String> groups, Boolean includeParameterGroupsInMappingCount)
         {
             var returnGroups = new HashSet<String>(groups);
@@ -1788,6 +2013,414 @@ namespace ApplicationAccess.Distribution
             {
                 return (returnGroups, returnGroups.Count - groups.Count());
             }
+        }
+
+        /// <summary>
+        /// Gets a unique collection of all users which are directly mapped to the specified groups, by querying against all user shards in the distributed environment.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the users for.</param>
+        /// <returns>A tuple containing: a unique collection of users which are directly mapped to the specified groups, and a count of those users.</returns>
+        protected async Task<(IEnumerable<String>, Int32)> GetGroupToUserMappingsAsync(IEnumerable<String> groups)
+        {
+            var returnUsers = new HashSet<String>();
+            IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.User, Operation.Query);
+            // Create the tasks to retrieve the users
+            var shardReadTasks = new HashSet<Task<List<String>>>();
+            var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
+            foreach (DistributedClientAndShardDescription currentClient in clients)
+            {
+                Task<List<String>> currentTask = currentClient.Client.GetGroupToUserMappingsAsync(groups);
+                taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
+                shardReadTasks.Add(currentTask);
+            }
+            // Wait for the tasks to complete
+            Action<List<String>> resultAction = (List<String> currentShardUsers) =>
+            {
+                returnUsers.UnionWith(currentShardUsers);
+            };
+            Func<List<String>, Boolean> continuePredicate = (List<String> currentShardUsers) => { return true; };
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks,
+                taskToShardDescriptionMap,
+                resultAction,
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions,
+                "retrieve group to user mappings from",
+                null,
+                null
+            );
+
+            return (returnUsers, returnUsers.Count);
+        }
+
+        /// <summary>
+        /// Gets a unique collection of all groups which are directly and indirectly mapped to the specified groups, by querying against all group to group mapping shards in the distributed environment.
+        /// </summary>
+        /// <param name="groups">The group to retrieve the mapped groups for.</param>
+        /// <returns>A tuple containing: a unique collection of groups which are directly and indirectly mapped to the specified groups, and a count of those groups.</returns>
+        protected async Task<(IEnumerable<String>, Int32)> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
+        {
+            var returnGroups = new HashSet<String>();
+            IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
+            // Create the tasks to retrieve the groups
+            var shardReadTasks = new HashSet<Task<List<String>>>();
+            var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
+            foreach (DistributedClientAndShardDescription currentClient in clients)
+            {
+                Task<List<String>> currentTask = currentClient.Client.GetGroupToGroupReverseMappingsAsync(groups);
+                taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
+                shardReadTasks.Add(currentTask);
+            }
+            // Wait for the tasks to complete
+            Action<List<String>> resultAction = (List<String> currentShardGroups) =>
+            {
+                returnGroups.UnionWith(currentShardGroups);
+            };
+            Func<List<String>, Boolean> continuePredicate = (List<String> currentShardGroups) => { return true; };
+            var rethrowExceptions = new HashSet<Type>();
+            var ignoreExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks,
+                taskToShardDescriptionMap,
+                resultAction,
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions,
+                "retrieve group to group reverse mappings from",
+                null,
+                null
+            );
+
+            return (returnGroups, returnGroups.Count);
+        }
+
+        /// <summary>
+        /// Gets the users that are directly mapped to the specified application component and access level pair, by querying against all user shards in the distributed environment.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <returns>A collection of users that are directly mapped to the specified application component and access level.</returns>
+        protected async Task<IEnumerable<String>> GetApplicationComponentAndAccessLevelToUserDirectMappingsAsync(String applicationComponent, String accessLevel)
+        {
+            return await GetElementToUserMappingsAsync
+            (
+                applicationComponent,
+                accessLevel,
+                (
+                    IAccessManagerAsyncQueryProcessor<String, String, String, String> userClient,
+                    String funcApplicationComponent,
+                    String funcAccessLevel
+                ) =>
+                {
+                    return userClient.GetApplicationComponentAndAccessLevelToUserMappingsAsync(funcApplicationComponent, funcAccessLevel, false);
+                },
+                new HashSet<Type>(),
+                "retrieve application component and access level to user mappings from"
+            );
+        }
+
+        /// <summary>
+        /// Gets the users that are directly mapped to the specified entity, by querying against all user shards in the distributed environment.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <returns>A collection of users that are directly mapped to the specified entity.</returns>
+        protected async Task<IEnumerable<String>> GetEntityToUserDirectMappingsAsync(String entityType, String entity)
+        {
+            return await GetElementToUserMappingsAsync
+            (
+                entityType,
+                entity,
+                (
+                    IAccessManagerAsyncQueryProcessor<String, String, String, String> userClient,
+                    String funcEntityType,
+                    String funcEntity
+                ) =>
+                {
+                    return userClient.GetEntityToUserMappingsAsync(funcEntityType, funcEntity, false);
+                },
+                new HashSet<Type>() { typeof(EntityTypeNotFoundException), typeof(EntityNotFoundException) },
+                "retrieve entity to user mappings from"
+            );
+        }
+
+        /// <summary>
+        /// Gets the groups that are directly mapped to the specified application component and access level pair, by querying against all group shards in the distributed environment.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <returns>A collection of groups that are directly mapped to the specified application component and access level.</returns>
+        protected async Task<IEnumerable<String>> GetApplicationComponentAndAccessLevelToGroupDirectMappingsAsync(String applicationComponent, String accessLevel)
+        {
+            return await GetElementToGroupMappingsAsync
+            (
+                applicationComponent,
+                accessLevel, 
+                (
+                    IAccessManagerAsyncQueryProcessor<String, String, String, String> groupClient, 
+                    String funcApplicationComponent, 
+                    String funcAccessLevel
+                ) =>
+                {
+                    return groupClient.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(funcApplicationComponent, funcAccessLevel, false);
+                }, 
+                new HashSet<Type>(),
+                "retrieve application component and access level to group mappings from"
+            );
+        }
+
+        /// <summary>
+        /// Gets the groups that are directly mapped to the specified entity, by querying against all group shards in the distributed environment.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <returns>A collection of groups that are directly mapped to the specified entity.</returns>
+        protected async Task<IEnumerable<String>> GetEntityToGroupDirectMappingsAsync(String entityType, String entity)
+        {
+            return await GetElementToGroupMappingsAsync
+            (
+                entityType,
+                entity,
+                (
+                    IAccessManagerAsyncQueryProcessor<String, String, String, String> groupClient,
+                    String funcEntityType,
+                    String funcEntity
+                ) =>
+                {
+                    return groupClient.GetEntityToGroupMappingsAsync(funcEntityType, funcEntity, false);
+                },
+                new HashSet<Type>() { typeof(EntityTypeNotFoundException), typeof(EntityNotFoundException) },
+                "retrieve entity to group mappings from"
+            );
+        }
+
+        /// <summary>
+        /// Gets the users that are mapped to a specified pair of elements.
+        /// </summary>
+        /// <param name="element1Value">The first element in the mapped pair.</param>
+        /// <param name="element2Value">The second element in the mapped pair.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the elements via groups).</param>
+        /// <param name="getElementToUserMappingsFunc">A function which returns the user that are directly mapped to the specified pair of elements.  Accepts two parameters: the first element in the mapped pair, and the second element in the mapped pair, and returns a collection of the users directly mapped to the elements.</param>
+        /// <param name="getElementToGroupMappingsFunc">A function which returns the groups that are directly mapped to the specified pair of elements.  Accepts two parameters: the first element in the mapped pair, and the second element in the mapped pair, and returns a collection of the groups directly mapped to the elements.</param>
+        /// <param name="intervalMetric">An <see cref="IntervalMetric"/> to log as part of querying.</param>
+        /// <param name="countMetric">A <see cref="CountMetric"/> to log as part of querying.</param>
+        /// <returns>The users that are mapped to the pair of elements.</returns>
+        /// <remarks>This methods provides a common base for the implementation of methods GetApplicationComponentAndAccessLevelToUserMappingsAsync() and GetEntityToUserMappingsAsync().</remarks>
+        protected async Task<List<String>> GetElementToUserMappingsAsync
+        (
+            String element1Value,
+            String element2Value,
+            Boolean includeIndirectMappings,
+            Func<String, String, Task<IEnumerable<String>>> getElementToUserMappingsFunc,
+            Func<String, String, Task<IEnumerable<String>>> getElementToGroupMappingsFunc,
+            IntervalMetric intervalMetric,
+            CountMetric countMetric
+        )
+        {
+            List<String> returnUsers = null;
+            Guid beginId = metricLogger.Begin(intervalMetric);
+            try
+            {
+                IEnumerable<String> directlyMappedUsers = await getElementToUserMappingsFunc(element1Value, element2Value);
+                if (includeIndirectMappings == false)
+                {
+                    returnUsers = new List<String>(directlyMappedUsers);
+                }
+                else
+                {
+                    IEnumerable<String> directlyMappedGroups = await getElementToGroupMappingsFunc(element1Value, element2Value);
+                    (IEnumerable<String> indirectlyMappedGroups, Int32 indirectlyMappedGroupsCount) = await GetGroupToGroupReverseMappingsAsync(directlyMappedGroups);
+                    var allGroups = new HashSet<String>(directlyMappedGroups);
+                    allGroups.UnionWith(indirectlyMappedGroups);
+                    (IEnumerable<String> indirectlyMappedUsers, Int32 indirectlyMappedUsersCount) = await GetGroupToUserMappingsAsync(allGroups);
+                    var allUsers = new HashSet<String>(directlyMappedUsers);
+                    allUsers.UnionWith(indirectlyMappedUsers);
+                    returnUsers = new List<String>(allUsers);
+                }
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, intervalMetric);
+                throw;
+            }
+            metricLogger.End(beginId, intervalMetric);
+            metricLogger.Increment(countMetric);
+
+            return returnUsers;
+        }
+
+        /// <summary>
+        /// Gets the groups that are mapped to a specified pair of elements.
+        /// </summary>
+        /// <param name="element1Value">The first element in the mapped pair.</param>
+        /// <param name="element2Value">The second element in the mapped pair.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the elements via other groups).</param>
+        /// <param name="getElementToGroupMappingsFunc">A function which returns the groups that are directly mapped to the specified pair of elements.  Accepts two parameters: the first element in the mapped pair, and the second element in the mapped pair, and returns a collection of the groups directly mapped to the elements.</param>
+        /// <param name="intervalMetric">An (optional) <see cref="IntervalMetric"/> to log as part of querying.</param>
+        /// <param name="countMetric">An (optional) <see cref="CountMetric"/> to log as part of querying.</param>
+        /// <returns>The groups that are mapped to the pair of elements.</returns>
+        /// <remarks>This methods provides a common base for the implementation of methods GetApplicationComponentAndAccessLevelToGroupMappingsAsync() and GetEntityToGroupMappingsAsync().</remarks>
+        protected async Task<List<String>> GetElementToGroupMappingsAsync
+        (
+            String element1Value,
+            String element2Value,
+            Boolean includeIndirectMappings, 
+            Func<String, String, Task<IEnumerable<String>>> getElementToGroupMappingsFunc,
+            IntervalMetric intervalMetric = null,
+            CountMetric countMetric = null
+        )
+        {
+            List<String> returnGroups = null;
+            Guid beginId = default(Guid);
+            if (intervalMetric != null)
+            {
+                beginId = metricLogger.Begin(intervalMetric);
+            }
+            try
+            {
+                IEnumerable<String> directlyMappedGroups = await getElementToGroupMappingsFunc(element1Value, element2Value);
+                if (includeIndirectMappings == false)
+                {
+                    returnGroups = new List<String>(directlyMappedGroups);
+                }
+                else
+                {
+                    (IEnumerable<String> indirectlyMappedGroups, Int32 indirectlyMappedGroupsCount) = await GetGroupToGroupReverseMappingsAsync(directlyMappedGroups);
+                    var resultGroups = new HashSet<String>(directlyMappedGroups);
+                    resultGroups.UnionWith(indirectlyMappedGroups);
+                    returnGroups = new List<String>(resultGroups);
+                }
+            }
+            catch
+            {
+                if (intervalMetric != null)
+                {
+                    metricLogger.CancelBegin(beginId, intervalMetric);
+                }
+                throw;
+            }
+            if (intervalMetric != null)
+            {
+                metricLogger.End(beginId, intervalMetric);
+                metricLogger.Increment(countMetric);
+            }
+
+            return returnGroups;
+        }
+
+        /// <summary>
+        /// Gets the users that are directly mapped to a specified pair of elements, by querying against all user shards in the distributed environment.
+        /// </summary>
+        /// <typeparam name="TElement1">The type of the first element in the mapped pair.</typeparam>
+        /// <typeparam name="TElement2">The type of the second element in the mapped pair.</typeparam>
+        /// <param name="element1Value">The first element in the mapped pair.</param>
+        /// <param name="element2Value">The second element in the mapped pair.</param>
+        /// <param name="shardQueryFunc">A function which returns a task resolving to a list of users and which is invoked against all user shards in the distributed environment.  Accepts three parameters: an instance of <see cref="IAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> which connects to the user shard, the first element in the mapped pair, and the second element in the mapped pair.</param>
+        /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when executing a query.</param>
+        /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "retrieve entity to user mappings from".</param>
+        /// <returns>The users that are directly mapped to the pair of elements.</returns>
+        /// <remarks>This methods provides a common base for the implementation of methods GetApplicationComponentAndAccessLevelToUserMappings() and GetEntityToUserMappings() where parameter 'includeIndirectMappings' is set false.</remarks>
+        protected async Task<IEnumerable<String>> GetElementToUserMappingsAsync<TElement1, TElement2>
+        (
+            TElement1 element1Value,
+            TElement2 element2Value,
+            Func<IAccessManagerAsyncQueryProcessor<String, String, String, String>, TElement1, TElement2, Task<List<String>>> shardQueryFunc,
+            HashSet<Type> ignoreExceptions,
+            String exceptionEventDescription
+        )
+        {
+            var returnUsers = new HashSet<String>();
+            IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.User, Operation.Query);
+            // Create the tasks to retrieve the users
+            var shardReadTasks = new HashSet<Task<List<String>>>();
+            var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
+            foreach (DistributedClientAndShardDescription currentClient in clients)
+            {
+                Task<List<String>> currentTask = shardQueryFunc(currentClient.Client, element1Value, element2Value);
+                taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
+                shardReadTasks.Add(currentTask);
+            }
+            // Wait for the tasks to complete
+            Action<List<String>> resultAction = (List<String> currentShardUsers) =>
+            {
+                returnUsers.UnionWith(currentShardUsers);
+            };
+            Func<List<String>, Boolean> continuePredicate = (List<String> currentShardUsers) => { return true; };
+            var rethrowExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks,
+                taskToShardDescriptionMap,
+                resultAction,
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions,
+                exceptionEventDescription,
+                null,
+                null
+            );
+
+            return returnUsers;
+        }
+
+        /// <summary>
+        /// Gets the groups that are directly mapped to a specified pair of elements, by querying against all groups shards in the distributed environment.
+        /// </summary>
+        /// <typeparam name="TElement1">The type of the first element in the mapped pair.</typeparam>
+        /// <typeparam name="TElement2">The type of the second element in the mapped pair.</typeparam>
+        /// <param name="element1Value">The first element in the mapped pair.</param>
+        /// <param name="element2Value">The second element in the mapped pair.</param>
+        /// <param name="shardQueryFunc">A function which returns a task resolving to a list of groups and which is invoked against all group shards in the distributed environment.  Accepts three parameters: an instance of <see cref="IAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> which connects to the group shard, the first element in the mapped pair, and the second element in the mapped pair.</param>
+        /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when executing a query.</param>
+        /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "retrieve entity to group mappings from".</param>
+        /// <returns>The groups that are directly mapped to the pair of elements.</returns>
+        /// <remarks>This methods provides a common base for the implementation of methods GetApplicationComponentAndAccessLevelToGroupMappings() and GetEntityToGroupMappings() where parameter 'includeIndirectMappings' is set false.</remarks>
+        protected async Task<IEnumerable<String>> GetElementToGroupMappingsAsync<TElement1, TElement2>
+        (
+            TElement1 element1Value, 
+            TElement2 element2Value, 
+            Func<IAccessManagerAsyncQueryProcessor<String, String, String, String>, TElement1, TElement2, Task<List<String>>> shardQueryFunc,
+            HashSet<Type> ignoreExceptions,
+            String exceptionEventDescription
+        )
+        {
+            var returnGroups = new HashSet<String>();
+            IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.Group, Operation.Query);
+            // Create the tasks to retrieve the groups
+            var shardReadTasks = new HashSet<Task<List<String>>>();
+            var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
+            foreach (DistributedClientAndShardDescription currentClient in clients)
+            {
+                Task<List<String>> currentTask = shardQueryFunc(currentClient.Client, element1Value, element2Value);
+                taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
+                shardReadTasks.Add(currentTask);
+            }
+            // Wait for the tasks to complete
+            Action<List<String>> resultAction = (List<String> currentShardGroups) =>
+            {
+                returnGroups.UnionWith(currentShardGroups);
+            };
+            Func<List<String>, Boolean> continuePredicate = (List<String> currentShardGroups) => { return true; };
+            var rethrowExceptions = new HashSet<Type>();
+            await AwaitTaskCompletionAsync
+            (
+                shardReadTasks,
+                taskToShardDescriptionMap,
+                resultAction,
+                continuePredicate,
+                rethrowExceptions,
+                ignoreExceptions,
+                exceptionEventDescription,
+                null,
+                null
+            );
+
+            return returnGroups;
         }
 
         /// <summary>

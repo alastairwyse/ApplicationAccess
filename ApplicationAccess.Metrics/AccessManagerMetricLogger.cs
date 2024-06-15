@@ -95,9 +95,21 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            return queryProcessorMetricLogger.GetGroupToUserMappings(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
             return queryProcessorMetricLogger.GetGroupToGroupMappings(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            return queryProcessorMetricLogger.GetGroupToGroupReverseMappings(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -107,9 +119,21 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return queryProcessorMetricLogger.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             return queryProcessorMetricLogger.GetGroupToApplicationComponentAndAccessLevelMappings(group);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return queryProcessorMetricLogger.GetApplicationComponentAndAccessLevelToGroupMappings(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -143,6 +167,12 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return queryProcessorMetricLogger.GetEntityToUserMappings(entityType, entity, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             return queryProcessorMetricLogger.GetGroupToEntityMappings(group);
@@ -152,6 +182,12 @@ namespace ApplicationAccess.Metrics
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             return queryProcessorMetricLogger.GetGroupToEntityMappings(group, entityType);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return queryProcessorMetricLogger.GetEntityToGroupMappings(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>

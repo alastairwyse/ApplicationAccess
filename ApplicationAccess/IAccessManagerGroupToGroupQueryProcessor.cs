@@ -32,5 +32,13 @@ namespace ApplicationAccess
         /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
         /// <returns>A collection of groups the specified group is mapped to.</returns>
         HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings);
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified group.
+        /// </summary>
+        /// <param name="group">The group to retrieve the mapped groups for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped from' group is itself mapped from further groups).</param>
+        /// <returns>A collection of groups that are mapped to the specified group.</returns>
+        HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings);
     }
 }

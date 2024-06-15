@@ -152,6 +152,13 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
+        public async Task<List<String>> GetGroupToUserMappingsAsync(String group, Boolean includeIndirectMappings)
+        {
+            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
+            return await distributedOperationCoordinator.GetGroupToUserMappingsAsync(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToGroupMappingAsync(String user, String group)
         {
             shardConfigurationRefreshStrategy.NotifyOperationProcessed();
@@ -170,6 +177,13 @@ namespace ApplicationAccess.Hosting
         {
             shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToGroupMappingsAsync(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
+        {
+            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
+            return await distributedOperationCoordinator.GetGroupToGroupReverseMappingsAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -194,6 +208,13 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
+        public async Task<List<String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
+        {
+            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
+            return await distributedOperationCoordinator.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
         {
             shardConfigurationRefreshStrategy.NotifyOperationProcessed();
@@ -212,6 +233,13 @@ namespace ApplicationAccess.Hosting
         {
             shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
+        {
+            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
+            return await distributedOperationCoordinator.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -292,6 +320,13 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
+        public async Task<List<String>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
+            return await distributedOperationCoordinator.GetEntityToUserMappingsAsync(entityType, entity, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToEntityMappingAsync(String user, String entityType, String entity)
         {
             shardConfigurationRefreshStrategy.NotifyOperationProcessed();
@@ -317,6 +352,13 @@ namespace ApplicationAccess.Hosting
         {
             shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToEntityMappingsAsync(group, entityType);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
+            return await distributedOperationCoordinator.GetEntityToGroupMappingsAsync(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>

@@ -57,5 +57,18 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         {
             return distributedGroupToGroupQueryProcessor.GetGroupToGroupMappings(groups);
         }
+
+        /// <summary>
+        /// Gets the groups that are directly and indirectly mapped to any of the specified groups.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the mapped groups for.</param>
+        /// <returns>A collection of groups that are mapped to the specified groups, and including the specified groups.</returns>
+        [HttpGet]
+        [Route("groupToGroupReverseMappings")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public IEnumerable<String> GetGroupToGroupReverseMappings([FromQuery, BindRequired] IEnumerable<String> groups)
+        {
+            return distributedGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(groups);
+        }
     }
 }

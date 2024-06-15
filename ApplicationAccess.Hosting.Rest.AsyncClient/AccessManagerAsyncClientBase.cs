@@ -273,6 +273,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
             return returnList;
         }
 
+        protected async Task<List<TUser>> GetGroupToUserMappingsBaseAsync(TGroup group, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"userToGroupMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var returnList = new List<TUser>();
+            foreach (UserAndGroup<String, String> currentUserAndGroup in await SendGetRequestAsync<List<UserAndGroup<String, String>>>(url))
+            {
+                returnList.Add(userStringifier.FromString(currentUserAndGroup.User));
+            }
+
+            return returnList;
+        }
+
         protected async Task RemoveUserToGroupMappingBaseAsync(TUser user, TGroup group)
         {
             var url = new Uri(baseUrl, $"userToGroupMappings/user/{userStringifier.ToString(user)}/group/{groupStringifier.ToString(group)}");
@@ -292,6 +304,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
             foreach (FromGroupAndToGroup<String> currentFromGroupAndToGroup in await SendGetRequestAsync<List<FromGroupAndToGroup<String>>>(url))
             {
                 returnList.Add(groupStringifier.FromString(currentFromGroupAndToGroup.ToGroup));
+            }
+
+            return returnList;
+        }
+
+        protected async Task<List<TGroup>> GetGroupToGroupReverseMappingsBaseAsync(TGroup group, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"groupToGroupReverseMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var returnList = new List<TGroup>();
+            foreach (FromGroupAndToGroup<String> currentFromGroupAndToGroup in await SendGetRequestAsync<List<FromGroupAndToGroup<String>>>(url))
+            {
+                returnList.Add(groupStringifier.FromString(currentFromGroupAndToGroup.FromGroup));
             }
 
             return returnList;
@@ -325,6 +349,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
             return returnList;
         }
 
+        protected async Task<List<TUser>> GetApplicationComponentAndAccessLevelToUserMappingsBaseAsync(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?includeIndirectMappings={includeIndirectMappings}");
+            var returnList = new List<TUser>();
+            foreach (UserAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in await SendGetRequestAsync<List<UserAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
+            {
+                returnList.Add(userStringifier.FromString(currentMapping.User));
+            }
+
+            return returnList;
+        }
+
         protected async Task RemoveUserToApplicationComponentAndAccessLevelMappingBaseAsync(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
@@ -348,6 +384,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
                     applicationComponentStringifier.FromString(currentMapping.ApplicationComponent),
                     accessLevelStringifier.FromString(currentMapping.AccessLevel)
                 ));
+            }
+
+            return returnList;
+        }
+
+        protected async Task<List<TGroup>> GetApplicationComponentAndAccessLevelToGroupMappingsBaseAsync(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?includeIndirectMappings={includeIndirectMappings}");
+            var returnList = new List<TGroup>();
+            foreach (GroupAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in await SendGetRequestAsync<List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
+            {
+                returnList.Add(groupStringifier.FromString(currentMapping.Group));
             }
 
             return returnList;
@@ -443,6 +491,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
             return returnList;
         }
 
+        protected async Task<List<TUser>> GetEntityToUserMappingsBaseAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"userToEntityMappings/entityType/{entityType}/entity/{entity}?includeIndirectMappings={includeIndirectMappings}");
+            var returnList = new List<TUser>();
+            foreach (UserAndEntity<String> currentMapping in await SendGetRequestAsync<List<UserAndEntity<String>>>(url))
+            {
+                returnList.Add(userStringifier.FromString(currentMapping.User));
+            }
+
+            return returnList;
+        }
+
         protected async Task RemoveUserToEntityMappingBaseAsync(TUser user, String entityType, String entity)
         {
             var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}/entity/{entity}");
@@ -478,6 +538,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
             foreach (GroupAndEntity<String> currentMapping in await SendGetRequestAsync<List<GroupAndEntity<String>>>(url))
             {
                 returnList.Add(currentMapping.Entity);
+            }
+
+            return returnList;
+        }
+
+        protected async Task<List<TGroup>> GetEntityToGroupMappingsBaseAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{entityType}/entity/{entity}?includeIndirectMappings={includeIndirectMappings}");
+            var returnList = new List<TGroup>();
+            foreach (GroupAndEntity<String> currentMapping in await SendGetRequestAsync<List<GroupAndEntity<String>>>(url))
+            {
+                returnList.Add(groupStringifier.FromString(currentMapping.Group));
             }
 
             return returnList;

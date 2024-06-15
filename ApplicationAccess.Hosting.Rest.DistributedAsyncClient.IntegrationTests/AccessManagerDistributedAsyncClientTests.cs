@@ -49,6 +49,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
         private IAccessManagerGroupToGroupQueryProcessor<String> mockGroupToGroupQueryProcessor;
         private IDistributedAccessManagerGroupToGroupQueryProcessor<String> mockDistributedGroupToGroupQueryProcessor;
         private IAccessManagerUserQueryProcessor<String, String, String, String> mockUserQueryProcessor;
+        private IDistributedAccessManagerUserQueryProcessor<String, String> mockDistributedUserQueryProcessor;
         private TestDistributedReader testDistributedReader;
         private HttpClient client;
         private Uri testBaseUrl;
@@ -69,6 +70,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             mockGroupToGroupQueryProcessor = Substitute.For<IAccessManagerGroupToGroupQueryProcessor<String>>();
             mockDistributedGroupToGroupQueryProcessor = Substitute.For<IDistributedAccessManagerGroupToGroupQueryProcessor<String>>();
             mockUserQueryProcessor = Substitute.For<IAccessManagerUserQueryProcessor<String, String, String, String>>();
+            mockDistributedUserQueryProcessor = Substitute.For<IDistributedAccessManagerUserQueryProcessor<String, String>>();
             testDistributedReader = new TestDistributedReader();
             testDistributedReader.Services.GetService<EntityQueryProcessorHolder>().EntityQueryProcessor = mockEntityQueryProcessor;
             testDistributedReader.Services.GetService<GroupQueryProcessorHolder>().GroupQueryProcessor = mockGroupQueryProcessor;
@@ -76,6 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             testDistributedReader.Services.GetService<GroupToGroupQueryProcessorHolder>().GroupToGroupQueryProcessor = mockGroupToGroupQueryProcessor;
             testDistributedReader.Services.GetService<DistributedGroupToGroupQueryProcessorHolder>().DistributedGroupToGroupQueryProcessor = mockDistributedGroupToGroupQueryProcessor;
             testDistributedReader.Services.GetService<UserQueryProcessorHolder>().UserQueryProcessor = mockUserQueryProcessor;
+            testDistributedReader.Services.GetService<DistributedUserQueryProcessorHolder>().DistributedUserQueryProcessor = mockDistributedUserQueryProcessor;
             client = testDistributedReader.CreateClient();
         }
 
@@ -118,6 +121,46 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetGroupToUserMappingsAsync()
+        {
+            var testGroups = new List<String>() { "group3", "group4", "group5" };
+            var testMappedUsers = new HashSet<String>() { "user1", "user2", "user3", "user4" };
+            mockDistributedGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedUserQueryProcessor.GetGroupToUserMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testMappedUsers);
+
+            List<String> result = await testDistributedAccessManagerAsyncClient.GetGroupToUserMappingsAsync(testGroups);
+
+            mockDistributedUserQueryProcessor.Received(1).GetGroupToUserMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(3, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(4, userStringifier.FromStringCallCount);
+            Assert.AreEqual(4, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+            Assert.IsTrue(result.Contains("user4"));
+        }
+
+        [Test]
+        public async Task GetGroupToUserMappingsAsync_SingleGroupInGroupsParameter()
+        {
+            var testGroups = new List<String>() { "group5" };
+            var testMappedUsers = new HashSet<String>() { "user1", "user2", "user3", "user4" };
+            mockDistributedGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedUserQueryProcessor.GetGroupToUserMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testMappedUsers);
+
+            List<String> result = await testDistributedAccessManagerAsyncClient.GetGroupToUserMappingsAsync(testGroups);
+
+            mockDistributedUserQueryProcessor.Received(1).GetGroupToUserMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(4, userStringifier.FromStringCallCount);
+            Assert.AreEqual(4, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+            Assert.IsTrue(result.Contains("user4"));
+        }
+
+        [Test]
         public async Task GetGroupToGroupMappingsAsync()
         {
             var testGroups = new List<String>() { "group1",  "group2", "group3" };
@@ -149,6 +192,48 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             List<String> result = await testDistributedAccessManagerAsyncClient.GetGroupToGroupMappingsAsync(testGroups);
 
             mockDistributedGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(5, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+            Assert.IsTrue(result.Contains("group4"));
+            Assert.IsTrue(result.Contains("group5"));
+        }
+
+        [Test]
+        public async Task GetGroupToGroupReverseMappingsAsync()
+        {
+            var testGroups = new List<String>() { "group3", "group4", "group5" };
+            var testMappedGroups = new HashSet<String>() { "group1", "group2", "group3", "group4", "group5" };
+            mockDistributedGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testMappedGroups);
+
+            List<String> result = await testDistributedAccessManagerAsyncClient.GetGroupToGroupReverseMappingsAsync(testGroups);
+
+            mockDistributedGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(3, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(5, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+            Assert.IsTrue(result.Contains("group4"));
+            Assert.IsTrue(result.Contains("group5"));
+        }
+
+        [Test]
+        public async Task GetGroupToGroupReverseMappingsAsync_SingleGroupInGroupsParameter()
+        {
+            var testGroups = new List<String>() { "group5" };
+            var testMappedGroups = new HashSet<String>() { "group1", "group2", "group3", "group4", "group5" };
+            mockDistributedGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testMappedGroups);
+
+            List<String> result = await testDistributedAccessManagerAsyncClient.GetGroupToGroupReverseMappingsAsync(testGroups);
+
+            mockDistributedGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
             Assert.AreEqual(5, groupStringifier.FromStringCallCount);
             Assert.AreEqual(5, result.Count);

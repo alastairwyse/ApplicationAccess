@@ -194,6 +194,44 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            HashSet<TUser> result;
+            if (includeIndirectMappings == false)
+            {
+                Guid beginId = metricLogger.Begin(new GetGroupToUserMappingsForGroupQueryTime());
+                try
+                {
+                    result = queryProcessor.GetGroupToUserMappings(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetGroupToUserMappingsForGroupQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetGroupToUserMappingsForGroupQueryTime());
+                metricLogger.Increment(new GetGroupToUserMappingsForGroupQuery());
+            }
+            else
+            {
+                Guid beginId = metricLogger.Begin(new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetGroupToUserMappings(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetGroupToUserMappingsForGroupWithIndirectMappingsQuery());
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc/>
         public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
             HashSet<TGroup> result;
@@ -232,6 +270,44 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            HashSet<TGroup> result;
+            if (includeIndirectMappings == false)
+            {
+                Guid beginId = metricLogger.Begin(new GetGroupToGroupReverseMappingsForGroupQueryTime());
+                try
+                {
+                    result = queryProcessor.GetGroupToGroupReverseMappings(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetGroupToGroupReverseMappingsForGroupQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetGroupToGroupReverseMappingsForGroupQueryTime());
+                metricLogger.Increment(new GetGroupToGroupReverseMappingsForGroupQuery());
+            }
+            else
+            {
+                Guid beginId = metricLogger.Begin(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetGroupToGroupReverseMappings(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQuery());
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             IEnumerable<Tuple<TComponent, TAccess>> result;
@@ -252,6 +328,44 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            IEnumerable<TUser> result;
+            if (includeIndirectMappings == false)
+            {
+                Guid beginId = metricLogger.Begin(new GetApplicationComponentAndAccessLevelToUserMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetApplicationComponentAndAccessLevelToUserMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetApplicationComponentAndAccessLevelToUserMappingsQueryTime());
+                metricLogger.Increment(new GetApplicationComponentAndAccessLevelToUserMappingsQuery());
+            }
+            else
+            {
+                Guid beginId = metricLogger.Begin(new GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQuery());
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             IEnumerable<Tuple<TComponent, TAccess>> result;
@@ -267,6 +381,44 @@ namespace ApplicationAccess.Metrics
             }
             metricLogger.End(beginId, new GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime());
             metricLogger.Increment(new GetGroupToApplicationComponentAndAccessLevelMappingsQuery());
+
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            IEnumerable<TGroup> result;
+            if (includeIndirectMappings == false)
+            {
+                Guid beginId = metricLogger.Begin(new GetApplicationComponentAndAccessLevelToGroupMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(applicationComponent, accessLevel, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetApplicationComponentAndAccessLevelToGroupMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetApplicationComponentAndAccessLevelToGroupMappingsQueryTime());
+                metricLogger.Increment(new GetApplicationComponentAndAccessLevelToGroupMappingsQuery());
+            }
+            else
+            {
+                Guid beginId = metricLogger.Begin(new GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(applicationComponent, accessLevel, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQuery());
+            }
 
             return result;
         }
@@ -372,6 +524,44 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            IEnumerable<TUser> result;
+            if (includeIndirectMappings == false)
+            {
+                Guid beginId = metricLogger.Begin(new GetEntityToUserMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetEntityToUserMappings(entityType, entity, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetEntityToUserMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetEntityToUserMappingsQueryTime());
+                metricLogger.Increment(new GetEntityToUserMappingsQuery());
+            }
+            else
+            {
+                Guid beginId = metricLogger.Begin(new GetEntityToUserMappingsWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetEntityToUserMappings(entityType, entity, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetEntityToUserMappingsWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetEntityToUserMappingsWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetEntityToUserMappingsWithIndirectMappingsQuery());
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             IEnumerable<Tuple<String, String>> result;
@@ -407,6 +597,44 @@ namespace ApplicationAccess.Metrics
             }
             metricLogger.End(beginId, new GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime());
             metricLogger.Increment(new GetGroupToEntityMappingsForGroupAndEntityTypeQuery());
+
+            return result;
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            IEnumerable<TGroup> result;
+            if (includeIndirectMappings == false)
+            {
+                Guid beginId = metricLogger.Begin(new GetEntityToGroupMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetEntityToGroupMappings(entityType, entity, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetEntityToGroupMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetEntityToGroupMappingsQueryTime());
+                metricLogger.Increment(new GetEntityToGroupMappingsQuery());
+            }
+            else
+            {
+                Guid beginId = metricLogger.Begin(new GetEntityToGroupMappingsWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = queryProcessor.GetEntityToGroupMappings(entityType, entity, includeIndirectMappings);
+                }
+                catch
+                {
+                    metricLogger.CancelBegin(beginId, new GetEntityToGroupMappingsWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                metricLogger.End(beginId, new GetEntityToGroupMappingsWithIndirectMappingsQueryTime());
+                metricLogger.Increment(new GetEntityToGroupMappingsWithIndirectMappingsQuery());
+            }
 
             return result;
         }

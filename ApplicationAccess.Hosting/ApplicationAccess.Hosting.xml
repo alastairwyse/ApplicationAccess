@@ -276,6 +276,9 @@
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetUserToGroupMappingsAsync(System.String,System.Boolean)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToUserMappingsAsync(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveUserToGroupMappingAsync(System.String,System.String)">
             <inheritdoc/>
         </member>
@@ -283,6 +286,9 @@
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToGroupMappingsAsync(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToGroupReverseMappingsAsync(System.String,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveGroupToGroupMappingAsync(System.String,System.String)">
@@ -294,6 +300,9 @@
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetUserToApplicationComponentAndAccessLevelMappingsAsync(System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetApplicationComponentAndAccessLevelToUserMappingsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
             <inheritdoc/>
         </member>
@@ -301,6 +310,9 @@
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(System.String,System.String,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
@@ -336,6 +348,9 @@
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetUserToEntityMappingsAsync(System.String,System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetEntityToUserMappingsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveUserToEntityMappingAsync(System.String,System.String,System.String)">
             <inheritdoc/>
         </member>
@@ -346,6 +361,9 @@
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetGroupToEntityMappingsAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.GetEntityToGroupMappingsAsync(System.String,System.String,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2.RemoveGroupToEntityMappingAsync(System.String,System.String,System.String)">
@@ -430,7 +448,15 @@
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.GetGroupToUserMappings(System.Collections.Generic.IEnumerable{`1})">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
         <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.GetGroupToGroupMappings(System.Collections.Generic.IEnumerable{`1})">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedReaderNode`4.GetGroupToGroupReverseMappings(System.Collections.Generic.IEnumerable{`1})">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
@@ -850,7 +876,15 @@
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToUserMappings(`1,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToGroupMappings(`1,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToGroupReverseMappings(`1,System.Boolean)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
@@ -858,7 +892,15 @@
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetApplicationComponentAndAccessLevelToUserMappings(`2,`3,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetApplicationComponentAndAccessLevelToGroupMappings(`2,`3,System.Boolean)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
@@ -882,11 +924,19 @@
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetEntityToUserMappings(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToEntityMappings(`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetGroupToEntityMappings(`1,System.String)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.GetEntityToGroupMappings(System.String,System.String,System.Boolean)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
@@ -1106,13 +1156,25 @@
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetUserToGroupMappings(`0,System.Boolean)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToUserMappings(`1,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToGroupMappings(`1,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToGroupReverseMappings(`1,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetApplicationComponentAndAccessLevelToUserMappings(`2,`3,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetApplicationComponentAndAccessLevelToGroupMappings(`2,`3,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.ContainsEntityType(System.String)">
@@ -1130,10 +1192,16 @@
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetUserToEntityMappings(`0,System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetEntityToUserMappings(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToEntityMappings(`1)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetGroupToEntityMappings(`1,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.GetEntityToGroupMappings(System.String,System.String,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.HasAccessToApplicationComponent(`0,`2,`3)">

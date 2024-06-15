@@ -99,6 +99,23 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         }
 
         /// <summary>
+        /// Gets the users that are mapped to the specified group.
+        /// </summary>
+        /// <param name="group">The group to retrieve the users for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the group via other groups).</param>
+        /// <returns>A collection of mappings between a user and a group.</returns>
+        [HttpGet]
+        [Route("userToGroupMappings/group/{group}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public IEnumerable<UserAndGroup<String, String>> GetGroupToUserMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentUser in userQueryProcessor.GetGroupToUserMappings(group, includeIndirectMappings))
+            {
+                yield return new UserAndGroup<String, String> (currentUser, group);
+            }
+        }
+
+        /// <summary>
         /// Gets the application component and access level pairs that the specified user is mapped to.
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
@@ -121,6 +138,24 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
                 yield return new UserAndApplicationComponentAndAccessLevel<String, String, String>(user, currentTuple.Item1, currentTuple.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Gets users that are mapped to the specific application component and access level pair.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to an application component and access level via groups).</param>
+        /// <returns>A collection of mappings between a user, and an application component and access level.</returns>
+        [HttpGet]
+        [Route("userToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public IEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToUserMappings([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentUser in userQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings))
+            {
+                yield return new UserAndApplicationComponentAndAccessLevel<String, String, String>(currentUser, applicationComponent, accessLevel);
             }
         }
 
@@ -174,6 +209,24 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             foreach (String currentEntity in methodReturnValue)
             {
                 yield return new UserAndEntity<String>(user, entityType, currentEntity);
+            }
+        }
+
+        /// <summary>
+        /// Gets the users that are mapped to the specified entity.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the entity via groups).</param>
+        /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
+        [HttpGet]
+        [Route("userToEntityMappings/entityType/{entityType}/entity/{entity}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public IEnumerable<UserAndEntity<String>> GetEntityToUserMappings([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentUser in userQueryProcessor.GetEntityToUserMappings(entityType, entity, includeIndirectMappings))
+            {
+                yield return new UserAndEntity<String>(currentUser, entityType, entity);
             }
         }
 

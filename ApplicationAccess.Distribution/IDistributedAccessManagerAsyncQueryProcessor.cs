@@ -23,17 +23,32 @@ namespace ApplicationAccess
     /// <summary>
     /// Defines methods which query the state of group-based structures in a distributed AccessManager implementation as asyncronous operations.
     /// </summary>
+    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public interface IDistributedAccessManagerAsyncQueryProcessor<TGroup, TComponent, TAccess>
+    public interface IDistributedAccessManagerAsyncQueryProcessor<TUser, TGroup, TComponent, TAccess>
     {
+        /// <summary>
+        /// Gets the users that are directly mapped to any of the specified groups.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the users for.</param>
+        /// <returns>A collection of users that are mapped to the specified groups.</returns>
+        Task<List<TUser>> GetGroupToUserMappingsAsync(IEnumerable<TGroup> groups);
+
         /// <summary>
         /// Gets the groups that all of the specified groups are directly and indirectly mapped to.
         /// </summary>
         /// <param name="groups">The groups to retrieve the mapped groups for.</param>
         /// <returns>A collection of groups the specified groups are mapped to, and including the specified groups.</returns>
         Task<List<TGroup>> GetGroupToGroupMappingsAsync(IEnumerable<TGroup> groups);
+
+        /// <summary>
+        /// Gets the groups that are directly and indirectly mapped to any of the specified groups.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the mapped groups for.</param>
+        /// <returns>A collection of groups that are mapped to the specified groups.</returns>
+        Task<List<TGroup>> GetGroupToGroupReverseMappingsAsync(IEnumerable<TGroup> groups);
 
         /// <summary>
         /// Checks whether any of the specified groups have access to an application component at the specified level of access.

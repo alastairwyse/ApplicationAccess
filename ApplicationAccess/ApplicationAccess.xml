@@ -41,6 +41,12 @@
         <member name="F:ApplicationAccess.AccessManagerBase`4.groupToComponentMap">
             <summary>A dictionary which stores mappings between a group, and application component, and a level of access to that component.</summary>
         </member>
+        <member name="F:ApplicationAccess.AccessManagerBase`4.userToComponentReverseMap">
+            <summary>The reverse of the mappings in member 'userToComponentMap'.</summary>
+        </member>
+        <member name="F:ApplicationAccess.AccessManagerBase`4.groupToComponentReverseMap">
+            <summary>The reverse of the mappings in member 'groupToComponentMap'.</summary>
+        </member>
         <member name="F:ApplicationAccess.AccessManagerBase`4.entities">
             <summary>Holds all valid entity types and values within the access manager.  The Dictionary key holds the types of all entities, and each respective value holds the valid entity values within that type (e.g. the entity type could be 'ClientAccount', and values could be the names of all client accounts).</summary>
         </member>
@@ -80,6 +86,7 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddUser(`0)">
             <inheritdoc/>
+            <exception cref="T:System.ArgumentException">The specified user already exists.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.ContainsUser(`0)">
             <inheritdoc/>
@@ -90,79 +97,125 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroup(`1)">
             <inheritdoc/>
+            <exception cref="T:System.ArgumentException">The specified group already exists.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.ContainsGroup(`1)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveGroup(`1)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddUserToGroupMapping(`0,`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified user and group already exists.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToGroupMappings(`0,System.Boolean)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToUserMappings(`1,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+        </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveUserToGroupMapping(`0,`1)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified user and group does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroupToGroupMapping(`1,`1)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+            <exception cref="T:System.ArgumentException">The 'from' and 'to' groups cannot contain the same group.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified groups already exists.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified groups cannot be created as it would cause a circular reference.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToGroupMappings(`1,System.Boolean)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToGroupReverseMappings(`1,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveGroupToGroupMapping(`1,`1)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified groups does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified user, application component, and access level already exists.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
         </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetApplicationComponentAndAccessLevelToUserMappings(`2,`3,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified user, application component, and access level does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified group, application component, and access level already exists.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToApplicationComponentAndAccessLevelMappings(`1)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified user does not exist.</exception>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetApplicationComponentAndAccessLevelToGroupMappings(`2,`3,System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified group, application component, and access level does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddEntityType(System.String)">
             <inheritdoc/>
+            <exception cref="T:System.ArgumentException">The specified entity type already exists.</exception>
+            <exception cref="T:System.ArgumentException">The entity type must contain a valid character.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.ContainsEntityType(System.String)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveEntityType(System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddEntity(System.String,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+            <exception cref="T:System.ArgumentException"> The specified entity already exists.</exception>
+            <exception cref="T:System.ArgumentException"> The entity must contain a valid character.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntities(System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.ContainsEntity(System.String,System.String)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveEntity(System.String,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityNotFoundException">The specified entity does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddUserToEntityMapping(`0,System.String,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityNotFoundException">The specified entity does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified user and entity already exists.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToEntityMappings(`0)">
             <inheritdoc/>
@@ -171,22 +224,47 @@
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToEntityMappings(`0,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntityToUserMappings(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityNotFoundException">The specified entity does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveUserToEntityMapping(`0,System.String,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityNotFoundException">The specified entity does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified user and entity does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.AddGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityNotFoundException">The specified entity does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified group and entity already exists.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToEntityMappings(`1)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetGroupToEntityMappings(`1,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntityToGroupMappings(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityNotFoundException">The specified entity does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityNotFoundException">The specified entity does not exist.</exception>
+            <exception cref="T:System.ArgumentException">A mapping between the specified group and entity does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.HasAccessToApplicationComponent(`0,`2,`3)">
             <inheritdoc/>
@@ -200,6 +278,7 @@
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetApplicationComponentsAccessibleByGroup(`1)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByUser(`0)">
             <inheritdoc/>
@@ -208,12 +287,24 @@
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByUser(`0,System.String)">
             <inheritdoc/>
             <exception cref="T:ApplicationAccess.UserNotFoundException`1">The specified user does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByGroup(`1)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntitiesAccessibleByGroup(`1,System.String)">
             <inheritdoc/>
+            <exception cref="T:ApplicationAccess.GroupNotFoundException`1">The specified group does not exist.</exception>
+            <exception cref="T:ApplicationAccess.EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.EntityExists(System.String,System.String)">
+            <summary>
+            Checks whether the specified entity exists in a multi-thread-safe manner.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <param name="entity">The entity to check.</param>
+            <returns>True if the entity exists.  False otherwise.</returns>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.RemoveEntityType(System.String,System.Action{`0,System.String,System.Collections.Generic.IEnumerable{System.String},System.Int32},System.Action{`1,System.String,System.Collections.Generic.IEnumerable{System.String},System.Int32})">
             <summary>
@@ -231,6 +322,16 @@
             <param name="entity">The entity to remove.</param>
             <param name="userToEntityMappingPostRemovalAction">An action which is invoked after removing a user to entity mapping.  Accepts 3 parameters: the user in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
             <param name="groupToEntityMappingPostRemovalAction">An action which is invoked after removing a group to entity mapping.  Accepts 3 parameters: the group in the mapping, the type of the entity in the mapping, and the entity in the mapping.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetApplicationComponentAndAccessLevelToGroupMappingsImplementation(`2,`3,System.Boolean)">
+            <summary>
+            Gets the application component and access level pairs that the specified group is mapped to.
+            </summary>
+            <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+            <param name="accessLevel">The access level to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to an application component and access level via other groups).</param>
+            <returns>A collection of groups that are mapped to the specified application component and access level.</returns>
+            <remarks>Putting implementation of GetApplicationComponentAndAccessLevelToGroupMappings() in this method allows methods like GetApplicationComponentAndAccessLevelToUserMappings() to call this method rather than the public virtual GetApplicationComponentAndAccessLevelToGroupMappings().  Calling the public virtual version from GetApplicationComponentAndAccessLevelToGroupMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
         </member>
         <member name="M:ApplicationAccess.AccessManagerBase`4.GetUserToEntityMappingsImplementation(`0)">
             <summary>
@@ -256,6 +357,49 @@
             <param name="entityType">The entity type to retrieve the mappings for.</param>
             <returns>A collection of entities that the specified user is mapped to.</returns>
             <remarks>Putting implementation of GetUserToEntityMappings() in this method allows methods like GetEntitiesAccessibleByUser() to call this method rather than the public virtual GetUserToEntityMappings().  Calling the public virtual version from GetUserToEntityMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntityToGroupMappingsImplementation(System.String,System.String,System.Boolean)">
+            <summary>
+            Gets the groups that are mapped to the specified entity.
+            </summary>
+            <param name="entityType">The entity type to retrieve the mappings for.</param>
+            <param name="entity">The entity to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the entity via other groups).</param>
+            <returns>A collection of groups that are mapped to the specified entity.</returns>
+            <remarks>Putting implementation of GetEntityToGroupMappings() in this method allows methods like GetEntityToUserMappings() to call this method rather than the public virtual GetEntityToGroupMappings().  Calling the public virtual version from GetEntityToGroupMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetApplicationComponentAndAccessLevelReverseMappings``1(System.Collections.Generic.IDictionary{`2,System.Collections.Generic.IDictionary{`3,System.Collections.Generic.ISet{``0}}},`2,`3,System.Collections.Generic.HashSet{``0})">
+            <summary>
+            Gets the items which are mapped to by application components and access levels in the specified dictionary.
+            </summary>
+            <typeparam name="T">The type of the items which are mapped to.</typeparam>
+            <param name="componentReverseMap">The application component and access level reverse mapping structure to retrieve the mappings from.</param>
+            <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+            <param name="accessLevel">The access level to retrieve the mappings for.</param>
+            <param name="mappedItems">Hashset to store the found mapped items in.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetEntityReverseMappings``1(System.Collections.Generic.IDictionary{System.String,System.Collections.Generic.IDictionary{System.String,System.Collections.Generic.ISet{``0}}},System.String,System.String,System.Collections.Generic.HashSet{``0})">
+            <summary>
+            Gets the items which are mapped to by entities in the specified dictionary.
+            </summary>
+            <typeparam name="T">The type of the items which are mapped to.</typeparam>
+            <param name="entityReverseMap">The entity reverse mapping structure to retrieve the mappings from.</param>
+            <param name="entityType">The entity type to retrieve the mappings for.</param>
+            <param name="entity">The entity to retrieve the mappings for.</param>
+            <param name="mappedItems">Hashset to store the found mapped items in.</param>
+        </member>
+        <member name="M:ApplicationAccess.AccessManagerBase`4.GetTwoLevelMappings``3(System.Collections.Generic.IDictionary{``0,System.Collections.Generic.IDictionary{``1,System.Collections.Generic.ISet{``2}}},``0,``1,System.Collections.Generic.HashSet{``2})">
+            <summary>
+            Gets the items which are mapped to by key values in the specified dictionary.
+            </summary>
+            <typeparam name="TKey1">The type of the first level key in the mappings.</typeparam>
+            <typeparam name="TKey2">The type of the second level key in the mappings.</typeparam>
+            <typeparam name="TValue">The value of the items which are mapped to.</typeparam>
+            <param name="mappingStructure">The structure to retrieve the mappings from.</param>
+            <param name="key1Value">The value of the first level key in the mappings to retrieve.</param>
+            <param name="key2Value">The value of the second level key in the mappings to retrieve.</param>
+            <param name="mappedItems">Hashset to store the found mapped items in.</param>
+            <remarks>Provides a common abstraction to search in reverse mapping structures like members 'userToComponentReverseMap', 'userToEntityReverseMap', etc.</remarks>
         </member>
         <member name="T:ApplicationAccess.ApplicationComponentAndAccessLevel`2">
             <summary>
@@ -1242,6 +1386,13 @@
             <param name="leafVertex">The leaf vertex to retrieve the edges for.</param>
             <returns>A collection of non-leaf vertices the specified leaf vertex is connected to by an edge.</returns>
         </member>
+        <member name="M:ApplicationAccess.DirectedGraphBase`2.GetLeafReverseEdges(`1)">
+            <summary>
+            Gets the edges connected from the specified non-leaf vertex to leaf vertices in the reverse direction.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to retrieve the reverse edges for.</param>
+            <returns>A collection of leaf vertices the specified vertex is connected to by a reverse edge.</returns>
+        </member>
         <member name="M:ApplicationAccess.DirectedGraphBase`2.RemoveLeafToNonLeafEdge(`0,`1)">
             <summary>
             Removes the edge from the graph between the specified leaf and non-leaf vertices.
@@ -1263,6 +1414,13 @@
             <param name="nonLeafVertex">The non-leaf vertex to retrieve the edges for.</param>
             <returns>A collection of non-leaf vertices the specified vertex is connected to by an edge.</returns>
         </member>
+        <member name="M:ApplicationAccess.DirectedGraphBase`2.GetNonLeafReverseEdges(`1)">
+            <summary>
+            Gets the edges connected from the specified non-leaf vertex in the reverse direction.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to retrieve the reverse edges for.</param>
+            <returns>A collection of non-leaf vertices the specified vertex is connected to by a reverse edge.</returns>
+        </member>
         <member name="M:ApplicationAccess.DirectedGraphBase`2.RemoveNonLeafToNonLeafEdge(`1,`1)">
             <summary>
             Removes the edge from the graph between the specified non-leaf and non-leaf vertices.
@@ -1283,6 +1441,14 @@
             </summary>
             <param name="startVertex">The non-leaf vertex to begin traversing at.</param>
             <param name="vertexAction">The action to perform at each non-leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraphBase`2.TraverseReverseFromNonLeaf(`1,System.Func{`1,System.Boolean},System.Func{`0,System.Boolean})">
+            <summary>
+            Traverses the graph in the reverse direction, invoking the specified actions at each vertex (including the start vertex).
+            </summary>
+            <param name="startVertex">The non-leaf vertex to begin traversing at.</param>
+            <param name="nonLeafVertexAction">The action to perform at each non-leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+            <param name="leafVertexAction">The action to perform at each leaf vertex.  Accepts a single parameter which is the current vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
         </member>
         <member name="M:ApplicationAccess.DirectedGraphBase`2.RemoveNonLeafVertex(`1,System.Action{`0,`1},System.Action{`1,`1})">
             <summary>
@@ -1308,6 +1474,17 @@
             <param name="vertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current non-leaf vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
             <returns>Whether or not traversal should continue.</returns>
         </member>
+        <member name="M:ApplicationAccess.DirectedGraphBase`2.TraverseReverseFromNonLeafRecurse(`1,System.Collections.Generic.HashSet{`1},System.Collections.Generic.HashSet{`0},System.Func{`1,System.Boolean},System.Func{`0,System.Boolean})">
+            <summary>
+            Recurses to a non-leaf vertex in the reverse direction as part of a traversal, invoking the specified actions.
+            </summary>
+            <param name="nextVertex">The non-leaf vertex to recurse to.</param>
+            <param name="visitedNonLeafVertices">The set of non-leaf vertices which have already been visited as part of the traversal.</param>
+            <param name="visitedLeafVertices">The set of leaf vertices which have already been visited as part of the traversal.</param>
+            <param name="nonLeafVertexAction">The action to perform at the vertex.  Accepts a single parameter which is the current non-leaf vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+            <param name="leafVertexAction">The action to perform at each leaf vertex connected from the specified non-leaf vertex in the reverse direction.  Accepts a single parameter which is the leaf vertex to perform the action on, and returns a boolean indicating whether traversal should continue.</param>
+            <returns>Whether or not traversal should continue.</returns>
+        </member>
         <member name="M:ApplicationAccess.DirectedGraphBase`2.GetLeafEdges(`0,System.Boolean)">
             <summary>
             Gets the edges connected from the specified leaf vertex.
@@ -1316,6 +1493,14 @@
             <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
             <returns>A collection of non-leaf vertices the specified leaf vertex is connected to by an edge.</returns>
         </member>
+        <member name="M:ApplicationAccess.DirectedGraphBase`2.GetLeafReverseEdges(`1,System.Boolean)">
+            <summary>
+            Gets the edges connected from the specified non-leaf vertex to leaf vertices in the reverse direction.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to retrieve the reverse edges for.</param>
+            <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
+            <returns>A collection of leaf vertices the specified vertex is connected to by a reverse edge.</returns>
+        </member>
         <member name="M:ApplicationAccess.DirectedGraphBase`2.GetNonLeafEdges(`1,System.Boolean)">
             <summary>
             Gets the edges connected from the specified non-leaf vertex.
@@ -1323,6 +1508,14 @@
             <param name="nonLeafVertex">The non-leaf vertex to retrieve the edges for.</param>
             <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
             <returns>A collection of non-leaf vertices the specified vertex is connected to by an edge.</returns>
+        </member>
+        <member name="M:ApplicationAccess.DirectedGraphBase`2.GetNonLeafReverseEdges(`1,System.Boolean)">
+            <summary>
+            Gets the edges connected from the specified non-leaf vertex in the reverse direction.
+            </summary>
+            <param name="nonLeafVertex">The non-leaf vertex to retrieve the reverse edges for.</param>
+            <param name="checkVertexExists">Whether or not an explicit check should be made as to whether the specified vertex exists.</param>
+            <returns>A collection of non-leaf vertices the specified vertex is connected to by a reverse edge.</returns>
         </member>
         <member name="T:ApplicationAccess.EntityNotFoundException">
             <summary>
@@ -1672,6 +1865,14 @@
             <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those that occur via group to group mappings).</param>
             <returns>A list of groups the specified user is a member of.</returns>
         </member>
+        <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetGroupToUserMappingsAsync(`1,System.Boolean)">
+            <summary>
+            Gets the users that are mapped to the specified group as an asyncronous operation.
+            </summary>
+            <param name="group">The group to retrieve the users for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the group via other groups).</param>
+            <returns>A collection of users that are mapped to the specified group.</returns>
+        </member>
         <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetGroupToGroupMappingsAsync(`1,System.Boolean)">
             <summary>
             Gets the groups that the specified group is mapped to as an asyncronous operation.
@@ -1680,6 +1881,14 @@
             <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
             <returns>A list of groups the specified group is mapped to.</returns>
         </member>
+        <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetGroupToGroupReverseMappingsAsync(`1,System.Boolean)">
+            <summary>
+            Gets the groups that are mapped to the specified group as an asyncronous operation.
+            </summary>
+            <param name="group">The group to retrieve the mapped groups for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped from' group is itself mapped from further groups).</param>
+            <returns>A collection of groups that are mapped to the specified group.</returns>
+        </member>
         <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappingsAsync(`0)">
             <summary>
             Gets the application component and access level pairs that the specified user is mapped to as an asyncronous operation.
@@ -1687,12 +1896,30 @@
             <param name="user">The user to retrieve the mappings for.</param>
             <returns>A list of Tuples containing the application component and access level pairs that the specified user is mapped to.</returns>
         </member>
+        <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetApplicationComponentAndAccessLevelToUserMappingsAsync(`2,`3,System.Boolean)">
+            <summary>
+            Gets the application component and access level pairs that the specified user is mapped to as an asyncronous operation.
+            </summary>
+            <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+            <param name="accessLevel">The access level to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to an application component and access level via groups).</param>
+            <returns>A collection of users that are mapped to the specified application component and access level.</returns>
+        </member>
         <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(`1)">
             <summary>
             Gets the application component and access level pairs that the specified group is mapped to as an asyncronous operation.
             </summary>
             <param name="group">The group to retrieve the mappings for.</param>
             <returns>A list of Tuples containing the application component and access level pairs that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(`2,`3,System.Boolean)">
+            <summary>
+            Gets the application component and access level pairs that the specified group is mapped to as an asyncronous operation.
+            </summary>
+            <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+            <param name="accessLevel">The access level to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to an application component and access level via other groups).</param>
+            <returns>A collection of groups that are mapped to the specified application component and access level.</returns>
         </member>
         <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.ContainsEntityTypeAsync(System.String)">
             <summary>
@@ -1731,6 +1958,15 @@
             <param name="entityType">The entity type to retrieve the mappings for.</param>
             <returns>A list of entities that the specified user is mapped to.</returns>
         </member>
+        <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetEntityToUserMappingsAsync(System.String,System.String,System.Boolean)">
+            <summary>
+            Gets the users that are mapped to the specified entity as an asyncronous operation.
+            </summary>
+            <param name="entityType">The entity type to retrieve the mappings for.</param>
+            <param name="entity">The entity to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the entity via groups).</param>
+            <returns>A collection of users that are mapped to the specified entity.</returns>
+        </member>
         <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetGroupToEntityMappingsAsync(`1)">
             <summary>
             Gets the entities that the specified group is mapped to as an asyncronous operation.
@@ -1745,6 +1981,15 @@
             <param name="group">The group to retrieve the mappings for.</param>
             <param name="entityType">The entity type to retrieve the mappings for.</param>
             <returns>A list of entities that the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.GetEntityToGroupMappingsAsync(System.String,System.String,System.Boolean)">
+            <summary>
+            Gets the groups that are mapped to the specified entity as an asyncronous operation.
+            </summary>
+            <param name="entityType">The entity type to retrieve the mappings for.</param>
+            <param name="entity">The entity to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the entity via other groups).</param>
+            <returns>A collection of groups that are mapped to the specified entity.</returns>
         </member>
         <member name="M:ApplicationAccess.IAccessManagerAsyncQueryProcessor`4.HasAccessToApplicationComponentAsync(`0,`2,`3)">
             <summary>
@@ -1959,6 +2204,15 @@
             <param name="group">The group to retrieve the mappings for.</param>
             <returns>A collection of Tuples containing the application component and access level pairs that the specified group is mapped to.</returns>
         </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetApplicationComponentAndAccessLevelToGroupMappings(`1,`2,System.Boolean)">
+            <summary>
+            Gets the groups that are mapped to the specified application component and access level pair.
+            </summary>
+            <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+            <param name="accessLevel">The access level to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to an application component and access level via other groups).</param>
+            <returns>A collection of groups that are mapped to the specified application component and access level.</returns>
+        </member>
         <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetGroupToEntityMappings(`0)">
             <summary>
             Gets the entities that the specified group is mapped to.
@@ -1974,12 +2228,21 @@
             <param name="entityType">The entity type to retrieve the mappings for.</param>
             <returns>A collection of entities that the specified group is mapped to.</returns>
         </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetEntityToGroupMappings(System.String,System.String,System.Boolean)">
+            <summary>
+            Gets the groups that are mapped to the specified entity.
+            </summary>
+            <param name="entityType">The entity type to retrieve the mappings for.</param>
+            <param name="entity">The entity to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the entity via other groups).</param>
+            <returns>A collection of groups that are mapped to the specified entity.</returns>
+        </member>
         <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetApplicationComponentsAccessibleByGroup(`0)">
             <summary>
             Gets all application components and levels of access that the specified group (or group that the specified group is mapped to) has access to.
             </summary>
             <param name="group">The group to retrieve the application components and levels of access for.</param>
-            <returns>The application components and levels of access to those application components that the group has.</returns>
+            <returns>The application components and levels of access to those application components that the group has access to.</returns>
         </member>
         <member name="M:ApplicationAccess.IAccessManagerGroupQueryProcessor`3.GetEntitiesAccessibleByGroup(`0)">
             <summary>
@@ -2029,6 +2292,14 @@
             <param name="group">The group to retrieve the mapped groups for.</param>
             <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
             <returns>A collection of groups the specified group is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerGroupToGroupQueryProcessor`1.GetGroupToGroupReverseMappings(`0,System.Boolean)">
+            <summary>
+            Gets the groups that are mapped to the specified group.
+            </summary>
+            <param name="group">The group to retrieve the mapped groups for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped from' group is itself mapped from further groups).</param>
+            <returns>A collection of groups that are mapped to the specified group.</returns>
         </member>
         <member name="T:ApplicationAccess.IAccessManagerQueryProcessor`4">
             <summary>
@@ -2135,12 +2406,29 @@
             <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those that occur via group to group mappings).</param>
             <returns>A collection of groups the specified user is a member of.</returns>
         </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetGroupToUserMappings(`1,System.Boolean)">
+            <summary>
+            Gets the users that are mapped to the specified group.
+            </summary>
+            <param name="group">The group to retrieve the users for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the group via other groups).</param>
+            <returns>A collection of users that are mapped to the specified group.</returns>
+        </member>
         <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToApplicationComponentAndAccessLevelMappings(`0)">
             <summary>
             Gets the application component and access level pairs that the specified user is mapped to.
             </summary>
             <param name="user">The user to retrieve the mappings for.</param>
             <returns>A collection of Tuples containing the application component and access level pairs that the specified user is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetApplicationComponentAndAccessLevelToUserMappings(`2,`3,System.Boolean)">
+            <summary>
+            Gets users that are mapped to the specific application component and access level pair.
+            </summary>
+            <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+            <param name="accessLevel">The access level to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to an application component and access level via groups).</param>
+            <returns>A collection of users that are mapped to the specified application component and access level.</returns>
         </member>
         <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetUserToEntityMappings(`0)">
             <summary>
@@ -2156,6 +2444,15 @@
             <param name="user">The user to retrieve the mappings for.</param>
             <param name="entityType">The entity type to retrieve the mappings for.</param>
             <returns>A collection of entities that the specified user is mapped to.</returns>
+        </member>
+        <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetEntityToUserMappings(System.String,System.String,System.Boolean)">
+            <summary>
+            Gets the users that are mapped to the specified entity.
+            </summary>
+            <param name="entityType">The entity type to retrieve the mappings for.</param>
+            <param name="entity">The entity to retrieve the mappings for.</param>
+            <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the entity via groups).</param>
+            <returns>A collection of users that are mapped to the specified entity.</returns>
         </member>
         <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.HasAccessToApplicationComponent(`0,`2,`3)">
             <summary>
@@ -2180,7 +2477,7 @@
             Gets all application components and levels of access that the specified user (or a group that the user is a member of) has access to.
             </summary>
             <param name="user">The user to retrieve the application components and levels of access for.</param>
-            <returns>The application components and levels of access to those application components that the user has.</returns>
+            <returns>The application components and levels of access to those application components that the user has access to.</returns>
         </member>
         <member name="M:ApplicationAccess.IAccessManagerUserQueryProcessor`4.GetEntitiesAccessibleByUser(`0)">
             <summary>

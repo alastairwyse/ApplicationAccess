@@ -177,10 +177,26 @@ namespace ApplicationAccess.Hosting
 
         /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetGroupToUserMappings(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
             refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToGroupMappings(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetGroupToGroupReverseMappings(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -193,10 +209,26 @@ namespace ApplicationAccess.Hosting
 
         /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(group);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -241,6 +273,14 @@ namespace ApplicationAccess.Hosting
 
         /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetEntityToUserMappings(entityType, entity, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             refreshStrategy.NotifyQueryMethodCalled();
@@ -253,6 +293,14 @@ namespace ApplicationAccess.Hosting
         {
             refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToEntityMappings(group, entityType);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetEntityToGroupMappings(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>

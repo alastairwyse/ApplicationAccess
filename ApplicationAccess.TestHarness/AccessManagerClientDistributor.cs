@@ -178,6 +178,12 @@ namespace ApplicationAccess.TestHarness
         }
 
         /// <inheritdoc />
+        public HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
@@ -197,6 +203,12 @@ namespace ApplicationAccess.TestHarness
 
         /// <inheritdoc />
         public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
         {
             throw new NotImplementedException();
         }
@@ -226,6 +238,12 @@ namespace ApplicationAccess.TestHarness
         }
 
         /// <inheritdoc />
+        public IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
@@ -245,6 +263,12 @@ namespace ApplicationAccess.TestHarness
 
         /// <inheritdoc />
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
         {
             throw new NotImplementedException();
         }
@@ -280,6 +304,12 @@ namespace ApplicationAccess.TestHarness
         }
 
         /// <inheritdoc />
+        public IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             InvokeAgainstAllClients((IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess> client) =>
@@ -305,6 +335,12 @@ namespace ApplicationAccess.TestHarness
 
         /// <inheritdoc />
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
         {
             throw new NotImplementedException();
         }

@@ -50,7 +50,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// </summary>
         /// <param name="group">The group to retrieve the mapped groups for.</param>
         /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
-        /// <returns>>A collection of between two groups.</returns>
+        /// <returns>>A collection of mappings between two groups.</returns>
         [HttpGet]
         [Route("groupToGroupMappings/group/{group}")]
         [Produces(MediaTypeNames.Application.Json)]
@@ -59,6 +59,23 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             foreach (String currentGroup in groupToGroupQueryProcessor.GetGroupToGroupMappings(group, includeIndirectMappings))
             {
                 yield return new FromGroupAndToGroup<String>(group, currentGroup);
+            }
+        }
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified group.
+        /// </summary>
+        /// <param name="group">The group to retrieve the mapped groups for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped from' group is itself mapped from further groups).</param>
+        /// <returns>A collection of mappings between two groups.</returns>
+        [HttpGet]
+        [Route("groupToGroupReverseMappings/group/{group}")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public IEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupReverseMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentGroup in groupToGroupQueryProcessor.GetGroupToGroupReverseMappings(group, includeIndirectMappings))
+            {
+                yield return new FromGroupAndToGroup<String>(currentGroup, group);
             }
         }
     }

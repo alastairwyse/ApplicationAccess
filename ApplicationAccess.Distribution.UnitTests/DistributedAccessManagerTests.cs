@@ -78,6 +78,140 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public void GetGroupToUserMappingsGroupsOverload()
+        {
+            CreateGroupGraph(testDistributedAccessManager);
+            testDistributedAccessManager.AddUserToGroupMapping("Usr7", "Grp7");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr8", "Grp8");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr9", "Grp9");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr1", "Grp1");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr2", "Grp2");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr3", "Grp3");
+            var testGroups = new List<String>() { "Grp7" };
+
+            HashSet<String> result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+
+
+            testGroups = new List<String>() { "Grp7", "Grp1" };
+
+            result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+            Assert.IsTrue(result.Contains("Usr1"));
+
+
+            testGroups = new List<String>() { "Grp7", "Grp1", "Grp9" };
+
+            result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+            Assert.IsTrue(result.Contains("Usr1"));
+            Assert.IsTrue(result.Contains("Usr9"));
+
+
+            testGroups = new List<String>() { "Grp7", "Grp1", "Grp9", "Grp3" };
+
+            result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(4, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+            Assert.IsTrue(result.Contains("Usr1"));
+            Assert.IsTrue(result.Contains("Usr9"));
+            Assert.IsTrue(result.Contains("Usr3"));
+
+
+            testGroups = new List<String>() { "Grp7", "Grp1", "Grp9", "Grp3", "Grp2" };
+
+            result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(5, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+            Assert.IsTrue(result.Contains("Usr1"));
+            Assert.IsTrue(result.Contains("Usr9"));
+            Assert.IsTrue(result.Contains("Usr3"));
+            Assert.IsTrue(result.Contains("Usr2"));
+
+
+            testGroups = new List<String>() { "Grp7", "Grp1", "Grp9", "Grp3", "Grp2", "Grp8", "Grp11", "Grp5" };
+
+            result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(6, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+            Assert.IsTrue(result.Contains("Usr1"));
+            Assert.IsTrue(result.Contains("Usr9"));
+            Assert.IsTrue(result.Contains("Usr3"));
+            Assert.IsTrue(result.Contains("Usr2"));
+            Assert.IsTrue(result.Contains("Usr8"));
+        }
+
+        [Test]
+        public void GetGroupToUserMappingsGroupsOverload_GroupsParameterContainsInvalidGroup()
+        {
+            CreateGroupGraph(testDistributedAccessManager);
+            testDistributedAccessManager.AddUserToGroupMapping("Usr7", "Grp7");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr8", "Grp8");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr9", "Grp9");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr1", "Grp1");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr2", "Grp2");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr3", "Grp3");
+            var testGroups = new List<String>() { "Grp7", "Grp1", "Grp9", "Grp13", "Grp3", "Grp2", "Grp8" };
+
+            HashSet<String> result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(6, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+            Assert.IsTrue(result.Contains("Usr1"));
+            Assert.IsTrue(result.Contains("Usr9"));
+            Assert.IsTrue(result.Contains("Usr3"));
+            Assert.IsTrue(result.Contains("Usr2"));
+            Assert.IsTrue(result.Contains("Usr8"));
+        }
+
+        [Test]
+        public void GetGroupToUserMappingsGroupsOverload_Metrics()
+        {
+            CreateGroupGraph(testDistributedAccessManager);
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr7", "Grp7");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr8", "Grp8");
+            var testGroups = new List<String>() { "Grp7", "Grp8", "Grp2" };
+            mockMetricLogger.Begin(Arg.Any<GetGroupToUserMappingsForGroupsQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            HashSet<String> result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+            Assert.IsTrue(result.Contains("Usr8"));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToUserMappingsForGroupsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToUserMappingsForGroupsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToUserMappingsForGroupsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetGroupToUserMappingsGroupsOverload_MetricLoggingDisabled()
+        {
+            testDistributedAccessManager.MetricLoggingEnabled = false;
+            testDistributedAccessManager.AddUserToGroupMapping("Usr7", "Grp7");
+            testDistributedAccessManager.AddUserToGroupMapping("Usr8", "Grp8");
+            var testGroups = new List<String>() { "Grp7", "Grp8", "Grp2" };
+
+            HashSet<String> result = testDistributedAccessManager.GetGroupToUserMappings(testGroups);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("Usr7"));
+            Assert.IsTrue(result.Contains("Usr8"));
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
         public void GetGroupToGroupMappingsGroupsOverload()
         {
             CreateGroupGraph(testDistributedAccessManager);
@@ -224,6 +358,131 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.IsTrue(result.Contains("Grp1"));
             Assert.IsTrue(result.Contains("Grp3"));
             Assert.IsTrue(result.Contains("Grp4"));
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetGroupToGroupReverseMappingsGroupsOverload()
+        {
+            CreateGroupGraph(testDistributedAccessManager);
+            var testGroups = new List<String>() { "Grp7", "Grp6", "Grp2", "Grp12" };
+
+            HashSet<String> result = testDistributedAccessManager.GetGroupToGroupReverseMappings(testGroups);
+
+            Assert.AreEqual(9, result.Count);
+            Assert.IsTrue(result.Contains("Grp7"));
+            Assert.IsTrue(result.Contains("Grp4"));
+            Assert.IsTrue(result.Contains("Grp1"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp3"));
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp2"));
+            Assert.IsTrue(result.Contains("Grp12"));
+            Assert.IsTrue(result.Contains("Grp11"));
+
+
+            testGroups = new List<String>() { "Grp12", "Grp2", "Grp6", "Grp7" };
+
+            result = testDistributedAccessManager.GetGroupToGroupReverseMappings(testGroups);
+
+            Assert.AreEqual(9, result.Count);
+            Assert.IsTrue(result.Contains("Grp7"));
+            Assert.IsTrue(result.Contains("Grp4"));
+            Assert.IsTrue(result.Contains("Grp1"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp3"));
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp2"));
+            Assert.IsTrue(result.Contains("Grp12"));
+            Assert.IsTrue(result.Contains("Grp11"));
+
+
+            testGroups = new List<String>() { "Grp5", "Grp8", "Grp11" };
+
+            result = testDistributedAccessManager.GetGroupToGroupReverseMappings(testGroups);
+
+            Assert.AreEqual(9, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp4"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp1"));
+            Assert.IsTrue(result.Contains("Grp2"));
+            Assert.IsTrue(result.Contains("Grp3"));
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp11"));
+
+
+            testGroups = new List<String>() { "Grp11", "Grp8", "Grp5"  };
+
+            result = testDistributedAccessManager.GetGroupToGroupReverseMappings(testGroups);
+
+            Assert.AreEqual(9, result.Count);
+            Assert.IsTrue(result.Contains("Grp8"));
+            Assert.IsTrue(result.Contains("Grp4"));
+            Assert.IsTrue(result.Contains("Grp5"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp1"));
+            Assert.IsTrue(result.Contains("Grp2"));
+            Assert.IsTrue(result.Contains("Grp3"));
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp11"));
+        }
+
+        [Test]
+        public void GetGroupToGroupReverseMappingsGroupsOverload_GroupsParameterContainsInvalidGroup()
+        {
+            CreateGroupGraph(testDistributedAccessManager);
+            var testGroups = new List<String>() { "Grp7", "Grp6", "Grp13", "Grp2", "Grp12" };
+
+            HashSet<String> result = testDistributedAccessManager.GetGroupToGroupReverseMappings(testGroups);
+
+            Assert.AreEqual(9, result.Count);
+            Assert.IsTrue(result.Contains("Grp7"));
+            Assert.IsTrue(result.Contains("Grp4"));
+            Assert.IsTrue(result.Contains("Grp1"));
+            Assert.IsTrue(result.Contains("Grp6"));
+            Assert.IsTrue(result.Contains("Grp3"));
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp2"));
+            Assert.IsTrue(result.Contains("Grp12"));
+            Assert.IsTrue(result.Contains("Grp11"));
+        }
+
+        [Test]
+        public void GetGroupToGroupReverseMappingsGroupsOverload_Metrics()
+        {
+            CreateGroupGraph(testDistributedAccessManager);
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var testGroups = new List<String>() { "Grp3", "Grp11" };
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupReverseMappingsForGroupsQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            HashSet<String> result = testDistributedAccessManager.GetGroupToGroupReverseMappings(testGroups);
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Grp3"));
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp11"));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupReverseMappingsForGroupsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupReverseMappingsForGroupsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupReverseMappingsForGroupsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetGroupToGroupReverseMappingsGroupsOverload_MetricLoggingDisabled()
+        {
+            testDistributedAccessManager.MetricLoggingEnabled = false;
+            CreateGroupGraph(testDistributedAccessManager);
+            var testGroups = new List<String>() { "Grp3", "Grp11" };
+
+            HashSet<String> result = testDistributedAccessManager.GetGroupToGroupReverseMappings(testGroups);
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("Grp3"));
+            Assert.IsTrue(result.Contains("Grp10"));
+            Assert.IsTrue(result.Contains("Grp11"));
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
         }
 

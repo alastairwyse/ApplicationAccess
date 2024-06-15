@@ -59,6 +59,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
                     typeof(GroupQueryProcessorHolder),
                     typeof(GroupToGroupQueryProcessorHolder),
                     typeof(UserQueryProcessorHolder),
+                    typeof(DistributedUserQueryProcessorHolder),
                     typeof(DistributedGroupQueryProcessorHolder),
                     typeof(DistributedGroupToGroupQueryProcessorHolder)
                 }

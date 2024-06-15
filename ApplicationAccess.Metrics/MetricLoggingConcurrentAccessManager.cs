@@ -92,9 +92,21 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public override HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            return metricLoggingWrapper.GetGroupToUserMappings(group, includeIndirectMappings, base.GetGroupToUserMappings);
+        }
+
+        /// <inheritdoc/>
         public override HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
             return metricLoggingWrapper.GetGroupToGroupMappings(group, includeIndirectMappings, base.GetGroupToGroupMappings);
+        }
+
+        /// <inheritdoc/>
+        public override HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            return metricLoggingWrapper.GetGroupToGroupReverseMappings(group, includeIndirectMappings, base.GetGroupToGroupReverseMappings);
         }
 
         /// <inheritdoc/>
@@ -104,12 +116,24 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public override IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return metricLoggingWrapper.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings, base.GetApplicationComponentAndAccessLevelToUserMappings);
+        }
+
+        /// <inheritdoc/>
         public override IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             return metricLoggingWrapper.GetGroupToApplicationComponentAndAccessLevelMappings(group, base.GetGroupToApplicationComponentAndAccessLevelMappings);
         }
 
         /// <inheritdoc/>
+        public override IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return metricLoggingWrapper.GetApplicationComponentAndAccessLevelToGroupMappings(applicationComponent, accessLevel, includeIndirectMappings, base.GetApplicationComponentAndAccessLevelToGroupMappings);
+        }
+
+        ///<inheritdoc/>
         public override Boolean ContainsEntityType(String entityType)
         {
             return metricLoggingWrapper.ContainsEntityType(entityType, base.ContainsEntityType);
@@ -140,6 +164,12 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <inheritdoc/>
+        public override IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return metricLoggingWrapper.GetEntityToUserMappings(entityType, entity, includeIndirectMappings, base.GetEntityToUserMappings);
+        }
+
+        /// <inheritdoc/>
         public override IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             return metricLoggingWrapper.GetGroupToEntityMappings(group, base.GetGroupToEntityMappings);
@@ -149,6 +179,12 @@ namespace ApplicationAccess.Metrics
         public override IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             return metricLoggingWrapper.GetGroupToEntityMappings(group, entityType, base.GetGroupToEntityMappings);
+        }
+
+        /// <inheritdoc/>
+        public override IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return metricLoggingWrapper.GetEntityToGroupMappings(entityType, entity, includeIndirectMappings, base.GetEntityToGroupMappings);
         }
 
         /// <inheritdoc/>

@@ -33,6 +33,7 @@ namespace ApplicationAccess.Hosting
     /// <remarks>Note that as per remarks for <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> interval metrics are not logged for <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> methods that return <see cref="IEnumerable{T}"/>, or perform simple dictionary and set lookups (e.g. <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}.ContainsUser(TUser)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="IEnumerable{T}"/> the metric logging must wrap the code that enumerates the result.</remarks>
     public class DistributedReaderNode<TUser, TGroup, TComponent, TAccess> : 
         ReaderNodeBase<TUser, TGroup, TComponent, TAccess, DistributedAccessManager<TUser, TGroup, TComponent, TAccess>>,
+        IDistributedAccessManagerUserQueryProcessor<TUser, TGroup>, 
         IDistributedAccessManagerGroupQueryProcessor<TGroup, TComponent, TAccess>,
         IDistributedAccessManagerGroupToGroupQueryProcessor<TGroup>
     {
@@ -75,10 +76,26 @@ namespace ApplicationAccess.Hosting
 
         /// <inheritdoc/>
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<TUser> GetGroupToUserMappings(IEnumerable<TGroup> groups)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetGroupToUserMappings(groups);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TGroup> GetGroupToGroupMappings(IEnumerable<TGroup> groups)
         {
             refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToGroupMappings(groups);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(IEnumerable<TGroup> groups)
+        {
+            refreshStrategy.NotifyQueryMethodCalled();
+            return concurrentAccessManager.GetGroupToGroupReverseMappings(groups);
         }
 
         /// <inheritdoc/>

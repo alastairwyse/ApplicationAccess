@@ -138,6 +138,14 @@ namespace ApplicationAccess.TestHarness
             return new Tuple<TUser, Boolean>(user, includeIndirectMappings);
         }
 
+        public Tuple<TGroup, Boolean> GenerateGetGroupToUserMappingsParameters()
+        {
+            TGroup group = dataElementStorer.GetRandomGroup();
+            Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
+
+            return new Tuple<TGroup, Boolean>(group, includeIndirectMappings);
+        }
+
         public Tuple<TUser, TGroup> GenerateRemoveUserToGroupMappingParameters()
         {
             return dataElementStorer.GetRandomUserToGroupMapping();
@@ -152,6 +160,14 @@ namespace ApplicationAccess.TestHarness
         }
 
         public Tuple<TGroup, Boolean> GenerateGetGroupToGroupMappingsParameters()
+        {
+            TGroup group = dataElementStorer.GetRandomGroup();
+            Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
+
+            return new Tuple<TGroup, Boolean>(group, includeIndirectMappings);
+        }
+
+        public Tuple<TGroup, Boolean> GenerateGetGroupToGroupReverseMappingsParameters()
         {
             TGroup group = dataElementStorer.GetRandomGroup();
             Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
@@ -178,6 +194,15 @@ namespace ApplicationAccess.TestHarness
             return dataElementStorer.GetRandomUser();
         }
 
+        public Tuple<TComponent, TAccess, Boolean> GenerateGetApplicationComponentAndAccessLevelToUserMappingsParameter()
+        {
+            TComponent applicationComponent = newApplicationComponentGenerator.Generate();
+            TAccess accessLevel = newwAccessLevelGenerator.Generate();
+            Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
+
+            return new Tuple<TComponent, TAccess, Boolean>(applicationComponent, accessLevel, includeIndirectMappings);
+        }
+
         public Tuple<TUser, TComponent, TAccess> GenerateRemoveUserToApplicationComponentAndAccessLevelMappingParameters()
         {
             return dataElementStorer.GetRandomUserToApplicationComponentAndAccessLevelMapping();
@@ -195,6 +220,15 @@ namespace ApplicationAccess.TestHarness
         public TGroup GenerateGetGroupToApplicationComponentAndAccessLevelMappingsParameter()
         {
             return dataElementStorer.GetRandomGroup();
+        }
+
+        public Tuple<TComponent, TAccess, Boolean> GenerateGetApplicationComponentAndAccessLevelToGroupMappingsParameter()
+        {
+            TComponent applicationComponent = newApplicationComponentGenerator.Generate();
+            TAccess accessLevel = newwAccessLevelGenerator.Generate();
+            Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
+
+            return new Tuple<TComponent, TAccess, Boolean>(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         public Tuple<TGroup, TComponent, TAccess> GenerateRemoveGroupToApplicationComponentAndAccessLevelMappingParameters()
@@ -286,6 +320,14 @@ namespace ApplicationAccess.TestHarness
             return new Tuple<TUser, String>(user, entityType);
         }
 
+        public Tuple<String, String, Boolean> GenerateGetEntityToUserMappingsParameters()
+        {
+            Tuple<String, String> entityTypeAndEntity = dataElementStorer.GetRandomEntity();
+            Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
+
+            return new Tuple<String, String, Boolean>(entityTypeAndEntity.Item1, entityTypeAndEntity.Item2, includeIndirectMappings);
+        }
+
         public Tuple<TUser, String, String> GenerateRemoveUserToEntityMappingParameters()
         {
             return dataElementStorer.GetRandomUserToEntityMapping();
@@ -310,6 +352,14 @@ namespace ApplicationAccess.TestHarness
             String entityType = dataElementStorer.GetRandomEntityType();
 
             return new Tuple<TGroup, String>(group, entityType);
+        }
+
+        public Tuple<String, String, Boolean> GenerateGetEntityToGroupMappingsParameters()
+        {
+            Tuple<String, String> entityTypeAndEntity = dataElementStorer.GetRandomEntity();
+            Boolean includeIndirectMappings = (randomGenerator.Next(2) == 0);
+
+            return new Tuple<String, String, Boolean>(entityTypeAndEntity.Item1, entityTypeAndEntity.Item2, includeIndirectMappings);
         }
 
         public Tuple<TGroup, String, String> GenerateRemoveGroupToEntityMappingParameters()

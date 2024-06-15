@@ -52,11 +52,28 @@ namespace ApplicationAccess
         HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings);
 
         /// <summary>
+        /// Gets the users that are mapped to the specified group.
+        /// </summary>
+        /// <param name="group">The group to retrieve the users for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the group via other groups).</param>
+        /// <returns>A collection of users that are mapped to the specified group.</returns>
+        HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings);
+
+        /// <summary>
         /// Gets the application component and access level pairs that the specified user is mapped to.
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
         /// <returns>A collection of Tuples containing the application component and access level pairs that the specified user is mapped to.</returns>
         IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user);
+
+        /// <summary>
+        /// Gets users that are mapped to the specific application component and access level pair.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to an application component and access level via groups).</param>
+        /// <returns>A collection of users that are mapped to the specified application component and access level.</returns>
+        IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings);
 
         /// <summary>
         /// Gets the entities that the specified user is mapped to.
@@ -72,6 +89,15 @@ namespace ApplicationAccess
         /// <param name="entityType">The entity type to retrieve the mappings for.</param>
         /// <returns>A collection of entities that the specified user is mapped to.</returns>
         IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType);
+
+        /// <summary>
+        /// Gets the users that are mapped to the specified entity.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the entity via groups).</param>
+        /// <returns>A collection of users that are mapped to the specified entity.</returns>
+        IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings);
 
         /// <summary>
         /// Checks whether the specified user (or a group that the user is a member of) has access to an application component at the specified level of access.
@@ -95,7 +121,7 @@ namespace ApplicationAccess
         /// Gets all application components and levels of access that the specified user (or a group that the user is a member of) has access to.
         /// </summary>
         /// <param name="user">The user to retrieve the application components and levels of access for.</param>
-        /// <returns>The application components and levels of access to those application components that the user has.</returns>
+        /// <returns>The application components and levels of access to those application components that the user has access to.</returns>
         HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user);
 
         /// <summary>

@@ -239,6 +239,12 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         }
 
         /// <inheritdoc/>
+        public async Task<List<TUser>> GetGroupToUserMappingsAsync(TGroup group, Boolean includeIndirectMappings)
+        {
+            return await base.GetGroupToUserMappingsBaseAsync(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToGroupMappingAsync(TUser user, TGroup group)
         {
             await base.RemoveUserToGroupMappingBaseAsync(user, group);
@@ -254,6 +260,12 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         public async Task<List<TGroup>> GetGroupToGroupMappingsAsync(TGroup group, Boolean includeIndirectMappings)
         {
             return await base.GetGroupToGroupMappingsBaseAsync(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<TGroup>> GetGroupToGroupReverseMappingsAsync(TGroup group, Boolean includeIndirectMappings)
+        {
+            return await base.GetGroupToGroupReverseMappingsBaseAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -275,6 +287,12 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         }
 
         /// <inheritdoc/>
+        public async Task<List<TUser>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return await base.GetApplicationComponentAndAccessLevelToUserMappingsBaseAsync(applicationComponent, accessLevel, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             await base.RemoveUserToApplicationComponentAndAccessLevelMappingBaseAsync(user, applicationComponent, accessLevel);
@@ -290,6 +308,12 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         public async Task<List<Tuple<TComponent, TAccess>>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync(TGroup group)
         {
             return await base.GetGroupToApplicationComponentAndAccessLevelMappingsBaseAsync(group);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<TGroup>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return await base.GetApplicationComponentAndAccessLevelToGroupMappingsBaseAsync(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -359,6 +383,12 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         }
 
         /// <inheritdoc/>
+        public async Task<List<TUser>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return await base.GetEntityToUserMappingsBaseAsync(entityType, entity, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public async Task RemoveUserToEntityMappingAsync(TUser user, String entityType, String entity)
         {
             await base.RemoveUserToEntityMappingBaseAsync(user, entityType, entity);
@@ -380,6 +410,12 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         public async Task<List<String>> GetGroupToEntityMappingsAsync(TGroup group, String entityType)
         {
             return await base.GetGroupToEntityMappingsBaseAsync(group, entityType);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<TGroup>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return await base.GetEntityToGroupMappingsBaseAsync(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>

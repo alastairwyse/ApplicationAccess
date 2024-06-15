@@ -28,6 +28,7 @@ namespace ApplicationAccess.Distribution
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public interface IDistributedAccessManager<TUser, TGroup, TComponent, TAccess> : 
         IAccessManager<TUser, TGroup, TComponent, TAccess>,
+        IDistributedAccessManagerUserQueryProcessor<TUser, TGroup>, 
         IDistributedAccessManagerGroupQueryProcessor<TGroup, TComponent, TAccess>,
         IDistributedAccessManagerGroupToGroupQueryProcessor<TGroup>
     {

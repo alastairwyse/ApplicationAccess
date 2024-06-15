@@ -323,6 +323,36 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void GetLeafReverseEdges_VertexDoesntExist()
+        {
+            var e = Assert.Throws<NonLeafVertexNotFoundException<String>>(delegate
+            {
+                testDirectedGraph.GetLeafReverseEdges("parent").FirstOrDefault();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Vertex 'parent' does not exist in the graph."));
+            Assert.AreEqual("parent", e.NonLeafVertex);
+        }
+
+        [Test]
+        public void GetLeafReverseEdges()
+        {
+            CreatePersonGroupGraph2(testDirectedGraph);
+
+            var leafEdges = new HashSet<String>(testDirectedGraph.GetLeafReverseEdges("Grp5"));
+
+            Assert.AreEqual(2, leafEdges.Count);
+            Assert.IsTrue(leafEdges.Contains("Per8"));
+            Assert.IsTrue(leafEdges.Contains("Per9")); 
+            
+            
+            leafEdges = new HashSet<String>(testDirectedGraph.GetLeafReverseEdges("Grp10"));
+
+            Assert.AreEqual(1, leafEdges.Count);
+            Assert.IsTrue(leafEdges.Contains("Per10"));
+        }
+
+        [Test]
         public void RemoveLeafToNonLeafEdge_FromVertexDoesntExist()
         {
             testDirectedGraph.AddNonLeafVertex("parent");
@@ -515,16 +545,52 @@ namespace ApplicationAccess.UnitTests
         {
             CreatePersonGroupGraph(testDirectedGraph);
 
-            var leafEdges = new HashSet<String>(testDirectedGraph.GetNonLeafEdges("Grp1"));
+            var nonLeafEdges = new HashSet<String>(testDirectedGraph.GetNonLeafEdges("Grp1"));
 
-            Assert.AreEqual(2, leafEdges.Count);
-            Assert.IsTrue(leafEdges.Contains("Grp4"));
-            Assert.IsTrue(leafEdges.Contains("Grp3"));
+            Assert.AreEqual(2, nonLeafEdges.Count);
+            Assert.IsTrue(nonLeafEdges.Contains("Grp4"));
+            Assert.IsTrue(nonLeafEdges.Contains("Grp3"));
 
 
-            leafEdges = new HashSet<String>(testDirectedGraph.GetNonLeafEdges("Grp3"));
+            nonLeafEdges = new HashSet<String>(testDirectedGraph.GetNonLeafEdges("Grp3"));
 
-            Assert.AreEqual(0, leafEdges.Count);
+            Assert.AreEqual(0, nonLeafEdges.Count);
+        }
+
+        [Test]
+        public void GetNonLeafReverseEdges_VertexDoesntExist()
+        {
+            var e = Assert.Throws<NonLeafVertexNotFoundException<String>>(delegate
+            {
+                testDirectedGraph.GetNonLeafReverseEdges("parent1").FirstOrDefault();
+            });
+
+            Assert.That(e.Message, Does.StartWith("Vertex 'parent1' does not exist in the graph."));
+            Assert.AreEqual("parent1", e.NonLeafVertex);
+        }
+
+        [Test]
+        public void GetNonLeafReverseEdges()
+        {
+            CreatePersonGroupGraph2(testDirectedGraph);
+
+            var nonLeafEdges = new HashSet<String>(testDirectedGraph.GetNonLeafReverseEdges("Grp10"));
+
+            Assert.AreEqual(2, nonLeafEdges.Count);
+            Assert.IsTrue(nonLeafEdges.Contains("Grp8"));
+            Assert.IsTrue(nonLeafEdges.Contains("Grp9"));
+
+
+            nonLeafEdges = new HashSet<String>(testDirectedGraph.GetNonLeafReverseEdges("Grp8"));
+
+            Assert.AreEqual(2, nonLeafEdges.Count);
+            Assert.IsTrue(nonLeafEdges.Contains("Grp5"));
+            Assert.IsTrue(nonLeafEdges.Contains("Grp6"));
+
+
+            nonLeafEdges = new HashSet<String>(testDirectedGraph.GetNonLeafReverseEdges("Grp7"));
+
+            Assert.AreEqual(0, nonLeafEdges.Count);
         }
 
         [Test]
@@ -768,6 +834,277 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void TraverseReverseFromNonLeaf_StartVertexDoesntExist()
+        {
+            var e = Assert.Throws<NonLeafVertexNotFoundException<String>>(delegate
+            {
+                testDirectedGraph.TraverseReverseFromNonLeaf("parent1", (currentVertex) => { return true; }, (currentVertex) => { return true; });
+            });
+
+            Assert.That(e.Message, Does.StartWith("Vertex 'parent1' does not exist in the graph."));
+            Assert.AreEqual("parent1", e.NonLeafVertex);
+        }
+
+        [Test]
+        public void TraverseReverseFromNonLeaf()
+        {
+            CreatePersonGroupGraph(testDirectedGraph);
+            CreatePersonGroupGraph2(testDirectedGraph);
+            var visitedLeaves = new HashSet<String>();
+            var visitedNonLeaves = new HashSet<String>();
+            var leafVertexAction = new Func<String, Boolean>((String currentLeafVertex) =>
+            {
+                Boolean addResult = visitedLeaves.Add(currentLeafVertex);
+                if (addResult == false)
+                {
+                    Assert.Fail($"Attempted to traverse to leaf vertex '{currentLeafVertex}' twice.");
+                }
+
+                return true;
+            });
+            var nonLeafVertexAction = new Func<String, Boolean>((String currentNonLeafVertex) =>
+            {
+                Boolean addResult = visitedNonLeaves.Add(currentNonLeafVertex);
+                if (addResult == false)
+                {
+                    Assert.Fail($"Attempted to traverse to non-leaf vertex '{currentNonLeafVertex}' twice.");
+                }
+
+                return true;
+            });
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp5", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(1, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp5"));
+            Assert.AreEqual(2, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per8"));
+            Assert.IsTrue(visitedLeaves.Contains("Per9"));
+
+
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp6", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(1, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp6"));
+            Assert.AreEqual(1, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per10"));
+
+
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp7", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(1, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp7"));
+            Assert.AreEqual(0, visitedLeaves.Count);
+
+
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp8", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(3, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp8"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp5"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp6"));
+            Assert.AreEqual(3, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per8"));
+            Assert.IsTrue(visitedLeaves.Contains("Per9"));
+            Assert.IsTrue(visitedLeaves.Contains("Per10"));
+
+
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp9", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(3, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp9"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp6"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp7"));
+            Assert.AreEqual(1, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per10"));
+
+
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp10", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(6, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp10"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp8"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp9"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp5"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp6"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp7"));
+            Assert.AreEqual(3, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per8"));
+            Assert.IsTrue(visitedLeaves.Contains("Per9"));
+            Assert.IsTrue(visitedLeaves.Contains("Per10"));
+
+
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp4", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(2, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp4"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
+            Assert.AreEqual(3, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per1"));
+            Assert.IsTrue(visitedLeaves.Contains("Per2"));
+            Assert.IsTrue(visitedLeaves.Contains("Per3"));
+
+
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp3", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(3, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp3"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp1"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp2"));
+            Assert.AreEqual(7, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per1"));
+            Assert.IsTrue(visitedLeaves.Contains("Per2"));
+            Assert.IsTrue(visitedLeaves.Contains("Per3"));
+            Assert.IsTrue(visitedLeaves.Contains("Per4"));
+            Assert.IsTrue(visitedLeaves.Contains("Per5"));
+            Assert.IsTrue(visitedLeaves.Contains("Per6"));
+            Assert.IsTrue(visitedLeaves.Contains("Per7"));
+        }
+
+        [Test]
+        public void TraverseReverseFromNonLeaf_StopTraversingAtSpecifiedNonLeafVertex()
+        {
+            CreatePersonGroupGraph(testDirectedGraph);
+            CreatePersonGroupGraph2(testDirectedGraph);
+            // If we traverse from 'Grp8' but stop at 'Grp6', we should not reach 'Per10'
+            var visitedLeaves = new HashSet<String>();
+            var visitedNonLeaves = new HashSet<String>();
+            var leafVertexAction = new Func<String, Boolean>((String currentLeafVertex) =>
+            {
+                Boolean addResult = visitedLeaves.Add(currentLeafVertex);
+                if (addResult == false)
+                {
+                    Assert.Fail($"Attempted to traverse to leaf vertex '{currentLeafVertex}' twice.");
+                }
+
+                return true;
+            });
+            var nonLeafVertexAction = new Func<String, Boolean>((String currentNonLeafVertex) =>
+            {
+                Boolean addResult = visitedNonLeaves.Add(currentNonLeafVertex);
+                if (addResult == false)
+                {
+                    Assert.Fail($"Attempted to traverse to non-leaf vertex '{currentNonLeafVertex}' twice.");
+                }
+                if (currentNonLeafVertex == "Grp6")
+                {
+                    return false;
+                }
+
+                return true;
+            });
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp8", nonLeafVertexAction, leafVertexAction);
+
+            Assert.GreaterOrEqual(visitedNonLeaves.Count, 2);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp8"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp6"));
+            Assert.IsFalse(visitedLeaves.Contains("Per10"));
+
+
+            // If we traverse from 'Grp10' but stop at 'Grp8', we should not reach 'Grp6'
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+            nonLeafVertexAction = new Func<String, Boolean>((String currentNonLeafVertex) =>
+            {
+                Boolean addResult = visitedNonLeaves.Add(currentNonLeafVertex);
+                if (addResult == false)
+                {
+                    Assert.Fail($"Attempted to traverse to non-leaf vertex '{currentNonLeafVertex}' twice.");
+                }
+                if (currentNonLeafVertex == "Grp8")
+                {
+                    return false;
+                }
+
+                return true;
+            });
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp10", nonLeafVertexAction, leafVertexAction);
+
+            Assert.GreaterOrEqual(visitedNonLeaves.Count, 2);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp10"));
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp8"));
+            Assert.IsFalse(visitedNonLeaves.Contains("Grp6"));
+            Assert.IsFalse(visitedLeaves.Contains("Per8"));
+            Assert.IsFalse(visitedLeaves.Contains("Per9"));
+        }
+
+        [Test]
+        public void TraverseReverseFromNonLeaf_StopTraversingAtSpecifiedLeafVertex()
+        {
+            CreatePersonGroupGraph(testDirectedGraph);
+            CreatePersonGroupGraph2(testDirectedGraph);
+            // If we traverse from 'Grp10' but stop at 'Per10', we should not reach any other vertices (leaf vertices are preocessed before non-leaf)
+            var visitedLeaves = new HashSet<String>();
+            var visitedNonLeaves = new HashSet<String>();
+            var leafVertexAction = new Func<String, Boolean>((String currentLeafVertex) =>
+            {
+                Boolean addResult = visitedLeaves.Add(currentLeafVertex);
+                if (addResult == false)
+                {
+                    Assert.Fail($"Attempted to traverse to leaf vertex '{currentLeafVertex}' twice.");
+                }
+                if (currentLeafVertex == "Per10")
+                {
+                    return false;
+                }
+
+                return true;
+            });
+            var nonLeafVertexAction = new Func<String, Boolean>((String currentNonLeafVertex) =>
+            {
+                Boolean addResult = visitedNonLeaves.Add(currentNonLeafVertex);
+                if (addResult == false)
+                {
+                    Assert.Fail($"Attempted to traverse to non-leaf vertex '{currentNonLeafVertex}' twice.");
+                }
+
+                return true;
+            });
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp10", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(1, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp10"));
+            Assert.AreEqual(1, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per10"));
+
+
+            // If we traverse from 'Grp9' but stop at 'Per10', we should not reach any other vertices (leaf vertices are preocessed before non-leaf)
+            visitedLeaves.Clear();
+            visitedNonLeaves.Clear();
+
+            testDirectedGraph.TraverseReverseFromNonLeaf("Grp9", nonLeafVertexAction, leafVertexAction);
+
+            Assert.AreEqual(1, visitedNonLeaves.Count);
+            Assert.IsTrue(visitedNonLeaves.Contains("Grp9"));
+            Assert.AreEqual(1, visitedLeaves.Count);
+            Assert.IsTrue(visitedLeaves.Contains("Per10"));
+        }
+
+        [Test]
         public void TraverseGraph()
         {
             CreatePersonGroupGraph(testDirectedGraph);
@@ -915,46 +1252,6 @@ namespace ApplicationAccess.UnitTests
             CreatePersonGroupGraph(testDirectedGraph);
         }
 
-        [Test]
-        public void AddRemoveAdd_BidirectionalMappingsTrue()
-        {
-            // Tests Add*() > Remove*() > Add*() add operations in sequence, to ensure that no residual vertices nor edges are left in the underying structures after Remove*() operations, when storing bidirectional mappings
-            CreatePersonGroupGraph(testDirectedGraph);
-
-            testDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp2", "Grp3");
-            testDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp1", "Grp3");
-            testDirectedGraph.RemoveNonLeafToNonLeafEdge("Grp1", "Grp4");
-            testDirectedGraph.RemoveLeafToNonLeafEdge("Per7", "Grp3");
-            testDirectedGraph.RemoveLeafToNonLeafEdge("Per6", "Grp2");
-            testDirectedGraph.RemoveLeafToNonLeafEdge("Per5", "Grp2");
-            testDirectedGraph.RemoveLeafToNonLeafEdge("Per4", "Grp2");
-            testDirectedGraph.RemoveLeafToNonLeafEdge("Per3", "Grp2");
-            testDirectedGraph.RemoveLeafToNonLeafEdge("Per3", "Grp1");
-            testDirectedGraph.RemoveLeafToNonLeafEdge("Per2", "Grp1");
-            testDirectedGraph.RemoveLeafToNonLeafEdge("Per1", "Grp1");
-            testDirectedGraph.RemoveNonLeafVertex("Grp4");
-            testDirectedGraph.RemoveNonLeafVertex("Grp3");
-            testDirectedGraph.RemoveNonLeafVertex("Grp2");
-            testDirectedGraph.RemoveNonLeafVertex("Grp1");
-            testDirectedGraph.RemoveLeafVertex("Per7");
-            testDirectedGraph.RemoveLeafVertex("Per6");
-            testDirectedGraph.RemoveLeafVertex("Per5");
-            testDirectedGraph.RemoveLeafVertex("Per4");
-            testDirectedGraph.RemoveLeafVertex("Per3");
-            testDirectedGraph.RemoveLeafVertex("Per2");
-            testDirectedGraph.RemoveLeafVertex("Per1");
-
-            Assert.AreEqual(0, testDirectedGraph.LeafVertices.Count());
-            Assert.AreEqual(0, testDirectedGraph.NonLeafVertices.Count());
-            Assert.AreEqual(0, testDirectedGraph.LeafToNonLeafEdges.Count);
-            Assert.AreEqual(0, testDirectedGraph.NonLeafToNonLeafEdges.Count);
-            Assert.AreEqual(0, testDirectedGraph.LeafToNonLeafReverseEdges.Count);
-            Assert.AreEqual(0, testDirectedGraph.NonLeafToNonLeafReverseEdges.Count);
-
-
-            CreatePersonGroupGraph(testDirectedGraph);
-        }
-
         #region Private/Protected Methods
 
         // Creates the following graph consisting of groups (non-leaves) and people (leaves)...
@@ -994,6 +1291,47 @@ namespace ApplicationAccess.UnitTests
             inputGraph.AddNonLeafToNonLeafEdge("Grp1", "Grp4");
             inputGraph.AddNonLeafToNonLeafEdge("Grp1", "Grp3");
             inputGraph.AddNonLeafToNonLeafEdge("Grp2", "Grp3");
+        }
+
+        // Creates the following graph consisting of groups (non-leaves) and people (leaves)...
+        //
+        //                                  ----------------Grp10
+        //                                 /        --------/  |
+        //                                /        /           |
+        //                             Grp8       Grp9         |
+        //                            /    \     / |  \        |
+        //                           /      \   /  |   \       |
+        // Non-leaf vertices     Grp5        Grp6  |    Grp7   |
+        //                     /      \          \ |           |
+        // Leaf vertices   Per8        Per9       Per10--------|
+        //
+        /// <summary>
+        /// Creates a sample graph representing users and groups of users in the specified graph.
+        /// </summary>
+        /// <param name="inputGraph">The graph to create the sample structure in.</param>
+        /// <remarks>This graph is designed for testing of reverse mappings.</remarks>
+        protected void CreatePersonGroupGraph2(DirectedGraph<String, String> inputGraph)
+        {
+            inputGraph.AddLeafVertex("Per8");
+            inputGraph.AddLeafVertex("Per9");
+            inputGraph.AddLeafVertex("Per10");
+            inputGraph.AddNonLeafVertex("Grp5");
+            inputGraph.AddNonLeafVertex("Grp6");
+            inputGraph.AddNonLeafVertex("Grp7");
+            inputGraph.AddNonLeafVertex("Grp8");
+            inputGraph.AddNonLeafVertex("Grp9");
+            inputGraph.AddNonLeafVertex("Grp10");
+            inputGraph.AddLeafToNonLeafEdge("Per8", "Grp5");
+            inputGraph.AddLeafToNonLeafEdge("Per9", "Grp5");
+            inputGraph.AddLeafToNonLeafEdge("Per10", "Grp6");
+            inputGraph.AddLeafToNonLeafEdge("Per10", "Grp9");
+            inputGraph.AddLeafToNonLeafEdge("Per10", "Grp10");
+            inputGraph.AddNonLeafToNonLeafEdge("Grp5", "Grp8");
+            inputGraph.AddNonLeafToNonLeafEdge("Grp6", "Grp8");
+            inputGraph.AddNonLeafToNonLeafEdge("Grp6", "Grp9");
+            inputGraph.AddNonLeafToNonLeafEdge("Grp7", "Grp9");
+            inputGraph.AddNonLeafToNonLeafEdge("Grp8", "Grp10");
+            inputGraph.AddNonLeafToNonLeafEdge("Grp9", "Grp10");
         }
 
         #endregion

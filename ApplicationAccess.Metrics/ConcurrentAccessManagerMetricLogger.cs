@@ -344,6 +344,75 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
+        /// Gets the users that are mapped to the specified group.
+        /// </summary>
+        /// <param name="group">The group to retrieve the users for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the group via other groups).</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of users that are mapped to the specified group.</returns>
+        public HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings, Func<TGroup, Boolean, HashSet<TUser>> baseClassMethod)
+        {
+            HashSet<TUser> result;
+            if (includeIndirectMappings == false)
+            {
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToUserMappingsForGroupQueryTime());
+                try
+                {
+                    result = baseClassMethod.Invoke(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToUserMappingsForGroupQueryTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToUserMappingsForGroupQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetGroupToUserMappingsForGroupQuery());
+            }
+            else
+            {
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = baseClassMethod.Invoke(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetGroupToUserMappingsForGroupWithIndirectMappingsQuery());
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the users that are directly mapped to any of the specified groups.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the users for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of users that are mapped to the specified groups.</returns>
+        public HashSet<TUser> GetGroupToUserMappings(IEnumerable<TGroup> groups, Func<IEnumerable<TGroup>, HashSet<TUser>> baseClassMethod)
+        {
+            HashSet<TUser> result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToUserMappingsForGroupsQueryTime());
+            try
+            {
+                result = baseClassMethod.Invoke(groups);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToUserMappingsForGroupsQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToUserMappingsForGroupsQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new GetGroupToUserMappingsForGroupsQuery());
+
+            return result;
+        }
+
+        /// <summary>
         /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveUserToGroupMapping() method.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
@@ -461,6 +530,75 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
+        /// Gets the groups that are mapped to the specified group.
+        /// </summary>
+        /// <param name="group">The group to retrieve the mapped groups for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped from' group is itself mapped from further groups).</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of groups that are mapped to the specified group.</returns>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings, Func<TGroup, Boolean, HashSet<TGroup>> baseClassMethod)
+        {
+            HashSet<TGroup> result;
+            if (includeIndirectMappings == false)
+            {
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupReverseMappingsForGroupQueryTime());
+                try
+                {
+                    result = baseClassMethod.Invoke(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupReverseMappingsForGroupQueryTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupReverseMappingsForGroupQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupReverseMappingsForGroupQuery());
+            }
+            else
+            {
+                Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                try
+                {
+                    result = baseClassMethod.Invoke(group, includeIndirectMappings);
+                }
+                catch
+                {
+                    CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                    throw;
+                }
+                EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
+                IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQuery());
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the groups that are directly and indirectly mapped to any of the specified groups.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the mapped groups for.</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of groups that are mapped to the specified groups.</returns>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(IEnumerable<TGroup> groups, Func<IEnumerable<TGroup>, HashSet<TGroup>> baseClassMethod)
+        {
+            HashSet<TGroup> result;
+            Nullable<Guid> beginId = BeginIntervalMetricIfLoggingEnabled(new GetGroupToGroupReverseMappingsForGroupsQueryTime());
+            try
+            {
+                result = baseClassMethod.Invoke(groups);
+            }
+            catch
+            {
+                CancelIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupReverseMappingsForGroupsQueryTime());
+                throw;
+            }
+            EndIntervalMetricIfLoggingEnabled(beginId, new GetGroupToGroupReverseMappingsForGroupsQueryTime());
+            IncrementCountMetricIfLoggingEnabled(new GetGroupToGroupReverseMappingsForGroupsQuery());
+
+            return result;
+        }
+
+        /// <summary>
         /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveGroupToGroupMapping() method.
         /// </summary>
         /// <param name="fromGroup">The 'from' group in the mapping.</param>
@@ -538,6 +676,32 @@ namespace ApplicationAccess.Metrics
             {
                 return baseClassMethod.Invoke(user);
             });
+        }
+
+        /// <summary>
+        /// Gets the application component and access level pairs that the specified user is mapped to.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to an application component and access level via groups).</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of users that are mapped to the specified application component and access level.</returns>
+        public IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings, Func<TComponent, TAccess, Boolean, IEnumerable<TUser>> baseClassMethod)
+        {
+            if (includeIndirectMappings == false)
+            {
+                return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<TUser>, GetApplicationComponentAndAccessLevelToUserMappingsQuery>(() =>
+                {
+                    return baseClassMethod.Invoke(applicationComponent, accessLevel, includeIndirectMappings);
+                });
+            }
+            else
+            {
+                return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<TUser>, GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQuery>(() =>
+                {
+                    return baseClassMethod.Invoke(applicationComponent, accessLevel, includeIndirectMappings);
+                });
+            }
         }
 
         /// <summary>
@@ -638,6 +802,32 @@ namespace ApplicationAccess.Metrics
             {
                 return baseClassMethod.Invoke(group);
             });
+        }
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified application component and access level pair.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to an application component and access level via other groups).</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of groups that are mapped to the specified application component and access level.</returns>
+        public IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings, Func<TComponent, TAccess, Boolean, IEnumerable<TGroup>> baseClassMethod)
+        {
+            if (includeIndirectMappings == false)
+            {
+                return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetApplicationComponentAndAccessLevelToGroupMappingsQuery>(() =>
+                {
+                    return baseClassMethod.Invoke(applicationComponent, accessLevel, includeIndirectMappings);
+                });
+            }
+            else
+            {
+                return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQuery>(() =>
+                {
+                    return baseClassMethod.Invoke(applicationComponent, accessLevel, includeIndirectMappings);
+                });
+            }
         }
 
         /// <summary>
@@ -985,6 +1175,32 @@ namespace ApplicationAccess.Metrics
         }
 
         /// <summary>
+        /// Gets the users that are mapped to the specified entity.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the entity via groups).</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of users that are mapped to the specified entity.</returns>
+        public IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings, Func<String, String, Boolean, IEnumerable<TUser>> baseClassMethod)
+        {
+            if (includeIndirectMappings == false)
+            {
+                return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<TUser>, GetEntityToUserMappingsQuery>(() =>
+                {
+                    return baseClassMethod.Invoke(entityType, entity, includeIndirectMappings);
+                });
+            }
+            else
+            {
+                return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<TUser>, GetEntityToUserMappingsWithIndirectMappingsQuery>(() =>
+                {
+                    return baseClassMethod.Invoke(entityType, entity, includeIndirectMappings);
+                });
+            }
+        }
+
+        /// <summary>
         /// Generates a 'wrappingAction' implementing metric logging to pass to the base class RemoveUserToEntityMapping() method.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
@@ -1087,6 +1303,32 @@ namespace ApplicationAccess.Metrics
             {
                 return baseClassMethod.Invoke(group, entityType);
             });
+        }
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified entity.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the entity via other groups).</param>
+        /// <param name="baseClassMethod">The equivalent method on the ConcurrentAccessManager instance or subclass metrics are being logged for.</param>
+        /// <returns>A collection of groups that are mapped to the specified entity.</returns>
+        public IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings, Func<String, String, Boolean, IEnumerable<TGroup>> baseClassMethod)
+        {
+            if (includeIndirectMappings == false)
+            {
+                return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetEntityToGroupMappingsQuery>(() =>
+                {
+                    return baseClassMethod.Invoke(entityType, entity, includeIndirectMappings);
+                });
+            }
+            else
+            {
+                return CallAccessManagerQueryProcessingMethodWithMetricLogging<IEnumerable<TGroup>, GetEntityToGroupMappingsWithIndirectMappingsQuery>(() =>
+                {
+                    return baseClassMethod.Invoke(entityType, entity, includeIndirectMappings);
+                });
+            }
         }
 
         /// <summary>

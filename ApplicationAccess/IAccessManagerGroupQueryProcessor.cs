@@ -50,6 +50,15 @@ namespace ApplicationAccess
         IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group);
 
         /// <summary>
+        /// Gets the groups that are mapped to the specified application component and access level pair.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to an application component and access level via other groups).</param>
+        /// <returns>A collection of groups that are mapped to the specified application component and access level.</returns>
+        IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings);
+
+        /// <summary>
         /// Gets the entities that the specified group is mapped to.
         /// </summary>
         /// <param name="group">The group to retrieve the mappings for.</param>
@@ -65,10 +74,19 @@ namespace ApplicationAccess
         IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType);
 
         /// <summary>
+        /// Gets the groups that are mapped to the specified entity.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the entity via other groups).</param>
+        /// <returns>A collection of groups that are mapped to the specified entity.</returns>
+        IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings);
+
+        /// <summary>
         /// Gets all application components and levels of access that the specified group (or group that the specified group is mapped to) has access to.
         /// </summary>
         /// <param name="group">The group to retrieve the application components and levels of access for.</param>
-        /// <returns>The application components and levels of access to those application components that the group has.</returns>
+        /// <returns>The application components and levels of access to those application components that the group has access to.</returns>
         HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group);
 
         /// <summary>

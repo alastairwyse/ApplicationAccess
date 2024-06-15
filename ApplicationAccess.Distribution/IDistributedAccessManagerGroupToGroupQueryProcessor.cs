@@ -30,7 +30,15 @@ namespace ApplicationAccess.Distribution
         /// </summary>
         /// <param name="groups">The groups to retrieve the mapped groups for.</param>
         /// <returns>A collection of groups the specified groups are mapped to, and including the specified groups.</returns>
-        /// <remarks>Note that <see cref="ArgumentException">ArgumentExceptions</see> are not thrown if any of the groups in <paramref name="groups"/> don't exist, since it's possible that groups could exist when this method call is initiated, but could be removed by a concurrent call whilst the initial call is being processed.</remarks>
+        /// <remarks>Note that <see cref="NonLeafVertexNotFoundException{TGroup}">Exceptions</see> are not thrown if any of the groups in <paramref name="groups" /> don't exist, since it's possible that groups could exist when this method call is initiated, but could be removed by a concurrent call whilst the initial call is being processed.</remarks>
         HashSet<TGroup> GetGroupToGroupMappings(IEnumerable<TGroup> groups);
+
+        /// <summary>
+        /// Gets the groups that are directly and indirectly mapped to any of the specified groups.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the mapped groups for.</param>
+        /// <returns>A collection of groups that are mapped to the specified groups, and including the specified groups.</returns>
+        /// <remarks>Note that <see cref="NonLeafVertexNotFoundException{TGroup}">Exceptions</see> are not thrown if any of the groups in <paramref name="groups" /> don't exist, since it's possible that groups could exist when this method call is initiated, but could be removed by a concurrent call whilst the initial call is being processed.</remarks>
+        HashSet<TGroup> GetGroupToGroupReverseMappings(IEnumerable<TGroup> groups);
     }
 }

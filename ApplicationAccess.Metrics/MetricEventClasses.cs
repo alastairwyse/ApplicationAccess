@@ -855,6 +855,66 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
+    /// Count metric which records a call to the GetGroupToUserMappings() method overload with 'group' parameter.
+    /// </summary>
+    public class GetGroupToUserMappingsForGroupQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetGroupToUserMappingsForGroupQuery";
+        protected static String staticDescription = "A call to the GetGroupToUserMappings() method overload with 'group' parameter";
+
+        public GetGroupToUserMappingsForGroupQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetGroupToUserMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetGroupToUserMappingsForGroupWithIndirectMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetGroupToUserMappingsForGroupWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetGroupToUserMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true";
+
+        public GetGroupToUserMappingsForGroupWithIndirectMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetGroupToUserMappings() method overload with 'group' parameter.
+    /// </summary>
+    public class GetGroupToUserMappingsForGroupQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetGroupToUserMappingsForGroupQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToUserMappings() method overload with 'group' parameter";
+
+        public GetGroupToUserMappingsForGroupQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetGroupToUserMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToUserMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true";
+
+        public GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records a call to the GetGroupToGroupMappings() method overload with 'group' parameter.
     /// </summary>
     public class GetGroupToGroupMappingsForGroupQuery : QueryCountMetric
@@ -863,6 +923,36 @@ namespace ApplicationAccess.Metrics
         protected static String staticDescription = "A call to the GetGroupToGroupMappings() method overload with 'group' parameter";
 
         public GetGroupToGroupMappingsForGroupQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetGroupToUserMappings() method overload with 'groups' parameter.
+    /// </summary>
+    public class GetGroupToUserMappingsForGroupsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetGroupToUserMappingsForGroupsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToUserMappings() method overload with 'groups' parameter";
+
+        public GetGroupToUserMappingsForGroupsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetGroupToUserMappings() method overload with 'groups' parameter.
+    /// </summary>
+    public class GetGroupToUserMappingsForGroupsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetGroupToUserMappingsForGroupsQuery";
+        protected static String staticDescription = "A call to the GetGroupToUserMappings() method overload with 'groups' parameter";
+
+        public GetGroupToUserMappingsForGroupsQuery()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -945,6 +1035,96 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
+    /// Count metric which records a call to the GetGroupToGroupReverseMappings() method overload with 'group' parameter.
+    /// </summary>
+    public class GetGroupToGroupReverseMappingsForGroupQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetGroupToGroupReverseMappingsForGroupQuery";
+        protected static String staticDescription = "A call to the GetGroupToGroupReverseMappings() method overload with 'group' parameter";
+
+        public GetGroupToGroupReverseMappingsForGroupQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetGroupToGroupReverseMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetGroupToGroupReverseMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true";
+
+        public GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetGroupToGroupReverseMappings() method overload with 'group' parameter.
+    /// </summary>
+    public class GetGroupToGroupReverseMappingsForGroupQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetGroupToGroupReverseMappingsForGroupQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToGroupReverseMappings() method overload with 'group' parameter";
+
+        public GetGroupToGroupReverseMappingsForGroupQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetGroupToGroupReverseMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToGroupReverseMappings() method overload with 'group' parameter and the 'includeIndirectMappings' parameter set true";
+
+        public GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetGroupToGroupReverseMappings() method overload with 'groups' parameter.
+    /// </summary>
+    public class GetGroupToGroupReverseMappingsForGroupsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetGroupToGroupReverseMappingsForGroupsQuery";
+        protected static String staticDescription = "A call to the GetGroupToGroupReverseMappings() method overload with 'groups' parameter";
+
+        public GetGroupToGroupReverseMappingsForGroupsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetGroupToGroupReverseMappings() method overload with 'groups' parameter.
+    /// </summary>
+    public class GetGroupToGroupReverseMappingsForGroupsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetGroupToGroupReverseMappingsForGroupsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetGroupToGroupReverseMappings() method overload with 'groups' parameter";
+
+        public GetGroupToGroupReverseMappingsForGroupsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records a call to the GetUserToApplicationComponentAndAccessLevelMappings() method.
     /// </summary>
     public class GetUserToApplicationComponentAndAccessLevelMappingsQuery : QueryCountMetric
@@ -975,6 +1155,66 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
+    /// Count metric which records a call to the GetApplicationComponentAndAccessLevelToUserMappings() method.
+    /// </summary>
+    public class GetApplicationComponentAndAccessLevelToUserMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetApplicationComponentAndAccessLevelToUserMappingsQuery";
+        protected static String staticDescription = "A call to the GetApplicationComponentAndAccessLevelToUserMappings() method";
+
+        public GetApplicationComponentAndAccessLevelToUserMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetApplicationComponentAndAccessLevelToUserMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetApplicationComponentAndAccessLevelToUserMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetApplicationComponentAndAccessLevelToUserMappings() method.
+    /// </summary>
+    public class GetApplicationComponentAndAccessLevelToUserMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetApplicationComponentAndAccessLevelToUserMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetApplicationComponentAndAccessLevelToUserMappings() method";
+
+        public GetApplicationComponentAndAccessLevelToUserMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetApplicationComponentAndAccessLevelToUserMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetApplicationComponentAndAccessLevelToUserMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records a call to the GetGroupToApplicationComponentAndAccessLevelMappings() method.
     /// </summary>
     public class GetGroupToApplicationComponentAndAccessLevelMappingsQuery : QueryCountMetric
@@ -998,6 +1238,66 @@ namespace ApplicationAccess.Metrics
         protected static String staticDescription = "The time taken to execute the GetGroupToApplicationComponentAndAccessLevelMappings() method";
 
         public GetGroupToApplicationComponentAndAccessLevelMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetApplicationComponentAndAccessLevelToGroupMappings() method.
+    /// </summary>
+    public class GetApplicationComponentAndAccessLevelToGroupMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetApplicationComponentAndAccessLevelToGroupMappingsQuery";
+        protected static String staticDescription = "A call to the GetApplicationComponentAndAccessLevelToGroupMappings() method";
+
+        public GetApplicationComponentAndAccessLevelToGroupMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetApplicationComponentAndAccessLevelToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetApplicationComponentAndAccessLevelToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetApplicationComponentAndAccessLevelToGroupMappings() method.
+    /// </summary>
+    public class GetApplicationComponentAndAccessLevelToGroupMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetApplicationComponentAndAccessLevelToGroupMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetApplicationComponentAndAccessLevelToGroupMappings() method";
+
+        public GetApplicationComponentAndAccessLevelToGroupMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetApplicationComponentAndAccessLevelToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetApplicationComponentAndAccessLevelToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -1155,6 +1455,66 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
+    /// Count metric which records a call to the GetEntityToUserMappings() method.
+    /// </summary>
+    public class GetEntityToUserMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetEntityToUserMappingsQuery";
+        protected static String staticDescription = "A call to the GetEntityToUserMappings() method";
+
+        public GetEntityToUserMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetEntityToUserMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetEntityToUserMappingsWithIndirectMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetEntityToUserMappingsWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetEntityToUserMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetEntityToUserMappingsWithIndirectMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetEntityToUserMappings() method.
+    /// </summary>
+    public class GetEntityToUserMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetEntityToUserMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetEntityToUserMappings() method";
+
+        public GetEntityToUserMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetEntityToUserMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetEntityToUserMappingsWithIndirectMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetEntityToUserMappingsWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetEntityToUserMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetEntityToUserMappingsWithIndirectMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records a call to the GetGroupToEntityMappings() method overload with 'group' parameter.
     /// </summary>
     public class GetGroupToEntityMappingsForGroupQuery : QueryCountMetric
@@ -1208,6 +1568,66 @@ namespace ApplicationAccess.Metrics
         protected static String staticDescription = "The time taken to execute the GetGroupToEntityMappings() method overload with 'group' and 'entityType' parameters";
 
         public GetGroupToEntityMappingsForGroupAndEntityTypeQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetEntityToGroupMappings() method.
+    /// </summary>
+    public class GetEntityToGroupMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetEntityToGroupMappingsQuery";
+        protected static String staticDescription = "A call to the GetEntityToGroupMappings() method";
+
+        public GetEntityToGroupMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records a call to the GetEntityToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetEntityToGroupMappingsWithIndirectMappingsQuery : QueryCountMetric
+    {
+        protected static String staticName = "GetEntityToGroupMappingsWithIndirectMappingsQuery";
+        protected static String staticDescription = "A call to the GetEntityToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetEntityToGroupMappingsWithIndirectMappingsQuery()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetEntityToGroupMappings() method.
+    /// </summary>
+    public class GetEntityToGroupMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetEntityToGroupMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetEntityToGroupMappings() method";
+
+        public GetEntityToGroupMappingsQueryTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to execute the GetEntityToGroupMappings() method with the 'includeIndirectMappings' parameter set true.
+    /// </summary>
+    public class GetEntityToGroupMappingsWithIndirectMappingsQueryTime : QueryIntervalMetric
+    {
+        protected static String staticName = "GetEntityToGroupMappingsWithIndirectMappingsQueryTime";
+        protected static String staticDescription = "The time taken to execute the GetEntityToGroupMappings() method with the 'includeIndirectMappings' parameter set true";
+
+        public GetEntityToGroupMappingsWithIndirectMappingsQueryTime()
         {
             base.name = staticName;
             base.description = staticDescription;

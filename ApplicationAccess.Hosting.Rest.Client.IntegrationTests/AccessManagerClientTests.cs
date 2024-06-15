@@ -275,6 +275,41 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetGroupToUserMappings()
+        {
+            const String testGroup = "group1";
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetGroupToUserMappings(testGroup, false).Returns(testUsers);
+
+            HashSet<String> result = testAccessManagerClient.GetGroupToUserMappings(testGroup, false);
+
+            mockUserQueryProcessor.Received(1).GetGroupToUserMappings(testGroup, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+
+
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetGroupToUserMappings(testGroup, true).Returns(testUsers);
+            groupStringifier.Reset();
+            userStringifier.Reset();
+
+            result = testAccessManagerClient.GetGroupToUserMappings(testGroup, true);
+
+            mockUserQueryProcessor.Received(1).GetGroupToUserMappings(testGroup, true);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+        }
+
+        [Test]
         public void RemoveUserToGroupMapping()
         {
             const String testUser = "user1";
@@ -312,6 +347,41 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             HashSet<String> result = testAccessManagerClient.GetGroupToGroupMappings(testFromGroup, false);
 
             mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(testFromGroup, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+            Assert.IsTrue(result.Contains("group4"));
+        }
+
+        [Test]
+        public void GetGroupToGroupReverseMappings()
+        {
+            const String testGroup = "group1";
+            var testReturnGroups = new HashSet<String>() { "group2", "group3", "group4" };
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(testGroup, false).Returns(testReturnGroups);
+
+            HashSet<String> result = testAccessManagerClient.GetGroupToGroupReverseMappings(testGroup, false);
+
+            mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(testGroup, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+            Assert.IsTrue(result.Contains("group4"));
+
+
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(testGroup, true).Returns(testReturnGroups);
+            groupStringifier.Reset();
+            userStringifier.Reset();
+
+            result = testAccessManagerClient.GetGroupToGroupReverseMappings(testGroup, true);
+
+            mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(testGroup, true);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
             Assert.AreEqual(3, groupStringifier.FromStringCallCount);
             Assert.AreEqual(3, result.Count);
@@ -375,6 +445,45 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetApplicationComponentAndAccessLevelToUserMappings()
+        {
+            const String testApplicationComponent = "ManageProductsScreen";
+            const String testAccessLevel = "View";
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, false).Returns(testUsers);
+
+            var result = new List<String>(testAccessManagerClient.GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, false));
+
+            mockUserQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, false);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+
+
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, true).Returns(testUsers);
+            applicationComponentStringifier.Reset();
+            accessLevelStringifier.Reset();
+            userStringifier.Reset();
+
+            result = new List<String>(testAccessManagerClient.GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, true));
+
+            mockUserQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, true);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+        }
+
+        [Test]
         public void RemoveUserToApplicationComponentAndAccessLevelMapping()
         {
             const String testUser = "user1";
@@ -429,6 +538,45 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual("Create", result[0].Item2);
             Assert.AreEqual("SummaryScreen", result[1].Item1);
             Assert.AreEqual("View", result[1].Item2);
+        }
+
+        [Test]
+        public void GetApplicationComponentAndAccessLevelToGroupMappings()
+        {
+            const String testApplicationComponent = "ManageProductsScreen";
+            const String testAccessLevel = "View";
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, false).Returns(testGroups);
+
+            var result = new List<String>(testAccessManagerClient.GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, false));
+
+            mockGroupQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, false);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+
+
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, true).Returns(testGroups);
+            applicationComponentStringifier.Reset();
+            accessLevelStringifier.Reset();
+            groupStringifier.Reset();
+
+            result = new List<String>(testAccessManagerClient.GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, true));
+
+            mockGroupQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, true);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
         }
 
         [Test]
@@ -614,6 +762,39 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetEntityToUserMappings()
+        {
+            const String testEntityType = "ClientAccount";
+            const String testEntity = "ClientA";
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntityToUserMappings(testEntityType, testEntity, false).Returns(testUsers);
+
+            var result = new List<String>(testAccessManagerClient.GetEntityToUserMappings(testEntityType, testEntity, false));
+
+            mockUserQueryProcessor.Received(1).GetEntityToUserMappings(testEntityType, testEntity, false);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+
+
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntityToUserMappings(testEntityType, testEntity, true).Returns(testUsers);
+            userStringifier.Reset();
+
+            result = new List<String>(testAccessManagerClient.GetEntityToUserMappings(testEntityType, testEntity, true));
+
+            mockUserQueryProcessor.Received(1).GetEntityToUserMappings(testEntityType, testEntity, true);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+        }
+
+        [Test]
         public void RemoveUserToEntityMapping()
         {
             const String testUser = "user1";
@@ -683,6 +864,39 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("ClientA", result[0]);
             Assert.AreEqual("ClientB", result[1]);
+        }
+
+        [Test]
+        public void GetEntityToGroupMappings()
+        {
+            const String testEntityType = "ClientAccount";
+            const String testEntity = "ClientA";
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntityToGroupMappings(testEntityType, testEntity, false).Returns(testGroups);
+
+            var result = new List<String>(testAccessManagerClient.GetEntityToGroupMappings(testEntityType, testEntity, false));
+
+            mockGroupQueryProcessor.Received(1).GetEntityToGroupMappings(testEntityType, testEntity, false);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+
+
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntityToGroupMappings(testEntityType, testEntity, true).Returns(testGroups);
+            groupStringifier.Reset();
+
+            result = new List<String>(testAccessManagerClient.GetEntityToGroupMappings(testEntityType, testEntity, true));
+
+            mockGroupQueryProcessor.Received(1).GetEntityToGroupMappings(testEntityType, testEntity, true);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
         }
 
         [Test]

@@ -28,8 +28,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
 
         public MethodCallCountingStringUniqueStringifier()
         {
-            FromStringCallCount = 0;
-            ToStringCallCount = 0;
+            Reset();
         }
 
         /// <inheritdoc/>
@@ -46,6 +45,15 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             ToStringCallCount++;
 
             return inputObject;
+        }
+
+        /// <summary>
+        /// Resets the method call counts to 0.
+        /// </summary>
+        public void Reset()
+        {
+            FromStringCallCount = 0;
+            ToStringCallCount = 0;
         }
     }
 }

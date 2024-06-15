@@ -39,11 +39,15 @@ namespace ApplicationAccess.TestHarness
 
         Tuple<TUser, Boolean> GenerateGetUserToGroupMappingsParameters();
 
+        Tuple<TGroup, Boolean> GenerateGetGroupToUserMappingsParameters();
+
         Tuple<TUser, TGroup> GenerateRemoveUserToGroupMappingParameters();
         
         Tuple<TGroup, TGroup> GenerateAddGroupToGroupMappingParameters();
 
         Tuple<TGroup, Boolean> GenerateGetGroupToGroupMappingsParameters();
+
+        Tuple<TGroup, Boolean> GenerateGetGroupToGroupReverseMappingsParameters();
 
         Tuple<TGroup, TGroup> GenerateRemoveGroupToGroupMappingParameters();
 
@@ -51,11 +55,15 @@ namespace ApplicationAccess.TestHarness
 
         TUser GenerateGetUserToApplicationComponentAndAccessLevelMappingsParameter();
 
+        Tuple<TComponent, TAccess, Boolean> GenerateGetApplicationComponentAndAccessLevelToUserMappingsParameter();
+
         Tuple<TUser, TComponent, TAccess> GenerateRemoveUserToApplicationComponentAndAccessLevelMappingParameters();
 
         Tuple<TGroup, TComponent, TAccess> GenerateAddGroupToApplicationComponentAndAccessLevelMappingParameters();
 
         TGroup GenerateGetGroupToApplicationComponentAndAccessLevelMappingsParameter();
+
+        Tuple<TComponent, TAccess, Boolean> GenerateGetApplicationComponentAndAccessLevelToGroupMappingsParameter();
 
         Tuple<TGroup, TComponent, TAccess> GenerateRemoveGroupToApplicationComponentAndAccessLevelMappingParameters();
 
@@ -79,6 +87,8 @@ namespace ApplicationAccess.TestHarness
 
         Tuple<TUser, String> GenerateGetUserToEntityMappingsEntityTypeOverloadParameters();
 
+        Tuple<String, String, Boolean> GenerateGetEntityToUserMappingsParameters();
+
         Tuple<TUser, String, String> GenerateRemoveUserToEntityMappingParameters();
 
         Tuple<TGroup, String, String> GenerateAddGroupToEntityMappingParameters();
@@ -86,6 +96,8 @@ namespace ApplicationAccess.TestHarness
         TGroup GenerateGetGroupToEntityMappingsParameter();
 
         Tuple<TGroup, String> GenerateGetGroupToEntityMappingsEntityTypeOverloadParameters();
+
+        Tuple<String, String, Boolean> GenerateGetEntityToGroupMappingsParameters();
 
         Tuple<TGroup, String, String> GenerateRemoveGroupToEntityMappingParameters();
 

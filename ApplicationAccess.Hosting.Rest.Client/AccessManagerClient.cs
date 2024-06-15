@@ -246,6 +246,12 @@ namespace ApplicationAccess.Hosting.Rest.Client
         }
 
         /// <inheritdoc/>
+        public HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            return base.GetGroupToUserMappingsBase(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             base.RemoveUserToGroupMappingBase(user, group);
@@ -261,6 +267,12 @@ namespace ApplicationAccess.Hosting.Rest.Client
         public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
             return base.GetGroupToGroupMappingsBase(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            return base.GetGroupToGroupReverseMappingsBase(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -282,6 +294,12 @@ namespace ApplicationAccess.Hosting.Rest.Client
         }
 
         /// <inheritdoc/>
+        public IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return base.GetApplicationComponentAndAccessLevelToUserMappingsBase(applicationComponent, accessLevel, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             base.RemoveUserToApplicationComponentAndAccessLevelMappingBase(user, applicationComponent, accessLevel);
@@ -297,6 +315,12 @@ namespace ApplicationAccess.Hosting.Rest.Client
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             return base.GetGroupToApplicationComponentAndAccessLevelMappingsBase(group);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return base.GetApplicationComponentAndAccessLevelToGroupMappingsBase(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -366,6 +390,12 @@ namespace ApplicationAccess.Hosting.Rest.Client
         }
 
         /// <inheritdoc/>
+        public IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return base.GetEntityToUserMappingsBase(entityType, entity, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             base.RemoveUserToEntityMappingBase(user, entityType, entity);
@@ -387,6 +417,12 @@ namespace ApplicationAccess.Hosting.Rest.Client
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             return base.GetGroupToEntityMappingsBase(group, entityType);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return base.GetEntityToGroupMappingsBase(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>

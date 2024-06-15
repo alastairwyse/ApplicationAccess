@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using ApplicationAccess.Hosting.Models.DataTransferObjects;
 using ApplicationAccess.Hosting.Rest.AsyncClient;
 using ApplicationLogging;
@@ -274,6 +275,18 @@ namespace ApplicationAccess.Hosting.Rest.Client
             return returnHashSet;
         }
 
+        protected HashSet<TUser> GetGroupToUserMappingsBase(TGroup group, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"userToGroupMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var returnHashSet = new HashSet<TUser>();
+            foreach (UserAndGroup<String, String> currentUserAndGroup in SendGetRequest<List<UserAndGroup<String, String>>>(url))
+            {
+                returnHashSet.Add(userStringifier.FromString(currentUserAndGroup.User));
+            }
+
+            return returnHashSet;
+        }
+
         protected void RemoveUserToGroupMappingBase(TUser user, TGroup group)
         {
             var url = new Uri(baseUrl, $"userToGroupMappings/user/{userStringifier.ToString(user)}/group/{groupStringifier.ToString(group)}");
@@ -293,6 +306,18 @@ namespace ApplicationAccess.Hosting.Rest.Client
             foreach (FromGroupAndToGroup<String> currentFromGroupAndToGroup in SendGetRequest<List<FromGroupAndToGroup<String>>>(url))
             {
                 returnHashSet.Add(groupStringifier.FromString(currentFromGroupAndToGroup.ToGroup));
+            }
+
+            return returnHashSet;
+        }
+
+        protected HashSet<TGroup> GetGroupToGroupReverseMappingsBase(TGroup group, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"groupToGroupReverseMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var returnHashSet = new HashSet<TGroup>();
+            foreach (FromGroupAndToGroup<String> currentFromGroupAndToGroup in SendGetRequest<List<FromGroupAndToGroup<String>>>(url))
+            {
+                returnHashSet.Add(groupStringifier.FromString(currentFromGroupAndToGroup.FromGroup));
             }
 
             return returnHashSet;
@@ -324,6 +349,16 @@ namespace ApplicationAccess.Hosting.Rest.Client
             }
         }
 
+        protected IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappingsBase(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?includeIndirectMappings={includeIndirectMappings}");
+
+            foreach (UserAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in SendGetRequest<List<UserAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
+            {
+                yield return userStringifier.FromString(currentMapping.User);
+            }
+        }
+
         protected void RemoveUserToApplicationComponentAndAccessLevelMappingBase(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
@@ -347,6 +382,16 @@ namespace ApplicationAccess.Hosting.Rest.Client
                     applicationComponentStringifier.FromString(currentMapping.ApplicationComponent),
                     accessLevelStringifier.FromString(currentMapping.AccessLevel)
                 );
+            }
+        }
+
+        protected IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappingsBase(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?includeIndirectMappings={includeIndirectMappings}");
+
+            foreach (GroupAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in SendGetRequest<List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
+            {
+                yield return groupStringifier.FromString(currentMapping.Group);
             }
         }
 
@@ -434,6 +479,16 @@ namespace ApplicationAccess.Hosting.Rest.Client
             }
         }
 
+        protected IEnumerable<TUser> GetEntityToUserMappingsBase(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"userToEntityMappings/entityType/{entityType}/entity/{entity}?includeIndirectMappings={includeIndirectMappings}");
+
+            foreach (UserAndEntity<String> currentMapping in SendGetRequest<List<UserAndEntity<String>>>(url))
+            {
+                yield return userStringifier.FromString(currentMapping.User);
+            }
+        }
+
         protected void RemoveUserToEntityMappingBase(TUser user, String entityType, String entity)
         {
             var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}/entity/{entity}");
@@ -467,6 +522,16 @@ namespace ApplicationAccess.Hosting.Rest.Client
             foreach (GroupAndEntity<String> currentMapping in SendGetRequest<List<GroupAndEntity<String>>>(url))
             {
                 yield return currentMapping.Entity;
+            }
+        }
+
+        protected IEnumerable<TGroup> GetEntityToGroupMappingsBase(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{entityType}/entity/{entity}?includeIndirectMappings={includeIndirectMappings}");
+
+            foreach (GroupAndEntity<String> currentMapping in SendGetRequest<List<GroupAndEntity<String>>>(url))
+            {
+                yield return groupStringifier.FromString(currentMapping.Group);
             }
         }
 

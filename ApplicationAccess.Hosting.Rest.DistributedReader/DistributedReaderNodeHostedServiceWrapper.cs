@@ -33,6 +33,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
         : ReaderNodeHostedServiceWrapperBase<DistributedReaderNode<String, String, String, String>, DistributedAccessManager<String, String, String, String>>
     {
         // Members passed in via dependency injection
+        protected DistributedUserQueryProcessorHolder distributedUserQueryProcessorHolder;
         protected DistributedGroupQueryProcessorHolder distributedGroupQueryProcessorHolder;
         protected DistributedGroupToGroupQueryProcessorHolder distributedGroupToGroupQueryProcessorHolder;
 
@@ -57,6 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
             UserQueryProcessorHolder userQueryProcessorHolder,
             DistributedGroupQueryProcessorHolder distributedGroupQueryProcessorHolder,
             DistributedGroupToGroupQueryProcessorHolder distributedGroupToGroupQueryProcessorHolder,
+            DistributedUserQueryProcessorHolder distributedUserQueryProcessorHolder,
             ILoggerFactory loggerFactory,
             ILogger<DistributedReaderNodeHostedServiceWrapper> logger
         )
@@ -74,6 +76,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
             logger
         )
         {
+            this.distributedUserQueryProcessorHolder = distributedUserQueryProcessorHolder;
             this.distributedGroupQueryProcessorHolder = distributedGroupQueryProcessorHolder;
             this.distributedGroupToGroupQueryProcessorHolder = distributedGroupToGroupQueryProcessorHolder;
         }
@@ -96,6 +99,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedReader
         protected override void SetupHolderClasses()
         {
             base.SetupHolderClasses();
+            distributedUserQueryProcessorHolder.DistributedUserQueryProcessor = readerNode;
             distributedGroupQueryProcessorHolder.DistributedGroupQueryProcessor = readerNode;
             distributedGroupToGroupQueryProcessorHolder.DistributedGroupToGroupQueryProcessor = readerNode;
         }

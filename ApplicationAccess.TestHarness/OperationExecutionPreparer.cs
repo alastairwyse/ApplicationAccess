@@ -255,6 +255,24 @@ namespace ApplicationAccess.TestHarness
                         return GenerateEmptyReturnActions();
                     }
 
+                case AccessManagerOperation.GetGroupToUserMappings:
+                    try
+                    {
+                        Tuple<TGroup, Boolean> parameters = parameterGenerator.GenerateGetGroupToUserMappingsParameters();
+                        return new Tuple<PrepareExecutionReturnActions, Boolean>
+                        (
+                            WrapActionWithEmptyPostExecutionAction
+                            (
+                                new Action(() => { HashSet<TUser> result = accessManagerQueryProcessor.GetGroupToUserMappings(parameters.Item1, parameters.Item2); })
+                            ),
+                            true
+                        );
+                    }
+                    catch (Exception)
+                    {
+                        return GenerateEmptyReturnActions();
+                    }
+
                 case AccessManagerOperation.RemoveUserToGroupMapping:
                     try
                     {
@@ -302,6 +320,24 @@ namespace ApplicationAccess.TestHarness
                             WrapActionWithEmptyPostExecutionAction
                             (
                                 new Action(() => { HashSet<TGroup> result = accessManagerQueryProcessor.GetGroupToGroupMappings(parameters.Item1, parameters.Item2); })
+                            ),
+                            true
+                        );
+                    }
+                    catch (Exception)
+                    {
+                        return GenerateEmptyReturnActions();
+                    }
+
+                case AccessManagerOperation.GetGroupToGroupReverseMappings:
+                    try
+                    {
+                        Tuple<TGroup, Boolean> parameters = parameterGenerator.GenerateGetGroupToGroupMappingsParameters();
+                        return new Tuple<PrepareExecutionReturnActions, Boolean>
+                        (
+                            WrapActionWithEmptyPostExecutionAction
+                            (
+                                new Action(() => { HashSet<TGroup> result = accessManagerQueryProcessor.GetGroupToGroupReverseMappings(parameters.Item1, parameters.Item2); })
                             ),
                             true
                         );
@@ -367,6 +403,24 @@ namespace ApplicationAccess.TestHarness
                         return GenerateEmptyReturnActions();
                     }
 
+                case AccessManagerOperation.GetApplicationComponentAndAccessLevelToUserMappings:
+                    try
+                    {
+                        Tuple<TComponent, TAccess, Boolean> parameters = parameterGenerator.GenerateGetApplicationComponentAndAccessLevelToUserMappingsParameter();
+                        return new Tuple<PrepareExecutionReturnActions, Boolean>
+                        (
+                            WrapActionWithEmptyPostExecutionAction
+                            (
+                                new Action(() => { TUser last = accessManagerQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(parameters.Item1, parameters.Item2, parameters.Item3).LastOrDefault(); })
+                            ),
+                            true
+                        );
+                    }
+                    catch (Exception)
+                    {
+                        return GenerateEmptyReturnActions();
+                    }
+
                 case AccessManagerOperation.RemoveUserToApplicationComponentAndAccessLevelMapping:
                     try
                     {
@@ -414,6 +468,24 @@ namespace ApplicationAccess.TestHarness
                             WrapActionWithEmptyPostExecutionAction
                             (
                                 new Action(() => { Tuple<TComponent, TAccess> last = accessManagerQueryProcessor.GetGroupToApplicationComponentAndAccessLevelMappings(parameter).LastOrDefault(); })
+                            ),
+                            true
+                        );
+                    }
+                    catch (Exception)
+                    {
+                        return GenerateEmptyReturnActions();
+                    }
+
+                case AccessManagerOperation.GetApplicationComponentAndAccessLevelToGroupMappings:
+                    try
+                    {
+                        Tuple<TComponent, TAccess, Boolean> parameters = parameterGenerator.GenerateGetApplicationComponentAndAccessLevelToGroupMappingsParameter();
+                        return new Tuple<PrepareExecutionReturnActions, Boolean>
+                        (
+                            WrapActionWithEmptyPostExecutionAction
+                            (
+                                new Action(() => { TGroup last = accessManagerQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(parameters.Item1, parameters.Item2, parameters.Item3).LastOrDefault(); })
                             ),
                             true
                         );
@@ -639,6 +711,24 @@ namespace ApplicationAccess.TestHarness
                         return GenerateEmptyReturnActions();
                     }
 
+                case AccessManagerOperation.GetEntityToUserMappings:
+                    try
+                    {
+                        Tuple<String, String, Boolean> parameters = parameterGenerator.GenerateGetEntityToUserMappingsParameters();
+                        return new Tuple<PrepareExecutionReturnActions, Boolean>
+                        (
+                            WrapActionWithEmptyPostExecutionAction
+                            (
+                                new Action(() => { TUser last = accessManagerQueryProcessor.GetEntityToUserMappings(parameters.Item1, parameters.Item2, parameters.Item3).LastOrDefault(); })
+                            ),
+                            true
+                        );
+                    }
+                    catch (Exception)
+                    {
+                        return GenerateEmptyReturnActions();
+                    }
+
                 case AccessManagerOperation.RemoveUserToEntityMapping:
                     try
                     {
@@ -704,6 +794,24 @@ namespace ApplicationAccess.TestHarness
                             WrapActionWithEmptyPostExecutionAction
                             (
                                 new Action(() => { String last = accessManagerQueryProcessor.GetGroupToEntityMappings(parameters.Item1, parameters.Item2).LastOrDefault(); })
+                            ),
+                            true
+                        );
+                    }
+                    catch (Exception)
+                    {
+                        return GenerateEmptyReturnActions();
+                    }
+
+                case AccessManagerOperation.GetEntityToGroupMappings:
+                    try
+                    {
+                        Tuple<String, String, Boolean> parameters = parameterGenerator.GenerateGetEntityToGroupMappingsParameters();
+                        return new Tuple<PrepareExecutionReturnActions, Boolean>
+                        (
+                            WrapActionWithEmptyPostExecutionAction
+                            (
+                                new Action(() => { TGroup last = accessManagerQueryProcessor.GetEntityToGroupMappings(parameters.Item1, parameters.Item2, parameters.Item3).LastOrDefault(); })
                             ),
                             true
                         );

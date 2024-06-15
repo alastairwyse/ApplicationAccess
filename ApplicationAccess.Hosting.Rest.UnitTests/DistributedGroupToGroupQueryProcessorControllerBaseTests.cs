@@ -57,6 +57,20 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             Assert.AreEqual(testReturnGroups, result);
         }
 
+        [Test]
+        public void GetGroupToGroupReverseMappings()
+        {
+            var groups = new List<String>() { "group4", "group5" };
+            var testReturnGroups = new HashSet<String>() { "group1", "group2", "group3", "group4", "group5" };
+            mockDistributedGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(groups).Returns(testReturnGroups);
+
+            var result = new List<String>(testDistributedGroupToGroupQueryProcessorController.GetGroupToGroupReverseMappings(groups));
+
+            mockDistributedGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(groups);
+            Assert.AreEqual(5, result.Count);
+            Assert.AreEqual(testReturnGroups, result);
+        }
+
         #region Nested Classes
 
         /// <summary>

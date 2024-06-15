@@ -201,9 +201,21 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
+        public HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            return concurrentAccessManager.GetGroupToUserMappings(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
             return concurrentAccessManager.GetGroupToGroupMappings(group, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            return concurrentAccessManager.GetGroupToGroupReverseMappings(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -213,9 +225,21 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
+        public IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return concurrentAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             return concurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(group);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return concurrentAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
@@ -249,6 +273,12 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
+        public IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return concurrentAccessManager.GetEntityToUserMappings(entityType, entity, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             return concurrentAccessManager.GetGroupToEntityMappings(group);
@@ -258,6 +288,12 @@ namespace ApplicationAccess.Hosting
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             return concurrentAccessManager.GetGroupToEntityMappings(group, entityType);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return concurrentAccessManager.GetEntityToGroupMappings(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>

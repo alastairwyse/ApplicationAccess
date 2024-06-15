@@ -258,7 +258,7 @@ namespace ApplicationAccess.InstanceComparer
                 {
                     return queryProcessor.GetUserToGroupMappings(parameters.Item1, parameters.Item2);
                 },
-                parameterCombinationGenerator.Generate(users),
+                parameterCombinationGenerator.GenerateWithBoolean(users),
                 nameof(IAccessManagerQueryProcessor<String, String, String, String>.GetUserToGroupMappings)
             );
             CompareSingleStringEnumerableMethods
@@ -267,10 +267,64 @@ namespace ApplicationAccess.InstanceComparer
                 {
                     return queryProcessor.GetGroupToGroupMappings(parameters.Item1, parameters.Item2);
                 },
-                parameterCombinationGenerator.Generate(groups),
+                parameterCombinationGenerator.GenerateWithBoolean(groups),
                 nameof(IAccessManagerQueryProcessor<String, String, String, String>.GetGroupToGroupMappings)
             );
-            
+            CompareSingleStringEnumerableMethods
+            (
+                (IAccessManagerQueryProcessor<String, String, String, String> queryProcessor, Tuple<String, Boolean> parameters) =>
+                {
+                    return queryProcessor.GetGroupToUserMappings(parameters.Item1, parameters.Item2);
+                },
+                parameterCombinationGenerator.GenerateWithBoolean(groups),
+                nameof(IAccessManagerQueryProcessor<String, String, String, String>.GetGroupToUserMappings)
+            );
+            CompareSingleStringEnumerableMethods
+            (
+                (IAccessManagerQueryProcessor<String, String, String, String> queryProcessor, Tuple<String, Boolean> parameters) =>
+                {
+                    return queryProcessor.GetGroupToGroupReverseMappings(parameters.Item1, parameters.Item2);
+                },
+                parameterCombinationGenerator.GenerateWithBoolean(groups),
+                nameof(IAccessManagerQueryProcessor<String, String, String, String>.GetGroupToGroupReverseMappings)
+            );
+            CompareSingleStringEnumerableMethods
+            (
+                (IAccessManagerQueryProcessor<String, String, String, String> queryProcessor, Tuple<String, String, Boolean> parameters) =>
+                {
+                    return queryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(parameters.Item1, parameters.Item2, parameters.Item3);
+                },
+                parameterCombinationGenerator.GenerateWithBoolean(applicationComponents, accessLevels),
+                nameof(IAccessManagerQueryProcessor<String, String, String, String>.GetApplicationComponentAndAccessLevelToUserMappings)
+            );
+            CompareSingleStringEnumerableMethods
+            (
+                (IAccessManagerQueryProcessor<String, String, String, String> queryProcessor, Tuple<String, String, Boolean> parameters) =>
+                {
+                    return queryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(parameters.Item1, parameters.Item2, parameters.Item3);
+                },
+                parameterCombinationGenerator.GenerateWithBoolean(applicationComponents, accessLevels),
+                nameof(IAccessManagerQueryProcessor<String, String, String, String>.GetApplicationComponentAndAccessLevelToGroupMappings)
+            );
+            CompareSingleStringEnumerableMethods
+            (
+                (IAccessManagerQueryProcessor<String, String, String, String> queryProcessor, Tuple<String, String, Boolean> parameters) =>
+                {
+                    return queryProcessor.GetEntityToUserMappings(parameters.Item1, parameters.Item2, parameters.Item3);
+                },
+                parameterCombinationGenerator.GenerateWithBoolean(entitiesAndTypes),
+                nameof(IAccessManagerQueryProcessor<String, String, String, String>.GetEntityToUserMappings)
+            );
+            CompareSingleStringEnumerableMethods
+            (
+                (IAccessManagerQueryProcessor<String, String, String, String> queryProcessor, Tuple<String, String, Boolean> parameters) =>
+                {
+                    return queryProcessor.GetEntityToGroupMappings(parameters.Item1, parameters.Item2, parameters.Item3);
+                },
+                parameterCombinationGenerator.GenerateWithBoolean(entitiesAndTypes),
+                nameof(IAccessManagerQueryProcessor<String, String, String, String>.GetEntityToGroupMappings)
+            );
+
             // Compare methods which return an enumerable of tuples of two strings
             CompareTupleOfStringsEnumerableMethods
             (
@@ -677,6 +731,53 @@ namespace ApplicationAccess.InstanceComparer
         {
             logger.Log(LogLevel.Information, $"Comparing results of method '{methodName}'");
             foreach (Tuple<String, Boolean> currentParameterValues in queryMethodParameters)
+            {
+                LogStringIfLogIndividualParametersSetTrue($"Comparing with parameters '{currentParameterValues}'");
+                IEnumerable<String> sourceResult = Enumerable.Empty<String>();
+                IEnumerable<String> targetResult = Enumerable.Empty<String>();
+                Exception sourceException = null;
+                Exception targetException = null;
+                try
+                {
+                    sourceResult = queryMethod(sourceInstance, currentParameterValues);
+                    sourceResult.Count();
+                }
+                catch (Exception e)
+                {
+                    sourceException = e;
+                }
+                try
+                {
+                    targetResult = queryMethod(targetInstance, currentParameterValues);
+                    targetResult.Count();
+                }
+                catch (Exception e)
+                {
+                    targetException = e;
+                }
+                Action<IEnumerable<String>, IEnumerable<String>> resultCompareAction = (sourceResult, targetResult) =>
+                {
+                    resultComparer.Compare(sourceResult, targetResult);
+                };
+                ProcessResults(sourceException, targetException, sourceResult, targetResult, resultCompareAction);
+            }
+        }
+
+        /// <summary>
+        /// Compares the results of a method which returns an enumerable of strings.
+        /// </summary>
+        /// <param name="queryMethod">Func which accepts an <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> and parameters for a query method and returns the enumerable of strings result (having called the query method).</param>
+        /// <param name="queryMethodParameters">An enumerable of tuples of two strings and a boolean, containing the parameters which should passed to the method.</param>
+        /// <param name="methodName">The name of the method,</param>
+        public void CompareSingleStringEnumerableMethods
+        (
+            Func<IAccessManagerQueryProcessor<String, String, String, String>, Tuple<String, String, Boolean>, IEnumerable<String>> queryMethod,
+            IEnumerable<Tuple<String, String, Boolean>> queryMethodParameters,
+            String methodName
+        )
+        {
+            logger.Log(LogLevel.Information, $"Comparing results of method '{methodName}'");
+            foreach (Tuple<String, String, Boolean> currentParameterValues in queryMethodParameters)
             {
                 LogStringIfLogIndividualParametersSetTrue($"Comparing with parameters '{currentParameterValues}'");
                 IEnumerable<String> sourceResult = Enumerable.Empty<String>();

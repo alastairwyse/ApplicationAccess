@@ -175,10 +175,38 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         }
 
         /// <inheritdoc/>
+        public async Task<List<TUser>> GetGroupToUserMappingsAsync(IEnumerable<TGroup> groups)
+        {
+            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
+            var url = new Uri(baseUrl, $"userToGroupMappings?{queryString}");
+            var returnList = new List<TUser>();
+            foreach (String currentUser in await SendGetRequestAsync<List<String>>(url))
+            {
+                returnList.Add(userStringifier.FromString(currentUser));
+            }
+
+            return returnList;
+        }
+
+        /// <inheritdoc/>
         public async Task<List<TGroup>> GetGroupToGroupMappingsAsync(IEnumerable<TGroup> groups)
         {
             String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
             var url = new Uri(baseUrl, $"groupToGroupMappings?{queryString}");
+            var returnList = new List<TGroup>();
+            foreach (String currentGroup in await SendGetRequestAsync<List<String>>(url))
+            {
+                returnList.Add(groupStringifier.FromString(currentGroup));
+            }
+
+            return returnList;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<TGroup>> GetGroupToGroupReverseMappingsAsync(IEnumerable<TGroup> groups)
+        {
+            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
+            var url = new Uri(baseUrl, $"groupToGroupReverseMappings?{queryString}");
             var returnList = new List<TGroup>();
             foreach (String currentGroup in await SendGetRequestAsync<List<String>>(url))
             {

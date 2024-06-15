@@ -67,12 +67,30 @@ namespace ApplicationAccess.InstanceComparer
         /// </summary>
         /// <param name="firstParameterValues">All possible values for the first parameter.</param>
         /// <returns>The parameter combinations.</returns>
-        public IEnumerable<Tuple<String, Boolean>> Generate(IEnumerable<String> firstParameterValues)
+        public IEnumerable<Tuple<String, Boolean>> GenerateWithBoolean(IEnumerable<String> firstParameterValues)
         {
             foreach (String currentFirstParameterValue in firstParameterValues)
             {
                 yield return Tuple.Create(currentFirstParameterValue, true);
                 yield return Tuple.Create(currentFirstParameterValue, false);
+            }
+        }
+
+        /// <summary>
+        /// Generates all possible combinations of parameters for a method which accepts two strings and a boolean.
+        /// </summary>
+        /// <param name="firstParameterValues">All possible values for the first parameter.</param>
+        /// <param name="secondParameterValues">All possible values for the second parameter.</param>
+        /// <returns>The parameter combinations.</returns>
+        public IEnumerable<Tuple<String, String, Boolean>> GenerateWithBoolean(IEnumerable<String> firstParameterValues, IEnumerable<String> secondParameterValues)
+        {
+            foreach (String currentFirstParameterValue in firstParameterValues)
+            {
+                foreach (String currentSecondParameterValues in secondParameterValues)
+                {
+                    yield return Tuple.Create(currentFirstParameterValue, currentSecondParameterValues, true);
+                    yield return Tuple.Create(currentFirstParameterValue, currentSecondParameterValues, false);
+                }
             }
         }
 
@@ -92,6 +110,23 @@ namespace ApplicationAccess.InstanceComparer
                     {
                         yield return Tuple.Create(currentFirstParameterValue, currentSecondParameterValue, currentThirdParameterValue);
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generates all possible combinations of parameters for a method which accepts two strings and a boolean.
+        /// </summary>
+        /// <param name="firstAndSecondParameterValues">A <see cref="Dictionary{TKey, TValue}"/> containing the possible values for the first and second parameters (key contains first parameters, values contain second parameters).</param>
+        /// <returns>The parameter combinations.</returns>
+        public IEnumerable<Tuple<String, String, Boolean>> GenerateWithBoolean(Dictionary<String, HashSet<String>> firstAndSecondParameterValues)
+        {
+            foreach (String currentFirstParameterValue in firstAndSecondParameterValues.Keys)
+            {
+                foreach (String currentSecondParameterValue in firstAndSecondParameterValues[currentFirstParameterValue])
+                {
+                    yield return Tuple.Create(currentFirstParameterValue, currentSecondParameterValue, true);
+                    yield return Tuple.Create(currentFirstParameterValue, currentSecondParameterValue, false);
                 }
             }
         }

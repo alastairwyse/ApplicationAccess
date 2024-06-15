@@ -327,6 +327,22 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void GetLeafReverseEdges()
+        {
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>(false);
+            String testPerson1 = "Per1";
+            String testPerson2 = "Per2";
+            testConcurrentDirectedGraph2.AddLeafVertex(testPerson1);
+            testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson2);
+            testConcurrentDirectedGraph2.AddLeafToNonLeafEdge(testPerson1, testPerson2);
+
+            var result = new List<String>(testConcurrentDirectedGraph2.GetLeafReverseEdges(testPerson2));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testPerson1, result[0]);
+        }
+
+        [Test]
         public void RemoveLeafToNonLeafEdge_LocksAreSet()
         {
             String testPerson1 = "Per1";
@@ -434,6 +450,22 @@ namespace ApplicationAccess.UnitTests
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(testPerson2, result[0]);
+        }
+
+        [Test]
+        public void GetNonLeafReverseEdges()
+        {
+            var testConcurrentDirectedGraph2 = new ConcurrentDirectedGraph<String, String>(false);
+            String testPerson1 = "Per1";
+            String testPerson2 = "Per2";
+            testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson1);
+            testConcurrentDirectedGraph2.AddNonLeafVertex(testPerson2);
+            testConcurrentDirectedGraph2.AddNonLeafToNonLeafEdge(testPerson1, testPerson2);
+
+            var result = new List<String>(testConcurrentDirectedGraph2.GetNonLeafReverseEdges(testPerson2));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(testPerson1, result[0]);
         }
 
         [Test]

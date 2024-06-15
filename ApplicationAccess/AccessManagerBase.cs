@@ -37,6 +37,10 @@ namespace ApplicationAccess
         protected readonly IDictionary<TUser, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> userToComponentMap;
         /// <summary>A dictionary which stores mappings between a group, and application component, and a level of access to that component.</summary>
         protected readonly IDictionary<TGroup, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>> groupToComponentMap;
+        /// <summary>The reverse of the mappings in member 'userToComponentMap'.</summary>
+        protected readonly IDictionary<TComponent, IDictionary<TAccess, ISet<TUser>>> userToComponentReverseMap;
+        /// <summary>The reverse of the mappings in member 'groupToComponentMap'.</summary>
+        protected readonly IDictionary<TComponent, IDictionary<TAccess, ISet<TGroup>>> groupToComponentReverseMap;
         /// <summary>Holds all valid entity types and values within the access manager.  The Dictionary key holds the types of all entities, and each respective value holds the valid entity values within that type (e.g. the entity type could be 'ClientAccount', and values could be the names of all client accounts).</summary>
         protected readonly IDictionary<String, ISet<String>> entities;
         /// <summary>A dictionary which stores user to entity mappings.  The value stores another dictionary whose key contains the entity type and whose value contains the name of all entities of the specified type which are mapped to the user.</summary>
@@ -86,6 +90,8 @@ namespace ApplicationAccess
             this.userToGroupMap = userToGroupMap;
             userToComponentMap = this.collectionFactory.GetDictionaryInstance<TUser, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>>();
             groupToComponentMap = this.collectionFactory.GetDictionaryInstance<TGroup, ISet<ApplicationComponentAndAccessLevel<TComponent, TAccess>>>();
+            userToComponentReverseMap = this.collectionFactory.GetDictionaryInstance<TComponent, IDictionary<TAccess, ISet<TUser>>>();
+            groupToComponentReverseMap = this.collectionFactory.GetDictionaryInstance<TComponent, IDictionary<TAccess, ISet<TGroup>>>();
             entities = this.collectionFactory.GetDictionaryInstance<String, ISet<String>>();
             userToEntityMap = this.collectionFactory.GetDictionaryInstance<TUser, IDictionary<String, ISet<String>>>();
             groupToEntityMap = this.collectionFactory.GetDictionaryInstance<TGroup, IDictionary<String, ISet<String>>>();
@@ -102,6 +108,8 @@ namespace ApplicationAccess
             userToGroupMap.Clear();
             userToComponentMap.Clear();
             groupToComponentMap.Clear();
+            userToComponentReverseMap.Clear();
+            groupToComponentReverseMap.Clear();
             entities.Clear();
             userToEntityMap.Clear();
             groupToEntityMap.Clear();
@@ -110,6 +118,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="ArgumentException">The specified user already exists.</exception>
         public virtual void AddUser(TUser user)
         {
             try
@@ -129,7 +138,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
         public virtual void RemoveUser(TUser user)
         {
             try
@@ -142,6 +151,10 @@ namespace ApplicationAccess
             }
             if (userToComponentMap.ContainsKey(user) == true)
             {
+                foreach(ApplicationComponentAndAccessLevel<TComponent, TAccess> currentApplicationComponentAndAccessLevel in userToComponentMap[user])
+                {
+                    userToComponentReverseMap[currentApplicationComponentAndAccessLevel.ApplicationComponent][currentApplicationComponentAndAccessLevel.AccessLevel].Remove(user);
+                }
                 userToComponentMap.Remove(user);
             }
             if (userToEntityMap.ContainsKey(user) == true)
@@ -158,6 +171,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="ArgumentException">The specified group already exists.</exception>
         public virtual void AddGroup(TGroup group)
         {
             try
@@ -177,6 +191,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
         public virtual void RemoveGroup(TGroup group)
         {
             try
@@ -189,6 +204,10 @@ namespace ApplicationAccess
             }
             if (groupToComponentMap.ContainsKey(group) == true)
             {
+                foreach (ApplicationComponentAndAccessLevel<TComponent, TAccess> currentApplicationComponentAndAccessLevel in groupToComponentMap[group])
+                {
+                    groupToComponentReverseMap[currentApplicationComponentAndAccessLevel.ApplicationComponent][currentApplicationComponentAndAccessLevel.AccessLevel].Remove(group);
+                }
                 groupToComponentMap.Remove(group);
             }
             if (groupToEntityMap.ContainsKey(group) == true)
@@ -205,7 +224,9 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified user and group already exists.</exception>
         public virtual void AddUserToGroupMapping(TUser user, TGroup group)
         {
             try
@@ -227,7 +248,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
         public virtual HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
             var returnGroups = new HashSet<TGroup>();
@@ -257,7 +278,48 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        public virtual HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            var returnUsers = new HashSet<TUser>();
+            try
+            {
+                returnUsers.UnionWith(userToGroupMap.GetLeafReverseEdges(group));
+            }
+            catch (NonLeafVertexNotFoundException<TGroup> e)
+            {
+                ThrowGroupDoesntExistException(group, nameof(group), e);
+            }
+            if (includeIndirectMappings == true)
+            {
+                Func<TGroup, Boolean> nonLeafvertexAction = (TGroup currentGroup) => { return true; };
+                Func<TUser, Boolean> leafVertexAction = (TUser currentUser) =>
+                {
+                    if (returnUsers.Contains(currentUser) == false)
+                    {
+                        returnUsers.Add(currentUser);
+                    }
+
+                    return true;
+                };
+                
+                // It's possbile that group could have been removed by this point due to time taken to do the above retrieval
+                try
+                {
+                    userToGroupMap.TraverseReverseFromNonLeaf(group, nonLeafvertexAction, leafVertexAction);
+                }
+                catch (NonLeafVertexNotFoundException<TGroup>)
+                {
+                }
+            }
+
+            return returnUsers;
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified user and group does not exist.</exception>
         public virtual void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
             try
@@ -279,6 +341,10 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        /// <exception cref="ArgumentException">The 'from' and 'to' groups cannot contain the same group.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified groups already exists.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified groups cannot be created as it would cause a circular reference.</exception>
         public virtual void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             if (userToGroupMap.ContainsNonLeafVertex(fromGroup) == false)
@@ -303,6 +369,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
         public virtual HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -327,6 +394,49 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        public virtual HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
+        {
+            var returnGroups = new HashSet<TGroup>();
+            try
+            {
+                returnGroups.UnionWith(userToGroupMap.GetNonLeafReverseEdges(group));
+            }
+            catch (NonLeafVertexNotFoundException<TGroup> e)
+            {
+                ThrowGroupDoesntExistException(group, nameof(group), e);
+            }
+            if (includeIndirectMappings == true)
+            {
+                Func<TGroup, Boolean> nonLeafvertexAction = (TGroup currentGroup) =>
+                {
+                    if (group.Equals(currentGroup) == false)
+                    {
+                        if (returnGroups.Contains(currentGroup) == false)
+                        {
+                            returnGroups.Add(currentGroup);
+                        }
+                    }
+
+                    return true;
+                };
+                Func<TUser, Boolean> leafVertexAction = (TUser currentUser) => { return true; };
+                // It's possbile that group could have been removed by this point due to time taken to do the above retrieval
+                try
+                {
+                    userToGroupMap.TraverseReverseFromNonLeaf(group, nonLeafvertexAction, leafVertexAction);
+                }
+                catch (NonLeafVertexNotFoundException<TGroup>)
+                {
+                }
+            }
+
+            return returnGroups;
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified groups does not exist.</exception>
         public virtual void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
             if (userToGroupMap.ContainsNonLeafVertex(fromGroup) == false)
@@ -345,7 +455,8 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified user, application component, and access level already exists.</exception>
         public virtual void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -362,10 +473,19 @@ namespace ApplicationAccess
                 userToComponentMap.Add(user, collectionFactory.GetSetInstance<ApplicationComponentAndAccessLevel<TComponent, TAccess>>());
             }
             userToComponentMap[user].Add(componentAndAccess);
+            if (userToComponentReverseMap.ContainsKey(applicationComponent) == false)
+            {
+                userToComponentReverseMap.Add(applicationComponent, collectionFactory.GetDictionaryInstance<TAccess, ISet<TUser>>());
+            }
+            if (userToComponentReverseMap[applicationComponent].ContainsKey(accessLevel) == false)
+            {
+                userToComponentReverseMap[applicationComponent].Add(accessLevel, collectionFactory.GetSetInstance<TUser>());
+            }
+            userToComponentReverseMap[applicationComponent][accessLevel].Add(user);
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
         public virtual IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -382,7 +502,32 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        public virtual IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            var returnUsers = new HashSet<TUser>();
+            GetApplicationComponentAndAccessLevelReverseMappings(userToComponentReverseMap, applicationComponent, accessLevel, returnUsers);
+            if (includeIndirectMappings == true)
+            {
+                IEnumerable<TGroup> mappedGroups = GetApplicationComponentAndAccessLevelToGroupMappingsImplementation(applicationComponent, accessLevel, true);
+                foreach (TGroup currentMappedGroup in mappedGroups)
+                {
+                    try
+                    {
+                        returnUsers.UnionWith(userToGroupMap.GetLeafReverseEdges(currentMappedGroup));
+                    }
+                    catch (NonLeafVertexNotFoundException<TGroup>)
+                    {
+                        // GetLeafReverseEdges() will throw a NonLeafVertexNotFoundException<TGroup> if the specified group doesn't exist which could happen if another thread deletes the group during traversal
+                    }
+                }
+            }
+
+            return returnUsers;
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified user, application component, and access level does not exist.</exception>
         public virtual void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -401,9 +546,12 @@ namespace ApplicationAccess
             {
                 throw new ArgumentException($"A mapping between user '{user.ToString()}' application component '{applicationComponent.ToString()}' and access level '{accessLevel.ToString()}' doesn't exist.");
             }
+            userToComponentReverseMap[applicationComponent][accessLevel].Remove(user);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified group, application component, and access level already exists.</exception>
         public virtual void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -420,9 +568,19 @@ namespace ApplicationAccess
                 groupToComponentMap.Add(group, collectionFactory.GetSetInstance<ApplicationComponentAndAccessLevel<TComponent, TAccess>>());
             }
             groupToComponentMap[group].Add(componentAndAccess);
+            if (groupToComponentReverseMap.ContainsKey(applicationComponent) == false)
+            {
+                groupToComponentReverseMap.Add(applicationComponent, collectionFactory.GetDictionaryInstance<TAccess, ISet<TGroup>>());
+            }
+            if (groupToComponentReverseMap[applicationComponent].ContainsKey(accessLevel) == false)
+            {
+                groupToComponentReverseMap[applicationComponent].Add(accessLevel, collectionFactory.GetSetInstance<TGroup>());
+            }
+            groupToComponentReverseMap[applicationComponent][accessLevel].Add(group);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified user does not exist.</exception>
         public virtual IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -439,6 +597,14 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        public virtual IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            return GetApplicationComponentAndAccessLevelToGroupMappingsImplementation(applicationComponent, accessLevel, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified user does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified group, application component, and access level does not exist.</exception>
         public virtual void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -457,9 +623,12 @@ namespace ApplicationAccess
             {
                 throw new ArgumentException($"A mapping between group '{group.ToString()}' application component '{applicationComponent.ToString()}' and access level '{accessLevel.ToString()}' doesn't exist.");
             }
+            groupToComponentReverseMap[applicationComponent][accessLevel].Remove(group);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="ArgumentException">The specified entity type already exists.</exception>
+        /// <exception cref="ArgumentException">The entity type must contain a valid character.</exception>
         public virtual void AddEntityType(String entityType)
         {
             if (entities.ContainsKey(entityType) == true)
@@ -477,12 +646,16 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         public virtual void RemoveEntityType(String entityType)
         {
             this.RemoveEntityType(entityType, (actionUser, actionEntityType, actionEntities, actionEntityCount) => { }, (actionGroup, actionEntityType, actionEntities, actionEntityCount) => { });
         }
 
         /// <inheritdoc/>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        /// <exception cref="ArgumentException"> The specified entity already exists.</exception>
+        /// <exception cref="ArgumentException"> The entity must contain a valid character.</exception>
         public virtual void AddEntity(String entityType, String entity)
         {
             if (entities.ContainsKey(entityType) == false)
@@ -496,6 +669,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         public virtual IEnumerable<String> GetEntities(String entityType)
         {
             if (entities.ContainsKey(entityType) == false)
@@ -519,13 +693,18 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        /// <exception cref="EntityNotFoundException">The specified entity does not exist.</exception>
         public virtual void RemoveEntity(String entityType, String entity)
         {
             this.RemoveEntity(entityType, entity, (actionUser, actionEntityType, actionEntity) => { }, (actionGroup, actionEntityType, actionEntity) => { });
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        /// <exception cref="EntityNotFoundException">The specified entity does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified user and entity already exists.</exception>
         public virtual void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -558,21 +737,56 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
         public virtual IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
             return GetUserToEntityMappingsImplementation(user);
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         public virtual IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
             return GetUserToEntityMappingsImplementation(user, entityType);
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        /// <exception cref="EntityNotFoundException">The specified entity does not exist.</exception>
+        public virtual IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            if (entities.ContainsKey(entityType) == false)
+                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
+            if (EntityExists(entityType, entity) == false)
+                ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
+
+            var returnUsers = new HashSet<TUser>();
+            GetEntityReverseMappings(userToEntityReverseMap, entityType, entity, returnUsers);
+            if (includeIndirectMappings == true)
+            {
+                IEnumerable<TGroup> mappedGroups = GetEntityToGroupMappingsImplementation(entityType, entity, true);
+                foreach (TGroup currentMappedGroup in mappedGroups)
+                {
+                    try
+                    {
+                        returnUsers.UnionWith(userToGroupMap.GetLeafReverseEdges(currentMappedGroup));
+                    }
+                    catch (NonLeafVertexNotFoundException<TGroup>)
+                    {
+                        // GetLeafReverseEdges() will throw a NonLeafVertexNotFoundException<TGroup> if the specified group doesn't exist which could happen if another thread deletes the group during traversal
+                    }
+                }
+            }
+
+            return returnUsers;
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        /// <exception cref="EntityNotFoundException">The specified entity does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified user and entity does not exist.</exception>
         public virtual void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -593,6 +807,10 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified user does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        /// <exception cref="EntityNotFoundException">The specified entity does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified group and entity already exists.</exception>
         public virtual void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -625,12 +843,15 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
         public virtual IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
             return GetGroupToEntityMappingsImplementation(group);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         public virtual IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -640,7 +861,6 @@ namespace ApplicationAccess
 
             Boolean containsGroup = groupToEntityMap.TryGetValue(group, out IDictionary<String, ISet<String>> entitiesAndTypesInMapping);
             if (containsGroup == true)
-            
             {
                 Boolean containsEntity = entitiesAndTypesInMapping.TryGetValue(entityType, out ISet<String> entitiesInMapping);
                 if (containsEntity == true)
@@ -654,6 +874,18 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        /// <exception cref="EntityNotFoundException">The specified entity does not exist.</exception>
+        public virtual IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            return GetEntityToGroupMappingsImplementation(entityType, entity, includeIndirectMappings);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
+        /// <exception cref="EntityNotFoundException">The specified entity does not exist.</exception>
+        /// <exception cref="ArgumentException">A mapping between the specified group and entity does not exist.</exception>
         public virtual void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -764,7 +996,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
         public virtual HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -802,6 +1034,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
         public virtual HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -831,7 +1064,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
         public virtual HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -870,7 +1103,8 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
-        /// <exception cref="UserNotFoundException{T}">The specified user does not exist.</exception>
+        /// <exception cref="UserNotFoundException{TUser}">The specified user does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         public virtual HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
             if (userToGroupMap.ContainsLeafVertex(user) == false)
@@ -912,6 +1146,7 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
         public virtual HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -937,6 +1172,8 @@ namespace ApplicationAccess
         }
 
         /// <inheritdoc/>
+        /// <exception cref="GroupNotFoundException{TGroup}">The specified group does not exist.</exception>
+        /// <exception cref="EntityTypeNotFoundException">The specified entity type does not exist.</exception>
         public virtual HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {
             if (userToGroupMap.ContainsNonLeafVertex(group) == false)
@@ -965,6 +1202,27 @@ namespace ApplicationAccess
         }
 
         #region Private/Protected Methods
+
+        /// <summary>
+        /// Checks whether the specified entity exists in a multi-thread-safe manner.
+        /// </summary>
+        /// <param name="entityType">The type of the entity.</param>
+        /// <param name="entity">The entity to check.</param>
+        /// <returns>True if the entity exists.  False otherwise.</returns>
+        protected Boolean EntityExists(String entityType, String entity)
+        {
+            Boolean entityTypeExists = entities.TryGetValue(entityType, out ISet<String> entitiesForType);
+            {
+                if (entityTypeExists == true)
+                {
+                    return entitiesForType.Contains(entity);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
 
         /// <summary>
         /// Removes an entity type.
@@ -1048,6 +1306,56 @@ namespace ApplicationAccess
         }
 
         /// <summary>
+        /// Gets the application component and access level pairs that the specified group is mapped to.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to an application component and access level via other groups).</param>
+        /// <returns>A collection of groups that are mapped to the specified application component and access level.</returns>
+        /// <remarks>Putting implementation of GetApplicationComponentAndAccessLevelToGroupMappings() in this method allows methods like GetApplicationComponentAndAccessLevelToUserMappings() to call this method rather than the public virtual GetApplicationComponentAndAccessLevelToGroupMappings().  Calling the public virtual version from GetApplicationComponentAndAccessLevelToGroupMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        protected IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappingsImplementation(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
+        {
+            var returnGroups = new HashSet<TGroup>();
+            GetApplicationComponentAndAccessLevelReverseMappings(groupToComponentReverseMap, applicationComponent, accessLevel, returnGroups);
+            var visitedGroups = new HashSet<TGroup>();
+            if (includeIndirectMappings == true)
+            {
+                Func<TGroup, Boolean> nonLeafvertexAction = (TGroup currentGroup) =>
+                {
+                    // TODO: There's some inefficency here because we don't have a way to stop traverrsing further forward but continue traversing 'sideways' within the TraverseReverseFromNonLeaf() method
+                    //   If we return false from this Func it will stop all traversal all further traversal which is not what we want here
+                    //   i.e. we still want to traverse to groups with the same parent/source as current, but just want to stop further traversal from 'currentGroup'
+                    //   as stated, TraverseReverseFromNonLeaf() doesn't support that
+                    if (visitedGroups.Contains(currentGroup) == false)
+                    {
+                        returnGroups.Add(currentGroup);
+                        visitedGroups.Add(currentGroup);
+                    }
+
+                    return true;
+                };
+                Func<TUser, Boolean> leafVertexAction = (TUser currentUser) => { return true; };
+                var directlyMappedGroups = new List<TGroup>(returnGroups);
+                foreach (TGroup currentMappedGroup in directlyMappedGroups)
+                {
+                    if (visitedGroups.Contains(currentMappedGroup) == false)
+                    {
+                        // It's possbile that group could have been removed by this point due to time taken to do above lookups
+                        try
+                        {
+                            userToGroupMap.TraverseReverseFromNonLeaf(currentMappedGroup, nonLeafvertexAction, leafVertexAction);
+                        }
+                        catch (NonLeafVertexNotFoundException<TGroup>)
+                        {
+                        }
+                    }
+                }
+            }
+
+            return returnGroups;
+        }
+
+        /// <summary>
         /// Gets the entities that the specified user is mapped to.
         /// </summary>
         /// <param name="user">The user to retrieve the mappings for.</param>
@@ -1118,6 +1426,116 @@ namespace ApplicationAccess
                     foreach (String currentEntity in entitiesInMapping)
                     {
                         yield return currentEntity;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified entity.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the entity via other groups).</param>
+        /// <returns>A collection of groups that are mapped to the specified entity.</returns>
+        /// <remarks>Putting implementation of GetEntityToGroupMappings() in this method allows methods like GetEntityToUserMappings() to call this method rather than the public virtual GetEntityToGroupMappings().  Calling the public virtual version from GetEntityToGroupMappings() can result is overridden implementations being called, and hence unexpected behaviour (specifically metrics being logged unnecessarily).</remarks>
+        protected IEnumerable<TGroup> GetEntityToGroupMappingsImplementation(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            // TODO: Implementation is identical to GetApplicationComponentAndAccessLevelToGroupMappingsImplementation() except the call to GetEntityReverseMappings() and exception handling
+            //   Could be combined into common method
+            if (entities.ContainsKey(entityType) == false)
+                ThrowEntityTypeDoesntExistException(entityType, nameof(entityType));
+            if (EntityExists(entityType, entity) == false)
+                ThrowEntityDoesntExistException(entityType, entity, nameof(entity));
+
+            var returnGroups = new HashSet<TGroup>();
+            GetEntityReverseMappings(groupToEntityReverseMap, entityType, entity, returnGroups);
+            var visitedGroups = new HashSet<TGroup>();
+            if (includeIndirectMappings == true)
+            {
+                Func<TGroup, Boolean> nonLeafvertexAction = (TGroup currentGroup) =>
+                {
+                    // TODO: As per comments in GetApplicationComponentAndAccessLevelToGroupMappings() regarding inefficiencies
+                    if (visitedGroups.Contains(currentGroup) == false)
+                    {
+                        returnGroups.Add(currentGroup);
+                        visitedGroups.Add(currentGroup);
+                    }
+
+                    return true;
+                };
+                Func<TUser, Boolean> leafVertexAction = (TUser currentUser) => { return true; };
+                var directlyMappedGroups = new List<TGroup>(returnGroups);
+                foreach (TGroup currentMappedGroup in directlyMappedGroups)
+                {
+                    if (visitedGroups.Contains(currentMappedGroup) == false)
+                    {
+                        // It's possbile that group could have been removed by this point due to time taken to do above lookups
+                        try
+                        {
+                            userToGroupMap.TraverseReverseFromNonLeaf(currentMappedGroup, nonLeafvertexAction, leafVertexAction);
+                        }
+                        catch (NonLeafVertexNotFoundException<TGroup>)
+                        {
+                        }
+                    }
+                }
+            }
+
+            return returnGroups;
+        }
+
+        /// <summary>
+        /// Gets the items which are mapped to by application components and access levels in the specified dictionary.
+        /// </summary>
+        /// <typeparam name="T">The type of the items which are mapped to.</typeparam>
+        /// <param name="componentReverseMap">The application component and access level reverse mapping structure to retrieve the mappings from.</param>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="mappedItems">Hashset to store the found mapped items in.</param>
+        protected void GetApplicationComponentAndAccessLevelReverseMappings<T>(IDictionary<TComponent, IDictionary<TAccess, ISet<T>>> componentReverseMap, TComponent applicationComponent, TAccess accessLevel, HashSet<T> mappedItems)
+        {
+            GetTwoLevelMappings(componentReverseMap, applicationComponent, accessLevel, mappedItems);
+        }
+
+        /// <summary>
+        /// Gets the items which are mapped to by entities in the specified dictionary.
+        /// </summary>
+        /// <typeparam name="T">The type of the items which are mapped to.</typeparam>
+        /// <param name="entityReverseMap">The entity reverse mapping structure to retrieve the mappings from.</param>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="mappedItems">Hashset to store the found mapped items in.</param>
+        protected void GetEntityReverseMappings<T>(IDictionary<String, IDictionary<String, ISet<T>>> entityReverseMap, String entityType, String entity, HashSet<T> mappedItems)
+        {
+            GetTwoLevelMappings(entityReverseMap, entityType, entity, mappedItems);
+        }
+
+        /// <summary>
+        /// Gets the items which are mapped to by key values in the specified dictionary.
+        /// </summary>
+        /// <typeparam name="TKey1">The type of the first level key in the mappings.</typeparam>
+        /// <typeparam name="TKey2">The type of the second level key in the mappings.</typeparam>
+        /// <typeparam name="TValue">The value of the items which are mapped to.</typeparam>
+        /// <param name="mappingStructure">The structure to retrieve the mappings from.</param>
+        /// <param name="key1Value">The value of the first level key in the mappings to retrieve.</param>
+        /// <param name="key2Value">The value of the second level key in the mappings to retrieve.</param>
+        /// <param name="mappedItems">Hashset to store the found mapped items in.</param>
+        /// <remarks>Provides a common abstraction to search in reverse mapping structures like members 'userToComponentReverseMap', 'userToEntityReverseMap', etc.</remarks>
+        protected void GetTwoLevelMappings<TKey1, TKey2, TValue>(IDictionary<TKey1, IDictionary<TKey2, ISet<TValue>>> mappingStructure, TKey1 key1Value, TKey2 key2Value, HashSet<TValue> mappedItems)
+        {
+            Boolean key1MappingsExist = mappingStructure.TryGetValue(key1Value, out IDictionary<TKey2, ISet<TValue>> key1Mappings);
+            if (key1MappingsExist == true)
+            {
+                Boolean key2MappingsExist = key1Mappings.TryGetValue(key2Value, out ISet<TValue> items);
+                if (key2MappingsExist == true)
+                {
+                    foreach (TValue currentItem in items)
+                    {
+                        if (mappedItems.Contains(currentItem) == false)
+                        {
+                            mappedItems.Add(currentItem);
+                        }
                     }
                 }
             }

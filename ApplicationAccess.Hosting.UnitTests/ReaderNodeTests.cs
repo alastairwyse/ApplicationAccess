@@ -368,6 +368,66 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
+        public void GetGroupToUserMappings()
+        {
+            const String user1 = "user1";
+            const String user2 = "user2";
+            const String group = "group1";
+            const String indirectGroup = "group2";
+            var loadAction = new Action<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>((accessManager) =>
+            {
+                accessManager.AddUser(user1);
+                accessManager.AddUser(user2);
+                accessManager.AddGroup(group);
+                accessManager.AddGroup(indirectGroup);
+                accessManager.AddUserToGroupMapping(user1, group);
+                accessManager.AddUserToGroupMapping(user2, indirectGroup);
+                accessManager.AddGroupToGroupMapping(group, indirectGroup);
+            });
+            mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
+            testReaderNode.Load(true);
+
+            var result = new List<String>(testReaderNode.GetGroupToUserMappings(indirectGroup, false));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(user2, result[0]);
+
+
+            mockRefreshStrategy.ClearReceivedCalls();
+
+            result = new List<String>(testReaderNode.GetGroupToUserMappings(indirectGroup, true));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(2, result.Count);
+            Assert.Contains(user1, result);
+            Assert.Contains(user2, result);
+        }
+
+        [Test]
+        public void GetGroupToUserMappings_RefreshException()
+        {
+            var mockException = new Exception("Failure on refresh worker thread.");
+            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetGroupToUserMappings("group1", false);
+            });
+
+            Assert.AreEqual(mockException, e);
+
+
+
+            e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetGroupToUserMappings("group1", true);
+            });
+
+            Assert.AreEqual(mockException, e);
+        }
+
+        [Test]
         public void GetGroupToGroupMappings()
         {
             const String fromGroup = "group1";
@@ -424,6 +484,62 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
+        public void GetGroupToGroupReverseMappings()
+        {
+            const String fromGroup = "group1";
+            const String toGroup = "group2";
+            const String indirectGroup = "group3";
+            var loadAction = new Action<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>((accessManager) =>
+            {
+                accessManager.AddGroup(fromGroup);
+                accessManager.AddGroup(toGroup);
+                accessManager.AddGroup(indirectGroup);
+                accessManager.AddGroupToGroupMapping(fromGroup, toGroup);
+                accessManager.AddGroupToGroupMapping(toGroup, indirectGroup);
+            });
+            mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
+            testReaderNode.Load(true);
+
+            var result = new List<String>(testReaderNode.GetGroupToGroupReverseMappings(indirectGroup, false));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(toGroup, result[0]);
+
+
+            mockRefreshStrategy.ClearReceivedCalls();
+
+            result = new List<String>(testReaderNode.GetGroupToGroupReverseMappings(indirectGroup, true));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(2, result.Count);
+            Assert.Contains(fromGroup, result);
+            Assert.Contains(toGroup, result);
+        }
+
+        [Test]
+        public void GetGroupToGroupReverseMappings_RefreshException()
+        {
+            var mockException = new Exception("Failure on refresh worker thread.");
+            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetGroupToGroupReverseMappings("group1", false);
+            });
+
+            Assert.AreEqual(mockException, e);
+
+
+            e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetGroupToGroupReverseMappings("group1", true);
+            });
+
+            Assert.AreEqual(mockException, e);
+        }
+
+        [Test]
         public void GetUserToApplicationComponentAndAccessLevelMappings()
         {
             const String user = "user1";
@@ -458,6 +574,64 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
+        public void GetApplicationComponentAndAccessLevelToUserMappings()
+        {
+            const String user1 = "user1";
+            const String user2 = "user2";
+            const String group = "group1";
+            var loadAction = new Action<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>((accessManager) =>
+            {
+                accessManager.AddUser(user1);
+                accessManager.AddUser(user2);
+                accessManager.AddGroup(group);
+                accessManager.AddUserToGroupMapping(user2, group);
+                accessManager.AddUserToApplicationComponentAndAccessLevelMapping(user1, ApplicationScreen.ManageProducts, AccessLevel.Create);
+                accessManager.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.ManageProducts, AccessLevel.Create);
+            });
+            mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
+            testReaderNode.Load(true);
+
+            var result = new List<String>(testReaderNode.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(user1, result[0]);
+
+
+            mockRefreshStrategy.ClearReceivedCalls();
+
+            result = new List<String>(testReaderNode.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(2, result.Count);
+            Assert.Contains(user1, result);
+            Assert.Contains(user2, result);
+        }
+
+        [Test]
+        public void GetApplicationComponentAndAccessLevelToUserMappings_RefreshException()
+        {
+            var mockException = new Exception("Failure on refresh worker thread.");
+            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false);
+            });
+
+            Assert.AreEqual(mockException, e);
+
+
+
+            e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true);
+            });
+
+            Assert.AreEqual(mockException, e);
+        }
+
+        [Test]
         public void GetGroupToApplicationComponentAndAccessLevelMappings()
         {
             const String group = "group1";
@@ -486,6 +660,61 @@ namespace ApplicationAccess.Hosting.UnitTests
             var e = Assert.Throws<Exception>(delegate
             {
                 var result = testReaderNode.GetGroupToApplicationComponentAndAccessLevelMappings("user1");
+            });
+
+            Assert.AreEqual(mockException, e);
+        }
+
+        [Test]
+        public void GetApplicationComponentAndAccessLevelToGroupMappings()
+        {
+            const String group1 = "group1";
+            const String group2 = "group2";
+            var loadAction = new Action<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>((accessManager) =>
+            {
+                accessManager.AddGroup(group1);
+                accessManager.AddGroup(group2);
+                accessManager.AddGroupToGroupMapping(group1, group2);
+                accessManager.AddGroupToApplicationComponentAndAccessLevelMapping(group2, ApplicationScreen.ManageProducts, AccessLevel.Create);
+            });
+            mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
+            testReaderNode.Load(true);
+
+            var result = new List<String>(testReaderNode.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(group2, result[0]);
+
+
+            mockRefreshStrategy.ClearReceivedCalls();
+
+            result = new List<String>(testReaderNode.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(2, result.Count);
+            Assert.Contains(group1, result);
+            Assert.Contains(group2, result);
+        }
+
+        [Test]
+        public void GetApplicationComponentAndAccessLevelToGroupMappings_RefreshException()
+        {
+            var mockException = new Exception("Failure on refresh worker thread.");
+            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false);
+            });
+
+            Assert.AreEqual(mockException, e);
+
+
+
+            e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true);
             });
 
             Assert.AreEqual(mockException, e);
@@ -665,6 +894,68 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
+        public void GetEntityToUserMappings()
+        {
+            const String user1 = "user1";
+            const String user2 = "user2";
+            const String group = "group1";
+            const String entityType = "ClientAccount";
+            const String entity = "CompanyA";
+            var loadAction = new Action<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>((accessManager) =>
+            {
+                accessManager.AddUser(user1);
+                accessManager.AddUser(user2);
+                accessManager.AddGroup(group);
+                accessManager.AddEntityType(entityType);
+                accessManager.AddEntity(entityType, entity);
+                accessManager.AddUserToGroupMapping(user2, group);
+                accessManager.AddUserToEntityMapping(user1, entityType, entity);
+                accessManager.AddGroupToEntityMapping(group, entityType, entity);
+            });
+            mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
+            testReaderNode.Load(true);
+
+            var result = new List<String>(testReaderNode.GetEntityToUserMappings(entityType, entity, false));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(user1, result[0]);
+
+
+            mockRefreshStrategy.ClearReceivedCalls();
+
+            result = new List<String>(testReaderNode.GetEntityToUserMappings(entityType, entity, true));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(2, result.Count);
+            Assert.Contains(user1, result);
+            Assert.Contains(user2, result);
+        }
+
+        [Test]
+        public void GetEntityToUserMappings_RefreshException()
+        {
+            var mockException = new Exception("Failure on refresh worker thread.");
+            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetEntityToUserMappings("ClientAccount", "CompanyA", false);
+            });
+
+            Assert.AreEqual(mockException, e);
+
+
+
+            e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetEntityToUserMappings("ClientAccount", "CompanyA", true);
+            });
+
+            Assert.AreEqual(mockException, e);
+        }
+
+        [Test]
         public void GetGroupToEntityMappingsGroupOverload()
         {
             const String group = "group1";
@@ -734,6 +1025,65 @@ namespace ApplicationAccess.Hosting.UnitTests
             var e = Assert.Throws<Exception>(delegate
             {
                 var result = testReaderNode.GetGroupToEntityMappings("group1", "ClientAccount");
+            });
+
+            Assert.AreEqual(mockException, e);
+        }
+
+        [Test]
+        public void GetEntityToGroupMappings()
+        {
+            const String group1 = "group1";
+            const String group2 = "group2";
+            const String entityType = "ClientAccount";
+            const String entity = "CompanyA";
+            var loadAction = new Action<AccessManagerBase<String, String, ApplicationScreen, AccessLevel>>((accessManager) =>
+            {
+                accessManager.AddGroup(group1);
+                accessManager.AddGroup(group2);
+                accessManager.AddEntityType(entityType);
+                accessManager.AddEntity(entityType, entity);
+                accessManager.AddGroupToGroupMapping(group1, group2);
+                accessManager.AddGroupToEntityMapping(group2, entityType, entity);
+            });
+            mockPersistentReader.Load(Arg.Do(loadAction)).Returns(returnedLoadState);
+            testReaderNode.Load(true);
+
+            var result = new List<String>(testReaderNode.GetEntityToGroupMappings(entityType, entity, false));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(group2, result[0]);
+
+
+            mockRefreshStrategy.ClearReceivedCalls();
+
+            result = new List<String>(testReaderNode.GetEntityToGroupMappings(entityType, entity, true));
+
+            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
+            Assert.AreEqual(2, result.Count);
+            Assert.Contains(group1, result);
+            Assert.Contains(group2, result);
+        }
+
+        [Test]
+        public void GetEntityToGroupMappings_RefreshException()
+        {
+            var mockException = new Exception("Failure on refresh worker thread.");
+            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetEntityToGroupMappings("ClientAccount", "CompanyA", false);
+            });
+
+            Assert.AreEqual(mockException, e);
+
+
+
+            e = Assert.Throws<Exception>(delegate
+            {
+                var result = testReaderNode.GetEntityToGroupMappings("ClientAccount", "CompanyA", true);
             });
 
             Assert.AreEqual(mockException, e);

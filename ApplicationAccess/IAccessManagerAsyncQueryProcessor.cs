@@ -68,12 +68,28 @@ namespace ApplicationAccess
         Task<List<TGroup>> GetUserToGroupMappingsAsync(TUser user, Boolean includeIndirectMappings);
 
         /// <summary>
+        /// Gets the users that are mapped to the specified group as an asyncronous operation.
+        /// </summary>
+        /// <param name="group">The group to retrieve the users for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the group via other groups).</param>
+        /// <returns>A collection of users that are mapped to the specified group.</returns>
+        Task<List<TUser>> GetGroupToUserMappingsAsync(TGroup group, Boolean includeIndirectMappings);
+
+        /// <summary>
         /// Gets the groups that the specified group is mapped to as an asyncronous operation.
         /// </summary>
         /// <param name="group">The group to retrieve the mapped groups for.</param>
         /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
         /// <returns>A list of groups the specified group is mapped to.</returns>
         Task<List<TGroup>> GetGroupToGroupMappingsAsync(TGroup group, Boolean includeIndirectMappings);
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified group as an asyncronous operation.
+        /// </summary>
+        /// <param name="group">The group to retrieve the mapped groups for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped from' group is itself mapped from further groups).</param>
+        /// <returns>A collection of groups that are mapped to the specified group.</returns>
+        Task<List<TGroup>> GetGroupToGroupReverseMappingsAsync(TGroup group, Boolean includeIndirectMappings);
 
         /// <summary>
         /// Gets the application component and access level pairs that the specified user is mapped to as an asyncronous operation.
@@ -83,11 +99,29 @@ namespace ApplicationAccess
         Task<List<Tuple<TComponent, TAccess>>> GetUserToApplicationComponentAndAccessLevelMappingsAsync(TUser user);
 
         /// <summary>
+        /// Gets the application component and access level pairs that the specified user is mapped to as an asyncronous operation.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to an application component and access level via groups).</param>
+        /// <returns>A collection of users that are mapped to the specified application component and access level.</returns>
+        Task<List<TUser>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings);
+
+        /// <summary>
         /// Gets the application component and access level pairs that the specified group is mapped to as an asyncronous operation.
         /// </summary>
         /// <param name="group">The group to retrieve the mappings for.</param>
         /// <returns>A list of Tuples containing the application component and access level pairs that the specified group is mapped to.</returns>
         Task<List<Tuple<TComponent, TAccess>>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync(TGroup group);
+
+        /// <summary>
+        /// Gets the application component and access level pairs that the specified group is mapped to as an asyncronous operation.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to an application component and access level via other groups).</param>
+        /// <returns>A collection of groups that are mapped to the specified application component and access level.</returns>
+        Task<List<TGroup>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings);
 
         /// <summary>
         /// Returns true if the specified entity type exists as an asyncronous operation.
@@ -127,6 +161,15 @@ namespace ApplicationAccess
         Task<List<String>> GetUserToEntityMappingsAsync(TUser user, String entityType);
 
         /// <summary>
+        /// Gets the users that are mapped to the specified entity as an asyncronous operation.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the entity via groups).</param>
+        /// <returns>A collection of users that are mapped to the specified entity.</returns>
+        Task<List<TUser>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings);
+
+        /// <summary>
         /// Gets the entities that the specified group is mapped to as an asyncronous operation.
         /// </summary>
         /// <param name="group">The group to retrieve the mappings for.</param>
@@ -140,6 +183,15 @@ namespace ApplicationAccess
         /// <param name="entityType">The entity type to retrieve the mappings for.</param>
         /// <returns>A list of entities that the specified group is mapped to.</returns>
         Task<List<String>> GetGroupToEntityMappingsAsync(TGroup group, String entityType);
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified entity as an asyncronous operation.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the entity via other groups).</param>
+        /// <returns>A collection of groups that are mapped to the specified entity.</returns>
+        Task<List<TGroup>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings);
 
         /// <summary>
         /// Checks whether the specified user (or a group that the user is a member of) has access to an application component at the specified level of access as an asyncronous operation.

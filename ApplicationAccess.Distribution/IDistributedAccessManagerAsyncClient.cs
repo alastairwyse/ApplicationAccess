@@ -31,7 +31,7 @@ namespace ApplicationAccess.Distribution
     public interface IDistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess> :
         IAccessManagerAsyncQueryProcessor<TUser, TGroup, TComponent, TAccess>, 
         IAccessManagerAsyncEventProcessor<TUser, TGroup, TComponent, TAccess>,
-        IDistributedAccessManagerAsyncQueryProcessor<TGroup, TComponent, TAccess>
+        IDistributedAccessManagerAsyncQueryProcessor<TUser, TGroup, TComponent, TAccess>
     {
     }
 }

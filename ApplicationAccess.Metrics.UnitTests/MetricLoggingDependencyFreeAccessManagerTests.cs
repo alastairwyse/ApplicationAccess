@@ -899,6 +899,44 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void GetGroupToUserMappings()
+        {
+            String testUser = "user1";
+            String testGroup = "group1";
+            String testIndirectGroup = "group2";
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testMetricLoggingDependencyFreeAccessManager.AddUser(testUser);
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddUserToGroupMapping(testUser, testGroup);
+            mockMetricLogger.Begin(Arg.Any<GetGroupToUserMappingsForGroupQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            HashSet<String> result = testMetricLoggingDependencyFreeAccessManager.GetGroupToUserMappings(testGroup, false);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testUser));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToUserMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToUserMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToUserMappingsForGroupQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+
+
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testIndirectGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping(testGroup, testIndirectGroup);
+            mockMetricLogger.Begin(Arg.Any<GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            result = testMetricLoggingDependencyFreeAccessManager.GetGroupToUserMappings(testIndirectGroup, true);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testUser));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToUserMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToUserMappingsForGroupWithIndirectMappingsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
         public void RemoveUserToGroupMapping()
         {
             String testUser = "user1";
@@ -1192,9 +1230,42 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
-        public void GetGroupToGroupMappingsGroupsOverload_ExceptionWhenQuerying()
+        public void GetGroupToGroupReverseMappings()
         {
-            // TODO: Find a way to test this.  Currently I can't see a way to make the method throw an exception due to ignoring of invalid groups.
+            String testFromGroup = "group1";
+            String testToGroup = "group2";
+            String testIndirectGroup = "group3";
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testFromGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testToGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping(testFromGroup, testToGroup);
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupReverseMappingsForGroupQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            HashSet<String> result = testMetricLoggingDependencyFreeAccessManager.GetGroupToGroupReverseMappings(testToGroup, false);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testFromGroup));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupReverseMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupReverseMappingsForGroupQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupReverseMappingsForGroupQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+
+
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testIndirectGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping(testToGroup, testIndirectGroup);
+            mockMetricLogger.Begin(Arg.Any<GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockMetricLogger.ClearReceivedCalls();
+
+            result = testMetricLoggingDependencyFreeAccessManager.GetGroupToGroupReverseMappings(testIndirectGroup, true);
+
+            Assert.AreEqual(2, result.Count());
+            Assert.IsTrue(result.Contains(testFromGroup));
+            Assert.IsTrue(result.Contains(testToGroup));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQuery>());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -1350,6 +1421,36 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void GetApplicationComponentAndAccessLevelToUserMappings()
+        {
+            String testUser = "user1";
+            String testGroup = "group1";
+            testMetricLoggingDependencyFreeAccessManager.AddUser(testUser);
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddUserToGroupMapping(testUser, testGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddUserToApplicationComponentAndAccessLevelMapping(testUser, ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, ApplicationScreen.ManageProducts, AccessLevel.Delete);
+            mockMetricLogger.ClearReceivedCalls();
+
+            IEnumerable<String> result = testMetricLoggingDependencyFreeAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testUser));
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentAndAccessLevelToUserMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+
+
+            mockMetricLogger.ClearReceivedCalls();
+
+            result = testMetricLoggingDependencyFreeAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Delete, true);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testUser));
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
         public void RemoveUserToApplicationComponentAndAccessLevelMapping()
         {
             String testUser = "user1";
@@ -1496,6 +1597,37 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(new Tuple<ApplicationScreen, AccessLevel>(ApplicationScreen.ManageProducts, AccessLevel.Create)));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToApplicationComponentAndAccessLevelMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetApplicationComponentAndAccessLevelToGroupMappings()
+        {
+            String testFromGroup = "group1";
+            String testToGroup = "group2";
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testFromGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testToGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping(testFromGroup, testToGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping(testFromGroup, ApplicationScreen.ManageProducts, AccessLevel.Create);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToApplicationComponentAndAccessLevelMapping(testToGroup, ApplicationScreen.ManageProducts, AccessLevel.Delete);
+            mockMetricLogger.ClearReceivedCalls();
+
+            IEnumerable<String> result = testMetricLoggingDependencyFreeAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testFromGroup));
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentAndAccessLevelToGroupMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+
+
+            mockMetricLogger.ClearReceivedCalls();
+
+            result = testMetricLoggingDependencyFreeAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Delete, true);
+
+            Assert.AreEqual(2, result.Count());
+            Assert.IsTrue(result.Contains(testFromGroup));
+            Assert.IsTrue(result.Contains(testToGroup));
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQuery>());
             Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
@@ -2117,6 +2249,41 @@ namespace ApplicationAccess.Metrics.UnitTests
         }
 
         [Test]
+        public void GetEntityToUserMappings()
+        {
+            String testUser = "user1";
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity1 = "CompanyA";
+            String testEntity2 = "CompanyB";
+            testMetricLoggingDependencyFreeAccessManager.AddUser(testUser);
+            testMetricLoggingDependencyFreeAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingDependencyFreeAccessManager.AddUserToGroupMapping(testUser, testGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddEntity(testEntityType, testEntity1);
+            testMetricLoggingDependencyFreeAccessManager.AddEntity(testEntityType, testEntity2);
+            testMetricLoggingDependencyFreeAccessManager.AddUserToEntityMapping(testUser, testEntityType, testEntity1);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToEntityMapping(testGroup, testEntityType, testEntity2);
+            mockMetricLogger.ClearReceivedCalls();
+
+            IEnumerable<String> result = testMetricLoggingDependencyFreeAccessManager.GetEntityToUserMappings(testEntityType, testEntity1, false);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testUser));
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntityToUserMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+
+
+            mockMetricLogger.ClearReceivedCalls();
+
+            result = testMetricLoggingDependencyFreeAccessManager.GetEntityToUserMappings(testEntityType, testEntity2, true);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testUser));
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntityToUserMappingsWithIndirectMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
         public void RemoveUserToEntityMapping()
         {
             String testUser = "user1";
@@ -2363,6 +2530,43 @@ namespace ApplicationAccess.Metrics.UnitTests
 
             Assert.IsTrue(result.Contains(testEntity));
             mockMetricLogger.Received(1).Increment(Arg.Any<GetGroupToEntityMappingsForGroupAndEntityTypeQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetEntityToGroupMappings()
+        {
+            String testFromGroup = "group1";
+            String testToGroup = "group2";
+            String testEntityType = "ClientAccount";
+            String testEntity1 = "CompanyA";
+            String testEntity2 = "CompanyB";
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testFromGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroup(testToGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToGroupMapping(testFromGroup, testToGroup);
+            testMetricLoggingDependencyFreeAccessManager.AddEntityType(testEntityType);
+            testMetricLoggingDependencyFreeAccessManager.AddEntity(testEntityType, testEntity1);
+            testMetricLoggingDependencyFreeAccessManager.AddEntity(testEntityType, testEntity2);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToEntityMapping(testFromGroup, testEntityType, testEntity1);
+            testMetricLoggingDependencyFreeAccessManager.AddGroupToEntityMapping(testToGroup, testEntityType, testEntity2);
+            mockMetricLogger.ClearReceivedCalls();
+
+            IEnumerable<String> result = testMetricLoggingDependencyFreeAccessManager.GetEntityToGroupMappings(testEntityType, testEntity1, false);
+
+            Assert.AreEqual(1, result.Count());
+            Assert.IsTrue(result.Contains(testFromGroup));
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntityToGroupMappingsQuery>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+
+
+            mockMetricLogger.ClearReceivedCalls();
+
+            result = testMetricLoggingDependencyFreeAccessManager.GetEntityToGroupMappings(testEntityType, testEntity2, true);
+
+            Assert.AreEqual(2, result.Count());
+            Assert.IsTrue(result.Contains(testFromGroup));
+            Assert.IsTrue(result.Contains(testToGroup));
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntityToGroupMappingsWithIndirectMappingsQuery>());
             Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 

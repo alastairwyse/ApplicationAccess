@@ -40,6 +40,36 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
+        public HashSet<TUser> GetGroupToUserMappings(IEnumerable<TGroup> groups)
+        {
+            Func<IEnumerable<TGroup>, HashSet<TUser>> getGroupToUserMappingsFunc = (IEnumerable<TGroup> funcGroups) =>
+            {
+                var returnUsers = new HashSet<TUser>();
+                foreach (TGroup currentGroup in funcGroups)
+                {
+                    try
+                    {
+                        foreach (TUser currentUser in userToGroupMap.GetLeafReverseEdges(currentGroup))
+                        {
+                            if (returnUsers.Contains(currentUser) == false)
+                            {
+                                returnUsers.Add(currentUser);
+                            }
+                        }
+                    }
+                    catch (NonLeafVertexNotFoundException<TGroup>)
+                    {
+                        // Ignore and continue if 'currentGroup' doesn't exist in the map
+                    }
+                }
+
+                return returnUsers;
+            };
+
+           return metricLoggingWrapper.GetGroupToUserMappings(groups, getGroupToUserMappingsFunc);
+        }
+
+        /// <inheritdoc/>
         public virtual HashSet<TGroup> GetGroupToGroupMappings(IEnumerable<TGroup> groups)
         {
             Func<IEnumerable<TGroup>, HashSet<TGroup>> getGroupToGroupMappingsFunc = (IEnumerable<TGroup> funcGroups) =>
@@ -64,7 +94,7 @@ namespace ApplicationAccess.Distribution
                         }
                         catch (NonLeafVertexNotFoundException<TGroup>)
                         {
-                            // Ignore and continue if 'currentGroup' doesn't exist in the group
+                            // Ignore and continue if 'currentGroup' doesn't exist in the map
                         }
                     }
                 }
@@ -73,6 +103,46 @@ namespace ApplicationAccess.Distribution
             };
 
             return metricLoggingWrapper.GetGroupToGroupMappings(groups, getGroupToGroupMappingsFunc);
+        }
+
+        /// <inheritdoc/>
+        public HashSet<TGroup> GetGroupToGroupReverseMappings(IEnumerable<TGroup> groups)
+        {
+            Func<IEnumerable<TGroup>, HashSet<TGroup>> getGroupToGroupReverseMappingsFunc = (IEnumerable<TGroup> funcGroups) =>
+            {
+                var returnGroups = new HashSet<TGroup>();
+                foreach (TGroup currentGroup in funcGroups)
+                {
+                    if (returnGroups.Contains(currentGroup) == false)
+                    {
+                        Func<TGroup, Boolean> noneLeafvertexAction = (TGroup currentTraversalGroup) =>
+                        {
+                            if ((returnGroups.Contains(currentTraversalGroup) == false))
+                            {
+                                returnGroups.Add(currentTraversalGroup);
+                            }
+
+                            return true;
+                        }; 
+                        Func<TUser, Boolean> leafvertexAction = (TUser currentTraversalUser) =>
+                        {
+                            return true;
+                        };
+                        try
+                        {
+                            userToGroupMap.TraverseReverseFromNonLeaf(currentGroup, noneLeafvertexAction, leafvertexAction);
+                        }
+                        catch (NonLeafVertexNotFoundException<TGroup>)
+                        {
+                            // Ignore and continue if 'currentGroup' doesn't exist in the map
+                        }
+                    }
+                }
+
+                return returnGroups;
+            };
+
+            return metricLoggingWrapper.GetGroupToGroupReverseMappings(groups, getGroupToGroupReverseMappingsFunc);
         }
 
         /// <inheritdoc/>

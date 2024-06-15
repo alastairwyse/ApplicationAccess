@@ -262,6 +262,41 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetGroupToUserMappingsAsync()
+        {
+            const String testGroup = "group1";
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetGroupToUserMappings(testGroup, false).Returns(testUsers);
+
+            List<String> result = await testAccessManagerAsyncClient.GetGroupToUserMappingsAsync(testGroup, false);
+
+            mockUserQueryProcessor.Received(1).GetGroupToUserMappings(testGroup, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+
+
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetGroupToUserMappings(testGroup, true).Returns(testUsers);
+            groupStringifier.Reset();
+            userStringifier.Reset();
+
+            result = await testAccessManagerAsyncClient.GetGroupToUserMappingsAsync(testGroup, true);
+
+            mockUserQueryProcessor.Received(1).GetGroupToUserMappings(testGroup, true);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+        }
+
+        [Test]
         public async Task RemoveUserToGroupMappingAsync()
         {
             const String testUser = "user1";
@@ -299,6 +334,41 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             List<String> result = await testAccessManagerAsyncClient.GetGroupToGroupMappingsAsync(testFromGroup, false);
 
             mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(testFromGroup, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+            Assert.IsTrue(result.Contains("group4"));
+        }
+
+        [Test]
+        public async Task GetGroupToGroupReverseMappingsAsync()
+        {
+            const String testGroup = "group1";
+            var testReturnGroups = new HashSet<String>() { "group2", "group3", "group4" };
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(testGroup, false).Returns(testReturnGroups);
+
+            List<String> result = await testAccessManagerAsyncClient.GetGroupToGroupReverseMappingsAsync(testGroup, false);
+
+            mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(testGroup, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+            Assert.IsTrue(result.Contains("group4"));
+
+
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(testGroup, true).Returns(testReturnGroups);
+            groupStringifier.Reset();
+            userStringifier.Reset();
+
+            result = await testAccessManagerAsyncClient.GetGroupToGroupReverseMappingsAsync(testGroup, true);
+
+            mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(testGroup, true);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
             Assert.AreEqual(3, groupStringifier.FromStringCallCount);
             Assert.AreEqual(3, result.Count);
@@ -362,6 +432,45 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync()
+        {
+            const String testApplicationComponent = "ManageProductsScreen";
+            const String testAccessLevel = "View";
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, false).Returns(testUsers);
+
+            List<String> result =  await testAccessManagerAsyncClient.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
+
+            mockUserQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, false);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+
+
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, true).Returns(testUsers);
+            applicationComponentStringifier.Reset();
+            accessLevelStringifier.Reset();
+            userStringifier.Reset();
+
+            result = await testAccessManagerAsyncClient.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, true);
+
+            mockUserQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToUserMappings(testApplicationComponent, testAccessLevel, true);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+        }
+
+        [Test]
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync()
         {
             const String testUser = "user1";
@@ -416,6 +525,45 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.AreEqual("Create", result[0].Item2);
             Assert.AreEqual("SummaryScreen", result[1].Item1);
             Assert.AreEqual("View", result[1].Item2);
+        }
+
+        [Test]
+        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync()
+        {
+            const String testApplicationComponent = "ManageProductsScreen";
+            const String testAccessLevel = "View";
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, false).Returns(testGroups);
+
+            List<String> result = await testAccessManagerAsyncClient.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+
+            mockGroupQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, false);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+
+
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, true).Returns(testGroups);
+            applicationComponentStringifier.Reset();
+            accessLevelStringifier.Reset();
+            groupStringifier.Reset();
+
+            result = await testAccessManagerAsyncClient.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, true);
+
+            mockGroupQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToGroupMappings(testApplicationComponent, testAccessLevel, true);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
         }
 
         [Test]
@@ -601,6 +749,39 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetEntityToUserMappingsAsync()
+        {
+            const String testEntityType = "ClientAccount";
+            const String testEntity = "ClientA";
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntityToUserMappings(testEntityType, testEntity, false).Returns(testUsers);
+
+            List<String> result = await testAccessManagerAsyncClient.GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
+
+            mockUserQueryProcessor.Received(1).GetEntityToUserMappings(testEntityType, testEntity, false);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+
+
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntityToUserMappings(testEntityType, testEntity, true).Returns(testUsers);
+            userStringifier.Reset();
+
+            result = await testAccessManagerAsyncClient.GetEntityToUserMappingsAsync(testEntityType, testEntity, true);
+
+            mockUserQueryProcessor.Received(1).GetEntityToUserMappings(testEntityType, testEntity, true);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+        }
+
+        [Test]
         public async Task RemoveUserToEntityMappingAsync()
         {
             const String testUser = "user1";
@@ -670,6 +851,39 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("ClientA", result[0]);
             Assert.AreEqual("ClientB", result[1]);
+        }
+
+        [Test]
+        public async Task GetEntityToGroupMappingsAsync()
+        {
+            const String testEntityType = "ClientAccount";
+            const String testEntity = "ClientA";
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntityToGroupMappings(testEntityType, testEntity, false).Returns(testGroups);
+
+            List<String> result = await testAccessManagerAsyncClient.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+
+            mockGroupQueryProcessor.Received(1).GetEntityToGroupMappings(testEntityType, testEntity, false);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
+
+
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntityToGroupMappings(testEntityType, testEntity, true).Returns(testGroups);
+            groupStringifier.Reset();
+
+            result = await testAccessManagerAsyncClient.GetEntityToGroupMappingsAsync(testEntityType, testEntity, true);
+
+            mockGroupQueryProcessor.Received(1).GetEntityToGroupMappings(testEntityType, testEntity, true);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("group1"));
+            Assert.IsTrue(result.Contains("group2"));
+            Assert.IsTrue(result.Contains("group3"));
         }
 
         [Test]
@@ -962,8 +1176,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
 
             public MethodCallCountingStringUniqueStringifier()
             {
-                FromStringCallCount = 0;
-                ToStringCallCount = 0;
+                Reset();
             }
 
             /// <inheritdoc/>
@@ -980,6 +1193,15 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
                 ToStringCallCount++;
 
                 return inputObject;
+            }
+
+            /// <summary>
+            /// Resets the method call counts to 0.
+            /// </summary>
+            public void Reset()
+            {
+                FromStringCallCount = 0;
+                ToStringCallCount = 0;
             }
         }
 

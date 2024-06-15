@@ -23,7 +23,7 @@ namespace ApplicationAccess.Distribution
     /// <summary>
     /// Model/container class holding configuration which can be used to instantiate a distributed AccessManager async client.
     /// </summary>
-    /// <remarks>The client instantiated from this configuration should implement <see cref="IAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/>, <see cref="IAccessManagerAsyncEventProcessor{TUser, TGroup, TComponent, TAccess}"/>, and <see cref="IDistributedAccessManagerAsyncQueryProcessor{TGroup, TComponent, TAccess}"/>.</remarks>
+    /// <remarks>The client instantiated from this configuration should implement <see cref="IAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/>, <see cref="IAccessManagerAsyncEventProcessor{TUser, TGroup, TComponent, TAccess}"/>, and <see cref="IDistributedAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/>.</remarks>
     public interface IDistributedAccessManagerAsyncClientConfiguration
     {
         /// <summary>

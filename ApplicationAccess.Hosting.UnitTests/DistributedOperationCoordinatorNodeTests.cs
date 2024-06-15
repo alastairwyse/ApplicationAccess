@@ -215,6 +215,21 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
+        public async Task GetGroupToUserMappingsAsync()
+        {
+            String testUser = "user1";
+            String testGroup = "group1";
+            mockOperationCoordinator.GetGroupToUserMappingsAsync(testGroup, true).Returns(Task.FromResult<List<String>>(new List<String>() { testUser }));
+
+            List<String> result = await testDistributedOperationCoordinatorNode.GetGroupToUserMappingsAsync(testGroup, true);
+
+            mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
+            await mockOperationCoordinator.Received(1).GetGroupToUserMappingsAsync(testGroup, true);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreSame(testUser, result[0]);
+        }
+
+        [Test]
         public async Task RemoveUserToGroupMappingAsync()
         {
             String testUser = "user1";
@@ -250,6 +265,21 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
             await mockOperationCoordinator.Received(1).GetGroupToGroupMappingsAsync(testGroup, true);
             Assert.AreSame(testMappedGroups, result);
+        }
+
+        [Test]
+        public async Task GetGroupToGroupReverseMappingsAsync()
+        {
+            String testGroup1 = "group1";
+            String testGroup2 = "group2";
+            mockOperationCoordinator.GetGroupToGroupReverseMappingsAsync(testGroup2, true).Returns(Task.FromResult<List<String>>(new List<String>() { testGroup1 }));
+
+            List<String> result = await testDistributedOperationCoordinatorNode.GetGroupToGroupReverseMappingsAsync(testGroup2, true);
+
+            mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
+            await mockOperationCoordinator.Received(1).GetGroupToGroupReverseMappingsAsync(testGroup2, true);
+            Assert.AreSame(testGroup1, result[0]);
+            Assert.AreEqual(1, result.Count);
         }
 
         [Test]
@@ -296,6 +326,22 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
+        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync()
+        {
+            String testUser = "user";
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            mockOperationCoordinator.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, true).Returns(Task.FromResult<List<String>>(new List<String>() { testUser }));
+
+            List<String> result = await testDistributedOperationCoordinatorNode.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, true);
+
+            mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
+            await mockOperationCoordinator.Received(1).GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, true);
+            Assert.AreSame(testUser, result[0]);
+            Assert.AreEqual(1, result.Count);
+        }
+
+        [Test]
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync()
         {
             String testUser = "user1";
@@ -337,6 +383,22 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
             await mockOperationCoordinator.Received(1).GetGroupToApplicationComponentAndAccessLevelMappingsAsync(testGroup);
             Assert.AreSame(testMappedApplicationComponentsAndAccessLevels, result);
+        }
+
+        [Test]
+        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync()
+        {
+            String testGroup = "group";
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            mockOperationCoordinator.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, true).Returns(Task.FromResult<List<String>>(new List<String>() { testGroup }));
+
+            List<String> result = await testDistributedOperationCoordinatorNode.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, true);
+
+            mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
+            await mockOperationCoordinator.Received(1).GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, true);
+            Assert.AreSame(testGroup, result[0]);
+            Assert.AreEqual(1, result.Count);
         }
 
         [Test]
@@ -486,6 +548,22 @@ namespace ApplicationAccess.Hosting.UnitTests
         }
 
         [Test]
+        public async Task GetEntityToUserMappingsAsync()
+        {
+            String testUser = "user";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockOperationCoordinator.GetEntityToUserMappingsAsync(testEntityType, testEntity, true).Returns(Task.FromResult<List<String>>(new List<String>() { testUser }));
+
+            List<String> result = await testDistributedOperationCoordinatorNode.GetEntityToUserMappingsAsync(testEntityType, testEntity, true);
+
+            mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
+            await mockOperationCoordinator.Received(1).GetEntityToUserMappingsAsync(testEntityType, testEntity, true);
+            Assert.AreSame(testUser, result[0]);
+            Assert.AreEqual(1, result.Count);
+        }
+
+        [Test]
         public async Task RemoveUserToEntityMappingAsync()
         {
             String testUser = "user1";
@@ -542,6 +620,22 @@ namespace ApplicationAccess.Hosting.UnitTests
             mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
             await mockOperationCoordinator.Received(1).GetGroupToEntityMappingsAsync(testGroup, testEntityType);
             Assert.AreSame(testMappedEntities, result);
+        }
+
+        [Test]
+        public async Task GetEntityToGroupMappingsAsync()
+        {
+            String testGroup = "group";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockOperationCoordinator.GetEntityToGroupMappingsAsync(testEntityType, testEntity, true).Returns(Task.FromResult<List<String>>(new List<String>() { testGroup }));
+
+            List<String> result = await testDistributedOperationCoordinatorNode.GetEntityToGroupMappingsAsync(testEntityType, testEntity, true);
+
+            mockShardConfigurationRefreshStrategy.Received(1).NotifyOperationProcessed();
+            await mockOperationCoordinator.Received(1).GetEntityToGroupMappingsAsync(testEntityType, testEntity, true);
+            Assert.AreSame(testGroup, result[0]);
+            Assert.AreEqual(1, result.Count);
         }
 
         [Test]

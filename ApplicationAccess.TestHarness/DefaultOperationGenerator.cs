@@ -549,10 +549,24 @@ namespace ApplicationAccess.TestHarness
                     }
                 },
                 {
+                    AccessManagerOperation.GetEntityToGroupMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.EntityTypes, StorageStructure.Entities
+                    }
+                },
+                {
                     AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
                     new HashSet<StorageStructure>()
                     {
                         StorageStructure.Groups, StorageStructure.EntityTypes
+                    }
+                },
+                {
+                    AccessManagerOperation.GetApplicationComponentAndAccessLevelToGroupMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.ApplicationComponent, StorageStructure.AccessLevel
                     }
                 },
                 {
@@ -563,10 +577,24 @@ namespace ApplicationAccess.TestHarness
                     }
                 },
                 {
+                    AccessManagerOperation.GetGroupToGroupReverseMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups
+                    }
+                },
+                {
                     AccessManagerOperation.GetUserToApplicationComponentAndAccessLevelMappings,
                     new HashSet<StorageStructure>()
                     {
                         StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.GetApplicationComponentAndAccessLevelToUserMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.ApplicationComponent, StorageStructure.AccessLevel
                     }
                 },
                 {
@@ -584,10 +612,24 @@ namespace ApplicationAccess.TestHarness
                     }
                 },
                 {
+                    AccessManagerOperation.GetEntityToUserMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.EntityTypes, StorageStructure.Entities
+                    }
+                },
+                {
                     AccessManagerOperation.GetUserToGroupMappings,
                     new HashSet<StorageStructure>()
                     {
                         StorageStructure.Users
+                    }
+                },
+                {
+                    AccessManagerOperation.GetGroupToUserMappings,
+                    new HashSet<StorageStructure>()
+                    {
+                        StorageStructure.Groups
                     }
                 },
                 {
@@ -700,14 +742,20 @@ namespace ApplicationAccess.TestHarness
             getAndHasOperations.UnionWith(new AccessManagerOperation[]
             {
                 AccessManagerOperation.GetUserToGroupMappings,
+                AccessManagerOperation.GetGroupToUserMappings, 
                 AccessManagerOperation.GetGroupToGroupMappings,
+                AccessManagerOperation.GetGroupToGroupReverseMappings,
                 AccessManagerOperation.GetUserToApplicationComponentAndAccessLevelMappings,
+                AccessManagerOperation.GetApplicationComponentAndAccessLevelToUserMappings, 
                 AccessManagerOperation.GetGroupToApplicationComponentAndAccessLevelMappings,
+                AccessManagerOperation.GetApplicationComponentAndAccessLevelToGroupMappings,
                 AccessManagerOperation.GetEntities,
                 AccessManagerOperation.GetUserToEntityMappings,
                 AccessManagerOperation.GetUserToEntityMappingsEntityTypeOverload,
+                AccessManagerOperation.GetEntityToUserMappings,
                 AccessManagerOperation.GetGroupToEntityMappings,
                 AccessManagerOperation.GetGroupToEntityMappingsEntityTypeOverload,
+                AccessManagerOperation.GetEntityToGroupMappings,
                 AccessManagerOperation.HasAccessToApplicationComponent,
                 AccessManagerOperation.HasAccessToEntity,
                 AccessManagerOperation.GetApplicationComponentsAccessibleByUser,
