@@ -575,8 +575,16 @@ namespace ApplicationAccess.Distribution
                 }
                 metricLogger.End(beginId, new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
                 metricLogger.Increment(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQuery());
+                var returnList = new List<String>();
+                foreach(String currentReturnGroup in returnGroups)
+                {
+                    if (currentReturnGroup != group)
+                    {
+                        returnList.Add(currentReturnGroup);
+                    }
+                }
 
-                return new List<String>(returnGroups);
+                return returnList;
             }
         }
 

@@ -198,6 +198,24 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         }
 
         /// <summary>
+        /// Gets the users that are mapped to the specified group.
+        /// </summary>
+        /// <param name="group">The group to retrieve the users for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the group via other groups).</param>
+        /// <returns>A collection of mappings between a user and a group.</returns>
+        [HttpGet]
+        [Route("userToGroupMappings/group/{group}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async IAsyncEnumerable<UserAndGroup<String, String>> GetGroupToUserMappingsAsync([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentUser in await distributedAccessManagerOperationCoordinator.GetGroupToUserMappingsAsync(group, includeIndirectMappings))
+            {
+                yield return new UserAndGroup<String, String>(currentUser, group);
+            }
+        }
+
+        /// <summary>
         /// Removes the mapping between the specified user and group.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
@@ -243,6 +261,24 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetGroupToGroupMappingsAsync(group, includeIndirectMappings))
             {
                 yield return new FromGroupAndToGroup<String>(group, currentGroup);
+            }
+        }
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified group.
+        /// </summary>
+        /// <param name="group">The group to retrieve the mapped groups for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped from' group is itself mapped from further groups).</param>
+        /// <returns>A collection of mappings between two groups.</returns>
+        [HttpGet]
+        [Route("groupToGroupReverseMappings/group/{group}")]
+        [ApiExplorerSettings(GroupName = "GroupToGroupQueryProcessor")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async IAsyncEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupReverseMappingsAsync([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetGroupToGroupReverseMappingsAsync(group, includeIndirectMappings))
+            {
+                yield return new FromGroupAndToGroup<String>(currentGroup, group);
             }
         }
 
@@ -306,6 +342,25 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         }
 
         /// <summary>
+        /// Gets users that are mapped to the specific application component and access level pair.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to an application component and access level via groups).</param>
+        /// <returns>A collection of mappings between a user, and an application component and access level.</returns>
+        [HttpGet]
+        [Route("userToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async IAsyncEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentUser in await distributedAccessManagerOperationCoordinator.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings))
+            {
+                yield return new UserAndApplicationComponentAndAccessLevel<String, String, String>(currentUser, applicationComponent, accessLevel);
+            }
+        }
+
+        /// <summary>
         /// Removes a mapping between the specified user, application component, and level of access to that component.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
@@ -362,6 +417,25 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
                 yield return new GroupAndApplicationComponentAndAccessLevel<String, String, String>(group, currentTuple.Item1, currentTuple.Item2);
+            }
+        }
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified application component and access level pair.
+        /// </summary>
+        /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
+        /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to an application component and access level via other groups).</param>
+        /// <returns>A collection of mappings between a group, and an application component and access level.</returns>
+        [HttpGet]
+        [Route("groupToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async IAsyncEnumerable<GroupAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings))
+            {
+                yield return new GroupAndApplicationComponentAndAccessLevel<String, String, String>(currentGroup, applicationComponent, accessLevel);
             }
         }
 
@@ -545,6 +619,25 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         }
 
         /// <summary>
+        /// Gets the users that are mapped to the specified entity.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a user is mapped to the entity via groups).</param>
+        /// <returns>A collection of mappings between a user, and an entity type and entity.</returns>
+        [HttpGet]
+        [Route("userToEntityMappings/entityType/{entityType}/entity/{entity}")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async IAsyncEnumerable<UserAndEntity<String>> GetEntityToUserMappingsAsync([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentUser in await distributedAccessManagerOperationCoordinator.GetEntityToUserMappingsAsync(entityType, entity, includeIndirectMappings))
+            {
+                yield return new UserAndEntity<String>(currentUser, entityType, entity);
+            }
+        }
+
+        /// <summary>
         /// Removes a mapping between the specified user, and entity.
         /// </summary>
         /// <param name="user">The user in the mapping.</param>
@@ -629,6 +722,25 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             foreach (String currentEntity in methodReturnValue)
             {
                 yield return new GroupAndEntity<String>(group, entityType, currentEntity);
+            }
+        }
+
+        /// <summary>
+        /// Gets the groups that are mapped to the specified entity.
+        /// </summary>
+        /// <param name="entityType">The entity type to retrieve the mappings for.</param>
+        /// <param name="entity">The entity to retrieve the mappings for.</param>
+        /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where a group is mapped to the entity via other groups).</param>
+        /// <returns>A collection of mappings between a group, and an entity type and entity.</returns>
+        [HttpGet]
+        [Route("groupToEntityMappings/entityType/{entityType}/entity/{entity}")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async IAsyncEnumerable<GroupAndEntity<String>> GetEntityToGroupMappingsAsync([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
+        {
+            foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetEntityToGroupMappingsAsync(entityType, entity, includeIndirectMappings))
+            {
+                yield return new GroupAndEntity<String>(currentGroup, entityType, entity);
             }
         }
 

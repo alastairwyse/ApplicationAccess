@@ -1830,9 +1830,9 @@ namespace ApplicationAccess.Distribution.UnitTests
             };
             mockMetricLogger.Begin(Arg.Any<GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query).Returns(groupToGroupShardClientsAndDescriptions);
-            groupToGroupShard1ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>() { "group2", "group3", "group5" }));
+            groupToGroupShard1ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>() { "group1", "group2", "group3", "group5" }));
             groupToGroupShard2ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>()));
-            groupToGroupShard3ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>() { "group2", "group4", "group3" }));
+            groupToGroupShard3ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>() { "group1", "group2", "group4", "group3" }));
 
             List<String> result = await testOperationCoordinator.GetGroupToGroupReverseMappingsAsync(testGroup, true);
 
@@ -1885,9 +1885,9 @@ namespace ApplicationAccess.Distribution.UnitTests
             var mockException = new Exception("Mock exception");
             mockMetricLogger.Begin(Arg.Any<GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime>()).Returns(testBeginId);
             mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query).Returns(groupToGroupShardClientsAndDescriptions);
-            groupToGroupShard1ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>() { "group2", "group3", "group5" }));
+            groupToGroupShard1ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>() { "group1", "group2", "group3", "group5" }));
             groupToGroupShard2ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromException<List<String>>(mockException));
-            groupToGroupShard3ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>() { "group2", "group4", "group3" }));
+            groupToGroupShard3ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroupAsList))).Returns(Task.FromResult<List<String>>(new List<String>() { "group1", "group2", "group4", "group3" }));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
