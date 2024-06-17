@@ -422,7 +422,7 @@ namespace ApplicationAccess.Distribution
                 var mappedGroups = new HashSet<String>();
                 try
                 {
-                    (IEnumerable<String> reverseMappedGroups, Int32 returnGroupsCount) = await GetGroupToGroupReverseMappingsAsync(new List<String>() { group });
+                    IEnumerable<String> reverseMappedGroups = await GetGroupToGroupReverseMappingsAsync(new List<String>() { group });
                     mappedGroups.UnionWith(reverseMappedGroups);
                     if (mappedGroups.Contains(group) == false)
                     {
@@ -566,7 +566,7 @@ namespace ApplicationAccess.Distribution
                 Guid beginId = metricLogger.Begin(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
                 try
                 {
-                    (returnGroups, returnGroupsCount) = await GetGroupToGroupReverseMappingsAsync(new List<String>() { group });
+                    returnGroups = await GetGroupToGroupReverseMappingsAsync(new List<String>() { group });
                 }
                 catch
                 {
@@ -2069,8 +2069,8 @@ namespace ApplicationAccess.Distribution
         /// Gets a unique collection of all groups which are directly and indirectly mapped to the specified groups, by querying against all group to group mapping shards in the distributed environment.
         /// </summary>
         /// <param name="groups">The group to retrieve the mapped groups for.</param>
-        /// <returns>A tuple containing: a unique collection of groups which are directly and indirectly mapped to the specified groups, and a count of those groups.</returns>
-        protected async Task<(IEnumerable<String>, Int32)> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
+        /// <returns>A tuple containing: a unique collection of groups which are directly and indirectly mapped to the specified groups.</returns>
+        protected async Task<IEnumerable<String>> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
         {
             var returnGroups = new HashSet<String>();
             IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
@@ -2104,7 +2104,7 @@ namespace ApplicationAccess.Distribution
                 null
             );
 
-            return (returnGroups, returnGroups.Count);
+            return returnGroups;
         }
 
         /// <summary>
@@ -2162,8 +2162,8 @@ namespace ApplicationAccess.Distribution
         /// </summary>
         /// <param name="applicationComponent">The application component to retrieve the mappings for.</param>
         /// <param name="accessLevel">The access level to retrieve the mappings for.</param>
-        /// <returns>A collection of groups that are directly mapped to the specified application component and access level.</returns>
-        protected async Task<IEnumerable<String>> GetApplicationComponentAndAccessLevelToGroupDirectMappingsAsync(String applicationComponent, String accessLevel)
+        /// <returns>A collection of groups that are directly mapped to the specified application component and access level, and a count of those groups.</returns>
+        protected async Task<(IEnumerable<String>, Int32)> GetApplicationComponentAndAccessLevelToGroupDirectMappingsAsync(String applicationComponent, String accessLevel)
         {
             return await GetElementToGroupMappingsAsync
             (
@@ -2187,8 +2187,8 @@ namespace ApplicationAccess.Distribution
         /// </summary>
         /// <param name="entityType">The entity type to retrieve the mappings for.</param>
         /// <param name="entity">The entity to retrieve the mappings for.</param>
-        /// <returns>A collection of groups that are directly mapped to the specified entity.</returns>
-        protected async Task<IEnumerable<String>> GetEntityToGroupDirectMappingsAsync(String entityType, String entity)
+        /// <returns>A collection of groups that are directly mapped to the specified entity, and a count of those groups.</returns>
+        protected async Task<(IEnumerable<String>, Int32)> GetEntityToGroupDirectMappingsAsync(String entityType, String entity)
         {
             return await GetElementToGroupMappingsAsync
             (
@@ -2225,7 +2225,7 @@ namespace ApplicationAccess.Distribution
             String element2Value,
             Boolean includeIndirectMappings,
             Func<String, String, Task<IEnumerable<String>>> getElementToUserMappingsFunc,
-            Func<String, String, Task<IEnumerable<String>>> getElementToGroupMappingsFunc,
+            Func<String, String, Task<(IEnumerable<String>, Int32)>> getElementToGroupMappingsFunc,
             IntervalMetric intervalMetric,
             CountMetric countMetric
         )
@@ -2241,11 +2241,22 @@ namespace ApplicationAccess.Distribution
                 }
                 else
                 {
-                    IEnumerable<String> directlyMappedGroups = await getElementToGroupMappingsFunc(element1Value, element2Value);
-                    (IEnumerable<String> indirectlyMappedGroups, Int32 indirectlyMappedGroupsCount) = await GetGroupToGroupReverseMappingsAsync(directlyMappedGroups);
-                    var allGroups = new HashSet<String>(directlyMappedGroups);
-                    allGroups.UnionWith(indirectlyMappedGroups);
-                    (IEnumerable<String> indirectlyMappedUsers, Int32 indirectlyMappedUsersCount) = await GetGroupToUserMappingsAsync(allGroups);
+                    (IEnumerable<String> directlyMappedGroups, Int32 directlyMappedGroupsCount) = await getElementToGroupMappingsFunc(element1Value, element2Value);
+                    IEnumerable<String> indirectlyMappedGroups;
+                    IEnumerable<String> indirectlyMappedUsers;
+                    Int32 indirectlyMappedUsersCount;
+                    if (directlyMappedGroupsCount == 0)
+                    {
+                        indirectlyMappedGroups = Enumerable.Empty<String>();
+                        indirectlyMappedUsers = Enumerable.Empty<String>();
+                    }
+                    else
+                    {
+                        indirectlyMappedGroups = await GetGroupToGroupReverseMappingsAsync(directlyMappedGroups);
+                        var allGroups = new HashSet<String>(directlyMappedGroups);
+                        allGroups.UnionWith(indirectlyMappedGroups);
+                        (indirectlyMappedUsers, indirectlyMappedUsersCount) = await GetGroupToUserMappingsAsync(allGroups);
+                    }
                     var allUsers = new HashSet<String>(directlyMappedUsers);
                     allUsers.UnionWith(indirectlyMappedUsers);
                     returnUsers = new List<String>(allUsers);
@@ -2278,7 +2289,7 @@ namespace ApplicationAccess.Distribution
             String element1Value,
             String element2Value,
             Boolean includeIndirectMappings, 
-            Func<String, String, Task<IEnumerable<String>>> getElementToGroupMappingsFunc,
+            Func<String, String, Task<(IEnumerable<String>, Int32)>> getElementToGroupMappingsFunc,
             IntervalMetric intervalMetric = null,
             CountMetric countMetric = null
         )
@@ -2291,14 +2302,22 @@ namespace ApplicationAccess.Distribution
             }
             try
             {
-                IEnumerable<String> directlyMappedGroups = await getElementToGroupMappingsFunc(element1Value, element2Value);
+                (IEnumerable<String> directlyMappedGroups, Int32 directlyMappedGroupsCount) = await getElementToGroupMappingsFunc(element1Value, element2Value);
                 if (includeIndirectMappings == false)
                 {
                     returnGroups = new List<String>(directlyMappedGroups);
                 }
                 else
                 {
-                    (IEnumerable<String> indirectlyMappedGroups, Int32 indirectlyMappedGroupsCount) = await GetGroupToGroupReverseMappingsAsync(directlyMappedGroups);
+                    IEnumerable<String> indirectlyMappedGroups;
+                    if (directlyMappedGroupsCount == 0)
+                    {
+                        indirectlyMappedGroups = Enumerable.Empty<String>();
+                    }
+                    else
+                    {
+                        indirectlyMappedGroups = await GetGroupToGroupReverseMappingsAsync(directlyMappedGroups);
+                    }
                     var resultGroups = new HashSet<String>(directlyMappedGroups);
                     resultGroups.UnionWith(indirectlyMappedGroups);
                     returnGroups = new List<String>(resultGroups);
@@ -2386,9 +2405,9 @@ namespace ApplicationAccess.Distribution
         /// <param name="shardQueryFunc">A function which returns a task resolving to a list of groups and which is invoked against all group shards in the distributed environment.  Accepts three parameters: an instance of <see cref="IAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> which connects to the group shard, the first element in the mapped pair, and the second element in the mapped pair.</param>
         /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when executing a query.</param>
         /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "retrieve entity to group mappings from".</param>
-        /// <returns>The groups that are directly mapped to the pair of elements.</returns>
+        /// <returns>The groups that are directly mapped to the pair of elements, and a count of those groups.</returns>
         /// <remarks>This methods provides a common base for the implementation of methods GetApplicationComponentAndAccessLevelToGroupMappings() and GetEntityToGroupMappings() where parameter 'includeIndirectMappings' is set false.</remarks>
-        protected async Task<IEnumerable<String>> GetElementToGroupMappingsAsync<TElement1, TElement2>
+        protected async Task<(IEnumerable<String>, Int32)> GetElementToGroupMappingsAsync<TElement1, TElement2>
         (
             TElement1 element1Value, 
             TElement2 element2Value, 
@@ -2428,7 +2447,7 @@ namespace ApplicationAccess.Distribution
                 null
             );
 
-            return returnGroups;
+            return (returnGroups, returnGroups.Count);
         }
 
         /// <summary>

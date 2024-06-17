@@ -2332,6 +2332,116 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync_IncludeIndirectMappingsParameterTrueNoGroupMappingsExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var userShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShard1Description"
+            );
+            var userShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShard2Description"
+            );
+            var userShard3ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShard3Description"
+            );
+            var groupShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "groupShard1Description"
+            );
+            var groupShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "groupShard2Description"
+            );
+            var groupShard3ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "groupShard3Description"
+            );
+            var groupToGroupShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupShard1Description"
+            );
+            var groupToGroupShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupShard2Description"
+            );
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            var userShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                userShard1ClientAndDescription,
+                userShard2ClientAndDescription,
+                userShard3ClientAndDescription
+            };
+            var groupShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                groupShard1ClientAndDescription,
+                groupShard2ClientAndDescription,
+                groupShard3ClientAndDescription
+            };
+            var groupToGroupShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                groupToGroupShard1ClientAndDescription,
+                groupToGroupShard2ClientAndDescription
+            };
+            var mockException = new ArgumentException("A value for the 'groups' parameter or property was not provided.");
+            mockMetricLogger.Begin(Arg.Any<GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userShardClientsAndDescriptions);
+            userShard1ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>() { "user1", "user2" }));
+            userShard2ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            userShard3ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>() { "user2", "user3" }));
+            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupShardClientsAndDescriptions);
+            groupShard1ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            groupShard2ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            groupShard3ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            var testDirectlyMappedGroups = new List<String>();
+            mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query).Returns(groupToGroupShardClientsAndDescriptions);
+            groupToGroupShard1ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testDirectlyMappedGroups))).Returns(Task.FromException<List<String>>(mockException));
+            groupToGroupShard2ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testDirectlyMappedGroups))).Returns(Task.FromException<List<String>>(mockException));
+
+            List<String> result = await testOperationCoordinator.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, true);
+
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
+            await userShard1ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            await userShard2ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            await userShard3ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            await groupShard1ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            await groupShard2ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            await groupShard3ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            mockShardClientManager.DidNotReceive().GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
+            await groupToGroupShard1ClientAndDescription.Client.DidNotReceive().GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testDirectlyMappedGroups)));
+            await groupToGroupShard1ClientAndDescription.Client.DidNotReceive().GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testDirectlyMappedGroups)));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentAndAccessLevelToUserMappingsWithIndirectMappingsQuery>());
+            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShard3ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard3ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(0, groupToGroupShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(0, groupToGroupShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(3, result.Count); 
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+        }
+
+        [Test]
         public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync_IncludeIndirectMappingsParameterTrueExceptionWhenReadingEntityMappingsFromUserShards()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -3082,6 +3192,81 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.IsTrue(result.Contains("group5"));
             Assert.IsTrue(result.Contains("group6"));
             Assert.IsTrue(result.Contains("group7"));
+        }
+
+        [Test]
+        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync_IncludeIndirectMappingsParameterTrueNoGroupMappingsExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var groupShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShard1Description"
+            );
+            var groupShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShard2Description"
+            );
+            var groupShard3ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShard3Description"
+            );
+            var groupToGroupShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupShard1Description"
+            );
+            var groupToGroupShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupShard2Description"
+            );
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            var groupShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                groupShard1ClientAndDescription,
+                groupShard2ClientAndDescription,
+                groupShard3ClientAndDescription
+            };
+            var groupToGroupShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                groupToGroupShard1ClientAndDescription,
+                groupToGroupShard2ClientAndDescription
+            };
+            var mockException = new ArgumentException("A value for the 'groups' parameter or property was not provided.");
+            mockMetricLogger.Begin(Arg.Any<GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupShardClientsAndDescriptions);
+            groupShard1ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            groupShard2ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            groupShard3ClientAndDescription.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            var testMappedGroups = new List<String>();
+            mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query).Returns(groupToGroupShardClientsAndDescriptions);
+            groupToGroupShard1ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testMappedGroups))).Returns(Task.FromException<List<String>>(mockException));
+            groupToGroupShard2ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testMappedGroups))).Returns(Task.FromException<List<String>>(mockException));
+
+            List<String> result = await testOperationCoordinator.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, true);
+
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            await groupShard1ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            await groupShard2ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            await groupShard3ClientAndDescription.Client.Received(1).GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            mockShardClientManager.DidNotReceive().GetAllClients(DataElement.GroupToGroupMapping, Operation.Query); 
+            await groupToGroupShard1ClientAndDescription.Client.DidNotReceive().GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testMappedGroups)));
+            await groupToGroupShard2ClientAndDescription.Client.DidNotReceive().GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testMappedGroups)));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetApplicationComponentAndAccessLevelToGroupMappingsWithIndirectMappingsQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard3ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(0, groupToGroupShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(0, groupToGroupShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(0, result.Count);
         }
 
         [Test]
@@ -4849,6 +5034,116 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetEntityToUserMappingsAsync_IncludeIndirectMappingsParameterTrueNoGroupMappingsExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var userShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShard1Description"
+            );
+            var userShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShard2Description"
+            );
+            var userShard3ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShard3Description"
+            );
+            var groupShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "groupShard1Description"
+            );
+            var groupShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "groupShard2Description"
+            );
+            var groupShard3ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "groupShard3Description"
+            );
+            var groupToGroupShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupShard1Description"
+            );
+            var groupToGroupShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupShard2Description"
+            );
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            var userShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                userShard1ClientAndDescription,
+                userShard2ClientAndDescription,
+                userShard3ClientAndDescription
+            };
+            var groupShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                groupShard1ClientAndDescription,
+                groupShard2ClientAndDescription,
+                groupShard3ClientAndDescription
+            };
+            var groupToGroupShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                groupToGroupShard1ClientAndDescription,
+                groupToGroupShard2ClientAndDescription
+            };
+            var mockException = new ArgumentException("A value for the 'groups' parameter or property was not provided.");
+            mockMetricLogger.Begin(Arg.Any<GetEntityToUserMappingsWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userShardClientsAndDescriptions);
+            userShard1ClientAndDescription.Client.GetEntityToUserMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>() { "user1", "user2" }));
+            userShard2ClientAndDescription.Client.GetEntityToUserMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            userShard3ClientAndDescription.Client.GetEntityToUserMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>() { "user2", "user3" }));
+            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupShardClientsAndDescriptions);
+            groupShard1ClientAndDescription.Client.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            groupShard2ClientAndDescription.Client.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            groupShard3ClientAndDescription.Client.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            var testDirectlyMappedGroups = new List<String>();
+            mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query).Returns(groupToGroupShardClientsAndDescriptions);
+            groupToGroupShard1ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testDirectlyMappedGroups))).Returns(Task.FromException<List<String>>(mockException));
+            groupToGroupShard2ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testDirectlyMappedGroups))).Returns(Task.FromException<List<String>>(mockException));
+
+            List<String> result = await testOperationCoordinator.GetEntityToUserMappingsAsync(testEntityType, testEntity, true);
+
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
+            await userShard1ClientAndDescription.Client.Received(1).GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
+            await userShard2ClientAndDescription.Client.Received(1).GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
+            await userShard3ClientAndDescription.Client.Received(1).GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            await groupShard1ClientAndDescription.Client.Received(1).GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+            await groupShard2ClientAndDescription.Client.Received(1).GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+            await groupShard3ClientAndDescription.Client.Received(1).GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+            mockShardClientManager.DidNotReceive().GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
+            await groupToGroupShard1ClientAndDescription.Client.DidNotReceive().GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testDirectlyMappedGroups)));
+            await groupToGroupShard1ClientAndDescription.Client.DidNotReceive().GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testDirectlyMappedGroups)));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetEntityToUserMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntityToUserMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntityToUserMappingsWithIndirectMappingsQuery>());
+            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShard3ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard3ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(0, groupToGroupShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(0, groupToGroupShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+        }
+
+        [Test]
         public async Task GetEntityToUserMappingsAsync_IncludeIndirectMappingsParameterTrueExceptionWhenReadingEntityMappingsFromUserShards()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -6007,6 +6302,81 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.IsTrue(result.Contains("group5"));
             Assert.IsTrue(result.Contains("group6"));
             Assert.IsTrue(result.Contains("group7"));
+        }
+
+        [Test]
+        public async Task GetEntityToGroupMappingsAsync_IncludeIndirectMappingsParameterTrueNoGroupMappingsExist()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var groupShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShard1Description"
+            );
+            var groupShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShard2Description"
+            );
+            var groupShard3ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupShard3Description"
+            );
+            var groupToGroupShard1ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupShard1Description"
+            );
+            var groupToGroupShard2ClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "GroupToGroupShard2Description"
+            );
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            var groupShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                groupShard1ClientAndDescription,
+                groupShard2ClientAndDescription,
+                groupShard3ClientAndDescription
+            };
+            var groupToGroupShardClientsAndDescriptions = new List<DistributedClientAndShardDescription>()
+            {
+                groupToGroupShard1ClientAndDescription,
+                groupToGroupShard2ClientAndDescription
+            };
+            var mockException = new ArgumentException("A value for the 'groups' parameter or property was not provided.");
+            mockMetricLogger.Begin(Arg.Any<GetEntityToGroupMappingsWithIndirectMappingsQueryTime>()).Returns(testBeginId);
+            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupShardClientsAndDescriptions);
+            groupShard1ClientAndDescription.Client.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            groupShard2ClientAndDescription.Client.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            groupShard3ClientAndDescription.Client.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(new List<String>()));
+            var testMappedGroups = new List<String>();
+            mockShardClientManager.GetAllClients(DataElement.GroupToGroupMapping, Operation.Query).Returns(groupToGroupShardClientsAndDescriptions);
+            groupToGroupShard1ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testMappedGroups))).Returns(Task.FromException<List<String>>(mockException));
+            groupToGroupShard2ClientAndDescription.Client.GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testMappedGroups))).Returns(Task.FromException<List<String>>(mockException));
+
+            List<String> result = await testOperationCoordinator.GetEntityToGroupMappingsAsync(testEntityType, testEntity, true);
+
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            await groupShard1ClientAndDescription.Client.Received(1).GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+            await groupShard2ClientAndDescription.Client.Received(1).GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+            await groupShard3ClientAndDescription.Client.Received(1).GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+            mockShardClientManager.DidNotReceive().GetAllClients(DataElement.GroupToGroupMapping, Operation.Query);
+            await groupToGroupShard1ClientAndDescription.Client.DidNotReceive().GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testMappedGroups)));
+            await groupToGroupShard2ClientAndDescription.Client.DidNotReceive().GetGroupToGroupReverseMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testMappedGroups)));
+            mockMetricLogger.Received(1).Begin(Arg.Any<GetEntityToGroupMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<GetEntityToGroupMappingsWithIndirectMappingsQueryTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<GetEntityToGroupMappingsWithIndirectMappingsQuery>());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, groupShard3ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(0, groupToGroupShard1ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(0, groupToGroupShard2ClientAndDescription.Client.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(0, result.Count);
         }
 
         [Test]
