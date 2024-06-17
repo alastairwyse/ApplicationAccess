@@ -87,7 +87,7 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
         /// <inheritdoc/>
         protected override DependencyFreeReaderWriterNode<String, String, String, String> InitializeReaderWriterNodeWithMetricLogging()
         {
-            return new DependencyFreeReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister);
+            return new DependencyFreeReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, metricLogger);
         }
 
         #endregion
