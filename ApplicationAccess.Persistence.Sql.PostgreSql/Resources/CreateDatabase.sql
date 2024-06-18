@@ -103,6 +103,7 @@ CREATE TABLE public.UserToApplicationComponentAndAccessLevelMappings
 );
 
 CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsUserIndex ON public.UserToApplicationComponentAndAccessLevelMappings (UserId, ApplicationComponentId, AccessLevelId, TransactionTo);
+CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsCompIndex ON public.UserToApplicationComponentAndAccessLevelMappings (ApplicationComponentId, AccessLevelId, TransactionTo);
 CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsTransIndex ON public.UserToApplicationComponentAndAccessLevelMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.GroupToApplicationComponentAndAccessLevelMappings
@@ -116,6 +117,7 @@ CREATE TABLE public.GroupToApplicationComponentAndAccessLevelMappings
 );
 
 CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsGroupIndex ON public.GroupToApplicationComponentAndAccessLevelMappings (GroupId, ApplicationComponentId, AccessLevelId, TransactionTo);
+CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsCompIndex ON public.GroupToApplicationComponentAndAccessLevelMappings (ApplicationComponentId, AccessLevelId, TransactionTo);
 CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsTransIndex ON public.GroupToApplicationComponentAndAccessLevelMappings (TransactionTo, TransactionFrom);
 
 CREATE TABLE public.EntityTypes
