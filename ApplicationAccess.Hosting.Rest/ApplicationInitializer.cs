@@ -42,15 +42,11 @@ namespace ApplicationAccess.Hosting.Rest
         /// <summary>The ASP.NET core environment variable to use for integration testing of the component.</summary>
         public static readonly String IntegrationTestingEnvironmentName = "IntegrationTesting";
 
-        /// <summary>Action which (optionally) initializes <see cref="TripSwitchMiddleware{TTripException}"/> on the component.  Accepts a single parameter which is the <see cref="WebApplication"/> hosting the component.</summary>
-        protected Action<WebApplication> tripSwitchInitializationAction;
-
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.ApplicationInitializer class.
         /// </summary>
         public ApplicationInitializer()
         {
-            tripSwitchInitializationAction = (WebApplication app) => { };
         }
 
         /// <summary>
@@ -169,6 +165,14 @@ namespace ApplicationAccess.Hosting.Rest
                 builder.Services.AddSingleton(currentProcessorHolderType);
             }
 
+            // Create and register the TripSwitchActuator
+            TripSwitchActuator tripSwitchActuator = null;
+            if (parameters.TripSwitchTrippedException != null)
+            {
+                tripSwitchActuator = new TripSwitchActuator();
+                builder.Services.AddSingleton<TripSwitchActuator>(tripSwitchActuator);
+            }
+
             // Register the hosted service wrapper
             if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
             {
@@ -222,35 +226,18 @@ namespace ApplicationAccess.Hosting.Rest
             }
             middlewareUtilities.SetupExceptionHandler(app, errorHandlingOptions, exceptionToHttpStatusCodeConverter, exceptionToHttpErrorResponseConverter);
 
-            // Add TripSwitchMiddleware if configured
-            tripSwitchInitializationAction.Invoke(app);
+            // Add TripSwitchMiddleware
+            if (parameters.TripSwitchTrippedException != null)
+            {
+                app.UseTripSwitch(tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
+                app.Lifetime.ApplicationStopped.Register(() => { tripSwitchActuator.Dispose(); });
+            }
 
             app.UseAuthorization();
 
             app.MapControllers();
 
             return app;
-        }
-
-        /// <summary>
-        /// Initializes the component with <see cref="TripSwitchMiddleware{TTripException}"/> enabled.
-        /// </summary>
-        /// <typeparam name="THostedService">The type of the hosted service which underlies the component, and should be registered using the <see cref="ServiceCollectionHostedServiceExtensions.AddHostedService{THostedService}(IServiceCollection)"/> method.</typeparam>
-        /// <typeparam name="TTripSwitchTripException">The type of the critical exception which 'trips' the trip switch.</typeparam>
-        /// <param name="parameters">A collection of parameters used to initialize the component.</param>
-        /// <returns>A <see cref="WebApplication"/> initialized and ready to host the component.</returns>
-        public WebApplication Initialize<THostedService, TTripSwitchTripException>(ApplicationInitializerParameters parameters)
-            where THostedService : class, IHostedService
-            where TTripSwitchTripException : Exception
-        {
-            if (parameters.TripSwitchTrippedException == null)
-                ThrowExceptionIfParametersPropertyIsNull(parameters.TripSwitchTrippedException, nameof(parameters.TripSwitchTrippedException), nameof(parameters));
-
-            tripSwitchInitializationAction = (WebApplication app) => 
-            {
-                app.UseTripSwitch<TTripSwitchTripException>(parameters.TripSwitchTrippedException);
-            };
-            return Initialize<THostedService>(parameters);
         }
 
         #region Private/Protected Methods

@@ -16,6 +16,8 @@
 
 using System;
 using System.Threading;
+using ApplicationAccess.Distribution;
+using ApplicationAccess.Persistence;
 using NUnit.Framework;
 
 namespace ApplicationAccess.Hosting.UnitTests
@@ -33,7 +35,7 @@ namespace ApplicationAccess.Hosting.UnitTests
         [SetUp]
         protected void SetUp()
         {
-            testLoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(250);
+            testLoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(250, (ShardConfigurationRefreshException shardConfigurationRefreshException) => { });
         }
 
         [Test]
@@ -41,29 +43,11 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testLoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(0);
+                testLoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(0, (ShardConfigurationRefreshException shardConfigurationRefreshException) => { });
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'refreshLoopInterval' with value 0 cannot be less than 1."));
             Assert.AreEqual("refreshLoopInterval", e.ParamName);
-        }
-
-        [Test]
-        public void NotifyOperationProcessed_ExceptionOccurredOnWorkerThread()
-        {
-            var mockException = new Exception("Worker thread refresh exception.");
-            testLoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.ShardConfigurationRefreshed += (Object sender, EventArgs e) => { throw mockException; };
-            testLoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.Start();
-            // Wait for the worker thread loop iterval to elapse
-            Thread.Sleep(500);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                testLoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.NotifyOperationProcessed();
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on shard configuration refreshing worker thread at "));
-            Assert.AreEqual(e.InnerException, mockException);
         }
     }
 }

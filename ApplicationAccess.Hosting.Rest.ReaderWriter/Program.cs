@@ -74,7 +74,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 {
                     typeof(ServiceUnavailableException)
                 },
-                // Setup TripSwitchMiddleware to trip on encounterting a BufferFlushingException
+                // Setup TripSwitchMiddleware 
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
                 // Optionally setup file logging
                 LogFilePath = @"C:\Temp\AppAccess\TestHarness",
@@ -82,9 +82,9 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             };
 
             var initializer = new ApplicationInitializer();
-            WebApplication app = initializer.Initialize<ReaderWriterNodeHostedServiceWrapper, BufferFlushingException>(parameters);
-            //WebApplication app = initializer.Initialize<NullEventPersistingReaderWriterNodeHostedServiceWrapper, BufferFlushingException>(parameters);
-            //WebApplication app = initializer.Initialize<JsonEventWritingReaderWriterNodeHostedServiceWrapper, BufferFlushingException>(parameters);
+            WebApplication app = initializer.Initialize<ReaderWriterNodeHostedServiceWrapper>(parameters);
+            //WebApplication app = initializer.Initialize<NullEventPersistingReaderWriterNodeHostedServiceWrapper>(parameters);
+            //WebApplication app = initializer.Initialize<JsonEventWritingReaderWriterNodeHostedServiceWrapper>(parameters);
 
             app.Run();
         }

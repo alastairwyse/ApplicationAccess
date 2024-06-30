@@ -124,7 +124,6 @@ namespace ApplicationAccess.Hosting
         {
             get
             {
-                refreshStrategy.NotifyQueryMethodCalled();
                 return concurrentAccessManager.Users;
             }
         }
@@ -135,7 +134,6 @@ namespace ApplicationAccess.Hosting
         {
             get
             {
-                refreshStrategy.NotifyQueryMethodCalled();
                 return concurrentAccessManager.Groups;
             }
         }
@@ -146,7 +144,6 @@ namespace ApplicationAccess.Hosting
         {
             get
             {
-                refreshStrategy.NotifyQueryMethodCalled();
                 return concurrentAccessManager.EntityTypes;
             }
         }
@@ -155,7 +152,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean ContainsUser(TUser user)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.ContainsUser(user);
         }
 
@@ -163,7 +159,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean ContainsGroup(TGroup group)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.ContainsGroup(group);
         }
 
@@ -171,7 +166,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TGroup> GetUserToGroupMappings(TUser user, Boolean includeIndirectMappings)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetUserToGroupMappings(user, includeIndirectMappings);
         }
 
@@ -179,7 +173,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TUser> GetGroupToUserMappings(TGroup group, Boolean includeIndirectMappings)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToUserMappings(group, includeIndirectMappings);
         }
 
@@ -187,7 +180,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TGroup> GetGroupToGroupMappings(TGroup group, Boolean includeIndirectMappings)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToGroupMappings(group, includeIndirectMappings);
         }
 
@@ -195,7 +187,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TGroup> GetGroupToGroupReverseMappings(TGroup group, Boolean includeIndirectMappings)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToGroupReverseMappings(group, includeIndirectMappings);
         }
 
@@ -203,7 +194,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappings(TUser user)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetUserToApplicationComponentAndAccessLevelMappings(user);
         }
 
@@ -211,7 +201,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
@@ -219,7 +208,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappings(TGroup group)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToApplicationComponentAndAccessLevelMappings(group);
         }
 
@@ -227,7 +215,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappings(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetApplicationComponentAndAccessLevelToGroupMappings(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
@@ -235,7 +222,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean ContainsEntityType(String entityType)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.ContainsEntityType(entityType);
         }
 
@@ -243,7 +229,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<String> GetEntities(String entityType)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntities(entityType);
         }
 
@@ -251,7 +236,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean ContainsEntity(String entityType, String entity)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.ContainsEntity(entityType, entity);
         }
 
@@ -259,7 +243,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<String, String>> GetUserToEntityMappings(TUser user)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetUserToEntityMappings(user);
         }
 
@@ -267,7 +250,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<String> GetUserToEntityMappings(TUser user, String entityType)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetUserToEntityMappings(user, entityType);
         }
 
@@ -275,7 +257,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<TUser> GetEntityToUserMappings(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntityToUserMappings(entityType, entity, includeIndirectMappings);
         }
 
@@ -283,7 +264,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<Tuple<String, String>> GetGroupToEntityMappings(TGroup group)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToEntityMappings(group);
         }
 
@@ -291,7 +271,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<String> GetGroupToEntityMappings(TGroup group, String entityType)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToEntityMappings(group, entityType);
         }
 
@@ -299,7 +278,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public IEnumerable<TGroup> GetEntityToGroupMappings(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntityToGroupMappings(entityType, entity, includeIndirectMappings);
         }
 
@@ -307,7 +285,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean HasAccessToApplicationComponent(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
         }
 
@@ -315,7 +292,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public Boolean HasAccessToEntity(TUser user, String entityType, String entity)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.HasAccessToEntity(user, entityType, entity);
         }
 
@@ -323,7 +299,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUser(TUser user)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetApplicationComponentsAccessibleByUser(user);
         }
 
@@ -331,7 +306,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroup(TGroup group)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetApplicationComponentsAccessibleByGroup(group);
         }
 
@@ -339,7 +313,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<Tuple<String, String>> GetEntitiesAccessibleByUser(TUser user)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntitiesAccessibleByUser(user);
         }
 
@@ -347,7 +320,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<String> GetEntitiesAccessibleByUser(TUser user, String entityType)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntitiesAccessibleByUser(user, entityType);
         }
 
@@ -355,7 +327,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroup(TGroup group)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntitiesAccessibleByGroup(group);
         }
 
@@ -363,7 +334,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<String> GetEntitiesAccessibleByGroup(TGroup group, String entityType)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntitiesAccessibleByGroup(group, entityType);
         }
 

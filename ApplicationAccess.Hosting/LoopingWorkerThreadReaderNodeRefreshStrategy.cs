@@ -27,10 +27,10 @@ namespace ApplicationAccess.Hosting
     {
         /// <summary>Worker thread which implements the strategy to refresh the contents of reader node.</summary>
         protected Thread readerNodeRefreshWorkerThread;
-        /// <summary>Set with any exception which occurrs on the worker thread when refreshing the reader node (including stack trace and context info provided by the <see cref="ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
-        protected ExceptionDispatchInfo refreshExceptionDispatchInfo;
         /// <summary>The time to wait (in milliseconds) between reader node refreshes.</summary>
         protected Int32 refreshLoopInterval;
+        /// <summary>An action to invoke if an error occurs when refreshing the reader node.  Accepts a single parameter which is the <see cref="ReaderNodeRefreshException"/> containing details of the error.</summary>
+        protected Action<ReaderNodeRefreshException> refreshExceptionAction;
         /// <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
         protected volatile Boolean stopMethodCalled;
         /// <summary>Signal that is set after the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
@@ -47,13 +47,14 @@ namespace ApplicationAccess.Hosting
         /// Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy class.
         /// </summary>
         /// <param name="refreshLoopInterval">The time to wait (in milliseconds) between reader node refreshes.</param>
-        public LoopingWorkerThreadReaderNodeRefreshStrategy(Int32 refreshLoopInterval)
+        /// <param name="refreshExceptionAction">An action to invoke if an error occurs when refreshing the reader node.  Accepts a single parameter which is the <see cref="ReaderNodeRefreshException"/> containing details of the error.</param>
+        public LoopingWorkerThreadReaderNodeRefreshStrategy(Int32 refreshLoopInterval, Action<ReaderNodeRefreshException> refreshExceptionAction)
         {
             if (refreshLoopInterval < 1)
                 throw new ArgumentOutOfRangeException(nameof(refreshLoopInterval), $"Parameter '{nameof(refreshLoopInterval)}' with value {refreshLoopInterval} cannot be less than 1.");
 
             this.refreshLoopInterval = refreshLoopInterval;
-            refreshExceptionDispatchInfo = null;
+            this.refreshExceptionAction = refreshExceptionAction;
             stopMethodCalled = false;
             workerThreadCompleteSignal = null;
             disposed = false;
@@ -63,21 +64,15 @@ namespace ApplicationAccess.Hosting
         /// Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy class.
         /// </summary>
         /// <param name="refreshLoopInterval">The time to wait (in milliseconds) between reader node refreshes.</param>
+        /// <param name="refreshExceptionAction">An action to invoke if an error occurs when refreshing the reader node.  Accepts a single parameter which is the <see cref="ReaderNodeRefreshException"/> containing details of the error.</param>
         /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
         /// <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public LoopingWorkerThreadReaderNodeRefreshStrategy(Int32 refreshLoopInterval, ManualResetEvent workerThreadCompleteSignal, Int32 flushLoopIterationCount)
-            : this(refreshLoopInterval)
+        public LoopingWorkerThreadReaderNodeRefreshStrategy(Int32 refreshLoopInterval, Action<ReaderNodeRefreshException> refreshExceptionAction, ManualResetEvent workerThreadCompleteSignal, Int32 flushLoopIterationCount)
+            : this(refreshLoopInterval, refreshExceptionAction)
         {
             this.workerThreadCompleteSignal = workerThreadCompleteSignal;
             this.flushLoopIterationCount = flushLoopIterationCount;
-        }
-
-        /// <inheritdoc/>
-        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
-        public void NotifyQueryMethodCalled()
-        {
-            CheckAndThrowRefreshException();
         }
 
         /// <summary>
@@ -97,7 +92,8 @@ namespace ApplicationAccess.Hosting
                     catch (Exception e)
                     {
                         var wrappedException = new ReaderNodeRefreshException($"Exception occurred on reader node refreshing worker thread at {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
-                        Interlocked.Exchange(ref refreshExceptionDispatchInfo, ExceptionDispatchInfo.Capture(wrappedException));
+                        refreshExceptionAction.Invoke(wrappedException);
+                        stopMethodCalled = true;
                     }
                     // If the code is being tested, break out of processing after the specified number of iterations
                     if (workerThreadCompleteSignal != null)
@@ -126,13 +122,9 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public void Stop()
         {
-            // Check whether any exceptions have occurred on the worker thread and re-throw
-            CheckAndThrowRefreshException();
             stopMethodCalled = true;
             // Wait for the worker thread to finish
             JoinWorkerThread();
-            // Check for exceptions again incase one occurred after joining the worker thread
-            CheckAndThrowRefreshException();
         }
 
         #region Private/Protected Methods
@@ -157,17 +149,6 @@ namespace ApplicationAccess.Hosting
             if (readerNodeRefreshWorkerThread != null)
             {
                 readerNodeRefreshWorkerThread.Join();
-            }
-        }
-
-        /// <summary>
-        /// Checks whether property 'refreshExceptionDispatchInfo' has been set, and re-throws the exception in the case that it has.
-        /// </summary>
-        protected void CheckAndThrowRefreshException()
-        {
-            if (refreshExceptionDispatchInfo != null)
-            {
-                refreshExceptionDispatchInfo.Throw();
             }
         }
 

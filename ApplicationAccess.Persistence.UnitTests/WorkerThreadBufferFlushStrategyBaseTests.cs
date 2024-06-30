@@ -34,6 +34,9 @@ namespace ApplicationAccess.Persistence.UnitTests
 
         private ManualResetEvent workerThreadCompleteSignal;
         private EventHandler flushHandler;
+        private BufferFlushingException testFlushingException;
+        private Int32 flushingExceptionActionCallCount;
+        private Action<BufferFlushingException> testFlushingExceptionAction;
         private SizeLimitedBufferFlushStrategy testSizeLimitedBufferFlushStrategy;
         private Int32 flushEventsRaised;
         private Int32 millisecondsToWaitBeforeStop;
@@ -44,7 +47,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             millisecondsToWaitBeforeStop = 250;
             flushEventsRaised = 0;
             workerThreadCompleteSignal = new ManualResetEvent(false);
-            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(3, new NullMetricLogger(), workerThreadCompleteSignal);
+            testFlushingException = null;
+            flushingExceptionActionCallCount = 0;
+            testFlushingExceptionAction = (BufferFlushingException bufferFlushingException) =>
+            {
+                testFlushingException = bufferFlushingException;
+                flushingExceptionActionCallCount++;
+            };
+            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(3, new NullMetricLogger(), testFlushingExceptionAction, workerThreadCompleteSignal);
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;
@@ -98,29 +108,6 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         [Test]
-        public void SetUserEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;            
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
-        }
-
-        [Test]
         public void SetGroupEventBufferItemCount_ValueLessThan0()
         {
             ArgumentOutOfRangeException e = Assert.Throws<ArgumentOutOfRangeException>(delegate
@@ -130,29 +117,6 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             Assert.That(e.Message, Does.StartWith("Parameter 'value' with value -1 cannot be less than 0."));
             Assert.AreEqual("value", e.ParamName);
-        }
-
-        [Test]
-        public void SetGroupEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
         }
 
         [Test]
@@ -168,29 +132,6 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         [Test]
-        public void SetUserToGroupMappingEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.UserToGroupMappingEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
-        }
-
-        [Test]
         public void SetGroupToGroupMappingEventBufferItemCount_ValueLessThan0()
         {
             ArgumentOutOfRangeException e = Assert.Throws<ArgumentOutOfRangeException>(delegate
@@ -200,29 +141,6 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             Assert.That(e.Message, Does.StartWith("Parameter 'value' with value -1 cannot be less than 0."));
             Assert.AreEqual("value", e.ParamName);
-        }
-
-        [Test]
-        public void SetGroupToGroupMappingEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
         }
 
         [Test]
@@ -238,29 +156,6 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         [Test]
-        public void SetUserToApplicationComponentAndAccessLevelMappingEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
-        }
-
-        [Test]
         public void SetGroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount_ValueLessThan0()
         {
             ArgumentOutOfRangeException e = Assert.Throws<ArgumentOutOfRangeException>(delegate
@@ -270,29 +165,6 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             Assert.That(e.Message, Does.StartWith("Parameter 'value' with value -1 cannot be less than 0."));
             Assert.AreEqual("value", e.ParamName);
-        }
-
-        [Test]
-        public void SetGroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
         }
 
         [Test]
@@ -308,29 +180,6 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         [Test]
-        public void SetEntityTypeEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
-        }
-
-        [Test]
         public void SetEntityEventBufferItemCount_ValueLessThan0()
         {
             ArgumentOutOfRangeException e = Assert.Throws<ArgumentOutOfRangeException>(delegate
@@ -340,29 +189,6 @@ namespace ApplicationAccess.Persistence.UnitTests
 
             Assert.That(e.Message, Does.StartWith("Parameter 'value' with value -1 cannot be less than 0."));
             Assert.AreEqual("value", e.ParamName);
-        }
-
-        [Test]
-        public void SetEntityEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.EntityEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
         }
 
         [Test]
@@ -378,29 +204,6 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         [Test]
-        public void SetUserToEntityMappingEventBufferItemCount_ExceptionOccursOnWorkerThread()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
-        }
-
-        [Test]
         public void SetGroupToEntityMappingEventBufferItemCount_ValueLessThan0()
         {
             ArgumentOutOfRangeException e = Assert.Throws<ArgumentOutOfRangeException>(delegate
@@ -413,68 +216,42 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         [Test]
-        public void SetGroupToEntityMappingEventBufferItemCount_ExceptionOccursOnWorkerThread()
+        public void BufferFlushingAction_ExceptionOnWorkerThread()
         {
             const string exceptionMessage = "Mock worker thread exception.";
             testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
+            var flushInnerException = new Exception(exceptionMessage);
+            flushHandler = (Object sender, EventArgs e) => { throw flushInnerException; };
             testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
             testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
             testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
+
             testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to process the above buffered events
-            Thread.Sleep(millisecondsToWaitBeforeStop);
 
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
+            workerThreadCompleteSignal.WaitOne();
+            Assert.NotNull(testFlushingException);
+            Assert.That(testFlushingException.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
+            Assert.AreSame(testFlushingException.InnerException, flushInnerException);
+            Assert.AreEqual(1, flushingExceptionActionCallCount);
         }
 
         [Test]
-        public void Stop_ExceptionOccurredOnWorkerThread()
+        public void BufferFlushingAction_ExceptionOccursOnWorkerThreadProcessingRemainingEventsAfterStop()
         {
             const string exceptionMessage = "Mock worker thread exception.";
             testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
+            var flushInnerException = new Exception(exceptionMessage);
+            flushHandler = (Object sender, EventArgs e) => { throw flushInnerException; };
             testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
-            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
-            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
-            // Sleep to try to ensure the worker thread has enough time to throw the exception
-            Thread.Sleep(millisecondsToWaitBeforeStop);
-
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
-            });
-
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
-        }
-
-        [Test]
-        public void Stop_ExceptionOccursOnWorkerThreadProcessingRemainingEvents()
-        {
-            const string exceptionMessage = "Mock worker thread exception.";
-            testSizeLimitedBufferFlushStrategy.BufferFlushed -= flushHandler;
-            flushHandler = (Object sender, EventArgs e) => { throw new Exception(exceptionMessage); };
-            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
-
             testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
 
-            BufferFlushingException e = Assert.Throws<BufferFlushingException>(delegate
-            {
-                testSizeLimitedBufferFlushStrategy.Stop();
-            });
+            testSizeLimitedBufferFlushStrategy.Stop();
 
-            Assert.That(e.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
-            Assert.That(e.InnerException.Message, Does.StartWith(exceptionMessage));
+            workerThreadCompleteSignal.WaitOne();
+            Assert.NotNull(testFlushingException);
+            Assert.That(testFlushingException.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
+            Assert.AreSame(testFlushingException.InnerException, flushInnerException);
+            Assert.AreEqual(1, flushingExceptionActionCallCount);
         }
 
         [Test]
@@ -494,6 +271,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             workerThreadCompleteSignal.WaitOne();
 
             Assert.AreEqual(2, flushEventsRaised);
+            Assert.Null(testFlushingException);
+            Assert.AreEqual(0, flushingExceptionActionCallCount);
         }
 
         #region Nested Classes

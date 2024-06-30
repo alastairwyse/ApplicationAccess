@@ -70,7 +70,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 {
                     typeof(ServiceUnavailableException)
                 },
-                // Setup TripSwitchMiddleware to trip on encounterting a BufferFlushingException
+                // Setup TripSwitchMiddleware
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
                 // Optionally setup file logging
                 LogFilePath = @"C:\Temp\AppAccess\TestHarness",
@@ -78,7 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             };
 
             var initializer = new ApplicationInitializer();
-            WebApplication app = initializer.Initialize<DistributedOperationCoordinatorNodeHostedServiceWrapper, ShardConfigurationRefreshException>(parameters);
+            WebApplication app = initializer.Initialize<DistributedOperationCoordinatorNodeHostedServiceWrapper>(parameters);
 
             app.Run();
         }

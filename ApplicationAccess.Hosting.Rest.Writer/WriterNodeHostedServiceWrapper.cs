@@ -49,6 +49,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             GroupEventProcessorHolder groupEventProcessorHolder,
             GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder,
             UserEventProcessorHolder userEventProcessorHolder,
+            TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<WriterNodeHostedServiceWrapper> logger
         )
@@ -62,6 +63,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             groupEventProcessorHolder,
             groupToGroupEventProcessorHolder,
             userEventProcessorHolder,
+            tripSwitchActuator, 
             loggerFactory,
             logger
         )

@@ -1,0 +1,283 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ApplicationAccess.Persistence.Sql.PostgreSql</name>
+    </assembly>
+    <members>
+        <member name="T:ApplicationAccess.Persistence.Sql.PostgreSql.IStoredProcedureExecutionWrapper">
+            <summary>
+            A wrapper interface around methods which execute stored procedures in PostgreSql, allowing those methods to be mocked in unit tests.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.IStoredProcedureExecutionWrapper.Execute(System.String,System.Collections.Generic.IList{Npgsql.NpgsqlParameter})">
+            <summary>
+            Executes a stored procedure which does not return a result set.
+            </summary>
+            <param name="procedureName">The name of the stored procedure.</param>
+            <param name="parameters">The parameters to pass to the stored procedure.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4">
+            <summary>
+            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> and see <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> which persists access manager events in bulk to and allows reading of <see cref="T:ApplicationAccess.AccessManagerBase`4"/> objects from a PostgreSQL database.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.columnSizeLimit">
+            <summary>The maximum size of text columns in the database (restricted by limits on the sizes of index keys... see https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server?view=sql-server-ver16).</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.postgreSQLTimestampFormat">
+            <summary>DateTime format string which can be interpreted by the <see href="https://www.postgresql.org/docs/8.1/functions-formatting.html">PostgreSQL to_timestamp() function</see>.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.connectionString">
+            <summary>The string to use to connect to the PostgreSQL database.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.commandTimeout">
+            <summary>The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.dataSource">
+            <summary>The datasource to use to create connections to PostgreSQL.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.userStringifier">
+            <summary>A string converter for users.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.groupStringifier">
+            <summary>A string converter for groups.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.applicationComponentStringifier">
+            <summary>A string converter for application components.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.accessLevelStringifier">
+            <summary>A string converter for access levels</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.persisterUtilities">
+            <summary>Used to execute queries and store procedures against PostgreSQL.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.eventTypeToJsonDocumentPopulationOperationMap">
+            <summary>Maps types (subclasses of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/>) to actions which populate a JSON array element with details of an event of that type.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.logger">
+            <summary>The logger for general logging.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.storedProcedureExecutor">
+            <summary>Wraps calls to execute stored procedures so that they can be mocked in unit tests.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister class.
+            </summary>
+            <param name="connectionString">The string to use to connect to the PostgreSQL database.</param>
+            <param name="commandTimeout">The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="logger">The logger for general logging.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister class.
+            </summary>
+            <param name="connectionString">The string to use to connect to the PostgreSQL database.</param>
+            <param name="commandTimeout">The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="logger">The logger for general logging.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.#ctor(System.String,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger,ApplicationAccess.Persistence.Sql.PostgreSql.IStoredProcedureExecutionWrapper)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister class.
+            </summary>
+            <param name="connectionString">The string to use to connect to the PostgreSQL database.</param>
+            <param name="commandTimeout">The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="logger">The logger for general logging.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="storedProcedureExecutor">A test (mock) <see cref="T:ApplicationAccess.Persistence.Sql.PostgreSql.IStoredProcedureExecutionWrapper"/> object.</param>
+            <remarks>This constructor is included to facilitate unit testing.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.Load(ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.CreateNpgsqlParameterWithValue(NpgsqlTypes.NpgsqlDbType,System.Object)">
+            <summary>
+            Creates an <see cref="T:Npgsql.NpgsqlParameter"/>
+            </summary>
+            <param name="parameterType">The type of the parameter.</param>
+            <param name="parameterValue">The value of the parameter.</param>
+            <returns>The created parameter.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.ExecuteStoredProcedure(System.String,System.Collections.Generic.IList{Npgsql.NpgsqlParameter})">
+            <summary>
+            Attempts to execute a stored procedure which does not return a result set.
+            </summary>
+            <param name="procedureName">The name of the stored procedure.</param>
+            <param name="parameters">The parameters to pass to the stored procedure.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.CreateEventTypeToJsonDocumentPopulationOperationMap">
+            <summary>
+            Returns a dictionary mapping types (subclasses of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/>) to actions which populate a JSON array element with details of an event of that type.
+            </summary>
+            <returns>A dictionary keyed by type, whose value is an action which accepts a subclass of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> (having the same type as the key), and a <see cref="T:System.Text.Json.Utf8JsonWriter"/>, and which populates a JSON array element with details of the event.</returns>
+            <remarks>Traditionally, the 'switch' statement in C# was preferred to multiple 'if / else' as apparently the compiler was able to use branch tables to more quickly move to a matching condition within the statement (instead of having to iterate on average 1/2 the cases each time with 'if / else').  However <see href="https://devblogs.microsoft.com/dotnet/new-features-in-c-7-0/#switch-statements-with-patterns">since C# 7 we're now able to use non-equality / range / pattern conditions within the 'switch' statement</see>.  I haven't been able to find any documentation as to whether this has had a negative impact on performance (although difficult to see how it cannot have), however to mitigate I'm putting all the processing routines for different <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> subclasses into a dictionary... hence the lookup speed should at least scale equivalently to the aforementioned branch tables.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PopulateJsonElementWithTemporalEventBufferItemBaseProperties(ApplicationAccess.Persistence.TemporalEventBufferItemBase,System.Text.Json.Utf8JsonWriter)">
+            <summary>
+            Populates a JSON array element with base/common properties of the specified event buffer item.
+            </summary>
+            <param name="eventBufferItem">The event buffer item.</param>
+            <param name="writer">The <see cref="T:System.Text.Json.Utf8JsonWriter"/> to write the properties to.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the PostgreSqlAccessManagerTemporalBulkPersister.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper">
+            <summary>
+            Implementation of <see cref="T:ApplicationAccess.Persistence.Sql.PostgreSql.IStoredProcedureExecutionWrapper"/> which allows executing stored procedures through a configurable <see cref="T:System.Action"/>.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.executeAction">
+            <summary>The action which executes the stored procedures.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.#ctor(System.Action{System.String,System.Collections.Generic.IList{Npgsql.NpgsqlParameter}})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister+StoredProcedureExecutionWrapper class.
+            </summary>
+            <param name="executeAction">The action which executes the stored procedures.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.StoredProcedureExecutionWrapper.Execute(System.String,System.Collections.Generic.IList{Npgsql.NpgsqlParameter})">
+            <summary>
+            Executes a stored procedure which does not return a result set.
+            </summary>
+            <param name="procedureName">The name of the stored procedure.</param>
+            <param name="parameters">The parameters to pass to the stored procedure.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4">
+            <summary>
+            Utility methods for classes which write and read data associated with AccessManager classes to and from a PostgreSQL database.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.dataSource">
+            <summary>The datasource to use to create connections to PostgreSQL.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.commandTimeout">
+            <summary>The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.DatabaseName">
+            <inheritdoc/>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.TimestampColumnFormatString">
+            <inheritdoc/>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.ReadQueryGenerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.#ctor(Npgsql.NpgsqlDataSource,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities class.
+            </summary>
+            <param name="dataSource">>The datasource to use to create connections to PostgreSQL.</param>
+            <param name="commandTimeout">The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</param>
+            <param name="userStringifier">A string converter for users.</param>
+            <param name="groupStringifier">A string converter for groups.</param>
+            <param name="applicationComponentStringifier">A string converter for application components.</param>
+            <param name="accessLevelStringifier">A string converter for access levels.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.ExecuteQueryAndConvertColumn``1(System.String,System.String,System.Func{System.String,``0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.ExecuteQueryAndConvertColumn``2(System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.ExecuteQueryAndConvertColumn``3(System.String,System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1},System.Func{System.String,``2})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.PrepareConnectionAndCommand(Npgsql.NpgsqlConnection,Npgsql.NpgsqlCommand)">
+            <summary>
+            Prepare the specified <see cref="T:Npgsql.NpgsqlConnection"/> and <see cref="T:Npgsql.NpgsqlCommand"/> to execute a query against them.
+            </summary>
+            <param name="connection">The connection.</param>
+            <param name="command">The command which runs the query.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.TeardownConnectionAndCommand(Npgsql.NpgsqlConnection,Npgsql.NpgsqlCommand)">
+            <summary>
+            Performs teardown/deconstruct operations on the the specified <see cref="T:Npgsql.NpgsqlConnection"/> and <see cref="T:Npgsql.NpgsqlCommand"/> after utilizing them.
+            </summary>
+            <param name="connection">The connection.</param>
+            <param name="command">The command.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities`4.ThrowExceptionIfCommandTimeoutParameterLessThanZero(System.String,System.Int32)">
+            <summary>
+            Throws an <see cref="T:System.ArgumentOutOfRangeException"/> if the specified 'commandTimeout' parameter is less than 0.
+            </summary>
+            <param name="commandTimeoutParameterName">The name of the parameter.</param>
+            <param name="commandTimeout">The value of the parameter.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator">
+            <summary>
+            Generates queries used to read the current state of an AccessManager class from a PostgreSQL database.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator.postgreSQLTimestampFormat">
+            <summary>DateTime format string which can be interpreted by the <see href="https://www.postgresql.org/docs/8.1/functions-formatting.html">PostgreSQL to_timestamp() function</see>.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator.ReservedKeywordStartDelimiter">
+            <inheritdoc/>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator.ReservedKeywordEndDelimiter">
+            <inheritdoc/>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator.AliasDelimiter">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(System.Guid)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator.GenerateGetEventCorrespondingToStateTimeQuery(System.DateTime)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlReadQueryGenerator.ConvertDateTimeToString(System.DateTime)">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>

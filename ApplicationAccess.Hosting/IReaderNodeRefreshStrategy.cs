@@ -25,11 +25,5 @@ namespace ApplicationAccess.Hosting
     {
         /// <summary>Occurs when the contents of the reader node are updated to reflect the latest changes/updates to the system.</summary>
         event EventHandler ReaderNodeRefreshed;
-
-        /// <summary>
-        /// Notifies the strategy that a <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/> query method was called.
-        /// </summary>
-        /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
-        void NotifyQueryMethodCalled();
     }
 }

@@ -192,6 +192,17 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, Action<BufferFlushingException> flushingExceptionAction)
+            : this(bufferSizeLimit)
+        {
+            base.flushingExceptionAction = flushingExceptionAction;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
+        /// </summary>
+        /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger)
             : this(bufferSizeLimit)
@@ -204,10 +215,24 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction)
+            : this(bufferSizeLimit)
+        {
+            this.metricLogger = metricLogger;
+            base.flushingExceptionAction = flushingExceptionAction;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
+        /// </summary>
+        /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger, ManualResetEvent workerThreadCompleteSignal)
-            : this(bufferSizeLimit, metricLogger)
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction, ManualResetEvent workerThreadCompleteSignal)
+            : this(bufferSizeLimit, metricLogger, flushingExceptionAction)
         {
             base.workerThreadCompleteSignal = workerThreadCompleteSignal;
         }
@@ -219,15 +244,11 @@ namespace ApplicationAccess.Persistence
         /// <remarks>This is the same as the base class method, but with the addition of a call to bufferProcessSignal.Set()... without this, the call to JoinWorkerThread() will wait forever (since the worker thread is waiting on member 'bufferProcessSignal').</remarks>
         public override void Stop()
         {
-            // Check whether any exceptions have occurred on the worker thread and re-throw
-            CheckAndThrowFlushingException();
             stopMethodCalled = true;
             // Signal the worker thread to start processing
             bufferProcessSignal.Set();
             // Wait for the worker thread to finish
             JoinWorkerThread();
-            // Check for exceptions again incase one occurred after joining the worker thread
-            CheckAndThrowFlushingException();
         }
 
         #region Private/Protected Methods

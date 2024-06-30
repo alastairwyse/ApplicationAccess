@@ -562,7 +562,6 @@ namespace ApplicationAccess.Distribution
             else
             {
                 IEnumerable<String> returnGroups = null;
-                Int32 returnGroupsCount = 0;
                 Guid beginId = metricLogger.Begin(new GetGroupToGroupReverseMappingsForGroupWithIndirectMappingsQueryTime());
                 try
                 {

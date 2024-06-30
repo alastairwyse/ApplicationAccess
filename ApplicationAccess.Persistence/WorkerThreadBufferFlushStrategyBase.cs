@@ -52,22 +52,14 @@ namespace ApplicationAccess.Persistence
         protected IMetricLogger metricLogger;
         /// <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
         private Thread bufferFlushingWorkerThread;
-        /// <summary>Set with any exception and state/context information which occurrs on the worker thread when flushing the buffers (including stack trace and context info provided by the <see cref="ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
-        private ExceptionDispatchInfo flushingExceptionDispatchInfo;
+        /// <summary>An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</summary>
+        protected Action<BufferFlushingException> flushingExceptionAction;
         /// <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
         protected volatile Boolean stopMethodCalled;
         /// <summary>Signal that is set after the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
         protected ManualResetEvent workerThreadCompleteSignal;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected bool disposed;
-
-        /// <summary>
-        /// Contains an exception and state/context information which occurred on the worker thread during buffer flushing (including stack trace and context info provided by the <see cref="ExceptionDispatchInfo"/> class).  Null if no exception has occurred.
-        /// </summary>
-        protected ExceptionDispatchInfo FlushingExceptionDispatchInfo
-        {
-            get { return flushingExceptionDispatchInfo; }
-        }
 
         /// <inheritdoc/>
         public event EventHandler BufferFlushed;
@@ -79,7 +71,6 @@ namespace ApplicationAccess.Persistence
             set 
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref userEventsBuffered, value);
             }
@@ -92,7 +83,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref groupEventsBuffered, value);
             }
@@ -105,7 +95,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref userToGroupMappingEventsBuffered, value);
             }
@@ -118,7 +107,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref groupToGroupMappingEventsBuffered, value);
             }
@@ -131,7 +119,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref userToApplicationComponentAndAccessLevelMappingEventsBuffered, value);
             }
@@ -144,7 +131,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref groupToApplicationComponentAndAccessLevelMappingEventsBuffered, value);
             }
@@ -157,7 +143,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref entityTypeEventsBuffered, value);
             }
@@ -170,7 +155,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref entityEventsBuffered, value);
             }
@@ -183,7 +167,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref userToEntityMappingEventsBuffered, value);
             }
@@ -196,7 +179,6 @@ namespace ApplicationAccess.Persistence
             set
             {
                 ThrowExceptionIfParameterLessThanZero(nameof(value), value);
-                CheckAndThrowFlushingException();
 
                 Interlocked.Exchange(ref groupToEntityMappingEventsBuffered, value);
             }
@@ -219,10 +201,20 @@ namespace ApplicationAccess.Persistence
             groupToEntityMappingEventsBuffered = 0;
 
             metricLogger = new NullMetricLogger();
-            flushingExceptionDispatchInfo = null;
+            flushingExceptionAction = (BufferFlushingException flushingException) => { };
             stopMethodCalled = false;
             workerThreadCompleteSignal = null;
             disposed = false;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
+        /// </summary>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
+        public WorkerThreadBufferFlushStrategyBase(Action<BufferFlushingException> flushingExceptionAction)
+            : this()
+        {
+            this.flushingExceptionAction = flushingExceptionAction;
         }
 
         /// <summary>
@@ -233,6 +225,18 @@ namespace ApplicationAccess.Persistence
             : this()
         {
             this.metricLogger = metricLogger;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
+        /// </summary>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
+        public WorkerThreadBufferFlushStrategyBase(IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction)
+            : this()
+        {
+            this.metricLogger = metricLogger;
+            this.flushingExceptionAction = flushingExceptionAction;
         }
 
         /// <summary>
@@ -255,13 +259,9 @@ namespace ApplicationAccess.Persistence
         /// <exception cref="ApplicationAccess.Persistence.BufferFlushingException">An exception occurred on the worker thread while attempting to flush the buffers.</exception>
         public virtual void Stop()
         {
-            // Check whether any exceptions have occurred on the worker thread and re-throw
-            CheckAndThrowFlushingException();
             stopMethodCalled = true;
             // Wait for the worker thread to finish
             JoinWorkerThread();
-            // Check for exceptions again incase one occurred after joining the worker thread
-            CheckAndThrowFlushingException();
         }
 
         #region Private/Protected Methods
@@ -275,19 +275,20 @@ namespace ApplicationAccess.Persistence
             {
                 bufferFlushingWorkerThread = new Thread(() =>
                 {
+                    Boolean exceptionOccurred = false;
                     String exceptionMessagePrefix = "Exception occurred on buffer flushing worker thread at";
-
                     try
                     {
                         value.Invoke();
                     }
                     catch (Exception e)
                     {
+                        exceptionOccurred = true;
                         var wrappedException = new BufferFlushingException($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
-                        Interlocked.Exchange(ref flushingExceptionDispatchInfo, ExceptionDispatchInfo.Capture(wrappedException));
+                        flushingExceptionAction.Invoke(wrappedException);
                     }
                     // If no exception has occurred, flush any remaining buffered events
-                    if (flushingExceptionDispatchInfo == null && TotalEventsBuffered > 0)
+                    if (exceptionOccurred == false && TotalEventsBuffered > 0)
                     {
                         metricLogger.Add(new EventsBufferedAfterFlushStrategyStop(), TotalEventsBuffered);
                         try
@@ -296,8 +297,9 @@ namespace ApplicationAccess.Persistence
                         }
                         catch (Exception e)
                         {
+                            exceptionOccurred = true;
                             var wrappedException = new BufferFlushingException($"{exceptionMessagePrefix} {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
-                            Interlocked.Exchange(ref flushingExceptionDispatchInfo, ExceptionDispatchInfo.Capture(wrappedException));
+                            flushingExceptionAction.Invoke(wrappedException);
                         }
                     }
                     if (workerThreadCompleteSignal != null)
@@ -316,17 +318,6 @@ namespace ApplicationAccess.Persistence
             if (bufferFlushingWorkerThread != null)
             {
                 bufferFlushingWorkerThread.Join();
-            }
-        }
-
-        /// <summary>
-        /// Checks whether property 'FlushingException' has been set, and re-throws the exception in the case that it has.
-        /// </summary>
-        protected void CheckAndThrowFlushingException()
-        {
-            if (flushingExceptionDispatchInfo != null)
-            {
-                flushingExceptionDispatchInfo.Throw();
             }
         }
 

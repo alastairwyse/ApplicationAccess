@@ -33,6 +33,7 @@ using ApplicationMetrics.MetricLoggers;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationAccess.Distribution.Persistence;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
 {
@@ -48,6 +49,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         protected ShardConnectionOptions shardConnectionOptions;
         protected MetricLoggingOptions metricLoggingOptions;
         protected DistributedOperationCoordinatorHolder distributedOperationCoordinatorHolder;
+        protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
         protected ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger;
 
@@ -76,6 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             IOptions<ShardConnectionOptions> shardConnectionOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             DistributedOperationCoordinatorHolder distributedOperationCoordinatorHolder,
+            TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger
         )
@@ -85,6 +88,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             this.shardConnectionOptions = shardConnectionOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
             this.distributedOperationCoordinatorHolder = distributedOperationCoordinatorHolder;
+            this.tripSwitchActuator = tripSwitchActuator;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
         }
@@ -284,7 +288,27 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                     hashCodeGenerator,
                     metricLogger
                 );
-                shardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(shardConfigurationRefreshOptions.RefreshInterval);
+                IApplicationLogger refreshStrategyLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                (
+                    loggerFactory.CreateLogger<LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy>()
+                );
+                Action<ShardConfigurationRefreshException> shardConfigurationRefreshExceptionAction = (ShardConfigurationRefreshException shardConfigurationRefreshException) =>
+                {
+                    tripSwitchActuator.Actuate();
+                    try
+                    {
+                        refreshStrategyLogger.Log(ApplicationLogging.LogLevel.Critical, "Exception occurred when refreshing shard configuration.", shardConfigurationRefreshException);
+                        refreshStrategyLogger.Log(ApplicationLogging.LogLevel.Critical, "Tripswitch has been actuated due to an unrecoverable error whilst refreshing the shard configuration.");
+                    }
+                    catch
+                    {
+                    }
+                };
+                shardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy
+                (
+                    shardConfigurationRefreshOptions.RefreshInterval,
+                    shardConfigurationRefreshExceptionAction
+                );
                 distributedOperationCoordinator = new DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>
                 (
                     shardClientManager,

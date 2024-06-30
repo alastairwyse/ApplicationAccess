@@ -48,8 +48,9 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval)
-            : base(bufferSizeLimit)
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction)
+            : base(bufferSizeLimit, flushingExceptionAction)
         {
             if (flushLoopInterval < 1)
                 throw new ArgumentOutOfRangeException(nameof(flushLoopInterval), $"Parameter '{nameof(flushLoopInterval)}' with value {flushLoopInterval} cannot be less than 1.");
@@ -145,9 +146,10 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, IMetricLogger metricLogger)
-            : this(bufferSizeLimit, flushLoopInterval)
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction, IMetricLogger metricLogger)
+            : this(bufferSizeLimit, flushLoopInterval, flushingExceptionAction)
         {
             this.metricLogger = metricLogger;
         }
@@ -157,9 +159,10 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, IDateTimeProvider dateTimeProvider)
-            : this(bufferSizeLimit, flushLoopInterval)
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction, IDateTimeProvider dateTimeProvider)
+            : this(bufferSizeLimit, flushLoopInterval, flushingExceptionAction)
         {
             this.dateTimeProvider = dateTimeProvider;
         }
@@ -169,10 +172,11 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, IDateTimeProvider dateTimeProvider, IMetricLogger metricLogger)
-            : this(bufferSizeLimit, flushLoopInterval, dateTimeProvider)
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction, IDateTimeProvider dateTimeProvider, IMetricLogger metricLogger)
+            : this(bufferSizeLimit, flushLoopInterval, flushingExceptionAction, dateTimeProvider)
         {
             this.metricLogger = metricLogger;
         }
@@ -187,7 +191,7 @@ namespace ApplicationAccess.Persistence
         /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
         public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, IDateTimeProvider dateTimeProvider, AutoResetEvent loopingTriggerThreadLoopCompleteSignal, ManualResetEvent workerThreadCompleteSignal)
-            : this(bufferSizeLimit, flushLoopInterval, dateTimeProvider)
+            : this(bufferSizeLimit, flushLoopInterval, (BufferFlushingException bufferFlushingException) => { }, dateTimeProvider)
         {
             this.loopingTriggerThreadLoopCompleteSignal = loopingTriggerThreadLoopCompleteSignal;
             base.workerThreadCompleteSignal = workerThreadCompleteSignal;

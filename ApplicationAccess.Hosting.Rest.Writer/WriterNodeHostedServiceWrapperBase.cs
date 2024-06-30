@@ -55,6 +55,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         protected GroupEventProcessorHolder groupEventProcessorHolder;
         protected GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder;
         protected UserEventProcessorHolder userEventProcessorHolder;
+        protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
         protected ILogger<WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager>> logger;
 
@@ -87,6 +88,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             GroupEventProcessorHolder groupEventProcessorHolder,
             GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder,
             UserEventProcessorHolder userEventProcessorHolder,
+            TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager>> logger
         )
@@ -99,6 +101,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             this.groupEventProcessorHolder = groupEventProcessorHolder;
             this.groupToGroupEventProcessorHolder = groupToGroupEventProcessorHolder;
             this.userEventProcessorHolder = userEventProcessorHolder;
+            this.tripSwitchActuator = tripSwitchActuator;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
         }
@@ -231,6 +234,18 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 throw new Exception($"Failed to convert event cache host '{eventCacheConnectionOptions.Host}' to a {typeof(Uri).Name}.", e);
             }
 
+            Action<BufferFlushingException> eventBufferFlushingExceptionAction = (BufferFlushingException bufferFlushingException) =>
+            {
+                tripSwitchActuator.Actuate();
+                try
+                {
+                    eventPersisterLogger.Log(ApplicationLogging.LogLevel.Critical, "Exception occurred when flushing event buffer.", bufferFlushingException);
+                    eventPersisterLogger.Log(ApplicationLogging.LogLevel.Critical, "Tripswitch has been actuated due to an unrecoverable error whilst flushing the event buffer.");
+                }
+                catch
+                {
+                }
+            };
             if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
                 var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
@@ -255,7 +270,8 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
                 (
                     eventBufferFlushingOptions.BufferSizeLimit,
-                    eventBufferFlushingOptions.FlushLoopInterval
+                    eventBufferFlushingOptions.FlushLoopInterval,
+                    eventBufferFlushingExceptionAction
                 );
             }
             else
@@ -311,7 +327,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 (
                     eventBufferFlushingOptions.BufferSizeLimit,
                     eventBufferFlushingOptions.FlushLoopInterval,
-                    metricLogger
+                    eventBufferFlushingExceptionAction
                 );
             }
         }

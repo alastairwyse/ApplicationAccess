@@ -1649,6 +1649,13 @@
             </summary>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.#ctor(System.Int32,System.Action{ApplicationAccess.Persistence.BufferFlushingException})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
+            </summary>
+            <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
+        </member>
         <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
@@ -1656,12 +1663,21 @@
             <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Threading.ManualResetEvent,System.Int32)">
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Action{ApplicationAccess.Persistence.BufferFlushingException})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
             </summary>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
             <param name="metricLogger">The logger for metrics.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Action{ApplicationAccess.Persistence.BufferFlushingException},System.Threading.ManualResetEvent,System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
+            </summary>
+            <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
             <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
             <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
@@ -1976,6 +1992,13 @@
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.#ctor(System.Int32,System.Action{ApplicationAccess.Persistence.BufferFlushingException})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
+            </summary>
+            <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
+        </member>
         <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
@@ -1983,12 +2006,21 @@
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Threading.ManualResetEvent)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Action{ApplicationAccess.Persistence.BufferFlushingException})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="metricLogger">The logger for metrics.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy.#ctor(System.Int32,ApplicationMetrics.IMetricLogger,System.Action{ApplicationAccess.Persistence.BufferFlushingException},System.Threading.ManualResetEvent)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
+            </summary>
+            <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
             <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
@@ -2039,35 +2071,39 @@
         <member name="F:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.lastWaitInterval">
             <summary>The most recent interval that the looping trigger thread waited for between iterations (for unit testing).</summary>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,System.Action{ApplicationAccess.Persistence.BufferFlushingException})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,System.Action{ApplicationAccess.Persistence.BufferFlushingException},ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,System.Action{ApplicationAccess.Persistence.BufferFlushingException},ApplicationAccess.Utilities.IDateTimeProvider)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,ApplicationAccess.Utilities.IDateTimeProvider,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.#ctor(System.Int32,System.Int32,System.Action{ApplicationAccess.Persistence.BufferFlushingException},ApplicationAccess.Utilities.IDateTimeProvider,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy class.
             </summary>
             <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
             <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
@@ -2283,8 +2319,8 @@
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.bufferFlushingWorkerThread">
             <summary>Worker thread which implements the strategy to flush/process the contents of the buffers.</summary>
         </member>
-        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.flushingExceptionDispatchInfo">
-            <summary>Set with any exception and state/context information which occurrs on the worker thread when flushing the buffers (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
+        <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.flushingExceptionAction">
+            <summary>An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.stopMethodCalled">
             <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
@@ -2294,11 +2330,6 @@
         </member>
         <member name="F:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
-        </member>
-        <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.FlushingExceptionDispatchInfo">
-            <summary>
-            Contains an exception and state/context information which occurred on the worker thread during buffer flushing (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if no exception has occurred.
-            </summary>
         </member>
         <member name="E:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.BufferFlushed">
             <inheritdoc/>
@@ -2348,11 +2379,24 @@
             Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
             </summary>
         </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.#ctor(System.Action{ApplicationAccess.Persistence.BufferFlushingException})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
+            </summary>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
+        </member>
         <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.#ctor(ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
             </summary>
             <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.#ctor(ApplicationMetrics.IMetricLogger,System.Action{ApplicationAccess.Persistence.BufferFlushingException})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
+            </summary>
+            <param name="metricLogger">The logger for metrics.</param>
+            <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Persistence.BufferFlushingException"/> containing details of the error.</param>
         </member>
         <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.Start">
             <summary>
@@ -2373,11 +2417,6 @@
         <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.JoinWorkerThread">
             <summary>
             Calls Join() on the worker thread, waiting until it terminates.
-            </summary>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.CheckAndThrowFlushingException">
-            <summary>
-            Checks whether property 'FlushingException' has been set, and re-throws the exception in the case that it has.
             </summary>
         </member>
         <member name="P:ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase.TotalEventsBuffered">

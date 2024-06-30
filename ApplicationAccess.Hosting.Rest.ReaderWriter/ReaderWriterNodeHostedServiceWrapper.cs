@@ -52,6 +52,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             GroupToGroupQueryProcessorHolder groupToGroupQueryProcessorHolder,
             UserEventProcessorHolder userEventProcessorHolder,
             UserQueryProcessorHolder userQueryProcessorHolder,
+            TripSwitchActuator tripSwitchActuator, 
             ILoggerFactory loggerFactory,
             ILogger<ReaderWriterNodeHostedServiceWrapper> logger
         )
@@ -68,6 +69,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             groupToGroupQueryProcessorHolder,
             userEventProcessorHolder,
             userQueryProcessorHolder,
+            tripSwitchActuator, 
             loggerFactory,
             logger
         )

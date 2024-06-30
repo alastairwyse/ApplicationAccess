@@ -194,20 +194,6 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         }
 
         [Test]
-        public void Constructor_TripSwitchTripExceptionOverloadAndTripSwitchTrippedExceptionParameterNull()
-        {
-            var testParameters = new ApplicationInitializerParameters();
-
-            var e = Assert.Throws<ArgumentNullException>(delegate
-            {
-                testApplicationInitializer.Initialize<FakeHostedService, OutOfMemoryException>(testParameters);
-            });
-
-            Assert.That(e.Message, Does.StartWith("Property 'TripSwitchTrippedException' of parameters object cannot be null."));
-            Assert.AreEqual("TripSwitchTrippedException", e.ParamName);
-        }
-
-        [Test]
         public void Constructor_FileLoggingEnabledAndLogFileNamePrefixParameterNull()
         {
             var testParameters = new ApplicationInitializerParameters()

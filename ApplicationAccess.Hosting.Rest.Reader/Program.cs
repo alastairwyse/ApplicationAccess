@@ -21,6 +21,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
+using ApplicationAccess.Hosting.Rest.Utilities;
+using System.Net;
 
 namespace ApplicationAccess.Hosting.Rest.Reader
 {
@@ -59,7 +61,18 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     typeof(GroupQueryProcessorHolder),
                     typeof(GroupToGroupQueryProcessorHolder),
                     typeof(UserQueryProcessorHolder)
-                }, 
+                },
+                // Add a mapping from ServiceUnavailableException to HTTP 503 error status
+                ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
+                {
+                    new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
+                },
+                ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
+                {
+                    typeof(ServiceUnavailableException)
+                },
+                // Setup TripSwitchMiddleware 
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
                 // Optionally setup file logging
                 LogFilePath = @"C:\Temp\AppAccess\TestHarness",
                 LogFileNamePrefix = "ApplicationAccessReaderNodeLog"

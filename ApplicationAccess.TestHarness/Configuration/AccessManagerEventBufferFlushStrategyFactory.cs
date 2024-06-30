@@ -26,14 +26,20 @@ namespace ApplicationAccess.TestHarness.Configuration
         /// Creates and instance of <see cref="IAccessManagerEventBufferFlushStrategy"/> based on the specified configuration.
         /// </summary>
         /// <param name="config">The configuration to use to create the buffer flush strategy.</param>
+        /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="metricLogger">The metric logger to set on the buffer flush strategy.</param>
         /// <returns>A container class containing the buffer flush strategy and associated actions.</returns>
-        public BufferFlushStrategyFactoryResult<IAccessManagerEventBufferFlushStrategy> MakeFlushStrategy(PersisterBufferFlushStrategyConfiguration config, IMetricLogger metricLogger)
+        public BufferFlushStrategyFactoryResult<IAccessManagerEventBufferFlushStrategy> MakeFlushStrategy
+        (
+            PersisterBufferFlushStrategyConfiguration config, 
+            Action<BufferFlushingException> flushingExceptionAction, 
+            IMetricLogger metricLogger
+        )
         {
             switch (config.BufferImplementation)
             {
                 case AccessManagerEventBufferFlushStrategyImplementation.LoopingWorkerThreadBufferFlushStrategy:
-                    var loopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(config.FlushLoopInterval, metricLogger);
+                    var loopingWorkerThreadBufferFlushStrategy = new LoopingWorkerThreadBufferFlushStrategy(config.FlushLoopInterval, metricLogger, flushingExceptionAction);
                     return new BufferFlushStrategyFactoryResult<IAccessManagerEventBufferFlushStrategy>()
                     {
                         BufferFlushStrategy = loopingWorkerThreadBufferFlushStrategy,
@@ -42,7 +48,7 @@ namespace ApplicationAccess.TestHarness.Configuration
                         DisposeAction = () => { loopingWorkerThreadBufferFlushStrategy.Dispose(); },
                     };
                 case AccessManagerEventBufferFlushStrategyImplementation.SizeLimitedBufferFlushStrategy:
-                    var sizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(config.BufferSizeLimit, metricLogger);
+                    var sizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(config.BufferSizeLimit, metricLogger, flushingExceptionAction);
                     return new BufferFlushStrategyFactoryResult<IAccessManagerEventBufferFlushStrategy>()
                     {
                         BufferFlushStrategy = sizeLimitedBufferFlushStrategy,
@@ -51,7 +57,13 @@ namespace ApplicationAccess.TestHarness.Configuration
                         DisposeAction = () => { sizeLimitedBufferFlushStrategy.Dispose(); },
                     };
                 case AccessManagerEventBufferFlushStrategyImplementation.SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy:
-                    var sizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(config.BufferSizeLimit, config.FlushLoopInterval, metricLogger);
+                    var sizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
+                    (
+                        config.BufferSizeLimit, 
+                        config.FlushLoopInterval,
+                        flushingExceptionAction, 
+                        metricLogger
+                    );
                     return new BufferFlushStrategyFactoryResult<IAccessManagerEventBufferFlushStrategy>()
                     {
                         BufferFlushStrategy = sizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy,

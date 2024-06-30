@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
+namespace ApplicationAccess.Hosting.Rest.IntegrationTests
 {
     public class Program
     {

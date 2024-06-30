@@ -77,350 +77,300 @@ namespace ApplicationAccess.Hosting
         /// <inheritdoc/>
         public async Task<List<String>> GetUsersAsync()
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetUsersAsync();
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupsAsync()
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupsAsync();
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntityTypesAsync()
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetEntityTypesAsync();
         }
 
         /// <inheritdoc/>
         public async Task AddUserAsync(String user)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> ContainsUserAsync(String user)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.ContainsUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserAsync(String user)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task AddGroupAsync(String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> ContainsGroupAsync(String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.ContainsGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task RemoveGroupAsync(String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task AddUserToGroupMappingAsync(String user, String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddUserToGroupMappingAsync(user, group);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetUserToGroupMappingsAsync(String user, Boolean includeIndirectMappings)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetUserToGroupMappingsAsync(user, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToUserMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToUserMappingsAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserToGroupMappingAsync(String user, String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveUserToGroupMappingAsync(user, group);
         }
 
         /// <inheritdoc/>
         public async Task AddGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddGroupToGroupMappingAsync(fromGroup, toGroup);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToGroupMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToGroupMappingsAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToGroupReverseMappingsAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveGroupToGroupMappingAsync(fromGroup, toGroup);
         }
 
         /// <inheritdoc/>
         public async Task AddUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetUserToApplicationComponentAndAccessLevelMappingsAsync(String user)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task AddGroupToApplicationComponentAndAccessLevelMappingAsync(String group, String applicationComponent, String accessLevel)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync(String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(String group, String applicationComponent, String accessLevel)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task AddEntityTypeAsync(String entityType)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddEntityTypeAsync(entityType);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> ContainsEntityTypeAsync(String entityType)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.ContainsEntityTypeAsync(entityType);
         }
 
         /// <inheritdoc/>
         public async Task RemoveEntityTypeAsync(String entityType)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveEntityTypeAsync(entityType);
         }
 
         /// <inheritdoc/>
         public async Task AddEntityAsync(String entityType, String entity)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddEntityAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntitiesAsync(String entityType)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetEntitiesAsync(entityType);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> ContainsEntityAsync(String entityType, String entity)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.ContainsEntityAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task RemoveEntityAsync(String entityType, String entity)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveEntityAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task AddUserToEntityMappingAsync(String user, String entityType, String entity)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddUserToEntityMappingAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetUserToEntityMappingsAsync(String user)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetUserToEntityMappingsAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetUserToEntityMappingsAsync(String user, String entityType)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetUserToEntityMappingsAsync(user, entityType);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetEntityToUserMappingsAsync(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserToEntityMappingAsync(String user, String entityType, String entity)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveUserToEntityMappingAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task AddGroupToEntityMappingAsync(String group, String entityType, String entity)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.AddGroupToEntityMappingAsync(group, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetGroupToEntityMappingsAsync(String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToEntityMappingsAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToEntityMappingsAsync(String group, String entityType)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetGroupToEntityMappingsAsync(group, entityType);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetEntityToGroupMappingsAsync(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveGroupToEntityMappingAsync(String group, String entityType, String entity)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             await distributedOperationCoordinator.RemoveGroupToEntityMappingAsync(group, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToApplicationComponentAsync(String user, String applicationComponent, String accessLevel)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToEntityAsync(String user, String entityType, String entity)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.HasAccessToEntityAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByUserAsync(String user)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetApplicationComponentsAccessibleByUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupAsync(String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetApplicationComponentsAccessibleByGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByUserAsync(String user)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetEntitiesAccessibleByUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntitiesAccessibleByUserAsync(String user, String entityType)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetEntitiesAccessibleByUserAsync(user, entityType);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupAsync(String group)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetEntitiesAccessibleByGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntitiesAccessibleByGroupAsync(String group, String entityType)
         {
-            shardConfigurationRefreshStrategy.NotifyOperationProcessed();
             return await distributedOperationCoordinator.GetEntitiesAccessibleByGroupAsync(group, entityType);
         }
 

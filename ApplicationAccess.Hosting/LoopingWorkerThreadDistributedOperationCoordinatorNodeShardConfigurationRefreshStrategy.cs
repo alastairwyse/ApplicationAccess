@@ -18,6 +18,7 @@ using System;
 using System.Threading;
 using System.Runtime.ExceptionServices;
 using ApplicationAccess.Distribution;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting
 {
@@ -30,8 +31,8 @@ namespace ApplicationAccess.Hosting
 
         /// <summary>Worker thread which implements the strategy to refresh the shard configuration.</summary>
         protected Thread shardConfigurationRefreshWorkerThread;
-        /// <summary>Set with any exception which occurrs on the worker thread when refreshing the shard configuration (including stack trace and context info provided by the <see cref="ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
-        protected ExceptionDispatchInfo refreshExceptionDispatchInfo;
+        /// <summary>An action to invoke if an error occurs when refreshing the shard configuration.  Accepts a single parameter which is the <see cref="ShardConfigurationRefreshException"/> containing details of the error.</summary>
+        protected Action<ShardConfigurationRefreshException> refreshExceptionAction;
         /// <summary>The time to wait (in milliseconds) between shard configuration refreshes.</summary>
         protected Int32 refreshLoopInterval;
         /// <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
@@ -44,20 +45,15 @@ namespace ApplicationAccess.Hosting
         /// Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy class.
         /// </summary>
         /// <param name="refreshLoopInterval">The time to wait (in milliseconds) between shard configuration refreshes.</param>
-        public LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(Int32 refreshLoopInterval)
+        /// <param name="refreshExceptionAction">An action to invoke if an error occurs when refreshing the shard configuration.  Accepts a single parameter which is the <see cref="ShardConfigurationRefreshException"/> containing details of the error.</param>
+        public LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy(Int32 refreshLoopInterval, Action<ShardConfigurationRefreshException> refreshExceptionAction)
         {
             if (refreshLoopInterval < 1)
                 throw new ArgumentOutOfRangeException(nameof(refreshLoopInterval), $"Parameter '{nameof(refreshLoopInterval)}' with value {refreshLoopInterval} cannot be less than 1.");
 
             this.refreshLoopInterval = refreshLoopInterval;
-            refreshExceptionDispatchInfo = null;
+            this.refreshExceptionAction = refreshExceptionAction;
             stopMethodCalled = false;
-        }
-
-        /// <inheritdoc/>
-        public void NotifyOperationProcessed()
-        {
-            CheckAndThrowRefreshException();
         }
 
         /// <summary>
@@ -67,18 +63,18 @@ namespace ApplicationAccess.Hosting
         {
             shardConfigurationRefreshWorkerThread = new Thread(() =>
             {
-                while (stopMethodCalled == false)
+                try
                 {
-                    Thread.Sleep(refreshLoopInterval);
-                    try
+                    while (stopMethodCalled == false)
                     {
+                        Thread.Sleep(refreshLoopInterval);
                         OnShardConfigurationRefreshed(EventArgs.Empty);
                     }
-                    catch (Exception e)
-                    {
-                        var wrappedException = new Exception($"Exception occurred on shard configuration refreshing worker thread at {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
-                        Interlocked.Exchange(ref refreshExceptionDispatchInfo, ExceptionDispatchInfo.Capture(wrappedException));
-                    }
+                }
+                catch (Exception e)
+                {
+                    var wrappedException = new ShardConfigurationRefreshException($"Exception occurred on shard configuration refreshing worker thread at {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}.", e);
+                    refreshExceptionAction.Invoke(wrappedException);
                 }
             });
             stopMethodCalled = false;
@@ -93,13 +89,9 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ShardConfigurationRefreshException">An exception occurred whilst attempting to refresh/update the shard configuration.</exception>
         public void Stop()
         {
-            // Check whether any exceptions have occurred on the worker thread and re-throw
-            CheckAndThrowRefreshException();
             stopMethodCalled = true;
             // Wait for the worker thread to finish
             JoinWorkerThread();
-            // Check for exceptions again incase one occurred after joining the worker thread
-            CheckAndThrowRefreshException();
         }
 
         #region Private/Protected Methods
@@ -126,18 +118,6 @@ namespace ApplicationAccess.Hosting
                 shardConfigurationRefreshWorkerThread.Join();
             }
         }
-
-        /// <summary>
-        /// Checks whether property 'refreshExceptionDispatchInfo' has been set, and re-throws the exception in the case that it has.
-        /// </summary>
-        protected void CheckAndThrowRefreshException()
-        {
-            if (refreshExceptionDispatchInfo != null)
-            {
-                refreshExceptionDispatchInfo.Throw();
-            }
-        }
-
         #endregion
     }
 }

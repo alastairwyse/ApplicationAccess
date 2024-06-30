@@ -53,6 +53,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         protected GroupQueryProcessorHolder groupQueryProcessorHolder;
         protected GroupToGroupQueryProcessorHolder groupToGroupQueryProcessorHolder;
         protected UserQueryProcessorHolder userQueryProcessorHolder;
+        protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
         protected ILogger<ReaderNodeHostedServiceWrapperBase<TReaderNode, TAccessManager>> logger;
 
@@ -85,6 +86,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             GroupQueryProcessorHolder groupQueryProcessorHolder,
             GroupToGroupQueryProcessorHolder groupToGroupQueryProcessorHolder,
             UserQueryProcessorHolder userQueryProcessorHolder,
+            TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<ReaderNodeHostedServiceWrapperBase<TReaderNode, TAccessManager>> logger
         )
@@ -97,6 +99,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             this.groupQueryProcessorHolder = groupQueryProcessorHolder;
             this.groupToGroupQueryProcessorHolder = groupToGroupQueryProcessorHolder;
             this.userQueryProcessorHolder = userQueryProcessorHolder;
+            this.tripSwitchActuator = tripSwitchActuator;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
         }
@@ -206,7 +209,23 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 fullMetricLoggerCategoryName = $"{MetricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
             }
 
-            refreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(eventCacheRefreshOptions.RefreshInterval);
+            IApplicationLogger refreshStrategyLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+            (
+                loggerFactory.CreateLogger<LoopingWorkerThreadReaderNodeRefreshStrategy>()
+            );
+            Action<ReaderNodeRefreshException> nodeRefreshExceptionAction = (ReaderNodeRefreshException readerNodeRefreshException) =>
+            {
+                tripSwitchActuator.Actuate();
+                try
+                {
+                    refreshStrategyLogger.Log(ApplicationLogging.LogLevel.Critical, "Exception occurred when refreshing reader node.", readerNodeRefreshException);
+                    refreshStrategyLogger.Log(ApplicationLogging.LogLevel.Critical, "Tripswitch has been actuated due to an unrecoverable error whilst refreshing the reader node.");
+                }
+                catch
+                {
+                }
+            };
+            refreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(eventCacheRefreshOptions.RefreshInterval, nodeRefreshExceptionAction);
 
             IApplicationLogger eventPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
             (

@@ -65,7 +65,7 @@ namespace ApplicationAccess.Hosting.Rest.Models
         /// <summary>A collection of mappings between a type (derived from <see cref="Exception"/>) and a custom function which converts that type into an <see cref="HttpErrorResponse"/>.  Each of the functions accepts an <see cref="Exception"/> (although typed as the base <see cref="Exception"/> it's safe to cast it to derived type of the first item in the Tuple), and returns an <see cref="HttpErrorResponse"/> representing the exception.</summary>
         public IEnumerable<Tuple<Type, Func<Exception, HttpErrorResponse>>> ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings { get; set; }
 
-        /// <summary>The exception to throw on receiving any requests after the switch has been tripped, when <see cref="TripSwitchMiddleware{TTripException}"/> is enabled.</summary>
+        /// <summary>The exception to throw on receiving any requests after the switch has been tripped, when <see cref="TripSwitchMiddleware"/> is enabled.  <see cref="TripSwitchMiddleware"/> will not be used if not set.</summary>
         public Exception TripSwitchTrippedException { get; set; }
 
         /// <summary>The folder to write log files to.  If not initialized, file logging will be disabled.</summary>

@@ -15,11 +15,9 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using ApplicationAccess.Hosting.Rest.Utilities;
+using Microsoft.Extensions.Hosting;
 using ApplicationAccess.Persistence;
 using NSubstitute;
 using NUnit.Framework;
@@ -32,19 +30,22 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
     public class TripSwitchMiddlewareTests
     {
         protected IApplicationBuilder mockApplicationBuilder;
-        protected RequestDelegate nextRequestDelegate;
-        protected HttpContext testHttpContext;
+        protected IHostApplicationLifetime mockHostApplicationLifetime;
+        protected TripSwitchActuator testActuator;
         protected TripSwitchMiddleware<BufferFlushingException> testTripSwitchMiddleware;
 
         [SetUp]
         protected void SetUp()
         {
             mockApplicationBuilder = Substitute.For<IApplicationBuilder>();
-            testHttpContext = new DefaultHttpContext();
-            nextRequestDelegate = (HttpContext httpContext) =>
-            {
-                throw new Exception();
-            };
+            mockHostApplicationLifetime = Substitute.For<IHostApplicationLifetime>();
+            testActuator = new TripSwitchActuator();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            testActuator.Dispose();
         }
 
         [Test]
@@ -52,72 +53,18 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                mockApplicationBuilder.UseTripSwitch<BufferFlushingException>(-1);
+                mockApplicationBuilder.UseTripSwitch(testActuator, mockHostApplicationLifetime, -1, () => { });
+            });
+
+            Assert.That(e.Message, Does.StartWith("Parameter 'shutdownTimeout' with value -1 must be greater than or equal to 0."));
+
+
+            e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                mockApplicationBuilder.UseTripSwitch<BufferFlushingException>(testActuator, mockHostApplicationLifetime , -1, () => { }, (BufferFlushingException bufferFlushingException) => { });
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'shutdownTimeout' with value -1 must be greater than or equal to 0."));
         }
-
-        [Test]
-        public void UseTripSwitch_OnTripActionsOverloadShutdownTimeoutParameterLessThan0()
-        {
-            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
-            {
-                mockApplicationBuilder.UseTripSwitch<BufferFlushingException>(-1, Enumerable.Empty<Action<Exception>>());
-            });
-
-            Assert.That(e.Message, Does.StartWith("Parameter 'shutdownTimeout' with value -1 must be greater than or equal to 0."));
-        }
-
-        [Test]
-        public void InvokeAsync_NonTripExceptionsDoNotTripTheSwitch()
-        {
-            String exceptionMessage = "Non-tripping exception";
-            nextRequestDelegate = new RequestDelegate((HttpContext httpContext) =>
-            {
-                throw new Exception(exceptionMessage);
-            });
-            testTripSwitchMiddleware = new TripSwitchMiddleware<BufferFlushingException>(nextRequestDelegate, new ServiceUnavailableException("Buffer Flushing Exception"), Enumerable.Empty<Action<BufferFlushingException>>());
-
-            var e = Assert.ThrowsAsync<Exception>(async delegate
-            {
-                await testTripSwitchMiddleware.InvokeAsync(testHttpContext);
-            });
-
-            Assert.That(e.Message, Does.StartWith(exceptionMessage));
-        }
-
-        [Test]
-        public void InvokeAsync_ThrowWhenTrippedException()
-        {
-            String exceptionMessage = "Buffer flushing exception";
-            nextRequestDelegate = new RequestDelegate((HttpContext httpContext) =>
-            {
-                throw new BufferFlushingException(exceptionMessage);
-            });
-            var whenTrippedException = new ServiceUnavailableException("Service unavailble");
-            BufferFlushingException capturedWhenTrippedException = null;
-            Action<BufferFlushingException> onTripAction = (BufferFlushingException e) =>
-            {
-                capturedWhenTrippedException = e;
-            };
-            testTripSwitchMiddleware = new TripSwitchMiddleware<BufferFlushingException>(nextRequestDelegate, whenTrippedException, new List<Action<BufferFlushingException>>() { onTripAction });
-
-            var e = Assert.ThrowsAsync<BufferFlushingException>(async delegate
-            {
-                await testTripSwitchMiddleware.InvokeAsync(testHttpContext);
-            });
-
-            Assert.That(e.Message, Does.StartWith(exceptionMessage));
-            Assert.AreEqual(exceptionMessage, capturedWhenTrippedException.Message);
-            // Check that subsequent requests throw the 'whenTrippedException'
-            var afterTripException = Assert.ThrowsAsync<ServiceUnavailableException>(async delegate
-            {
-                await testTripSwitchMiddleware.InvokeAsync(testHttpContext);
-            });
-            Assert.AreEqual(whenTrippedException, afterTripException);
-        }
-
-        // TODO: Add test to test the shutdown on trip functionality (can't mock WebApplication, so would need to create a wrapping interface for it)
     }
 }

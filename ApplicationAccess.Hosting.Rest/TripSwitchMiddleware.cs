@@ -21,73 +21,224 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 
 namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
-    /// A middleware that catches a specified critical exception and then either shuts down the application, or throws a specified exception on receiving any subsequent requests.
+    /// A middleware that can be activated/tripped by a <see cref="TripSwitchActuator"/> instance, and which either either shuts down the application, or throws a specified exception on receiving any subsequent requests after being activated/tripped.
     /// </summary>
-    /// <typeparam name="TTripException">The type of the critical exception which 'trips' the switch.</typeparam>
     /// <remarks>When initialized to throw an exception after the switch is tripped, this middleware can be used in conjunction with the <see cref="MiddlewareUtilities.SetupExceptionHandler(IApplicationBuilder, Hosting.Models.Options.ErrorHandlingOptions, Utilities.ExceptionToHttpStatusCodeConverter, Utilities.ExceptionToHttpErrorResponseConverter)"/> method, to convert the thrown exception to a specified HTTP error status (e.g. <see href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503">503</see>).</remarks>
-    public class TripSwitchMiddleware<TTripException> where TTripException : Exception
+    public class TripSwitchMiddleware : TripSwitchMiddlewareBase
     {
-        /// <summary>Whether the switch has been tripped.</summary>
-        private volatile Boolean isTripped;
-        /// <summary>The next middleware in the application middleware pipeline.</summary>
-        private readonly RequestDelegate next;
         /// <summary>>The exception to throw on receiving any requests after the switch has been tripped.</summary>
-        private readonly Exception whenTrippedException;
-        /// <summary>The <see cref="WebApplication"/> to shutdown after the switch has been tripped.</summary>
-        private readonly WebApplication application;
+        protected readonly Exception whenTrippedException;
+        /// <summary>The <see cref="IHostApplicationLifetime"/> to use to shutdown the application after the switch has been tripped.</summary>
+        protected readonly IHostApplicationLifetime applicationLifeTime;
         /// <summary>The time to wait in seconds after the switch is tripped to shutdown the application.</summary>
-        private readonly Int32 shutdownTimeout;
-        /// <summary>A collection of actions to invoke when the switch is tripped.  The actions accept a single parameter which is the critical exception which tripped the switch.</summary>
-        private readonly IEnumerable<Action<TTripException>> onTripActions;
+        protected readonly Int32 shutdownTimeout = -1;
+        /// <summary>The action to perform when processing the request pipeline, where the switch has not been tripped/actuated.  Accepts a single parameter which is the <see cref="HttpContext"/> of the current request.</summary>
+        protected Func<HttpContext, Task> switchNotActuatedAction;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.TripSwitchMiddleware class.
         /// </summary>
         /// <param name="next">The next middleware in the application middleware pipeline.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
         /// <param name="whenTrippedException">The exception to throw on receiving any requests after the switch has been tripped.</param>
-        /// <param name="onTripActions">A collection of actions to invoke when the switch is tripped.  The actions accept a single parameter which is the critical exception which tripped the switch.</param>
-        /// <remarks>This constructor initializes the switch to throw an exception on receipt of any requests after the switch has been tripped.</remarks>
-        public TripSwitchMiddleware(RequestDelegate next, Exception whenTrippedException, IEnumerable<Action<TTripException>> onTripActions)
+        /// <remarks>This constructor initializes the switch to throw the exception in parameter '<paramref name="whenTrippedException"/>' when the switch is tripped.</remarks>
+        public TripSwitchMiddleware(RequestDelegate next, TripSwitchActuator actuator, Exception whenTrippedException)
+            : base (next, actuator)
         {
-            isTripped = false;
-            this.next = next;
             this.whenTrippedException = whenTrippedException;
-            this.onTripActions = onTripActions;
+            applicationLifeTime = null;
+            InitializeSwitchNotActuatedAction();
         }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.TripSwitchMiddleware class.
         /// </summary>
         /// <param name="next">The next middleware in the application middleware pipeline.</param>
-        /// <param name="application">The <see cref="WebApplication"/> to shutdown after the switch has been tripped.</param>
-        /// <param name="shutdownTimeout">The time to wait in seconds after the switch is tripped to shutdown the application.</param>
-        /// <param name="onTripActions">A collection of actions to invoke when the switch is tripped.  The actions accept a single parameter which is the critical exception which tripped the switch.</param>
-        /// <remarks>This constructor initializes the switch to shutdown the application when the switch is tripped.</remarks>
-        public TripSwitchMiddleware(RequestDelegate next, WebApplication application, Int32 shutdownTimeout, IEnumerable<Action<TTripException>> onTripActions)
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="whenTrippedException">The exception to throw on receiving any requests after the switch has been tripped.</param>
+        /// <param name="onTripAction">An action to invoke when the switch is tripped.</param>
+        /// <remarks>This constructor initializes the switch to throw the exception in parameter '<paramref name="whenTrippedException"/>' when the switch is tripped.</remarks>
+        public TripSwitchMiddleware(RequestDelegate next, TripSwitchActuator actuator, Exception whenTrippedException, Action onTripAction)
+            : base(next, actuator, onTripAction)
         {
-            isTripped = false;
-            this.next = next;
-            this.whenTrippedException = null;
-            this.application = application;
-            this.shutdownTimeout = shutdownTimeout;
-            this.onTripActions = onTripActions;
+            this.whenTrippedException = whenTrippedException;
+            applicationLifeTime = null;
+            InitializeSwitchNotActuatedAction();
         }
 
         /// <summary>
-        /// Invokes the middleware implementing the trip switch.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.TripSwitchMiddleware class.
         /// </summary>
-        /// <param name="context">The <see cref="HttpContext"/></param>
-        public async Task InvokeAsync(HttpContext context)
+        /// <param name="next">The next middleware in the application middleware pipeline.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="applicationLifeTime">The <see cref="IHostApplicationLifetime"/> to use to shutdown the application after the switch has been tripped.</param>
+        /// <param name="shutdownTimeout">The time to wait in seconds after the switch is tripped to shutdown the application.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The specified <paramref name="shutdownTimeout"/> value is less than 0.</exception>
+        /// <remarks>This constructor initializes the switch to shutdown the application when the switch is tripped.</remarks>
+        public TripSwitchMiddleware(RequestDelegate next, TripSwitchActuator actuator, IHostApplicationLifetime applicationLifeTime, Int32 shutdownTimeout)
+            : base(next, actuator)
         {
-            if (isTripped == true)
+            if (shutdownTimeout < 0)
+                throw new ArgumentOutOfRangeException(nameof(shutdownTimeout), $"Parameter '{nameof(shutdownTimeout)}' with value {shutdownTimeout} must be greater than or equal to 0.");
+
+            whenTrippedException = null;
+            this.applicationLifeTime = applicationLifeTime;
+            this.shutdownTimeout = shutdownTimeout;
+            InitializeSwitchNotActuatedAction();
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.TripSwitchMiddleware class.
+        /// </summary>
+        /// <param name="next">The next middleware in the application middleware pipeline.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="applicationLifeTime">The <see cref="IHostApplicationLifetime"/> to use to shutdown the application after the switch has been tripped.</param>
+        /// <param name="shutdownTimeout">The time to wait in seconds after the switch is tripped to shutdown the application.</param>
+        /// <param name="onTripAction">An action to invoke when the switch is tripped.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The specified <paramref name="shutdownTimeout"/> value is less than 0.</exception>
+        /// <remarks>This constructor initializes the switch to shutdown the application when the switch is tripped.</remarks>
+        public TripSwitchMiddleware(RequestDelegate next, TripSwitchActuator actuator, IHostApplicationLifetime applicationLifeTime, Int32 shutdownTimeout, Action onTripAction)
+            : base(next, actuator, onTripAction)
+        {
+            if (shutdownTimeout < 0)
+                throw new ArgumentOutOfRangeException(nameof(shutdownTimeout), $"Parameter '{nameof(shutdownTimeout)}' with value {shutdownTimeout} must be greater than or equal to 0.");
+
+            whenTrippedException = null;
+            this.applicationLifeTime = applicationLifeTime;
+            this.shutdownTimeout = shutdownTimeout;
+            InitializeSwitchNotActuatedAction();
+        }
+
+        /// <inheritdoc/>
+        public async override Task InvokeAsync(HttpContext context)
+        {
+            if (actuator.IsActuated == true)
             {
-                throw whenTrippedException;
+                if (onTripActionsRun == false)
+                {
+                    onTripAction.Invoke();
+                    onTripActionsRun = true;
+                }
+                if (shutdownTimeout > -1 && applicationLifeTime != null)
+                {
+                    var shutdownThread = new Thread(() =>
+                    {
+                        if (shutdownTimeout > 0)
+                        {
+                            Thread.Sleep(shutdownTimeout * 1000);
+                        }
+                        applicationLifeTime.StopApplication();
+                    });
+                    shutdownThread.Start();
+                }
+                else
+                {
+                    throw whenTrippedException;
+                }
             }
             else
+            {
+                await switchNotActuatedAction.Invoke(context);
+            }
+        }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Initializes the 'switchNotActuatedAction' member.
+        /// </summary>
+        protected virtual void InitializeSwitchNotActuatedAction()
+        {
+            switchNotActuatedAction = async (HttpContext context) =>
+            {
+                await next(context);
+            };
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// A middleware that can be activated/tripped by either a <see cref="TripSwitchActuator"/> instance, or by catching a specified exception thrown in the request pipeline, and which either shuts down the application, or throws a specified exception on receiving any subsequent requests after being activated/tripped.
+    /// </summary>
+    /// <typeparam name="TTripException">The type of the exception which activates/trips the switch.</typeparam>
+    /// <remarks>When initialized to throw an exception after the switch is tripped, this middleware can be used in conjunction with the <see cref="MiddlewareUtilities.SetupExceptionHandler(IApplicationBuilder, Hosting.Models.Options.ErrorHandlingOptions, Utilities.ExceptionToHttpStatusCodeConverter, Utilities.ExceptionToHttpErrorResponseConverter)"/> method, to convert the thrown exception to a specified HTTP error status (e.g. <see href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503">503</see>).</remarks>
+    public class TripSwitchMiddleware<TTripException> : TripSwitchMiddleware where TTripException : Exception
+    {
+        /// <summary>An action to invoke when the switch is tripped by catching an instance of <typeparamref name="TTripException"/>.  Accepts a single parameter which is the exception which tripped the switch.</summary>
+        protected readonly Action<TTripException> onExceptionTripAction;
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.TripSwitchMiddleware class.
+        /// </summary>
+        /// <param name="next">The next middleware in the application middleware pipeline.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="whenTrippedException">The exception to throw on receiving any requests after the switch has been tripped.</param>
+        /// <remarks>This constructor initializes the switch to throw the exception in parameter '<paramref name="whenTrippedException"/>' when the switch is tripped.</remarks>
+        public TripSwitchMiddleware(RequestDelegate next, TripSwitchActuator actuator, Exception whenTrippedException)
+            : base(next, actuator, whenTrippedException)
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.TripSwitchMiddleware class.
+        /// </summary>
+        /// <param name="next">The next middleware in the application middleware pipeline.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="whenTrippedException">The exception to throw on receiving any requests after the switch has been tripped.</param>
+        /// <param name="onTripAction">An action to invoke when the switch is tripped via the <paramref name="actuator"/> parameter.</param>
+        /// <param name="onExceptionTripAction">An action to invoke when the switch is tripped by catching an instance of <typeparamref name="TTripException"/>.  Accepts a single parameter which is the exception which tripped the switch.</param>
+        /// <remarks>This constructor initializes the switch to throw the exception in parameter '<paramref name="whenTrippedException"/>' when the switch is tripped.</remarks>
+        public TripSwitchMiddleware(RequestDelegate next, TripSwitchActuator actuator, Exception whenTrippedException, Action onTripAction, Action<TTripException> onExceptionTripAction)
+            : base(next, actuator, whenTrippedException, onTripAction)
+        {
+            this.onExceptionTripAction = onExceptionTripAction;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.TripSwitchMiddleware class.
+        /// </summary>
+        /// <param name="next">The next middleware in the application middleware pipeline.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="applicationLifeTime">The <see cref="IHostApplicationLifetime"/> to use to shutdown the application after the switch has been tripped.</param>
+        /// <param name="shutdownTimeout">The time to wait in seconds after the switch is tripped to shutdown the application.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The specified <paramref name="shutdownTimeout"/> value is less than 0.</exception>
+        /// <remarks>This constructor initializes the switch to shutdown the application when the switch is tripped.</remarks>
+        public TripSwitchMiddleware(RequestDelegate next, TripSwitchActuator actuator, IHostApplicationLifetime applicationLifeTime, Int32 shutdownTimeout)
+            : base(next, actuator, applicationLifeTime, shutdownTimeout)
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.TripSwitchMiddleware class.
+        /// </summary>
+        /// <param name="next">The next middleware in the application middleware pipeline.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="applicationLifeTime">The <see cref="IHostApplicationLifetime"/> to use to shutdown the application after the switch has been tripped.</param>
+        /// <param name="shutdownTimeout">The time to wait in seconds after the switch is tripped to shutdown the application.</param>
+        /// <param name="onTripAction">An action to invoke when the switch is tripped via the <paramref name="actuator"/> parameter.</param>
+        /// <param name="onExceptionTripAction">An action to invoke when the switch is tripped by catching an instance of <typeparamref name="TTripException"/>.  Accepts a single parameter which is the exception which tripped the switch.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The specified <paramref name="shutdownTimeout"/> value is less than 0.</exception>
+        /// <remarks>This constructor initializes the switch to shutdown the application when the switch is tripped.</remarks>
+        public TripSwitchMiddleware(RequestDelegate next, TripSwitchActuator actuator, IHostApplicationLifetime applicationLifeTime, Int32 shutdownTimeout, Action onTripAction, Action<TTripException> onExceptionTripAction)
+            : base(next, actuator, applicationLifeTime, shutdownTimeout, onTripAction)
+        {
+            this.onExceptionTripAction = onExceptionTripAction;
+        }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Initializes the 'switchNotActuatedAction' member.
+        /// </summary>
+        protected override void InitializeSwitchNotActuatedAction()
+        {
+            switchNotActuatedAction = async (HttpContext context) =>
             {
                 try
                 {
@@ -95,15 +246,12 @@ namespace ApplicationAccess.Hosting.Rest
                 }
                 catch (TTripException e)
                 {
-                    // Invoke the on-trip actions
-                    foreach (Action<TTripException> currentOnTripAction in onTripActions)
-                    {
-                        currentOnTripAction.Invoke(e);
-                    }
+                    actuator.Actuate();
+                    onExceptionTripAction.Invoke(e);
+                    onTripActionsRun = true;
                     if (whenTrippedException != null)
                     {
-                        isTripped = true;
-                        throw;
+                        throw whenTrippedException;
                     }
                     else
                     {
@@ -113,14 +261,16 @@ namespace ApplicationAccess.Hosting.Rest
                             {
                                 Thread.Sleep(shutdownTimeout * 1000);
                             }
-                            application.Lifetime.StopApplication();
+                            applicationLifeTime.StopApplication();
                         });
                         shutdownThread.Start();
                         throw;
                     }
                 }
-            }
+            };
         }
+
+        #endregion
     }
 
     /// <summary>
@@ -129,60 +279,71 @@ namespace ApplicationAccess.Hosting.Rest
     public static class TripSwitcMiddlewareExtensions
     {
         /// <summary>
-        /// Adds the <see cref="TripSwitchMiddleware{TTripException}"/> to the specified <see cref="IApplicationBuilder"/>, which enables the ability to bypass the pipeline and throw an exception on every request, when a specified critical 'trip' exception is thrown.
+        /// Adds the specified <see cref="TripSwitchMiddleware"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
         /// </summary>
-        /// <typeparam name="TTripException">The type of the exception which should 'trip' the switch and bypass the pipeline for future requests.</typeparam>
-        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the middleware to.</param>
-        /// <param name="whenTrippedException">The exception to throw on receiving any requests after the switch has been tripped.</param>
-        /// <returns>A reference to <paramref name="applicationBuilder"/> after the operation has completed.</returns>
-        public static IApplicationBuilder UseTripSwitch<TTripException>(this IApplicationBuilder applicationBuilder, Exception whenTrippedException)
-            where TTripException : Exception
-        {
-            return applicationBuilder.UseMiddleware<TripSwitchMiddleware<TTripException>>(whenTrippedException, Enumerable.Empty<Action<TTripException>>());
-        }
-
-        /// <summary>
-        /// Adds the <see cref="TripSwitchMiddleware{TTripException}"/> to the specified <see cref="IApplicationBuilder"/>, which enables the ability to bypass the pipeline and throw an exception on every request, when a specified critical 'trip' exception is thrown.
-        /// </summary>
-        /// <typeparam name="TTripException">The type of the exception which should 'trip' the switch and bypass the pipeline for future requests.</typeparam>
-        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the middleware to.</param>
-        /// <param name="whenTrippedException">The exception to throw on receiving any requests after the switch has been tripped.</param>
-        /// <param name="onTripActions">A collection of actions to invoke when the switch is tripped.  The actions accept a single parameter which is the critical exception which tripped the switch.</param>
-        /// <returns>A reference to <paramref name="applicationBuilder"/> after the operation has completed.</returns>
-        public static IApplicationBuilder UseTripSwitch<TTripException>(this IApplicationBuilder applicationBuilder, Exception whenTrippedException, IEnumerable<Action<TTripException>> onTripActions)
-            where TTripException : Exception
-        {
-            return applicationBuilder.UseMiddleware<TripSwitchMiddleware<TTripException>>(whenTrippedException, onTripActions);
-        }
-
-        /// <summary>
-        /// Adds the <see cref="TripSwitchMiddleware{TTripException}"/> to the specified <see cref="IApplicationBuilder"/>, which enables the ability to shutdown the application after a specified critical 'trip' exception is thrown.
-        /// </summary>
-        /// <typeparam name="TTripException">The type of the exception which should 'trip' the switch and bypass the pipeline for future requests.</typeparam>
-        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the middleware to.</param>
+        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the tripswitch middleware to.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="applicationLifeTime">The <see cref="IHostApplicationLifetime"/> to use to shutdown the application after the switch has been tripped.</param>
         /// <param name="shutdownTimeout">The time to wait in seconds after the switch is tripped to shutdown the application.</param>
+        /// <param name="onTripAction">An action to invoke when the switch is tripped.</param>
         /// <returns>A reference to <paramref name="applicationBuilder"/> after the operation has completed.</returns>
-        public static IApplicationBuilder UseTripSwitch<TTripException>(this IApplicationBuilder applicationBuilder, Int32 shutdownTimeout)
-            where TTripException : Exception
+        /// <exception cref="ArgumentOutOfRangeException">The specified <paramref name="shutdownTimeout"/> value is less than 0.</exception>
+        public static IApplicationBuilder UseTripSwitch(this IApplicationBuilder applicationBuilder, TripSwitchActuator actuator, IHostApplicationLifetime applicationLifeTime, Int32 shutdownTimeout, Action onTripAction)
         {
-            return applicationBuilder.UseTripSwitch<TTripException>(shutdownTimeout, Enumerable.Empty<Action<TTripException>>());
+            if (shutdownTimeout < 0)
+                throw new ArgumentOutOfRangeException(nameof(shutdownTimeout), $"Parameter '{nameof(shutdownTimeout)}' with value {shutdownTimeout} must be greater than or equal to 0.");
+
+            return applicationBuilder.UseMiddleware<TripSwitchMiddleware>(actuator, applicationLifeTime, shutdownTimeout, onTripAction);
         }
 
         /// <summary>
-        /// Adds the <see cref="TripSwitchMiddleware{TTripException}"/> to the specified <see cref="IApplicationBuilder"/>, which enables the ability to shutdown the application after a specified critical 'trip' exception is thrown.
+        /// Adds the specified <see cref="TripSwitchMiddleware"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
         /// </summary>
-        /// <typeparam name="TTripException">The type of the exception which should 'trip' the switch and bypass the pipeline for future requests.</typeparam>
-        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the middleware to.</param>
-        /// <param name="shutdownTimeout">The time to wait in seconds after the switch is tripped to shutdown the application.</param>
-        /// <param name="onTripActions">A collection of actions to invoke when the switch is tripped.  The actions accept a single parameter which is the critical exception which tripped the switch.</param>
+        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the tripswitch middleware to.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="whenTrippedException">The exception to throw on receiving any requests after the switch has been tripped.</param>
+        /// <param name="onTripAction">An action to invoke when the switch is tripped.</param>
         /// <returns>A reference to <paramref name="applicationBuilder"/> after the operation has completed.</returns>
-        public static IApplicationBuilder UseTripSwitch<TTripException>(this IApplicationBuilder applicationBuilder, Int32 shutdownTimeout, IEnumerable<Action<TTripException>> onTripActions)
+        public static IApplicationBuilder UseTripSwitch(this IApplicationBuilder applicationBuilder, TripSwitchActuator actuator, Exception whenTrippedException, Action onTripAction)
+        {
+            return applicationBuilder.UseMiddleware<TripSwitchMiddleware >(actuator, whenTrippedException, onTripAction);
+        }
+
+        /// <summary>
+        /// Adds the specified <see cref="TripSwitchMiddleware{TTripException}"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
+        /// </summary>
+        /// <typeparam name="TTripException">The type of the exception which activates/trips the switch.</typeparam>
+        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the tripswitch middleware to.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="applicationLifeTime">The <see cref="IHostApplicationLifetime"/> to use to shutdown the application after the switch has been tripped.</param>
+        /// <param name="shutdownTimeout">The time to wait in seconds after the switch is tripped to shutdown the application.</param>
+        /// <param name="onTripAction">An action to invoke when the switch is tripped via the <paramref name="actuator"/> parameter.</param>
+        /// <param name="onExceptionTripAction">An action to invoke when the switch is tripped by catching an instance of <typeparamref name="TTripException"/>.  Accepts a single parameter which is the exception which tripped the switch.</param>
+        /// <returns>A reference to <paramref name="applicationBuilder"/> after the operation has completed.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The specified <paramref name="shutdownTimeout"/> value is less than 0.</exception>
+        public static IApplicationBuilder UseTripSwitch<TTripException>(this IApplicationBuilder applicationBuilder, TripSwitchActuator actuator, IHostApplicationLifetime applicationLifeTime, Int32 shutdownTimeout, Action onTripAction, Action<TTripException> onExceptionTripAction)
             where TTripException : Exception
         {
             if (shutdownTimeout < 0)
                 throw new ArgumentOutOfRangeException(nameof(shutdownTimeout), $"Parameter '{nameof(shutdownTimeout)}' with value {shutdownTimeout} must be greater than or equal to 0.");
 
-            return applicationBuilder.UseMiddleware<TripSwitchMiddleware<TTripException>>(applicationBuilder, shutdownTimeout, onTripActions);
+            return applicationBuilder.UseMiddleware<TripSwitchMiddleware <TTripException>>(actuator, applicationLifeTime, shutdownTimeout, onTripAction, onExceptionTripAction);
+        }
+
+        /// <summary>
+        /// Adds the specified <see cref="TripSwitchMiddleware{TTripException}"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
+        /// </summary>
+        /// <typeparam name="TTripException">The type of the exception which activates/trips the switch.</typeparam>
+        /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the tripswitch middleware to.</param>
+        /// <param name="actuator">The actuator for the trip switch.</param>
+        /// <param name="whenTrippedException">The exception to throw on receiving any requests after the switch has been tripped.</param>
+        /// <param name="onTripAction">An action to invoke when the switch is tripped via the <paramref name="actuator"/> parameter.</param>
+        /// <param name="onExceptionTripAction">An action to invoke when the switch is tripped by catching an instance of <typeparamref name="TTripException"/>.  Accepts a single parameter which is the exception which tripped the switch.</param>
+        /// <returns>A reference to <paramref name="applicationBuilder"/> after the operation has completed.</returns>
+        public static IApplicationBuilder UseTripSwitch<TTripException>(this IApplicationBuilder applicationBuilder, TripSwitchActuator actuator, Exception whenTrippedException, Action onTripAction, Action<TTripException> onExceptionTripAction)
+            where TTripException : Exception
+        {
+            return applicationBuilder.UseMiddleware<TripSwitchMiddleware<TTripException>>(actuator, whenTrippedException, onTripAction, onExceptionTripAction);
         }
     }
 }

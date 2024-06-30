@@ -37,6 +37,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         protected IAccessManagerGroupToGroupQueryProcessor<String> mockGroupToGroupQueryProcessor;
         protected IAccessManagerUserEventProcessor<String, String, String, String> mockUserEventProcessor;
         protected IAccessManagerUserQueryProcessor<String, String, String, String> mockUserQueryProcessor;
+        protected TripSwitchActuator tripSwitchActuator;
         protected TestReaderWriter testReaderWriter;
         protected HttpClient client;
 
@@ -60,6 +61,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
             testReaderWriter.Services.GetService<GroupToGroupQueryProcessorHolder>().GroupToGroupQueryProcessor = mockGroupToGroupQueryProcessor;
             testReaderWriter.Services.GetService<UserEventProcessorHolder>().UserEventProcessor = mockUserEventProcessor;
             testReaderWriter.Services.GetService<UserQueryProcessorHolder>().UserQueryProcessor = mockUserQueryProcessor;
+            tripSwitchActuator = testReaderWriter.Services.GetService<TripSwitchActuator>();
             client = testReaderWriter.CreateClient();
         }
 

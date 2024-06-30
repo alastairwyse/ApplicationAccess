@@ -155,7 +155,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
             (
                 eventBufferFlushingOptions.BufferSizeLimit,
-                eventBufferFlushingOptions.FlushLoopInterval
+                eventBufferFlushingOptions.FlushLoopInterval,
+                (BufferFlushingException bufferFlushingException) => { }
             );
             metricLogger = new NullMetricLogger();
             eventPersister = new NullAccessManagerTemporalBulkPersister<String, String, String, String>();

@@ -54,6 +54,7 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
             GroupToGroupQueryProcessorHolder groupToGroupQueryProcessorHolder,
             UserEventProcessorHolder userEventProcessorHolder,
             UserQueryProcessorHolder userQueryProcessorHolder,
+            TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DependencyFreeReaderWriterNodeHostedServiceWrapper> logger
         )
@@ -70,6 +71,7 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
             groupToGroupQueryProcessorHolder,
             userEventProcessorHolder,
             userQueryProcessorHolder,
+            tripSwitchActuator,
             loggerFactory,
             logger
         )

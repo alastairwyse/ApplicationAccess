@@ -165,23 +165,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.Users);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(user, result[0]);
-        }
-
-        [Test]
-        public void Users_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.Users;
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -197,23 +182,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.Groups);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(group, result[0]);
-        }
-
-        [Test]
-        public void Groups_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.Groups;
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -229,23 +199,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.EntityTypes);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(entityType, result[0]);
-        }
-
-        [Test]
-        public void EntityTypes_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.EntityTypes;
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -261,22 +216,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = testReaderNode.ContainsUser(user);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void ContainsUser_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.ContainsUser("user1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -292,22 +232,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = testReaderNode.ContainsGroup(group);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void ContainsGroup_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.ContainsGroup("group1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -329,7 +254,6 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetUserToGroupMappings(user, false));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(group, result[0]);
 
@@ -338,33 +262,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             result = new List<String>(testReaderNode.GetUserToGroupMappings(user, true));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(2, result.Count);
             Assert.Contains(group, result);
             Assert.Contains(indirectGroup, result);
-        }
-
-        [Test]
-        public void GetUserToGroupMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetUserToGroupMappings("user1", false);
-            });
-
-            Assert.AreEqual(mockException, e);
-
-
-
-            e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetUserToGroupMappings("user1", true);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -389,7 +289,6 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetGroupToUserMappings(indirectGroup, false));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(user2, result[0]);
 
@@ -398,33 +297,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             result = new List<String>(testReaderNode.GetGroupToUserMappings(indirectGroup, true));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(2, result.Count);
             Assert.Contains(user1, result);
             Assert.Contains(user2, result);
-        }
-
-        [Test]
-        public void GetGroupToUserMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToUserMappings("group1", false);
-            });
-
-            Assert.AreEqual(mockException, e);
-
-
-
-            e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToUserMappings("group1", true);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -446,7 +321,6 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetGroupToGroupMappings(fromGroup, false));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(toGroup, result[0]);
 
@@ -455,32 +329,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             result = new List<String>(testReaderNode.GetGroupToGroupMappings(fromGroup, true));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(2, result.Count);
             Assert.Contains(toGroup, result);
             Assert.Contains(indirectGroup, result);
-        }
-
-        [Test]
-        public void GetGroupToGroupMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToGroupMappings("user1", false);
-            });
-
-            Assert.AreEqual(mockException, e);
-
-
-             e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToGroupMappings("user1", true);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -502,7 +353,6 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetGroupToGroupReverseMappings(indirectGroup, false));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(toGroup, result[0]);
 
@@ -511,32 +361,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             result = new List<String>(testReaderNode.GetGroupToGroupReverseMappings(indirectGroup, true));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(2, result.Count);
             Assert.Contains(fromGroup, result);
             Assert.Contains(toGroup, result);
-        }
-
-        [Test]
-        public void GetGroupToGroupReverseMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToGroupReverseMappings("group1", false);
-            });
-
-            Assert.AreEqual(mockException, e);
-
-
-            e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToGroupReverseMappings("group1", true);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -553,25 +380,11 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<Tuple<ApplicationScreen, AccessLevel>>(testReaderNode.GetUserToApplicationComponentAndAccessLevelMappings(user));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(ApplicationScreen.ManageProducts, result[0].Item1);
             Assert.AreEqual(AccessLevel.Delete, result[0].Item2);
         }
 
-        [Test]
-        public void GetUserToApplicationComponentAndAccessLevelMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetUserToApplicationComponentAndAccessLevelMappings("user1");
-            });
-
-            Assert.AreEqual(mockException, e);
-        }
 
         [Test]
         public void GetApplicationComponentAndAccessLevelToUserMappings()
@@ -593,7 +406,6 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(user1, result[0]);
 
@@ -602,33 +414,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             result = new List<String>(testReaderNode.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(2, result.Count);
             Assert.Contains(user1, result);
             Assert.Contains(user2, result);
-        }
-
-        [Test]
-        public void GetApplicationComponentAndAccessLevelToUserMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false);
-            });
-
-            Assert.AreEqual(mockException, e);
-
-
-
-            e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetApplicationComponentAndAccessLevelToUserMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -645,24 +433,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<Tuple<ApplicationScreen, AccessLevel>>(testReaderNode.GetGroupToApplicationComponentAndAccessLevelMappings(group));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(ApplicationScreen.ManageProducts, result[0].Item1);
             Assert.AreEqual(AccessLevel.Modify, result[0].Item2);
-        }
-
-        [Test]
-        public void GetGroupToApplicationComponentAndAccessLevelMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToApplicationComponentAndAccessLevelMappings("user1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -682,7 +455,6 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(group2, result[0]);
 
@@ -691,33 +463,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             result = new List<String>(testReaderNode.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(2, result.Count);
             Assert.Contains(group1, result);
             Assert.Contains(group2, result);
-        }
-
-        [Test]
-        public void GetApplicationComponentAndAccessLevelToGroupMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, false);
-            });
-
-            Assert.AreEqual(mockException, e);
-
-
-
-            e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetApplicationComponentAndAccessLevelToGroupMappings(ApplicationScreen.ManageProducts, AccessLevel.Create, true);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -733,22 +481,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = testReaderNode.ContainsEntityType(entityType);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void ContainsEntityType_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.ContainsEntityType("ClientAccount");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -766,23 +499,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetEntities(entityType));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(entity, result[0]);
-        }
-
-        [Test]
-        public void GetEntities_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntities("user1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -800,22 +518,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = testReaderNode.ContainsEntity(entityType, entity);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void ContainsEntity_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.ContainsEntity("ClientAccount", "CompanyA");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -836,24 +539,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<Tuple<String, String>>(testReaderNode.GetUserToEntityMappings(user));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(entityType, result[0].Item1);
             Assert.AreEqual(entity, result[0].Item2);
-        }
-
-        [Test]
-        public void GetUserToEntityMappingsUserOverload_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetUserToEntityMappings("user1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -874,23 +562,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetUserToEntityMappings(user, entityType));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(entity, result[0]);
-        }
-
-        [Test]
-        public void GetUserToEntityMappingsUserAndEntityTypeOverload_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetUserToEntityMappings("user1", "ClientAccount");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -917,7 +590,6 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetEntityToUserMappings(entityType, entity, false));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(user1, result[0]);
 
@@ -926,33 +598,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             result = new List<String>(testReaderNode.GetEntityToUserMappings(entityType, entity, true));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(2, result.Count);
             Assert.Contains(user1, result);
             Assert.Contains(user2, result);
-        }
-
-        [Test]
-        public void GetEntityToUserMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntityToUserMappings("ClientAccount", "CompanyA", false);
-            });
-
-            Assert.AreEqual(mockException, e);
-
-
-
-            e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntityToUserMappings("ClientAccount", "CompanyA", true);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -973,24 +621,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<Tuple<String, String>>(testReaderNode.GetGroupToEntityMappings(group));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(entityType, result[0].Item1);
             Assert.AreEqual(entity, result[0].Item2);
-        }
-
-        [Test]
-        public void GetGroupToEntityMappingsGroupOverload_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToEntityMappings("group1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1011,23 +644,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetGroupToEntityMappings(group, entityType));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(entity, result[0]);
-        }
-
-        [Test]
-        public void GetGroupToEntityMappingsGroupAndEntityTypeOverload_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetGroupToEntityMappings("group1", "ClientAccount");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1051,7 +669,6 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetEntityToGroupMappings(entityType, entity, false));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(group2, result[0]);
 
@@ -1060,33 +677,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             result = new List<String>(testReaderNode.GetEntityToGroupMappings(entityType, entity, true));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(2, result.Count);
             Assert.Contains(group1, result);
             Assert.Contains(group2, result);
-        }
-
-        [Test]
-        public void GetEntityToGroupMappings_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntityToGroupMappings("ClientAccount", "CompanyA", false);
-            });
-
-            Assert.AreEqual(mockException, e);
-
-
-
-            e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntityToGroupMappings("ClientAccount", "CompanyA", true);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1103,22 +696,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = testReaderNode.HasAccessToApplicationComponent(user, ApplicationScreen.Settings, AccessLevel.Modify);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void HasAccessToApplicationComponent_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.HasAccessToApplicationComponent("user1", ApplicationScreen.Settings, AccessLevel.Modify);
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1139,22 +717,7 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = testReaderNode.HasAccessToEntity(user, entityType, entity);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void HasAccessToEntity_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.HasAccessToEntity("user1", "ClientAccount", "CompanyA");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1171,24 +734,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<Tuple<ApplicationScreen, AccessLevel>>(testReaderNode.GetApplicationComponentsAccessibleByUser(user));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(ApplicationScreen.Summary, result[0].Item1);
             Assert.AreEqual(AccessLevel.View, result[0].Item2);
-        }
-
-        [Test]
-        public void GetApplicationComponentsAccessibleByUser_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetApplicationComponentsAccessibleByUser("user1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1205,24 +753,9 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<Tuple<ApplicationScreen, AccessLevel>>(testReaderNode.GetApplicationComponentsAccessibleByGroup(group));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(ApplicationScreen.Summary, result[0].Item1);
             Assert.AreEqual(AccessLevel.Modify, result[0].Item2);
-        }
-
-        [Test]
-        public void GetApplicationComponentsAccessibleByGroup_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetApplicationComponentsAccessibleByGroup("group1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1243,23 +776,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             HashSet<Tuple<String, String>> result = testReaderNode.GetEntitiesAccessibleByUser(user);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(new Tuple<String, String>(entityType, entity), result.ElementAt(0));
-        }
-
-        [Test]
-        public void GetEntitiesAccessibleByUserUserOverload_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntitiesAccessibleByUser("user1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1280,23 +798,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetEntitiesAccessibleByUser(user, entityType));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(entity, result[0]);
-        }
-
-        [Test]
-        public void GetEntitiesAccessibleByUserUserAndEntityTypeOverload_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntitiesAccessibleByUser("user1", "ClientAccount");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1317,23 +820,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             HashSet<Tuple<String, String>> result = testReaderNode.GetEntitiesAccessibleByGroup(group);
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(new Tuple<String, String>(entityType, entity), result.ElementAt(0));
-        }
-
-        [Test]
-        public void GetEntitiesAccessibleByGroupGroupOverload_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntitiesAccessibleByGroup("group1");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]
@@ -1354,23 +842,8 @@ namespace ApplicationAccess.Hosting.UnitTests
 
             var result = new List<String>(testReaderNode.GetEntitiesAccessibleByGroup(group, entityType));
 
-            mockRefreshStrategy.Received(1).NotifyQueryMethodCalled();
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(entity, result[0]);
-        }
-
-        [Test]
-        public void GetEntitiesAccessibleByGroupGroupAndEntityTypeOverload_RefreshException()
-        {
-            var mockException = new Exception("Failure on refresh worker thread.");
-            mockRefreshStrategy.When((strategy) => strategy.NotifyQueryMethodCalled()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                var result = testReaderNode.GetEntitiesAccessibleByGroup("group1", "ClientAccount");
-            });
-
-            Assert.AreEqual(mockException, e);
         }
 
         [Test]

@@ -522,12 +522,6 @@
         <member name="E:ApplicationAccess.Hosting.IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.ShardConfigurationRefreshed">
             <summary>Occurs when the shard configuration is refreshed/updated.</summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.NotifyOperationProcessed">
-            <summary>
-            Notifies the strategy that an operation was processed by the <see cref="T:ApplicationAccess.Hosting.DistributedOperationCoordinatorNode`2"/>.
-            </summary>
-            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the shard configuration.</exception>
-        </member>
         <member name="T:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy">
             <summary>
             Defines a strategy/methodology for refreshing/updating the contents of a <see cref="T:ApplicationAccess.Hosting.ReaderNode`4"/>.
@@ -535,12 +529,6 @@
         </member>
         <member name="E:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy.ReaderNodeRefreshed">
             <summary>Occurs when the contents of the reader node are updated to reflect the latest changes/updates to the system.</summary>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.IReaderNodeRefreshStrategy.NotifyQueryMethodCalled">
-            <summary>
-            Notifies the strategy that a <see cref="T:ApplicationAccess.Hosting.ReaderNode`4"/> query method was called.
-            </summary>
-            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
         <member name="T:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy">
             <summary>
@@ -550,8 +538,8 @@
         <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.shardConfigurationRefreshWorkerThread">
             <summary>Worker thread which implements the strategy to refresh the shard configuration.</summary>
         </member>
-        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.refreshExceptionDispatchInfo">
-            <summary>Set with any exception which occurrs on the worker thread when refreshing the shard configuration (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.refreshExceptionAction">
+            <summary>An action to invoke if an error occurs when refreshing the shard configuration.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Distribution.ShardConfigurationRefreshException"/> containing details of the error.</summary>
         </member>
         <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.refreshLoopInterval">
             <summary>The time to wait (in milliseconds) between shard configuration refreshes.</summary>
@@ -562,14 +550,12 @@
         <member name="E:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.ShardConfigurationRefreshed">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.#ctor(System.Int32)">
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.#ctor(System.Int32,System.Action{ApplicationAccess.Distribution.ShardConfigurationRefreshException})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy class.
             </summary>
             <param name="refreshLoopInterval">The time to wait (in milliseconds) between shard configuration refreshes.</param>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.NotifyOperationProcessed">
-            <inheritdoc/>
+            <param name="refreshExceptionAction">An action to invoke if an error occurs when refreshing the shard configuration.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Distribution.ShardConfigurationRefreshException"/> containing details of the error.</param>
         </member>
         <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.Start">
             <summary>
@@ -593,11 +579,6 @@
             Calls Join() on the worker thread, waiting until it terminates.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy.CheckAndThrowRefreshException">
-            <summary>
-            Checks whether property 'refreshExceptionDispatchInfo' has been set, and re-throws the exception in the case that it has.
-            </summary>
-        </member>
         <member name="T:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy">
             <summary>
             A reader node refresh strategy that refreshes/updates a reader node at a regular interval, using a worker thread.
@@ -606,11 +587,11 @@
         <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.readerNodeRefreshWorkerThread">
             <summary>Worker thread which implements the strategy to refresh the contents of reader node.</summary>
         </member>
-        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.refreshExceptionDispatchInfo">
-            <summary>Set with any exception which occurrs on the worker thread when refreshing the reader node (including stack trace and context info provided by the <see cref="T:System.Runtime.ExceptionServices.ExceptionDispatchInfo"/> class).  Null if no exception has occurred.</summary>
-        </member>
         <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.refreshLoopInterval">
             <summary>The time to wait (in milliseconds) between reader node refreshes.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.refreshExceptionAction">
+            <summary>An action to invoke if an error occurs when refreshing the reader node.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException"/> containing details of the error.</summary>
         </member>
         <member name="F:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.stopMethodCalled">
             <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
@@ -627,24 +608,22 @@
         <member name="E:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.ReaderNodeRefreshed">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.#ctor(System.Int32)">
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.#ctor(System.Int32,System.Action{ApplicationAccess.Hosting.ReaderNodeRefreshException})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy class.
             </summary>
             <param name="refreshLoopInterval">The time to wait (in milliseconds) between reader node refreshes.</param>
+            <param name="refreshExceptionAction">An action to invoke if an error occurs when refreshing the reader node.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException"/> containing details of the error.</param>
         </member>
-        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.#ctor(System.Int32,System.Threading.ManualResetEvent,System.Int32)">
+        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.#ctor(System.Int32,System.Action{ApplicationAccess.Hosting.ReaderNodeRefreshException},System.Threading.ManualResetEvent,System.Int32)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy class.
             </summary>
             <param name="refreshLoopInterval">The time to wait (in milliseconds) between reader node refreshes.</param>
+            <param name="refreshExceptionAction">An action to invoke if an error occurs when refreshing the reader node.  Accepts a single parameter which is the <see cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException"/> containing details of the error.</param>
             <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
             <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.NotifyQueryMethodCalled">
-            <inheritdoc/>
-            <exception cref="T:ApplicationAccess.Hosting.ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         </member>
         <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.Start">
             <summary>
@@ -666,11 +645,6 @@
         <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.JoinWorkerThread">
             <summary>
             Calls Join() on the worker thread, waiting until it terminates.
-            </summary>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.CheckAndThrowRefreshException">
-            <summary>
-            Checks whether property 'refreshExceptionDispatchInfo' has been set, and re-throws the exception in the case that it has.
             </summary>
         </member>
         <member name="M:ApplicationAccess.Hosting.LoopingWorkerThreadReaderNodeRefreshStrategy.Dispose">

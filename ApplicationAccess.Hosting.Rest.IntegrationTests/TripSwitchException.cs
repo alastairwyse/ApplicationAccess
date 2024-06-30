@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,20 @@
 
 using System;
 
-namespace ApplicationAccess.Hosting
+namespace ApplicationAccess.Hosting.Rest.IntegrationTests
 {
     /// <summary>
-    /// Defines a strategy/methodology for refreshing/updating the shard configuration in a <see cref="DistributedOperationCoordinatorNode{TClientConfiguration, TClientConfigurationJsonSerializer}"/>.
+    /// Exception that is configured to trip a trip switch.
     /// </summary>
-    public interface IDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy
+    public class TripSwitchException : Exception
     {
-        /// <summary>Occurs when the shard configuration is refreshed/updated.</summary>
-        event EventHandler ShardConfigurationRefreshed;
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.IntegrationTests.TripSwitchException class.
+        /// </summary>
+        /// <param name="message">The message that describes the error.</param>
+        public TripSwitchException(String message)
+            : base(message)
+        {
+        }
     }
 }

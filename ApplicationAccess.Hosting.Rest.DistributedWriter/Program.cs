@@ -72,17 +72,15 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
                     {
                         typeof(ServiceUnavailableException)
                     },
-                // Setup TripSwitchMiddleware to trip on encounterting a BufferFlushingException
-                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error.")
-
-                ,
+                // Setup TripSwitchMiddleware
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
                 // Optionally setup file logging
                 //LogFilePath = @"C:\Temp\AppAccess\TestHarness",
                 //LogFileNamePrefix = "ApplicationAccessDistributedWriterNodeLog"
             };
 
             var initializer = new ApplicationInitializer();
-            WebApplication app = initializer.Initialize<DistributedWriterNodeHostedServiceWrapper, BufferFlushingException>(parameters);
+            WebApplication app = initializer.Initialize<DistributedWriterNodeHostedServiceWrapper>(parameters);
 
             app.Run();
         }

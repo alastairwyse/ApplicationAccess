@@ -176,7 +176,16 @@ namespace ApplicationAccess.TestHarness
                 IBufferProcessingStrategy metricLoggerBufferProcessingStrategy = metricLoggerBufferProcessingStrategyAndActions.BufferFlushStrategy;
                 using (var metricLogger = new SqlServerMetricLogger(metricLoggerCategory, sqlServerMetricsConnectionString, sqlServerRetryCount, sqlServerRetryInterval, sqlServerOperationTimeout, metricLoggerBufferProcessingStrategy, IntervalMetricBaseTimeUnit.Nanosecond, false, metricLoggerLogger))
                 {
-                    var accessManagerEventBufferFlushStrategyAndActions = accessManagerEventBufferFlushStrategyFactory.MakeFlushStrategy(persisterBufferFlushStrategyConfiguration, metricLogger);
+                    var accessManagerEventBufferFlushStrategyAndActions = accessManagerEventBufferFlushStrategyFactory.MakeFlushStrategy
+                    (
+                        persisterBufferFlushStrategyConfiguration,
+                        (BufferFlushingException bufferFlushingException) =>
+                        {
+                            persisterLogger.Log(ApplicationLogging.LogLevel.Critical, "Exception occurred when flushing event buffer.", bufferFlushingException);
+                            persisterLogger.Log(ApplicationLogging.LogLevel.Critical, "Tripswitch has been actuated due to an unrecoverable error whilst flushing the event buffer.");
+                        }, 
+                        metricLogger
+                    ); ;
                     try
                     {
                         IAccessManagerEventBufferFlushStrategy persisterBufferFlushStrategy = accessManagerEventBufferFlushStrategyAndActions.BufferFlushStrategy;

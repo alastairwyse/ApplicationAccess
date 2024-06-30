@@ -119,11 +119,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Persisten
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Persistence.Sql.UnitTests", "ApplicationAccess.Persistence.Sql.UnitTests\ApplicationAccess.Persistence.Sql.UnitTests.csproj", "{8AF046AC-6E08-4FC3-B512-4FFFF5D29CCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Models.Options.UnitTests", "ApplicationAccess.Hosting.Models.Options.UnitTests\ApplicationAccess.Hosting.Models.Options.UnitTests.csproj", "{6642147B-3ADC-4BBA-85CB-E2DFA0D200B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Models.Options.UnitTests", "ApplicationAccess.Hosting.Models.Options.UnitTests\ApplicationAccess.Hosting.Models.Options.UnitTests.csproj", "{6642147B-3ADC-4BBA-85CB-E2DFA0D200B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Persistence.Sql", "ApplicationAccess.Hosting.Persistence.Sql\ApplicationAccess.Hosting.Persistence.Sql.csproj", "{EC3D72C2-9AFB-4D21-A6EE-9A43ABB34863}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Persistence.Sql", "ApplicationAccess.Hosting.Persistence.Sql\ApplicationAccess.Hosting.Persistence.Sql.csproj", "{EC3D72C2-9AFB-4D21-A6EE-9A43ABB34863}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Metrics", "ApplicationAccess.Hosting.Metrics\ApplicationAccess.Hosting.Metrics.csproj", "{03AB5F12-655A-4796-8582-EF0D54E0CD26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationAccess.Hosting.Metrics", "ApplicationAccess.Hosting.Metrics\ApplicationAccess.Hosting.Metrics.csproj", "{03AB5F12-655A-4796-8582-EF0D54E0CD26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.IntegrationTests", "ApplicationAccess.Hosting.Rest.IntegrationTests\ApplicationAccess.Hosting.Rest.IntegrationTests.csproj", "{11C5911D-EE4E-46E9-958D-1FCBEEE6BB50}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -375,6 +377,10 @@ Global
 		{03AB5F12-655A-4796-8582-EF0D54E0CD26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03AB5F12-655A-4796-8582-EF0D54E0CD26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03AB5F12-655A-4796-8582-EF0D54E0CD26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11C5911D-EE4E-46E9-958D-1FCBEEE6BB50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11C5911D-EE4E-46E9-958D-1FCBEEE6BB50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11C5911D-EE4E-46E9-958D-1FCBEEE6BB50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11C5911D-EE4E-46E9-958D-1FCBEEE6BB50}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

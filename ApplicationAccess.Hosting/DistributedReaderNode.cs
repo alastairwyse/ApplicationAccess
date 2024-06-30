@@ -78,7 +78,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TUser> GetGroupToUserMappings(IEnumerable<TGroup> groups)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToUserMappings(groups);
         }
 
@@ -86,7 +85,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TGroup> GetGroupToGroupMappings(IEnumerable<TGroup> groups)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToGroupMappings(groups);
         }
 
@@ -94,7 +92,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<TGroup> GetGroupToGroupReverseMappings(IEnumerable<TGroup> groups)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetGroupToGroupReverseMappings(groups);
         }
 
@@ -102,7 +99,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public bool HasAccessToApplicationComponent(IEnumerable<TGroup> groups, TComponent applicationComponent, TAccess accessLevel)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.HasAccessToApplicationComponent(groups, applicationComponent, accessLevel);
         }
 
@@ -110,7 +106,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public bool HasAccessToEntity(IEnumerable<TGroup> groups, String entityType, String entity)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.HasAccessToEntity(groups, entityType, entity);
         }
 
@@ -118,7 +113,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroups(IEnumerable<TGroup> groups)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetApplicationComponentsAccessibleByGroups(groups);
         }
 
@@ -126,7 +120,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<Tuple<string, string>> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntitiesAccessibleByGroups(groups);
         }
 
@@ -134,7 +127,6 @@ namespace ApplicationAccess.Hosting
         /// <exception cref="ReaderNodeRefreshException">An exception occurred whilst attempting to refresh/update the reader node.</exception>
         public HashSet<string> GetEntitiesAccessibleByGroups(IEnumerable<TGroup> groups, string entityType)
         {
-            refreshStrategy.NotifyQueryMethodCalled();
             return concurrentAccessManager.GetEntitiesAccessibleByGroups(groups, entityType);
         }
 

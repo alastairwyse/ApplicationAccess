@@ -33,6 +33,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
     public abstract class DistributedOperationCoordinatorIntegrationTestsBase : IntegrationTestsBase
     {
         protected IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration> mockDistributedAccessManagerOperationCoordinator;
+        protected TripSwitchActuator tripSwitchActuator;
         protected TestDistributedOperationCoordinator testDistributedOperationCoordinator;
         protected HttpClient client;
 
@@ -42,6 +43,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
             mockDistributedAccessManagerOperationCoordinator = Substitute.For< IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>>();
             testDistributedOperationCoordinator = new TestDistributedOperationCoordinator();
             testDistributedOperationCoordinator.Services.GetService<DistributedOperationCoordinatorHolder>().DistributedOperationCoordinator = mockDistributedAccessManagerOperationCoordinator;
+            tripSwitchActuator = testDistributedOperationCoordinator.Services.GetService<TripSwitchActuator>();
             client = testDistributedOperationCoordinator.CreateClient();
         }
 

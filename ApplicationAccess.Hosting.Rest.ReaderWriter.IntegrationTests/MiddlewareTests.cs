@@ -15,6 +15,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
@@ -300,7 +301,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         }
 
         /// <summary>
-        /// Tests that the <see cref="TripSwitchMiddleware{TTripException}"/> trips correctly when the relevant exception is thrown.
+        /// Tests that the <see cref="TripSwitchMiddleware{TTripException}"/> trips correctly.
         /// </summary>
         [Test]
         [Order(Int32.MaxValue)]
@@ -308,23 +309,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests
         {
             const String entityType = "BusinessUnit";
             const String requestUrl = $"api/v1/entityTypes/{entityType}/entities";
-            var mockException = new BufferFlushingException($"Exception occurred on buffer flushing worker thread at 2023-08-17 21:20:04");
-            mockEntityQueryProcessor.When((processor) => processor.GetEntities(entityType)).Do((callInfo) => throw mockException);
+            tripSwitchActuator.Actuate();
 
             using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
             {
 
                 JObject jsonResponse = ConvertHttpContentToJson(response.Content);
-                // BufferFlushingException should be mapped to InternalServerError
-                AssertJsonIsHttpErrorResponse(jsonResponse, "InternalServerError", "An internal server error occurred");
-                Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
-
-                // Subsequent calls should result in a ServiceUnavailableException
-
-                HttpResponseMessage response2 = client.GetAsync(requestUrl).Result;
-                jsonResponse = ConvertHttpContentToJson(response2.Content);
                 AssertJsonIsHttpErrorResponse(jsonResponse, "ServiceUnavailableException", "The service is unavailable due to an interal error.");
-                Assert.AreEqual(HttpStatusCode.ServiceUnavailable, response2.StatusCode);
+                Assert.AreEqual(HttpStatusCode.ServiceUnavailable, response.StatusCode);
             }
         }
     }

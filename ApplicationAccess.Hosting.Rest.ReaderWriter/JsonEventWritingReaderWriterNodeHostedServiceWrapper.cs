@@ -198,7 +198,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
             (
                 eventBufferFlushingOptions.BufferSizeLimit,
-                eventBufferFlushingOptions.FlushLoopInterval
+                eventBufferFlushingOptions.FlushLoopInterval,
+                (BufferFlushingException bufferFlushingException) => { }
             );
             metricLogger = new NullMetricLogger();
             eventPersister = new ListAccessManagerTemporalBulkPersister<String, String, String, String>();
