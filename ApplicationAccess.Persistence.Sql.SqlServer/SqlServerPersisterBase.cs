@@ -122,7 +122,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             // Below obtained from https://docs.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues?view=azuresql
             var returnList = new List<Int32>() { 26, 40, 615, 926, 4060, 4221, 10053, 10928, 10929, 11001, 40197, 40501, 40613, 40615, 40544, 40549, 49918, 49919, 49920 };
             // These are additional error numbers encountered during testing
-            returnList.AddRange(new List<Int32>() { -2, 53, 121 });
+            returnList.AddRange(new List<Int32>() { -2, 53, 121, 1205 });
 
             return returnList;
         }
