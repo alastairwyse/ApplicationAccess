@@ -276,7 +276,18 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             {
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
                 var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions);
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                (
+                    loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>()
+                );
+                Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
+                (
+                    metricBufferProcessingOptions.BufferProcessingFailureAction,
+                    () => { return readerNode; },
+                    tripSwitchActuator,
+                    metricBufferProcessorLogger
+                );
+                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
                     metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType,

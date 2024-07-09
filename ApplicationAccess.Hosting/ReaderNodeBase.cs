@@ -36,7 +36,7 @@ namespace ApplicationAccess.Hosting
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     /// <typeparam name="TAccessManager">The subclass of <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> which should be used to store the permissions and authorizations.</typeparam>
     /// <remarks>Note that as per remarks for <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> interval metrics are not logged for <see cref="IAccessManagerQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> methods that return <see cref="IEnumerable{T}"/>, or perform simple dictionary and set lookups (e.g. <see cref="MetricLoggingConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}.ContainsUser(TUser)">ContainsUser()</see>).  If these metrics are required, they must be logged outside of this class.  In the case of methods that return <see cref="IEnumerable{T}"/> the metric logging must wrap the code that enumerates the result.</remarks>
-    public abstract class ReaderNodeBase<TUser, TGroup, TComponent, TAccess, TAccessManager> : IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public abstract class ReaderNodeBase<TUser, TGroup, TComponent, TAccess, TAccessManager> : IAccessManagerQueryProcessor<TUser, TGroup, TComponent, TAccess>, IMetricLoggingComponent, IDisposable
         where TAccessManager : ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>, IMetricLoggingComponent
     {
         /// <summary>The strategy/methodology to use to refresh the contents of the reader node.</summary>
@@ -57,6 +57,20 @@ namespace ApplicationAccess.Hosting
         protected EventHandler refreshedEventHandler;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
+
+        /// <inheritdoc/>
+        public Boolean MetricLoggingEnabled
+        {
+            get
+            {
+                return concurrentAccessManager.MetricLoggingEnabled;
+            }
+
+            set
+            {
+                concurrentAccessManager.MetricLoggingEnabled = value;
+            }
+        }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeBase class.

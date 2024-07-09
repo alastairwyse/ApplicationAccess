@@ -39,11 +39,14 @@ namespace ApplicationAccess.Hosting.Models.Options
         [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
         public Int32 DequeueOperationLoopInterval { get; set; }
 
+        public MetricBufferProcessingFailureAction BufferProcessingFailureAction { get; set; }
+
         public MetricBufferProcessingOptions()
         {
             BufferProcessingStrategy = default(MetricBufferProcessingStrategyImplementation);
             BufferSizeLimit = 0;
             DequeueOperationLoopInterval = 0;
+            BufferProcessingFailureAction = MetricBufferProcessingFailureAction.ReturnServiceUnavailable;
         }
 
         #pragma warning restore 0649

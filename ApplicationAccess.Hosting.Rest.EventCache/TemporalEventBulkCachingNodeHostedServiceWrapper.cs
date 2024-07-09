@@ -42,6 +42,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         protected EventCachingOptions eventCachingOptions;
         protected TemporalEventQueryProcessorHolder temporalEventQueryProcessorHolder;
         protected TemporalEventBulkPersisterHolder temporalEventBulkPersisterHolder;
+        protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
         protected ILogger<TemporalEventBulkCachingNodeHostedServiceWrapper> logger;
 
@@ -61,6 +62,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             IOptions<EventCachingOptions> eventCachingOptions,
             TemporalEventQueryProcessorHolder temporalEventQueryProcessorHolder,
             TemporalEventBulkPersisterHolder temporalEventBulkPersisterHolder,
+            TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<TemporalEventBulkCachingNodeHostedServiceWrapper> logger
         )
@@ -69,6 +71,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             this.eventCachingOptions = eventCachingOptions.Value;
             this.temporalEventQueryProcessorHolder = temporalEventQueryProcessorHolder;
             this.temporalEventBulkPersisterHolder = temporalEventBulkPersisterHolder;
+            this.tripSwitchActuator = tripSwitchActuator;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
         }
@@ -154,7 +157,19 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             {
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
                 var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions);
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                (
+                    loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>()
+                );
+                Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
+                (
+                    MetricBufferProcessingFailureAction.ReturnServiceUnavailable,
+                    // Parameter 'metricLoggingComponentRetrievalFunction' is not used when 'processingFailureAction' is set to 'ReturnServiceUnavailable', hence can set to null
+                    () => { return null; },
+                    tripSwitchActuator,
+                    metricBufferProcessorLogger
+                );
+                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
                 var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (

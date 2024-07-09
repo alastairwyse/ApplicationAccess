@@ -196,12 +196,16 @@ namespace ApplicationAccess.Hosting.Rest.Client
                         Stream responseBody = response.Content.ReadAsStream();
                         HttpErrorResponse httpErrorResponse = DeserializeResponseBodyToHttpErrorResponse(responseBody);
                         responseBody.Position = 0;
-                        // If a 503 status was returned, throw this as an EventCacheEmptyException
+                        // If a 503 status was returned with the appropriate 'Code', throw this as an EventCacheEmptyException
+                        //   Note that a 503 is also returned by a ServiceUnavailableException, but with corresponding 'Code' property
                         if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
                         {
                             if (httpErrorResponse != null)
                             {
-                                throw new EventCacheEmptyException(httpErrorResponse.Message);
+                                if (httpErrorResponse.Code == "EventCacheEmptyException")
+                                {
+                                    throw new EventCacheEmptyException(httpErrorResponse.Message);
+                                }
                             }
                         }
                         // If a 404 status was returned, throw this as an EventNotCachedException

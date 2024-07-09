@@ -14,8 +14,8 @@
 
   <ItemGroup>
     <PackageReference Include="ApplicationLogging" Version="2.0.0" />
-    <PackageReference Include="ApplicationMetrics" Version="6.2.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+    <PackageReference Include="ApplicationMetrics" Version="6.3.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -71,6 +71,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
         /// <param name="priorEventdId">The id of the event to retrieve all events since.</param>
         /// <returns>An ordered array of events which occurred since the specified event, and not including the specified event.  Returned in order from least recent to most recent.</returns>
         /// <response code="404">An event with the specified id was not found in the cache.</response>
+        /// <response code="503">The event cache is empty.</response>
         [HttpGet]
         [Route("eventBufferItems")]
         [Produces(MediaTypeNames.Application.Json)]

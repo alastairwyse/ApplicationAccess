@@ -798,6 +798,9 @@
         <member name="F:ApplicationAccess.Hosting.ReaderNodeBase`5.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
         </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderNodeBase`5.MetricLoggingEnabled">
+            <inheritdoc/>
+        </member>
         <member name="M:ApplicationAccess.Hosting.ReaderNodeBase`5.#ctor(ApplicationAccess.Hosting.IReaderNodeRefreshStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalEventQueryProcessor{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.ReaderNodeBase class.
@@ -1071,6 +1074,9 @@
         </member>
         <member name="F:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.MetricLoggingEnabled">
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.ReaderWriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>
@@ -1408,6 +1414,9 @@
         </member>
         <member name="F:ApplicationAccess.Hosting.WriterNodeBase`5.disposed">
             <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Hosting.WriterNodeBase`5.MetricLoggingEnabled">
+            <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Hosting.WriterNodeBase`5.#ctor(ApplicationAccess.Persistence.IAccessManagerEventBufferFlushStrategy,ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister{`0,`1,`2,`3})">
             <summary>

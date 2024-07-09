@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApplicationMetrics" Version="6.2.0" />
+    <PackageReference Include="ApplicationMetrics" Version="6.3.0" />
     <PackageReference Include="MoreComplexDataStructures" Version="1.9.1" />
   </ItemGroup>
 

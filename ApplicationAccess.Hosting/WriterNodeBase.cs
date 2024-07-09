@@ -32,7 +32,7 @@ namespace ApplicationAccess.Hosting
     /// <typeparam name="TComponent">The type of components in the application to manage access to.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     /// <typeparam name="TAccessManager">The subclass of <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> which should be used to write the permissions and authorizations.</typeparam>
-    public abstract class WriterNodeBase<TUser, TGroup, TComponent, TAccess, TAccessManager> : IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public abstract class WriterNodeBase<TUser, TGroup, TComponent, TAccess, TAccessManager> : IAccessManagerEventProcessor<TUser, TGroup, TComponent, TAccess>, IMetricLoggingComponent, IDisposable
         where TAccessManager : ConcurrentAccessManager<TUser, TGroup, TComponent, TAccess>, IMetricLoggingComponent
     {
         /// <summary>AccessManager instance which backs the event validator.</summary>
@@ -49,6 +49,20 @@ namespace ApplicationAccess.Hosting
         protected IMetricLogger metricLogger;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
+
+        /// <inheritdoc/>
+        public Boolean MetricLoggingEnabled
+        {
+            get
+            {
+                return concurrentAccessManager.MetricLoggingEnabled;
+            }
+
+            set
+            {
+                concurrentAccessManager.MetricLoggingEnabled = value;
+            }
+        }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.WriterNodeBase class.

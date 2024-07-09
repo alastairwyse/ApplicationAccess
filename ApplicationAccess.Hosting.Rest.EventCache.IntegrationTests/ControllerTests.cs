@@ -25,6 +25,10 @@ using ApplicationAccess.Persistence;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
+using Microsoft.Extensions.Logging;
+using ApplicationAccess.Serialization;
+using ApplicationAccess.Hosting.Rest.Utilities;
+using NSubstitute.ClearExtensions;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
 {
@@ -62,6 +66,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                 }
             };
             List<TemporalEventBufferItemBase> capturedEvents = null;
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
             mockTemporalEventBulkPersister.PersistEvents(Arg.Do<List<TemporalEventBufferItemBase>>(argumentValue => capturedEvents = argumentValue));
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUrl))
             {
@@ -180,6 +185,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
             const String ToGroupPropertyName = "toGroup";
             var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
             List<TemporalEventBufferItemBase> returnEvents = CreateTestEvents();
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
             mockTemporalEventQueryProcessor.GetAllEventsSince(priorEventdId).Returns(returnEvents);
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{requestUrl}?priorEventdId={priorEventdId}"))
             {
@@ -263,6 +269,68 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     AssertJObjectContainsStringProperty(groupToGroupMappingEventJson, OccurredTimePropertyName, "2023-03-18 23:49:35.0000009");
                     AssertJObjectContainsStringProperty(groupToGroupMappingEventJson, FromGroupPropertyName, "group5");
                     AssertJObjectContainsStringProperty(groupToGroupMappingEventJson, ToGroupPropertyName, "group6");
+                }
+            }
+        }
+
+        [Test]
+        public void GetAllEventsSince_EventNotCached()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = $"No event with eventId '{priorEventdId}' was found in the cache.";
+            var mockException = new EventNotCachedException(exceptionMessage);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{requestUrl}?priorEventdId={priorEventdId}"))
+            {
+
+                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
+                {
+                    JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                    AssertJsonIsHttpErrorResponse(jsonResponse, typeof(NotFoundException).Name, exceptionMessage);
+                    Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+                }
+            }
+        }
+
+        [Test]
+        public void GetAllEventsSince_EventCacheEmpty()
+        {
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = "The event cache is empty.";
+            var mockException = new EventCacheEmptyException(exceptionMessage);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{requestUrl}?priorEventdId={priorEventdId}"))
+            {
+
+                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
+                {
+                    JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                    AssertJsonIsHttpErrorResponse(jsonResponse, typeof(EventCacheEmptyException).Name, exceptionMessage);
+                    Assert.AreEqual(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+                }
+            }
+        }
+
+        [Test]
+        public void GetAllEventsSince_TripSwitchActuated()
+        {
+            // 503 is returned by both EventCacheEmptyException and ServiceUnavailableException, so test that the client handles both cases correctly
+            var priorEventdId = Guid.Parse("a13ec1a2-e0ef-473c-96be-1e5f33ec5d45");
+            var exceptionMessage = "The service is unavailable due to an interal error.";
+            var mockException = new ServiceUnavailableException(exceptionMessage);
+            mockTemporalEventQueryProcessor.ClearSubstitute(ClearOptions.All);
+            mockTemporalEventQueryProcessor.When((queryProcessor) => queryProcessor.GetAllEventsSince(priorEventdId)).Do((callInfo) => throw mockException);
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{requestUrl}?priorEventdId={priorEventdId}"))
+            {
+
+                using (HttpResponseMessage response = client.SendAsync(requestMessage).Result)
+                {
+                    JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                    AssertJsonIsHttpErrorResponse(jsonResponse, typeof(ServiceUnavailableException).Name, exceptionMessage);
+                    Assert.AreEqual(HttpStatusCode.ServiceUnavailable, response.StatusCode);
                 }
             }
         }

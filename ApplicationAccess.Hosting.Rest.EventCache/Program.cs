@@ -26,6 +26,7 @@ using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Serialization;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache
 {
@@ -67,13 +68,18 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
                     // Add a mapping from DeserializationException to HTTP 400 error status
                     new Tuple<Type, HttpStatusCode>(typeof(DeserializationException), HttpStatusCode.BadRequest), 
                     // Add a mapping from EventCacheEmptyException to HTTP 503 error status
-                    new Tuple<Type, HttpStatusCode>(typeof(EventCacheEmptyException), HttpStatusCode.ServiceUnavailable)
+                    new Tuple<Type, HttpStatusCode>(typeof(EventCacheEmptyException), HttpStatusCode.ServiceUnavailable), 
+                    // Add a mapping from ServiceUnavailableException to HTTP 503 error status (for TripSwitch)
+                    new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
                 },
                 ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
                 {
                     typeof(DeserializationException),
-                    typeof(EventCacheEmptyException)
-                }
+                    typeof(EventCacheEmptyException),
+                    typeof(ServiceUnavailableException)
+                }, 
+                // Setup TripSwitchMiddleware 
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
             };
 
             var initializer = new ApplicationInitializer();

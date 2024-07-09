@@ -33,6 +33,7 @@ using ApplicationAccess.Persistence;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationMetrics.MetricLoggers;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ApplicationAccess.Hosting.Rest.Writer
 {
@@ -278,7 +279,18 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             {
                 MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
                 var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions);
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                (
+                    loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>()
+                );
+                Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
+                (
+                    metricBufferProcessingOptions.BufferProcessingFailureAction,
+                    () => { return writerNode; },
+                    tripSwitchActuator,
+                    metricBufferProcessorLogger
+                );
+                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
                     metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType,
