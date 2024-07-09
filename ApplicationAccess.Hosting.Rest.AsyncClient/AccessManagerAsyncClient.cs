@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ApplicationLogging;
 using ApplicationMetrics;
@@ -470,6 +471,160 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         public async Task<List<String>> GetEntitiesAccessibleByGroupAsync(TGroup group, String entityType)
         {
             return await base.GetEntitiesAccessibleByGroupBaseAsync(group, entityType);
+        }
+    }
+
+    /// <summary>
+    /// Client class which asyncronously interfaces to an <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> instance hosted as a REST web API, where users, groups, application components, and access levels are <see cref="String">strings</see>.
+    /// </summary>
+    public class AccessManagerAsyncClient : AccessManagerAsyncClient<String, String, String, String>
+    {
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
+        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
+        /// <param name="retryInterval">The time in seconds between retries.</param>
+        public AccessManagerAsyncClient
+        (
+            Uri baseUrl,
+            Int32 retryCount,
+            Int32 retryInterval
+        )
+            : base
+        (   
+            baseUrl, 
+            new StringUniqueStringifier(), 
+            new StringUniqueStringifier(), 
+            new StringUniqueStringifier(), 
+            new StringUniqueStringifier(),
+            retryCount,
+            retryInterval
+        )
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
+        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
+        /// <param name="retryInterval">The time in seconds between retries.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public AccessManagerAsyncClient
+        (
+            Uri baseUrl,
+            Int32 retryCount,
+            Int32 retryInterval,
+            IApplicationLogger logger,
+            IMetricLogger metricLogger
+        )
+            : base
+        (
+            baseUrl,
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            retryCount, 
+            retryInterval, 
+            logger, 
+            metricLogger
+        )
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
+        /// <param name="httpClient">The client to use to connect.</param>
+        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
+        /// <param name="retryInterval">The time in seconds between retries.</param>
+        public AccessManagerAsyncClient
+        (
+            Uri baseUrl,
+            HttpClient httpClient,
+            Int32 retryCount,
+            Int32 retryInterval
+        )
+            : base
+        (
+            baseUrl, 
+            httpClient,
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            retryCount, 
+            retryInterval
+        )
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
+        /// <param name="httpClient">The client to use to connect.</param>
+        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
+        /// <param name="retryInterval">The time in seconds between retries.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public AccessManagerAsyncClient
+        (
+            Uri baseUrl,
+            HttpClient httpClient,
+            Int32 retryCount,
+            Int32 retryInterval,
+            IApplicationLogger logger,
+            IMetricLogger metricLogger
+        )
+            : base
+        (
+            baseUrl, 
+            httpClient,
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            retryCount, 
+            retryInterval, 
+            logger, 
+            metricLogger
+        )
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.AsyncClient.AccessManagerAsyncClient class.
+        /// </summary>
+        /// <param name="baseUrl">The base URL for the hosted Web API.  This should contain the scheme, host, and port subcomponents of the Web API URL, but not include the path 'api' prefix and version number.  For example 'https://127.0.0.1:5170/'.</param>
+        /// <param name="httpClient">The client to use to connect.</param>
+        /// <param name="exceptionHandingPolicy">Exception handling policy for HttpClient calls.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public AccessManagerAsyncClient
+        (
+            Uri baseUrl,
+            HttpClient httpClient,
+            AsyncPolicy exceptionHandingPolicy,
+            IApplicationLogger logger,
+            IMetricLogger metricLogger
+        )
+            : base
+        (
+            baseUrl, 
+            httpClient,
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            new StringUniqueStringifier(),
+            exceptionHandingPolicy, 
+            logger, 
+            metricLogger)
+        {
         }
     }
 }
