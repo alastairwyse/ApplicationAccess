@@ -73,9 +73,6 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 },
                 // Setup TripSwitchMiddleware 
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
-                // Optionally setup file logging
-                LogFilePath = @"C:\Temp\AppAccess\TestHarness",
-                LogFileNamePrefix = "ApplicationAccessReaderNodeLog"
             };
 
             var initializer = new ApplicationInitializer();

@@ -77,10 +77,6 @@ namespace ApplicationAccess.Hosting.Rest
                 if (currentTuple.Item1.IsAssignableTo(typeof(Exception)) == false)
                     throw new ArgumentException($"Property '{nameof(parameters.ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings)}' of {nameof(parameters)} object contains type '{currentTuple.Item1.FullName}' which does not derive from '{typeof(Exception).FullName}'.", nameof(parameters.ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings));
             }
-            if (parameters.LogFilePath != null)
-            {
-                ThrowExceptionIfStringParametersPropertyIsWhitespace(parameters.LogFileNamePrefix, nameof(parameters.LogFileNamePrefix), nameof(parameters));
-            }
 
             WebApplicationBuilder builder = WebApplication.CreateBuilder(parameters.Args);
             var middlewareUtilities = new MiddlewareUtilities();
@@ -179,10 +175,12 @@ namespace ApplicationAccess.Hosting.Rest
                 builder.Services.AddHostedService<THostedService>();
             }
 
-            // TODO: Consider removing to remove Serilog dependency
-            if (parameters.LogFilePath != null)
+            // Setup file logging if configured
+            String logFilePath = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFilePath)}");
+            String logFileNamePrefix = builder.Configuration.GetValue<String>($"{FileLoggingOptions.FileLoggingOptionsName}:{nameof(FileLoggingOptions.LogFileNamePrefix)}");
+            if (logFilePath != null && logFileNamePrefix != null)
             {
-                middlewareUtilities.SetupFileLogging(builder, parameters.LogFilePath, parameters.LogFileNamePrefix);
+                middlewareUtilities.SetupFileLogging(builder, logFilePath, logFileNamePrefix);
             }
 
             WebApplication app = builder.Build();

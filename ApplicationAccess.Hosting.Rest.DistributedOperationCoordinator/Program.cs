@@ -72,9 +72,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 },
                 // Setup TripSwitchMiddleware
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
-                // Optionally setup file logging
-                LogFilePath = @"C:\Temp\AppAccess\TestHarness",
-                LogFileNamePrefix = "ApplicationAccessDistributedOperationCoordinatorNodeLog"
             };
 
             var initializer = new ApplicationInitializer();
