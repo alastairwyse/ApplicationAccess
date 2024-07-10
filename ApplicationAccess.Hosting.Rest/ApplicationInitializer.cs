@@ -81,6 +81,24 @@ namespace ApplicationAccess.Hosting.Rest
             WebApplicationBuilder builder = WebApplication.CreateBuilder(parameters.Args);
             var middlewareUtilities = new MiddlewareUtilities();
 
+            // Add CORS if configured
+            String corsConfigurationKey = $"{CorsOptions.CorsOptionsName}:{nameof(CorsOptions.AllowedOrigins)}";
+            String[] corsAllowedOrigins = builder.Configuration.GetSection(corsConfigurationKey).Get<String[]>();
+            // Note that setting the config item to an empty array results in 'corsAllowedOrigins' being null (so no need to check for empty array)
+            if (corsAllowedOrigins != null)
+            {
+                builder.Services.AddCors(options =>
+                {
+                    options.AddDefaultPolicy
+                    (
+                        policy =>
+                        {
+                            policy.WithOrigins(corsAllowedOrigins).AllowAnyHeader().AllowAnyMethod();
+                        }
+                    );
+                });
+            }
+
             // Add services to the container.
             IMvcBuilder mvcBuilder = builder.Services.AddControllers()
             // Override the default model-binding failure behaviour, to return a HttpErrorResponse object rather than the standard ProblemDetails
@@ -229,6 +247,11 @@ namespace ApplicationAccess.Hosting.Rest
             {
                 app.UseTripSwitch(tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
                 app.Lifetime.ApplicationStopped.Register(() => { tripSwitchActuator.Dispose(); });
+            }
+
+            if (corsAllowedOrigins != null)
+            {
+                app.UseCors();
             }
 
             app.UseAuthorization();

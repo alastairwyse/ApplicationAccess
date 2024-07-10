@@ -20,22 +20,19 @@ using System.ComponentModel.DataAnnotations;
 namespace ApplicationAccess.Hosting.Models.Options
 {
     /// <summary>
-    /// Container class storing options for logging to files, and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
+    /// Container class storing options for Cross-Origin Resource Sharing (CORS), and following the <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0">ASP.NET Core Options pattern</see>.
     /// </summary>
-    public class FileLoggingOptions
+    public class CorsOptions
     {
         #pragma warning disable 0649
 
-        public const String FileLoggingOptionsName = "FileLogging";
+        public const String CorsOptionsName = "Cors";
 
-        public String? LogFilePath { get; set; }
+        public String[]? AllowedOrigins { get; set; }
 
-        public String? LogFileNamePrefix { get; set; }
-
-        public FileLoggingOptions()
+        public CorsOptions()
         {
-            LogFilePath = null;
-            LogFileNamePrefix = null;
+            AllowedOrigins = null;
         }
 
         #pragma warning restore 0649
