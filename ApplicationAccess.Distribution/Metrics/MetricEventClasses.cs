@@ -19,7 +19,7 @@ using ApplicationMetrics;
 
 namespace ApplicationAccess.Distribution.Metrics
 {
-#pragma warning disable 1591
+    #pragma warning disable 1591
 
     /// <summary>
     /// Count metric which records a call to the RefreshConfiguration() method where the shard configuration was subsequently refreshed.

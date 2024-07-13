@@ -15,7 +15,6 @@
  */
 
 using System;
-using ApplicationAccess.Persistence;
 using ApplicationAccess.Metrics;
 using ApplicationMetrics;
 
