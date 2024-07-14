@@ -97,14 +97,15 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             connectionRetryAction = (Object sender, SqlRetryingEventArgs eventArgs) =>
             {
                 Exception lastException = eventArgs.Exceptions[eventArgs.Exceptions.Count - 1];
+                Int32 retryDelayInSeconds = eventArgs.Delay.Seconds;
                 if (typeof(SqlException).IsAssignableFrom(lastException.GetType()) == true)
                 {
                     var se = (SqlException)lastException;
-                    logger.Log(this, LogLevel.Warning, $"SQL Server error with number {se.Number} occurred when executing command.  Retrying in {retryInterval} seconds (retry {eventArgs.RetryCount} of {retryCount}).", se);
+                    logger.Log(this, LogLevel.Warning, $"SQL Server error with number {se.Number} occurred when executing command.  Retrying in {retryDelayInSeconds} seconds (retry {eventArgs.RetryCount} of {retryCount}).", se);
                 }
                 else
                 {
-                    logger.Log(this, LogLevel.Warning, $"Exception occurred when executing command.  Retrying in {retryInterval} seconds (retry {eventArgs.RetryCount} of {retryCount}).", lastException);
+                    logger.Log(this, LogLevel.Warning, $"Exception occurred when executing command.  Retrying in {retryDelayInSeconds} seconds (retry {eventArgs.RetryCount} of {retryCount}).", lastException);
                 }
                 metricLogger.Increment(new SqlCommandExecutionRetried());
             };

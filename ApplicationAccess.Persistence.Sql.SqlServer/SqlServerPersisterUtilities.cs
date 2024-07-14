@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using ApplicationAccess.Persistence.Sql;
-using System.Text.RegularExpressions;
 
 namespace ApplicationAccess.Persistence.Sql.SqlServer
 {
@@ -39,6 +38,8 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         protected SqlRetryLogicOption sqlRetryLogicOption;
         /// <summary>The action to invoke if an action is retried due to a transient error.</summary>
         protected EventHandler<SqlRetryingEventArgs> connectionRetryAction;
+        /// <summary>Maps <see cref="SessionDeadlockPriority"/> values to their equivalent SQL Server string value.</summary>
+        protected Dictionary<SessionDeadlockPriority, String> deadlockPriorityToStringValueMap;
 
         /// <inheritdoc/>
         protected override string DatabaseName 
@@ -94,6 +95,12 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             this.operationTimeout = operationTimeout;
             this.sqlRetryLogicOption = sqlRetryLogicOption;
             this.connectionRetryAction = connectionRetryAction;
+            deadlockPriorityToStringValueMap = new Dictionary<SessionDeadlockPriority, String>()
+            {  
+                { SessionDeadlockPriority.Low, "LOW"},
+                { SessionDeadlockPriority.Normal, "NORMAL"},
+                { SessionDeadlockPriority.High, "HIGH"},
+            };
             this.ReadQueryGenerator = new SqlServerReadQueryGenerator();
         }
 
@@ -101,6 +108,56 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
 
         /// <inheritdoc/>
         protected override IEnumerable<T> ExecuteQueryAndConvertColumn<T>(String query, String columnToConvert, Func<String, T> conversionFromStringFunction)
+        {
+            return ExecuteQueryAndConvertColumnWithDeadlockRetry(query, columnToConvert, conversionFromStringFunction);
+        }
+
+        /// <inheritdoc/>
+        protected override IEnumerable<Tuple<TReturn1, TReturn2>> ExecuteQueryAndConvertColumn<TReturn1, TReturn2>
+        (
+            String query,
+            String columnToConvert1,
+            String columnToConvert2,
+            Func<String, TReturn1> returnType1ConversionFromStringFunction,
+            Func<String, TReturn2> returnType2ConversionFromStringFunction
+        )
+        {
+            return ExecuteQueryAndConvertColumnWithDeadlockRetry(query, columnToConvert1, columnToConvert2, returnType1ConversionFromStringFunction, returnType2ConversionFromStringFunction);
+        }
+
+        /// <inheritdoc/>
+        protected override IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteQueryAndConvertColumn<TReturn1, TReturn2, TReturn3>
+        (
+            String query,
+            String columnToConvert1,
+            String columnToConvert2,
+            String columnToConvert3,
+            Func<String, TReturn1> returnType1ConversionFromStringFunction,
+            Func<String, TReturn2> returnType2ConversionFromStringFunction,
+            Func<String, TReturn3> returnType3ConversionFromStringFunction
+        )
+        {
+            return ExecuteQueryAndConvertColumnWithDeadlockRetry
+            (
+                query, 
+                columnToConvert1, 
+                columnToConvert2,
+                columnToConvert3,
+                returnType1ConversionFromStringFunction,
+                returnType2ConversionFromStringFunction, 
+                returnType3ConversionFromStringFunction
+            );
+        }
+
+        /// <summary>
+        /// Attempts to execute the specified query, converting a specified column from each row of the results to the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type to convert to and return.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
+        /// <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
+        /// <returns>A collection of items returned by the query.</returns>
+        protected IEnumerable<T> ExecuteQueryAndConvertColumnImplementation<T>(String query, String columnToConvert, Func<String, T> conversionFromStringFunction)
         {
             using (var connection = new SqlConnection(connectionString))
             using (var command = new SqlCommand(query))
@@ -118,8 +175,18 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             }
         }
 
-        /// <inheritdoc/>
-        protected override IEnumerable<Tuple<TReturn1, TReturn2>> ExecuteQueryAndConvertColumn<TReturn1, TReturn2>
+        /// <summary>
+        /// Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types.
+        /// </summary>
+        /// <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+        /// <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+        /// <returns>A collection of items returned by the query.</returns>
+        protected IEnumerable<Tuple<TReturn1, TReturn2>> ExecuteQueryAndConvertColumnImplementation<TReturn1, TReturn2>
         (
             String query,
             String columnToConvert1,
@@ -147,8 +214,21 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             }
         }
 
-        /// <inheritdoc/>
-        protected override IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteQueryAndConvertColumn<TReturn1, TReturn2, TReturn3>
+        /// <summary>
+        /// Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types.
+        /// </summary>
+        /// <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+        /// <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+        /// <typeparam name="TReturn3">The type of the third data item to convert to and return.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
+        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+        /// <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
+        /// <returns>A collection of items returned by the query.</returns>
+        protected IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteQueryAndConvertColumnImplementation<TReturn1, TReturn2, TReturn3>
         (
             String query,
             String columnToConvert1,
@@ -180,6 +260,122 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             }
         }
 
+
+        /// <summary>
+        /// Attempts to execute the specified query, converting a specified column from each row of the results to the specified type, and catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exception and retrying.
+        /// </summary>
+        /// <typeparam name="T">The type to convert to and return.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
+        /// <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
+        /// <returns>A collection of items returned by the query.</returns>
+        protected List<T> ExecuteQueryAndConvertColumnWithDeadlockRetry<T>(String query, String columnToConvert, Func<String, T> conversionFromStringFunction)
+        {
+            Func<SqlCommand, List<T>> readAndConvertResultsFunction = (SqlCommand command) =>
+            {
+                var results = new List<T>();
+                using (SqlDataReader dataReader = command.ExecuteReader())
+                {
+                    while (dataReader.Read())
+                    {
+                        String currentDataItemAsString = (String)dataReader[columnToConvert];
+                        results.Add(conversionFromStringFunction.Invoke(currentDataItemAsString));
+                    }
+                }
+
+                return results;
+            };
+            return ExecuteQueryAndConvertColumnWithDeadlockRetry(query, readAndConvertResultsFunction);
+        }
+
+        /// <summary>
+        /// Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types, and catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exception and retrying.
+        /// </summary>
+        /// <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+        /// <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+        /// <returns>A collection of items returned by the query.</returns>
+        protected IEnumerable<Tuple<TReturn1, TReturn2>> ExecuteQueryAndConvertColumnWithDeadlockRetry<TReturn1, TReturn2>
+        (
+            String query,
+            String columnToConvert1,
+            String columnToConvert2,
+            Func<String, TReturn1> returnType1ConversionFromStringFunction,
+            Func<String, TReturn2> returnType2ConversionFromStringFunction
+        )
+        {
+            Func<SqlCommand, List<Tuple<TReturn1, TReturn2>>> readAndConvertResultsFunction = (SqlCommand command) =>
+            {
+                var results = new List<Tuple<TReturn1, TReturn2>>();
+                using (SqlDataReader dataReader = command.ExecuteReader())
+                {
+                    while (dataReader.Read())
+                    {
+                        String firstDataItemAsString = (String)dataReader[columnToConvert1];
+                        String secondDataItemAsString = (String)dataReader[columnToConvert2];
+                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction.Invoke(firstDataItemAsString);
+                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction.Invoke(secondDataItemAsString);
+                        results.Add(new Tuple<TReturn1, TReturn2>(firstDataItemConverted, secondDataItemConverted));
+                    }
+                }
+
+                return results;
+            };
+            return ExecuteQueryAndConvertColumnWithDeadlockRetry(query, readAndConvertResultsFunction);
+        }
+
+
+        /// <summary>
+        /// Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types, and catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exception and retrying.
+        /// </summary>
+        /// <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+        /// <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+        /// <typeparam name="TReturn3">The type of the third data item to convert to and return.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+        /// <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
+        /// <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+        /// <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+        /// <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
+        /// <returns>A collection of items returned by the query.</returns>
+        protected IEnumerable<Tuple<TReturn1, TReturn2, TReturn3>> ExecuteQueryAndConvertColumnWithDeadlockRetry<TReturn1, TReturn2, TReturn3>
+        (
+            String query,
+            String columnToConvert1,
+            String columnToConvert2,
+            String columnToConvert3,
+            Func<String, TReturn1> returnType1ConversionFromStringFunction,
+            Func<String, TReturn2> returnType2ConversionFromStringFunction,
+            Func<String, TReturn3> returnType3ConversionFromStringFunction
+        )
+        {
+            Func<SqlCommand, List<Tuple<TReturn1, TReturn2, TReturn3>>> readAndConvertResultsFunction = (SqlCommand command) =>
+            {
+                var results = new List<Tuple<TReturn1, TReturn2, TReturn3>>();
+                using (SqlDataReader dataReader = command.ExecuteReader())
+                {
+                    while (dataReader.Read())
+                    {
+                        String firstDataItemAsString = (String)dataReader[columnToConvert1];
+                        String secondDataItemAsString = (String)dataReader[columnToConvert2];
+                        String thirdDataItemAsString = (String)dataReader[columnToConvert3];
+                        TReturn1 firstDataItemConverted = returnType1ConversionFromStringFunction.Invoke(firstDataItemAsString);
+                        TReturn2 secondDataItemConverted = returnType2ConversionFromStringFunction.Invoke(secondDataItemAsString);
+                        TReturn3 thirdDataItemConverted = returnType3ConversionFromStringFunction.Invoke(thirdDataItemAsString);
+                        results.Add(new Tuple<TReturn1, TReturn2, TReturn3>(firstDataItemConverted, secondDataItemConverted, thirdDataItemConverted));
+                    }
+                }
+
+                return results;
+            };
+            return ExecuteQueryAndConvertColumnWithDeadlockRetry(query, readAndConvertResultsFunction);
+        }
+
         /// <summary>
         /// Prepare the specified <see cref="SqlConnection"/> and <see cref="SqlCommand"/> to execute a query against them.
         /// </summary>
@@ -195,13 +391,92 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         }
 
         /// <summary>
+        /// Prepare the specified <see cref="SqlConnection"/> and <see cref="SqlCommand"/> to execute a query against them, and sets the session deadlock priority.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        /// <param name="command">The command which runs the query.</param>
+        /// <param name="deadlockPriority">The <see cref="SessionDeadlockPriority"/> to assign to the session.</param>
+        protected virtual void PrepareConnectionAndCommand(SqlConnection connection, SqlCommand command, SessionDeadlockPriority deadlockPriority)
+        {
+            PrepareConnectionAndCommand(connection, command);
+            String setDeadlockPriorityStatement = $"SET DEADLOCK_PRIORITY {deadlockPriorityToStringValueMap[deadlockPriority]};";
+            using (var setDeadlockPriorityCommand = new SqlCommand(setDeadlockPriorityStatement))
+            {
+                setDeadlockPriorityCommand.Connection = connection;
+                setDeadlockPriorityCommand.CommandTimeout = operationTimeout;
+                setDeadlockPriorityCommand.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
         /// Performs teardown/deconstruct operations on the the specified <see cref="SqlConnection"/> and <see cref="SqlCommand"/> after utilizing them.
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="command">The command.</param>
-        protected void TeardownConnectionAndCommand(SqlConnection connection, SqlCommand command)
+        protected virtual void TeardownConnectionAndCommand(SqlConnection connection, SqlCommand command)
         {
             connection.RetryLogicProvider.Retrying -= connectionRetryAction;
+        }
+
+        /// <summary>
+        /// Executes a function which queries from a SQL Server database, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying according to the retry count specified in the 'sqlRetryLogicOption' member.
+        /// </summary>
+        /// <typeparam name="T">The type of row data returned from the query function.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="readAndConvertResultsFunction">The function which reads the results of the query and returns a list of results.  Accepts a single parameter which is the <see cref="SqlCommand"/> to use to execute the query and read the results, and returns a list of <typeparamref name="T"/>.</param>   
+        /// <returns>An list of <typeparamref name="T"/> containing the results of the query.</returns>
+        protected List<T> ExecuteQueryAndConvertColumnWithDeadlockRetry<T>(String query, Func<SqlCommand, List<T>> readAndConvertResultsFunction)
+        {
+            const Int32 deadlockErrorNumber = 1205;
+
+            Int32 retryCount = sqlRetryLogicOption.NumberOfTries - 1;
+            var queryResults = new List<T>();
+            var exceptions = new List<Exception>();
+            while (true)
+            {
+                queryResults.Clear();
+                try
+                {
+                    using (var connection = new SqlConnection(connectionString))
+                    using (var command = new SqlCommand(query))
+                    {
+                        PrepareConnectionAndCommand(connection, command, SessionDeadlockPriority.Low);
+                        try
+                        {
+                            queryResults = readAndConvertResultsFunction.Invoke(command);
+                            break;
+                        }
+                        finally
+                        {
+                            TeardownConnectionAndCommand(connection, command);
+                        }
+                    }
+                }
+                catch (SqlException sqlException)
+                {
+                    if (sqlException.Errors.Count > 0 && sqlException.Errors[0].Number == deadlockErrorNumber)
+                    {
+                        exceptions.Add(sqlException);
+                        if (retryCount > 0)
+                        {
+                            var retryEventArgs = new SqlRetryingEventArgs(sqlRetryLogicOption.NumberOfTries - retryCount, new TimeSpan(0), exceptions);
+                            connectionRetryAction.Invoke(this, retryEventArgs);
+                            retryCount--;
+                        }
+                        else
+                        {
+                            String exceptionMessage = $"The number of deadlock retries has exceeded the maximum of {sqlRetryLogicOption.NumberOfTries} attempt(s).";
+                            throw new AggregateException(exceptionMessage, exceptions);
+                        }
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            return queryResults;
         }
 
         #endregion

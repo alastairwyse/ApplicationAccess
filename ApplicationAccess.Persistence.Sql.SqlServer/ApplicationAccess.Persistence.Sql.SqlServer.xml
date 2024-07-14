@@ -21,6 +21,20 @@
             Count metric which records execution of a SQL command resulting in a transient error and being retried.
             </summary>
         </member>
+        <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SessionDeadlockPriority">
+            <summary>
+            Defines values for the SQL Server session <see href="https://learn.microsoft.com/en-us/sql/t-sql/statements/set-deadlock-priority-transact-sql?view=sql-server-ver16">deadlock priority</see> setting.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SessionDeadlockPriority.Low">
+            <summary>Specifies that the current session will be more likely to be the deadlock victim (will be the victim in deadlocks where the other session has 'normal' or 'high' priority).</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SessionDeadlockPriority.Normal">
+            <summary>Specifies that the current session will be equally likely to be the deadlock victim (will be the victim in deadlocks where the other session has 'high' priority).</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SessionDeadlockPriority.High">
+            <summary>Specifies that the current session will be less likely to be the deadlock victim (will only potentially be the victim in deadlocks where the other session also has 'high' priority).</summary>
+        </member>
         <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4">
             <summary>
             An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> and see <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> which persists access manager events in bulk to and allows reading of <see cref="T:ApplicationAccess.AccessManagerBase`4"/> objects from a Microsoft SQL Server database.
@@ -532,6 +546,9 @@
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.connectionRetryAction">
             <summary>The action to invoke if an action is retried due to a transient error.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.deadlockPriorityToStringValueMap">
+            <summary>Maps <see cref="T:ApplicationAccess.Persistence.Sql.SqlServer.SessionDeadlockPriority"/> values to their equivalent SQL Server string value.</summary>
+        </member>
         <member name="P:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.DatabaseName">
             <inheritdoc/>
         </member>
@@ -563,6 +580,84 @@
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumn``3(System.String,System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1},System.Func{System.String,``2})">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnImplementation``1(System.String,System.String,System.Func{System.String,``0})">
+            <summary>
+            Attempts to execute the specified query, converting a specified column from each row of the results to the specified type.
+            </summary>
+            <typeparam name="T">The type to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
+            <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnImplementation``2(System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1})">
+            <summary>
+            Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types.
+            </summary>
+            <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+            <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+            <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+            <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+            <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnImplementation``3(System.String,System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1},System.Func{System.String,``2})">
+            <summary>
+            Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types.
+            </summary>
+            <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+            <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+            <typeparam name="TReturn3">The type of the third data item to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+            <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+            <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
+            <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+            <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnWithDeadlockRetry``1(System.String,System.String,System.Func{System.String,``0})">
+            <summary>
+            Attempts to execute the specified query, converting a specified column from each row of the results to the specified type, and catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exception and retrying.
+            </summary>
+            <typeparam name="T">The type to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert">The name of the column in the results to convert to the specified type.</param>
+            <param name="conversionFromStringFunction">A function which converts a single string-valued cell in the results to the specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnWithDeadlockRetry``2(System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1})">
+            <summary>
+            Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types, and catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exception and retrying.
+            </summary>
+            <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+            <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+            <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+            <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+            <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnWithDeadlockRetry``3(System.String,System.String,System.String,System.String,System.Func{System.String,``0},System.Func{System.String,``1},System.Func{System.String,``2})">
+            <summary>
+            Attempts to execute the specified query, converting the specified columns from each row of the results to the specified types, and catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exception and retrying.
+            </summary>
+            <typeparam name="TReturn1">The type of the first data item to convert to and return.</typeparam>
+            <typeparam name="TReturn2">The type of the second data item to convert to and return.</typeparam>
+            <typeparam name="TReturn3">The type of the third data item to convert to and return.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="columnToConvert1">The name of the first column in the results to convert to the specified type.</param>
+            <param name="columnToConvert2">The name of the second column in the results to convert to the specified type.</param>
+            <param name="columnToConvert3">The name of the third column in the results to convert to the specified type.</param>
+            <param name="returnType1ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the first specified return type.</param>
+            <param name="returnType2ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the second specified return type.</param>
+            <param name="returnType3ConversionFromStringFunction">A function which converts a single string-valued cell in the results to the third specified return type.</param>
+            <returns>A collection of items returned by the query.</returns>
+        </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.PrepareConnectionAndCommand(Microsoft.Data.SqlClient.SqlConnection,Microsoft.Data.SqlClient.SqlCommand)">
             <summary>
             Prepare the specified <see cref="T:Microsoft.Data.SqlClient.SqlConnection"/> and <see cref="T:Microsoft.Data.SqlClient.SqlCommand"/> to execute a query against them.
@@ -570,12 +665,29 @@
             <param name="connection">The connection.</param>
             <param name="command">The command which runs the query.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.PrepareConnectionAndCommand(Microsoft.Data.SqlClient.SqlConnection,Microsoft.Data.SqlClient.SqlCommand,ApplicationAccess.Persistence.Sql.SqlServer.SessionDeadlockPriority)">
+            <summary>
+            Prepare the specified <see cref="T:Microsoft.Data.SqlClient.SqlConnection"/> and <see cref="T:Microsoft.Data.SqlClient.SqlCommand"/> to execute a query against them, and sets the session deadlock priority.
+            </summary>
+            <param name="connection">The connection.</param>
+            <param name="command">The command which runs the query.</param>
+            <param name="deadlockPriority">The <see cref="T:ApplicationAccess.Persistence.Sql.SqlServer.SessionDeadlockPriority"/> to assign to the session.</param>
+        </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.TeardownConnectionAndCommand(Microsoft.Data.SqlClient.SqlConnection,Microsoft.Data.SqlClient.SqlCommand)">
             <summary>
             Performs teardown/deconstruct operations on the the specified <see cref="T:Microsoft.Data.SqlClient.SqlConnection"/> and <see cref="T:Microsoft.Data.SqlClient.SqlCommand"/> after utilizing them.
             </summary>
             <param name="connection">The connection.</param>
             <param name="command">The command.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnWithDeadlockRetry``1(System.String,System.Func{Microsoft.Data.SqlClient.SqlCommand,System.Collections.Generic.List{``0}})">
+            <summary>
+            Executes a function which queries from a SQL Server database, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying according to the retry count specified in the 'sqlRetryLogicOption' member.
+            </summary>
+            <typeparam name="T">The type of row data returned from the query function.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="readAndConvertResultsFunction">The function which reads the results of the query and returns a list of results.  Accepts a single parameter which is the <see cref="T:Microsoft.Data.SqlClient.SqlCommand"/> to use to execute the query and read the results, and returns a list of <typeparamref name="T"/>.</param>   
+            <returns>An list of <typeparamref name="T"/> containing the results of the query.</returns>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ThrowExceptionIfConnectionStringParameterNullOrWhitespace(System.String,System.String)">
             <summary>
