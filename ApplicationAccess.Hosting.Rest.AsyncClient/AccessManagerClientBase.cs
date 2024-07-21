@@ -35,7 +35,7 @@ using System.Linq.Expressions;
 namespace ApplicationAccess.Hosting.Rest.AsyncClient
 {
     /// <summary>
-    /// Base class for client classes which interface to <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> instances hosted as REST web APIs.
+    /// Base for client classes which interface to <see cref="AccessManager{TUser, TGroup, TComponent, TAccess}"/> instances hosted as REST web APIs.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the AccessManager.</typeparam>
