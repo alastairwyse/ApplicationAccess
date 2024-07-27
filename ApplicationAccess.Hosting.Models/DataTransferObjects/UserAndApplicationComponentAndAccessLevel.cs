@@ -19,19 +19,14 @@ namespace ApplicationAccess.Hosting.Models.DataTransferObjects
     /// <summary>
     /// DTO container class holding a user, an application component, and level of access to that component.
     /// </summary>
-    public class UserAndApplicationComponentAndAccessLevel<TUser, TComponent, TAccess>
+    public class UserAndApplicationComponentAndAccessLevel<TUser, TComponent, TAccess> : ApplicationComponentAndAccessLevel<TComponent, TAccess>
     {
         public TUser User { get; set; }
 
-        public TComponent ApplicationComponent { get; set; }
-
-        public TAccess AccessLevel { get; set; }
-
         public UserAndApplicationComponentAndAccessLevel(TUser user, TComponent applicationComponent, TAccess accessLevel)
+            : base(applicationComponent, accessLevel)
         {
             User = user;
-            ApplicationComponent = applicationComponent;
-            AccessLevel = accessLevel;
         }
     }
 }

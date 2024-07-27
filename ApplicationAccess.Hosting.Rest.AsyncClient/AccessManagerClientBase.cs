@@ -48,7 +48,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         /// <summary>The client to use to connect.</summary>
         protected HttpClient httpClient;
-        /// <summary>>The base URL for the hosted Web API.</summary>
+        /// <summary>The base URL for the hosted Web API.</summary>
         protected Uri baseUrl;
         /// <summary>Deserializer for HttpErrorResponse objects.</summary>
         protected HttpErrorResponseJsonSerializer errorResponseDeserializer;

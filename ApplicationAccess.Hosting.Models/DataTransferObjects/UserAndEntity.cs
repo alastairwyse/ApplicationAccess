@@ -21,19 +21,14 @@ namespace ApplicationAccess.Hosting.Models.DataTransferObjects
     /// <summary>
     /// DTO container class holding a user, an entity type, and an entity of that type.
     /// </summary>
-    public class UserAndEntity<TUser>
+    public class UserAndEntity<TUser> : EntityTypeAndEntity
     {
         public TUser User { get; set; }
 
-        public string EntityType { get; set; }
-
-        public string Entity { get; set; }
-
         public UserAndEntity(TUser user, string entityType, string entity)
+            : base(entityType, entity)
         {
             User = user;
-            EntityType = entityType;
-            Entity = entity;
         }
     }
 }

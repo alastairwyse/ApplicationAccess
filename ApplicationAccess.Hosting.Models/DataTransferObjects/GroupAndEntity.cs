@@ -21,19 +21,14 @@ namespace ApplicationAccess.Hosting.Models.DataTransferObjects
     /// <summary>
     /// DTO container class holding a group, an entity type, and an entity of that type.
     /// </summary>
-    public class GroupAndEntity<TGroup>
+    public class GroupAndEntity<TGroup> : EntityTypeAndEntity
     {
         public TGroup Group { get; set; }
 
-        public string EntityType { get; set; }
-
-        public string Entity { get; set; }
-
         public GroupAndEntity(TGroup group, string entityType, string entity)
+            : base(entityType, entity)
         {
             Group = group;
-            EntityType = entityType;
-            Entity = entity;
         }
     }
 }
