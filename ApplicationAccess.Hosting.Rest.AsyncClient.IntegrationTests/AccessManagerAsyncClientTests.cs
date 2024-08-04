@@ -31,6 +31,8 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
     /// </summary>
     public class AccessManagerAsyncClientTests : ReaderWriterIntegrationTestsBase
     {
+        private const String urlReservedCharcters = "! * ' ( ) ; : @ & = + $ , / ? % # [ ]";
+
         private Uri testBaseUrl;
         private MethodCallCountingStringUniqueStringifier userStringifier;
         private MethodCallCountingStringUniqueStringifier groupStringifier;
@@ -145,6 +147,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task AddUserAsync_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddUserAsync(urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).AddUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public async Task ContainsUserAsync()
         {
             const String testUser = "user1";
@@ -166,6 +179,19 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             mockUserQueryProcessor.Received(1).ContainsUser(testUser);
             Assert.AreEqual(2, userStringifier.ToStringCallCount);
             Assert.IsFalse(result);
+        }
+
+        [Test]
+        public async Task ContainsUserAsync_UrlEncoding()
+        {
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.ContainsUser(urlReservedCharcters).Returns(true);
+
+            Boolean result = await testAccessManagerAsyncClient.ContainsUserAsync(urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).ContainsUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.IsTrue(result);
         }
 
         [Test]
@@ -259,6 +285,21 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.IsTrue(result.Contains("group1"));
             Assert.IsTrue(result.Contains("group2"));
             Assert.IsTrue(result.Contains("group3"));
+        }
+
+        [Test]
+        public async Task GetUserToGroupMappingsAsync_UrlEncoding()
+        {
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetUserToGroupMappings(urlReservedCharcters, false).Returns(testGroups);
+
+            List<String> result = await testAccessManagerAsyncClient.GetUserToGroupMappingsAsync(urlReservedCharcters, false);
+
+            mockUserQueryProcessor.Received(1).GetUserToGroupMappings(urlReservedCharcters, false);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
         }
 
         [Test]

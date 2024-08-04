@@ -36,6 +36,8 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
     /// </summary>
     public class AccessManagerClientTests : ReaderWriterIntegrationTestsBase
     {
+        private const String urlReservedCharcters = "! * ' ( ) ; : @ & = + $ , / ? % # [ ]";
+
         private Uri testBaseUrl;
         private MethodCallCountingStringUniqueStringifier userStringifier;
         private MethodCallCountingStringUniqueStringifier groupStringifier;
@@ -158,6 +160,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void AddUser_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddUser(urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).AddUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public void ContainsUser()
         {
             const String testUser = "user1";
@@ -179,6 +192,19 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             mockUserQueryProcessor.Received(1).ContainsUser(testUser);
             Assert.AreEqual(2, userStringifier.ToStringCallCount);
             Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void ContainsUser_UrlEncoding()
+        {
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.ContainsUser(urlReservedCharcters).Returns(true);
+
+            Boolean result = testAccessManagerClient.ContainsUser(urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).ContainsUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.IsTrue(result);
         }
 
         [Test]
@@ -272,6 +298,21 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.IsTrue(result.Contains("group1"));
             Assert.IsTrue(result.Contains("group2"));
             Assert.IsTrue(result.Contains("group3"));
+        }
+
+        [Test]
+        public void GetUserToGroupMappings_UrlEncoding()
+        {
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetUserToGroupMappings(urlReservedCharcters, false).Returns(testGroups);
+
+            HashSet<String> result = testAccessManagerClient.GetUserToGroupMappings(urlReservedCharcters, false);
+
+            mockUserQueryProcessor.Received(1).GetUserToGroupMappings(urlReservedCharcters, false);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
         }
 
         [Test]

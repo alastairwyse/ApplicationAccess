@@ -198,5 +198,23 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             }
         }
+
+        /// <summary>
+        /// Success test for the node status endpoint.
+        /// </summary>
+        [Test]
+        public void StatusMethod()
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/status"))
+            using (var response = client.SendAsync(request).Result)
+            {
+
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                HttpContent content = response.Content;
+                String contentAsString = content.ReadAsStringAsync().Result;
+                JObject contentAsJson = JObject.Parse(contentAsString);
+                Assert.IsNotNull(contentAsJson["startTime"]);
+            }
+        }
     }
 }
