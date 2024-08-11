@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.DataTransferObjects;
@@ -695,6 +697,47 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         }
 
         /// <summary>
+        /// Sends an HTTP GET request, expecting a 200 status returned to indicate success, and attempting to deserialize the response body to the specified type.
+        /// </summary>
+        /// <typeparam name="TRequestBody">The type of data to be serialized to JSON and passed in the body of the request.</typeparam>
+        /// <typeparam name="TReturn">The type to deserialize the response body to.</typeparam>
+        /// <param name="requestUrl">The URL of the request.</param>
+        /// <param name="requestBody">The JSON body of the request.</param>
+        /// <returns>The response body deserialized to the specified type.</returns>
+        protected async Task<TReturn> SendGetRequestAsync<TRequestBody, TReturn>(Uri requestUrl, TRequestBody requestBody)
+        {
+            TReturn returnData = default(TReturn);
+            using (JsonContent requestBodyAsJson = JsonContent.Create<TRequestBody>(requestBody, new MediaTypeHeaderValue(jsonMimeType)))
+            {
+                Func<HttpMethod, Uri, HttpStatusCode, Stream, Task> responseAction = async (HttpMethod requestMethod, Uri url, HttpStatusCode responseStatusCode, Stream responseBody) =>
+                {
+                    if (responseStatusCode != HttpStatusCode.OK)
+                    {
+                        await HandleNonSuccessResponseStatusAsync(requestMethod, url, responseStatusCode, responseBody);
+                    }
+
+                    var jsonSerializer = new JsonSerializer();
+                    using (var streamReader = new StreamReader(responseBody, defaultEncoding, false, 1024, true))
+                    using (var jsonReader = new JsonTextReader(streamReader))
+                    {
+                        try
+                        {
+                            returnData = jsonSerializer.Deserialize<TReturn>(jsonReader);
+                        }
+                        catch (Exception e)
+                        {
+                            String stringifiedBody = await requestBodyAsJson.ReadAsStringAsync();
+                            throw new Exception($"Failed to call URL '{requestUrl.ToString()}' with '{HttpMethod.Get.ToString()}' method, and request body '{stringifiedBody}'.  Error deserializing response body from JSON to type '{typeof(TReturn).FullName}'.", e);
+                        }
+                    }
+                };
+                await SendRequestAsync(HttpMethod.Get, requestUrl, requestBodyAsJson, responseAction);
+
+                return returnData;
+            }
+        }
+
+        /// <summary>
         /// Sends an HTTP GET request, expecting either a 200 or 404 status returned, and converting the status to an equivalent boolean value.
         /// </summary>
         /// <param name="requestUrl">The URL of the request.</param>
@@ -765,6 +808,31 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
                 using (var response = await httpClient.SendAsync(request))
                 {
                     await responseAction.Invoke(method, requestUrl, response.StatusCode, await response.Content.ReadAsStreamAsync());
+                }
+            };
+
+            await exceptionHandingPolicy.ExecuteAsync(httpClientAction);
+        }
+
+        /// <summary>
+        /// Sends an HTTP request.
+        /// </summary>
+        /// <param name="method">The HTTP method to use in the request.</param>
+        /// <param name="requestUrl">The URL of the request.</param>
+        /// <param name="requestBody">The JSON body of the request.</param>
+        /// <param name="responseAction">An asyncronous Func to perform on receiving a response to the request.  Accepts 4 parameters: the HTTP method used in the request which generated the response, the URL of the request which generated the response, the HTTP status code received as part of the response, and a stream containing the response body.</param>
+        /// <remarks>The Stream passed to the 'responseAction' parameter is closed/disposed when this method completes, so it should not be used outside of the context of the 'responseAction' parameter (e.g. set to a variable external to the 'responseAction' parameter).</remarks>
+        protected async Task SendRequestAsync(HttpMethod method, Uri requestUrl, JsonContent requestBody, Func<HttpMethod, Uri, HttpStatusCode, Stream, Task> responseAction)
+        {
+            Func<Task> httpClientAction = async () =>
+            {
+                using (var request = new HttpRequestMessage(method, requestUrl))
+                {
+                    request.Content = requestBody;
+                    using (var response = await httpClient.SendAsync(request))
+                    {
+                        await responseAction.Invoke(method, requestUrl, response.StatusCode, await response.Content.ReadAsStreamAsync());
+                    }
                 }
             };
 

@@ -56,7 +56,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("dataElementAccess/applicationComponent/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public ActionResult<Boolean> HasAccessToApplicationComponent([FromQuery, BindRequired] IEnumerable<String> groups, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
+        public ActionResult<Boolean> HasAccessToApplicationComponent([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             return distributedGroupQueryProcessor.HasAccessToApplicationComponent(groups, applicationComponent, accessLevel);
         }
@@ -71,7 +71,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("dataElementAccess/entity/entityType/{entityType}/entity/{entity}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public ActionResult<Boolean> HasAccessToEntity([FromQuery, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType, [FromRoute] String entity)
+        public ActionResult<Boolean> HasAccessToEntity([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType, [FromRoute] String entity)
         {
             return distributedGroupQueryProcessor.HasAccessToEntity(groups, entityType, entity);
         }
@@ -84,7 +84,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("groupToApplicationComponentAndAccessLevelMappings")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<ApplicationAccess.Hosting.Models.DataTransferObjects.ApplicationComponentAndAccessLevel<String, String>> GetApplicationComponentsAccessibleByGroups([FromQuery, BindRequired] IEnumerable<String> groups)
+        public IEnumerable<ApplicationAccess.Hosting.Models.DataTransferObjects.ApplicationComponentAndAccessLevel<String, String>> GetApplicationComponentsAccessibleByGroups([FromBody, BindRequired] IEnumerable<String> groups)
         {
             foreach (Tuple<String, String> currentTuple in distributedGroupQueryProcessor.GetApplicationComponentsAccessibleByGroups(groups))
             {
@@ -100,7 +100,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("groupToEntityMappings")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<EntityTypeAndEntity> GetEntitiesAccessibleByGroupsAsync([FromQuery, BindRequired] IEnumerable<String> groups)
+        public IEnumerable<EntityTypeAndEntity> GetEntitiesAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups)
         {
             foreach (Tuple<String, String> currentTuple in distributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(groups))
             {
@@ -117,7 +117,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("groupToEntityMappings/entityType/{entityType}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<String> GetEntitiesAccessibleByGroupsAsync([FromQuery, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType)
+        public IEnumerable<String> GetEntitiesAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType)
         {
             return distributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(groups, entityType);
         }

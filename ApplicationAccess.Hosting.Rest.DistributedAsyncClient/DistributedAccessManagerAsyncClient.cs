@@ -37,6 +37,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public class DistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess> : AccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>, IDistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>
     {
+        // This class passes parameters contaiing multiple groups via the HTTP request body in GET methods.
+        // Had previously tried passing these 'groups' parameters on the query string, but a relatively small number of groups would result in a query string which was longer than that supported by the web host.
+        // For publicly facing API endpoints I wouldn't pass a body with a GET request, as the strict correctness of this is not clear.
+        // However these are all methods which get resources, so I feel it's better send a GET with a body, rather than changing the methods to POST.
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedAsyncClient.DistributedAccessManagerAsyncClient class.
         /// </summary>
@@ -177,10 +182,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         /// <inheritdoc/>
         public async Task<List<TUser>> GetGroupToUserMappingsAsync(IEnumerable<TGroup> groups)
         {
-            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
-            var url = new Uri(baseUrl, $"userToGroupMappings?{queryString}");
+            List<String> requestBody = StringifyGroupsParameter(groups);
+            var url = new Uri(baseUrl, $"userToGroupMappings");
             var returnList = new List<TUser>();
-            foreach (String currentUser in await SendGetRequestAsync<List<String>>(url))
+            foreach (String currentUser in await SendGetRequestAsync<List<String>, List<String>>(url, requestBody))
             {
                 returnList.Add(userStringifier.FromString(currentUser));
             }
@@ -191,10 +196,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         /// <inheritdoc/>
         public async Task<List<TGroup>> GetGroupToGroupMappingsAsync(IEnumerable<TGroup> groups)
         {
-            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
-            var url = new Uri(baseUrl, $"groupToGroupMappings?{queryString}");
+            List<String> requestBody = StringifyGroupsParameter(groups);
+            var url = new Uri(baseUrl, $"groupToGroupMappings");
             var returnList = new List<TGroup>();
-            foreach (String currentGroup in await SendGetRequestAsync<List<String>>(url))
+            foreach (String currentGroup in await SendGetRequestAsync<List<String>, List<String>>(url, requestBody))
             {
                 returnList.Add(groupStringifier.FromString(currentGroup));
             }
@@ -205,10 +210,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         /// <inheritdoc/>
         public async Task<List<TGroup>> GetGroupToGroupReverseMappingsAsync(IEnumerable<TGroup> groups)
         {
-            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
-            var url = new Uri(baseUrl, $"groupToGroupReverseMappings?{queryString}");
+            List<String> requestBody = StringifyGroupsParameter(groups);
+            var url = new Uri(baseUrl, $"groupToGroupReverseMappings");
             var returnList = new List<TGroup>();
-            foreach (String currentGroup in await SendGetRequestAsync<List<String>>(url))
+            foreach (String currentGroup in await SendGetRequestAsync<List<String>, List<String>>(url, requestBody))
             {
                 returnList.Add(groupStringifier.FromString(currentGroup));
             }
@@ -219,28 +224,28 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToApplicationComponentAsync(IEnumerable<TGroup> groups, TComponent applicationComponent, TAccess accessLevel)
         {
-            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
-            var url = new Uri(baseUrl, $"dataElementAccess/applicationComponent/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?{queryString}");
+            List<String> requestBody = StringifyGroupsParameter(groups);
+            var url = new Uri(baseUrl, $"dataElementAccess/applicationComponent/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
 
-            return await SendGetRequestAsync<Boolean>(url);
+            return await SendGetRequestAsync<List<String>, Boolean>(url, requestBody);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToEntityAsync(IEnumerable<TGroup> groups, String entityType, String entity)
         {
-            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
-            var url = new Uri(baseUrl, $"dataElementAccess/entity/entityType/{entityType}/entity/{entity}?{queryString}");
+            List<String> requestBody = StringifyGroupsParameter(groups);
+            var url = new Uri(baseUrl, $"dataElementAccess/entity/entityType/{entityType}/entity/{entity}");
 
-            return await SendGetRequestAsync<Boolean>(url);
+            return await SendGetRequestAsync<List<String>, Boolean>(url, requestBody);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<TComponent, TAccess>>> GetApplicationComponentsAccessibleByGroupsAsync(IEnumerable<TGroup> groups)
         {
-            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings?{queryString}");
+            List<String> requestBody = StringifyGroupsParameter(groups);
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings");
             var returnList = new List<Tuple<TComponent, TAccess>>();
-            foreach (ApplicationComponentAndAccessLevel<String, String> currentApplicationComponent in await SendGetRequestAsync<List<ApplicationComponentAndAccessLevel<String, String>>>(url))
+            foreach (ApplicationComponentAndAccessLevel<String, String> currentApplicationComponent in await SendGetRequestAsync<List<String>, List<ApplicationComponentAndAccessLevel<String, String>>>(url, requestBody))
             {
                 returnList.Add(new Tuple<TComponent, TAccess>
                 (
@@ -255,10 +260,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<TGroup> groups)
         {
-            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
-            var url = new Uri(baseUrl, $"groupToEntityMappings?{queryString}");
+            List<String> requestBody = StringifyGroupsParameter(groups);
+            var url = new Uri(baseUrl, $"groupToEntityMappings");
             var returnList = new List<Tuple<String, String>>();
-            foreach (EntityTypeAndEntity currentEntityTypeAndEntity in await SendGetRequestAsync<List<EntityTypeAndEntity>>(url))
+            foreach (EntityTypeAndEntity currentEntityTypeAndEntity in await SendGetRequestAsync<List<String>, List<EntityTypeAndEntity>>(url, requestBody))
             {
                 returnList.Add(new Tuple<String, String>
                 (
@@ -273,43 +278,31 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         /// <inheritdoc/>
         public async Task<List<String>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<TGroup> groups, String entityType)
         {
-            String queryString = CreateGroupsParameterQueryString(nameof(groups), groups);
-            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{entityType}?{queryString}");
+            List<String> requestBody = StringifyGroupsParameter(groups);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{entityType}");
             var returnList = new List<String>();
 
-            return await SendGetRequestAsync<List<String>>(url);
+            return await SendGetRequestAsync<List<String>, List<String>>(url, requestBody);
         }
 
         #region Private/Protected Methods
 
         /// <summary>
-        /// Creates a URL query string containing a collection of groups to be passed as a parameter to a REST method.
+        /// Converts a collection of groups to a list of strings to be passed as a parameter to a REST method.
         /// </summary>
-        /// <param name="parameterName">The name of the parameter.</param>
-        /// <param name="groups">The collection of groups to include in the query string.</param>
-        /// <returns>The query string.</returns>
-        protected String CreateGroupsParameterQueryString(String parameterName, IEnumerable<TGroup> groups)
+        /// <param name="groups">The collection of groups to convert.</param>
+        /// <returns>The stringified groups.</returns>
+        protected List<String> StringifyGroupsParameter(IEnumerable<TGroup> groups)
         {
-            var queryStringBuilder = new StringBuilder();
-            Boolean firstAppend = true;
+            var returnList = new List<String>();
             foreach (TGroup currentGroup in groups)
             {
-                if (firstAppend == true)
-                {
-                    firstAppend = false;
-                }
-                else
-                {
-                    queryStringBuilder.Append('&');
-                }
-                queryStringBuilder.Append(parameterName);
-                queryStringBuilder.Append('=');
-                queryStringBuilder.Append(groupStringifier.ToString(currentGroup));
+                returnList.Add(groupStringifier.ToString(currentGroup));
             }
 
-            return queryStringBuilder.ToString();
+            return returnList;
         }
-
+        
         #endregion
     }
 }

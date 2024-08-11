@@ -53,7 +53,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("userToGroupMappings")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<String> GetGroupToUserMappings([FromQuery, BindRequired] IEnumerable<String> groups)
+        public IEnumerable<String> GetGroupToUserMappings([FromBody, BindRequired] IEnumerable<String> groups)
         {
             return distributedUserQueryProcessor.GetGroupToUserMappings(groups);
         }

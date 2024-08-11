@@ -30,7 +30,6 @@ using ApplicationMetrics.MetricLoggers;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Polly;
-using System.Linq.Expressions;
 
 namespace ApplicationAccess.Hosting.Rest.AsyncClient
 {
@@ -43,6 +42,8 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public abstract class AccessManagerClientBase<TUser, TGroup, TComponent, TAccess> : IDisposable
     {
+        /// <summary>The MIME type for JSON content.</summary>
+        protected const String jsonMimeType = "application/json";
         /// <summary>The character encoding used when interpreting/reading HTTP responses.</summary>
         protected Encoding defaultEncoding = Encoding.UTF8;
 
@@ -263,7 +264,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         protected void SetHttpClientAcceptHeader(HttpClient httpClient)
         {
             const String acceptHeaderName = "Accept";
-            const String acceptHeaderValue = "application/json";
+            const String acceptHeaderValue = jsonMimeType;
             if (httpClient.DefaultRequestHeaders.Contains(acceptHeaderName) == true)
             {
                 httpClient.DefaultRequestHeaders.Remove(acceptHeaderName);

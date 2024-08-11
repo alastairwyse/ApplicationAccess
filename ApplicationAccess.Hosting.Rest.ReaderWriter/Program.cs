@@ -79,8 +79,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             };
 
             var initializer = new ApplicationInitializer();
-            WebApplication app = initializer.Initialize<ReaderWriterNodeHostedServiceWrapper>(parameters);
-            //WebApplication app = initializer.Initialize<NullEventPersistingReaderWriterNodeHostedServiceWrapper>(parameters);
+            //WebApplication app = initializer.Initialize<ReaderWriterNodeHostedServiceWrapper>(parameters);
+            WebApplication app = initializer.Initialize<NullEventPersistingReaderWriterNodeHostedServiceWrapper>(parameters);
             //WebApplication app = initializer.Initialize<JsonEventWritingReaderWriterNodeHostedServiceWrapper>(parameters);
 
             app.Run();

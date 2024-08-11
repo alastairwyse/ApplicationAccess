@@ -53,7 +53,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("groupToGroupMappings")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<String> GetGroupToGroupMappings([FromQuery, BindRequired] IEnumerable<String> groups)
+        public IEnumerable<String> GetGroupToGroupMappings([FromBody, BindRequired] IEnumerable<String> groups)
         {
             return distributedGroupToGroupQueryProcessor.GetGroupToGroupMappings(groups);
         }
@@ -66,7 +66,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [HttpGet]
         [Route("groupToGroupReverseMappings")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<String> GetGroupToGroupReverseMappings([FromQuery, BindRequired] IEnumerable<String> groups)
+        public IEnumerable<String> GetGroupToGroupReverseMappings([FromBody, BindRequired] IEnumerable<String> groups)
         {
             return distributedGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(groups);
         }

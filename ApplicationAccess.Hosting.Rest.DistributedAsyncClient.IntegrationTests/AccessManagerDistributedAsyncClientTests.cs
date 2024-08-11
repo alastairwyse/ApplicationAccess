@@ -16,8 +16,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -26,8 +28,6 @@ using ApplicationLogging;
 using ApplicationMetrics;
 using NUnit.Framework;
 using NSubstitute;
-using System.Linq.Expressions;
-using System.Linq;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
 {
