@@ -161,6 +161,29 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetGroupToUserMappingsAsync_UrlEncoding()
+        {
+            // Since all 'groups' parameters are passed in the request body, URL encoding should not affect methods specific to DistributedAccessManagerAsyncClient
+            //   However including this test incase that changes in the future
+
+            String urlReservedCharcters1 = "! * ' ( ) ; : @ &";
+            String urlReservedCharcters2 = "& = + $ , / ? % # [ ]";
+            var testGroups = new List<String>() { urlReservedCharcters1, urlReservedCharcters2 };
+            var testMappedUsers = new HashSet<String>() { urlReservedCharcters1, urlReservedCharcters2 };
+            mockDistributedGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedUserQueryProcessor.GetGroupToUserMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(testMappedUsers);
+
+            List<String> result = await testDistributedAccessManagerAsyncClient.GetGroupToUserMappingsAsync(testGroups);
+
+            mockDistributedUserQueryProcessor.Received(1).GetGroupToUserMappings(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, userStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains(urlReservedCharcters1));
+            Assert.IsTrue(result.Contains(urlReservedCharcters2));
+        }
+
+        [Test]
         public async Task GetGroupToGroupMappingsAsync()
         {
             var testGroups = new List<String>() { "group1",  "group2", "group3" };
