@@ -30,6 +30,15 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
     /// </summary>
     public class ControllerTests : DistributedOperationCoordinatorIntegrationTestsBase
     {
+        private const String urlReservedCharcters = "! * ' ( ) ; : @ & = + $ , / ? % # [ ]";
+        private String encodedUrlReservedCharacters;
+
+        [SetUp]
+        protected void SetUp()
+        {
+            encodedUrlReservedCharacters = Uri.EscapeDataString(urlReservedCharcters);
+        }
+
         /// <summary>
         /// Success test for a POST method endpoint that creates a resource.
         /// </summary>
@@ -46,6 +55,27 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
                 {
 
                     await mockDistributedAccessManagerOperationCoordinator.Received(1).AddUserToGroupMappingAsync(user, group);
+                    String responseBody = response.Content.ReadAsStringAsync().Result;
+                    Assert.IsEmpty(responseBody);
+                    Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Success test for a POST method endpoint that creates a resource with reserved characters in the element names.
+        /// </summary>
+        [Test]
+        public async Task PostCreateResourceMethod_UrlEncoding()
+        {
+            String requestUrl = $"/api/v1/userToGroupMappings/user/{encodedUrlReservedCharacters}/group/{encodedUrlReservedCharacters}";
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUrl))
+            {
+
+                using (HttpResponseMessage response = await client.SendAsync(requestMessage))
+                {
+
+                    await mockDistributedAccessManagerOperationCoordinator.Received(1).AddUserToGroupMappingAsync(urlReservedCharcters, urlReservedCharcters);
                     String responseBody = response.Content.ReadAsStringAsync().Result;
                     Assert.IsEmpty(responseBody);
                     Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
@@ -77,6 +107,27 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
         }
 
         /// <summary>
+        /// Success test for a DELETE method endpoint that removes a resource with reserved characters in the element names.
+        /// </summary>
+        [Test]
+        public async Task DeleteRemoveResourceMethod_UrlEncoding()
+        {
+            String requestUrl = $"/api/v1/userToGroupMappings/user/{encodedUrlReservedCharacters}/group/{encodedUrlReservedCharacters}";
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUrl))
+            {
+
+                using (HttpResponseMessage response = await client.SendAsync(requestMessage))
+                {
+
+                    await mockDistributedAccessManagerOperationCoordinator.Received(1).RemoveUserToGroupMappingAsync(urlReservedCharcters, urlReservedCharcters);
+                    String responseBody = response.Content.ReadAsStringAsync().Result;
+                    Assert.IsEmpty(responseBody);
+                    Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                }
+            }
+        }
+
+        /// <summary>
         /// Success test for a GET method endpoint that returns a string.
         /// </summary>
         [Test]
@@ -92,6 +143,25 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
                 await mockDistributedAccessManagerOperationCoordinator.Received(1).ContainsUserAsync(user);
                 JToken jsonResponse = JValue.Parse(await response.Content.ReadAsStringAsync());
                 Assert.AreEqual(user, jsonResponse.ToString());
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Success test for a GET method endpoint that returns a string with reserved characters in the parameter element names.
+        /// </summary>
+        [Test]
+        public async Task GetReturnStringMethod_UrlEncoding()
+        {
+            String requestUrl = $"/api/v1/users/{encodedUrlReservedCharacters}";
+            mockDistributedAccessManagerOperationCoordinator.ContainsUserAsync(urlReservedCharcters).Returns(Task.FromResult<Boolean>(true));
+
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
+            {
+
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).ContainsUserAsync(urlReservedCharcters);
+                JToken jsonResponse = JValue.Parse(await response.Content.ReadAsStringAsync());
+                Assert.AreEqual(urlReservedCharcters, jsonResponse.ToString());
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             }
         }
@@ -146,6 +216,30 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
         }
 
         /// <summary>
+        /// Success test for a GET method endpoint that returns a single object with reserved characters in the parameter element names.
+        /// </summary>
+        [Test]
+        public async Task GetReturnObjectMethod_UrlEncoding()
+        {
+            String requestUrl = $"/api/v1/entityTypes/{encodedUrlReservedCharacters}/entities/{encodedUrlReservedCharacters}";
+            mockDistributedAccessManagerOperationCoordinator.ContainsEntityAsync(urlReservedCharcters, urlReservedCharcters).Returns(Task.FromResult<Boolean>(true));
+
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
+            {
+
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).ContainsEntityAsync(urlReservedCharcters, urlReservedCharcters);
+                JObject jsonResponse = ConvertHttpContentToJson(response.Content);
+                if (jsonResponse["entityType"] == null)
+                    Assert.Fail("The returned JSON object doesn't contain an 'entityType' property.");
+                if (jsonResponse["entity"] == null)
+                    Assert.Fail("The returned JSON object doesn't contain an 'entity' property.");
+                Assert.AreEqual(urlReservedCharcters, jsonResponse["entityType"].ToString());
+                Assert.AreEqual(urlReservedCharcters, jsonResponse["entity"].ToString());
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            }
+        }
+
+        /// <summary>
         /// Success test for a GET method endpoint that returns an array of objects.
         /// </summary>
         [Test]
@@ -178,6 +272,37 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
         }
 
         /// <summary>
+        /// Success test for a GET method endpoint that returns an array of objects with reserved characters in the parameter element names.
+        /// </summary>
+        [Test]
+        public async Task GetReturnObjectArrayMethod_UrlEncoding()
+        {
+            var groups = new List<String>() { "group1", "group2", "group3" };
+            String requestUrl = $"/api/v1/userToGroupMappings/user/{encodedUrlReservedCharacters}?includeIndirectMappings=false";
+            mockDistributedAccessManagerOperationCoordinator.GetUserToGroupMappingsAsync(urlReservedCharcters, false).Returns(Task.FromResult<List<String>>(groups));
+
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
+            {
+
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).GetUserToGroupMappingsAsync(urlReservedCharcters, false);
+                JArray jsonArrayResponse = ConvertHttpContentToJsonArray(response.Content);
+                Assert.AreEqual(3, jsonArrayResponse.Count);
+                foreach (JObject currentArrayElement in jsonArrayResponse)
+                {
+                    if (currentArrayElement["user"] == null)
+                        Assert.Fail("The returned JSON array element doesn't contain a 'user' property.");
+                    if (currentArrayElement["group"] == null)
+                        Assert.Fail("The returned JSON array element doesn't contain a 'group' property.");
+                    Assert.AreEqual(urlReservedCharcters, currentArrayElement["user"].ToString());
+                }
+                Assert.AreEqual("group1", jsonArrayResponse[0]["group"].ToString());
+                Assert.AreEqual("group2", jsonArrayResponse[1]["group"].ToString());
+                Assert.AreEqual("group3", jsonArrayResponse[2]["group"].ToString());
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            }
+        }
+
+        /// <summary>
         /// Success test for a GET method endpoint that returns a boolean value.
         /// </summary>
         [Test]
@@ -193,6 +318,25 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
             {
 
                 await mockDistributedAccessManagerOperationCoordinator.Received(1).HasAccessToEntityAsync(user, entityType, entity);
+                JToken jsonResponse = JValue.Parse(response.Content.ReadAsStringAsync().Result);
+                Assert.AreEqual(new JValue(false), jsonResponse);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            }
+        }
+
+        /// <summary>
+        /// Success test for a GET method endpoint that returns a boolean value with reserved characters in the parameter element names.
+        /// </summary>
+        [Test]
+        public async Task GetReturnBooleanMethod_UrlEncoding()
+        {
+            String requestUrl = $"/api/v1/dataElementAccess/entity/user/{encodedUrlReservedCharacters}/entityType/{encodedUrlReservedCharacters}/entity/{encodedUrlReservedCharacters}";
+            mockDistributedAccessManagerOperationCoordinator.HasAccessToEntityAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters).Returns(Task.FromResult<Boolean>(false));
+
+            using (HttpResponseMessage response = await client.GetAsync(requestUrl))
+            {
+
+                await mockDistributedAccessManagerOperationCoordinator.Received(1).HasAccessToEntityAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
                 JToken jsonResponse = JValue.Parse(response.Content.ReadAsStringAsync().Result);
                 Assert.AreEqual(new JValue(false), jsonResponse);
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
