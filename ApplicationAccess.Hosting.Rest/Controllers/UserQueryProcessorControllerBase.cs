@@ -71,13 +71,14 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsUser([FromRoute] String user)
         {
-            if (userQueryProcessor.ContainsUser(user) == true)
+            String decodedUser = Uri.UnescapeDataString(user);
+            if (userQueryProcessor.ContainsUser(decodedUser) == true)
             {
                 return user;
             }
             else
             {
-                throw new NotFoundException($"User '{user}' does not exist.", user);
+                throw new NotFoundException($"User '{decodedUser}' does not exist.", decodedUser);
             }
         }
 
@@ -92,9 +93,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndGroup<String, String>> GetUserToGroupMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentGroup in userQueryProcessor.GetUserToGroupMappings(user, includeIndirectMappings))
+            String decodedUser = Uri.UnescapeDataString(user);
+            foreach (String currentGroup in userQueryProcessor.GetUserToGroupMappings(decodedUser, includeIndirectMappings))
             {
-                yield return new UserAndGroup<String, String>(user, currentGroup);
+                yield return new UserAndGroup<String, String>(decodedUser, currentGroup);
             }
         }
 
@@ -109,9 +111,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndGroup<String, String>> GetGroupToUserMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentUser in userQueryProcessor.GetGroupToUserMappings(group, includeIndirectMappings))
+            String decodedGroup = Uri.UnescapeDataString(group);
+            foreach (String currentUser in userQueryProcessor.GetGroupToUserMappings(decodedGroup, includeIndirectMappings))
             {
-                yield return new UserAndGroup<String, String> (currentUser, group);
+                yield return new UserAndGroup<String, String> (currentUser, decodedGroup);
             }
         }
 
@@ -127,17 +130,18 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public IEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetUserToApplicationComponentAndAccessLevelMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
+            String decodedUser = Uri.UnescapeDataString(user);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = userQueryProcessor.GetUserToApplicationComponentAndAccessLevelMappings(user);
+                methodReturnValue = userQueryProcessor.GetUserToApplicationComponentAndAccessLevelMappings(decodedUser);
             }
             else
             {
-                methodReturnValue = userQueryProcessor.GetApplicationComponentsAccessibleByUser(user);
+                methodReturnValue = userQueryProcessor.GetApplicationComponentsAccessibleByUser(decodedUser);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
-                yield return new UserAndApplicationComponentAndAccessLevel<String, String, String>(user, currentTuple.Item1, currentTuple.Item2);
+                yield return new UserAndApplicationComponentAndAccessLevel<String, String, String>(decodedUser, currentTuple.Item1, currentTuple.Item2);
             }
         }
 
@@ -153,9 +157,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToUserMappings([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentUser in userQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(applicationComponent, accessLevel, includeIndirectMappings))
+            String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
+            String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
+            foreach (String currentUser in userQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(decodedApplicationComponent, decodedAccessLevel, includeIndirectMappings))
             {
-                yield return new UserAndApplicationComponentAndAccessLevel<String, String, String>(currentUser, applicationComponent, accessLevel);
+                yield return new UserAndApplicationComponentAndAccessLevel<String, String, String>(currentUser, decodedApplicationComponent, decodedAccessLevel);
             }
         }
 
@@ -171,17 +177,18 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public IEnumerable<UserAndEntity<String>> GetUserToEntityMappings([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
+            String decodedUser = Uri.UnescapeDataString(user);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = userQueryProcessor.GetUserToEntityMappings(user);
+                methodReturnValue = userQueryProcessor.GetUserToEntityMappings(decodedUser);
             }
             else
             {
-                methodReturnValue = userQueryProcessor.GetEntitiesAccessibleByUser(user);
+                methodReturnValue = userQueryProcessor.GetEntitiesAccessibleByUser(decodedUser);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
-                yield return new UserAndEntity<String>(user, currentTuple.Item1, currentTuple.Item2);
+                yield return new UserAndEntity<String>(decodedUser, currentTuple.Item1, currentTuple.Item2);
             }
         }
 
@@ -198,17 +205,19 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public IEnumerable<UserAndEntity<String>> GetUserToEntityMappings([FromRoute] String user, [FromRoute] String entityType, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<String> methodReturnValue = null;
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = userQueryProcessor.GetUserToEntityMappings(user, entityType);
+                methodReturnValue = userQueryProcessor.GetUserToEntityMappings(decodedUser, decodedEntityType);
             }
             else
             {
-                methodReturnValue = userQueryProcessor.GetEntitiesAccessibleByUser(user, entityType);
+                methodReturnValue = userQueryProcessor.GetEntitiesAccessibleByUser(decodedUser, decodedEntityType);
             }
             foreach (String currentEntity in methodReturnValue)
             {
-                yield return new UserAndEntity<String>(user, entityType, currentEntity);
+                yield return new UserAndEntity<String>(decodedUser, decodedEntityType, currentEntity);
             }
         }
 
@@ -224,9 +233,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<UserAndEntity<String>> GetEntityToUserMappings([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentUser in userQueryProcessor.GetEntityToUserMappings(entityType, entity, includeIndirectMappings))
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+            foreach (String currentUser in userQueryProcessor.GetEntityToUserMappings(decodedEntityType, decodedEntity, includeIndirectMappings))
             {
-                yield return new UserAndEntity<String>(currentUser, entityType, entity);
+                yield return new UserAndEntity<String>(currentUser, decodedEntityType, decodedEntity);
             }
         }
 
@@ -242,7 +253,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public ActionResult<Boolean> HasAccessToApplicationComponent([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            return userQueryProcessor.HasAccessToApplicationComponent(user, applicationComponent, accessLevel);
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
+            String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
+
+            return userQueryProcessor.HasAccessToApplicationComponent(decodedUser, decodedApplicationComponent, decodedAccessLevel);
         }
 
         /// <summary>
@@ -257,7 +272,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public ActionResult<Boolean> HasAccessToEntity([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            return userQueryProcessor.HasAccessToEntity(user, entityType, entity);
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+
+            return userQueryProcessor.HasAccessToEntity(decodedUser, decodedEntityType, decodedEntity);
         }
     }
 }

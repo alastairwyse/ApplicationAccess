@@ -52,7 +52,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddGroup([FromRoute] String group)
         {
-            groupEventProcessor.AddGroup(group);
+            groupEventProcessor.AddGroup(Uri.UnescapeDataString(group));
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }

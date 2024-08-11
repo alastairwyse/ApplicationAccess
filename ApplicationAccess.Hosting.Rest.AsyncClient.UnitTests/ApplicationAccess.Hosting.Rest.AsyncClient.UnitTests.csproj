@@ -6,6 +6,7 @@
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Description>Unit tests for classes in the ApplicationAccess.Hosting.Rest.AsyncClient namespace.</Description>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>

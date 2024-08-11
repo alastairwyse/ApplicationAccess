@@ -70,13 +70,14 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsEntityType([FromRoute] String entityType)
         {
-            if (entityQueryProcessor.ContainsEntityType(entityType) == true)
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            if (entityQueryProcessor.ContainsEntityType(decodedEntityType) == true)
             {
                 return entityType;
             }
             else
             {
-                throw new NotFoundException($"Entity type '{entityType}' does not exist.", entityType);
+                throw new NotFoundException($"Entity type '{decodedEntityType}' does not exist.", decodedEntityType);
             }
         }
 
@@ -90,7 +91,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<EntityTypeAndEntity> GetEntities([FromRoute] String entityType)
         {
-            foreach (String currentEntity in entityQueryProcessor.GetEntities(entityType))
+            foreach (String currentEntity in entityQueryProcessor.GetEntities(Uri.UnescapeDataString(entityType)))
             {
                 yield return new EntityTypeAndEntity(entityType, currentEntity);
             }
@@ -109,13 +110,15 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<EntityTypeAndEntity> ContainsEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
-            if (entityQueryProcessor.ContainsEntity(entityType, entity) == true)
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+            if (entityQueryProcessor.ContainsEntity(decodedEntityType, decodedEntity) == true)
             {
-                return new EntityTypeAndEntity(entityType, entity);
+                return new EntityTypeAndEntity(decodedEntityType, decodedEntity);
             }
             else
             {
-                throw new NotFoundException($"Entity '{entity}' with type '{entityType}' does not exist.", entity);
+                throw new NotFoundException($"Entity '{decodedEntity}' with type '{decodedEntityType}' does not exist.", decodedEntity);
             }
         }
     }

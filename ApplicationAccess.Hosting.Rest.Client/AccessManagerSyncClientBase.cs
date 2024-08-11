@@ -221,51 +221,53 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected void AddUserBase(TUser user)
         {
-            var url = new Uri(baseUrl, $"users/{userStringifier.ToString(user)}");
+            var url = new Uri(baseUrl, $"users/{Uri.EscapeDataString(userStringifier.ToString(user))}");
             SendPostRequest(url);
         }
 
         protected Boolean ContainsUserBase(TUser user)
         {
-            var url = new Uri(baseUrl, $"users/{userStringifier.ToString(user)}");
+            var url = new Uri(baseUrl, $"users/{Uri.EscapeDataString(userStringifier.ToString(user))}");
 
             return SendGetRequestForContainsMethod(url);
         }
 
         protected void RemoveUserBase(TUser user)
         {
-            var url = new Uri(baseUrl, $"users/{userStringifier.ToString(user)}");
+            var url = new Uri(baseUrl, $"users/{Uri.EscapeDataString(userStringifier.ToString(user))}");
             SendDeleteRequest(url);
         }
 
         protected void AddGroupBase(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groups/{groupStringifier.ToString(group)}");
+            var url = new Uri(baseUrl, $"groups/{Uri.EscapeDataString(groupStringifier.ToString(group))}");
             SendPostRequest(url);
         }
 
         protected Boolean ContainsGroupBase(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groups/{groupStringifier.ToString(group)}");
+            var url = new Uri(baseUrl, $"groups/{Uri.EscapeDataString(groupStringifier.ToString(group))}");
 
             return SendGetRequestForContainsMethod(url);
         }
 
         protected void RemoveGroupBase(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groups/{groupStringifier.ToString(group)}");
+            var url = new Uri(baseUrl, $"groups/{Uri.EscapeDataString(groupStringifier.ToString(group))}");
             SendDeleteRequest(url);
         }
 
         protected void AddUserToGroupMappingBase(TUser user, TGroup group)
         {
-            var url = new Uri(baseUrl, $"userToGroupMappings/user/{userStringifier.ToString(user)}/group/{groupStringifier.ToString(group)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            var url = new Uri(baseUrl, $"userToGroupMappings/user/{encodedUser}/group/{encodedGroup}");
             SendPostRequest(url);
         }
 
         protected HashSet<TGroup> GetUserToGroupMappingsBase(TUser user, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"userToGroupMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings={includeIndirectMappings}");
+            var url = new Uri(baseUrl, $"userToGroupMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings={includeIndirectMappings}");
             var returnHashSet = new HashSet<TGroup>();
             foreach (UserAndGroup<String, String> currentUserAndGroup in SendGetRequest<List<UserAndGroup<String, String>>>(url))
             {
@@ -277,7 +279,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected HashSet<TUser> GetGroupToUserMappingsBase(TGroup group, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"userToGroupMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var url = new Uri(baseUrl, $"userToGroupMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings={includeIndirectMappings}");
             var returnHashSet = new HashSet<TUser>();
             foreach (UserAndGroup<String, String> currentUserAndGroup in SendGetRequest<List<UserAndGroup<String, String>>>(url))
             {
@@ -289,19 +291,23 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected void RemoveUserToGroupMappingBase(TUser user, TGroup group)
         {
-            var url = new Uri(baseUrl, $"userToGroupMappings/user/{userStringifier.ToString(user)}/group/{groupStringifier.ToString(group)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            var url = new Uri(baseUrl, $"userToGroupMappings/user/{encodedUser}/group/{encodedGroup}");
             SendDeleteRequest(url);
         }
 
         protected void AddGroupToGroupMappingBase(TGroup fromGroup, TGroup toGroup)
         {
-            var url = new Uri(baseUrl, $"groupToGroupMappings/fromGroup/{groupStringifier.ToString(fromGroup)}/toGroup/{groupStringifier.ToString(toGroup)}");
+            String encodedFromGroup = Uri.EscapeDataString(groupStringifier.ToString(fromGroup));
+            String encodedToGroup = Uri.EscapeDataString(groupStringifier.ToString(toGroup));
+            var url = new Uri(baseUrl, $"groupToGroupMappings/fromGroup/{encodedFromGroup}/toGroup/{encodedToGroup}");
             SendPostRequest(url);
         }
 
         protected HashSet<TGroup> GetGroupToGroupMappingsBase(TGroup group, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"groupToGroupMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var url = new Uri(baseUrl, $"groupToGroupMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings={includeIndirectMappings}");
             var returnHashSet = new HashSet<TGroup>();
             foreach (FromGroupAndToGroup<String> currentFromGroupAndToGroup in SendGetRequest<List<FromGroupAndToGroup<String>>>(url))
             {
@@ -313,7 +319,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected HashSet<TGroup> GetGroupToGroupReverseMappingsBase(TGroup group, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"groupToGroupReverseMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var url = new Uri(baseUrl, $"groupToGroupReverseMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings={includeIndirectMappings}");
             var returnHashSet = new HashSet<TGroup>();
             foreach (FromGroupAndToGroup<String> currentFromGroupAndToGroup in SendGetRequest<List<FromGroupAndToGroup<String>>>(url))
             {
@@ -325,19 +331,24 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected void RemoveGroupToGroupMappingBase(TGroup fromGroup, TGroup toGroup)
         {
-            var url = new Uri(baseUrl, $"groupToGroupMappings/fromGroup/{groupStringifier.ToString(fromGroup)}/toGroup/{groupStringifier.ToString(toGroup)}");
+            String encodedFromGroup = Uri.EscapeDataString(groupStringifier.ToString(fromGroup));
+            String encodedToGroup = Uri.EscapeDataString(groupStringifier.ToString(toGroup));
+            var url = new Uri(baseUrl, $"groupToGroupMappings/fromGroup/{encodedFromGroup}/toGroup/{encodedToGroup}");
             SendDeleteRequest(url);
         }
 
         protected void AddUserToApplicationComponentAndAccessLevelMappingBase(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{encodedUser}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
             SendPostRequest(url);
         }
 
         protected IEnumerable<Tuple<TComponent, TAccess>> GetUserToApplicationComponentAndAccessLevelMappingsBase(TUser user)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings=false");
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings=false");
 
             foreach (UserAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in SendGetRequest<List<UserAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -351,7 +362,9 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected IEnumerable<TUser> GetApplicationComponentAndAccessLevelToUserMappingsBase(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?includeIndirectMappings={includeIndirectMappings}");
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}?includeIndirectMappings={includeIndirectMappings}");
 
             foreach (UserAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in SendGetRequest<List<UserAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -361,19 +374,25 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected void RemoveUserToApplicationComponentAndAccessLevelMappingBase(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{encodedUser}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
             SendDeleteRequest(url);
         }
 
         protected void AddGroupToApplicationComponentAndAccessLevelMappingBase(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{groupStringifier.ToString(group)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{encodedGroup}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
             SendPostRequest(url);
         }
 
         protected IEnumerable<Tuple<TComponent, TAccess>> GetGroupToApplicationComponentAndAccessLevelMappingsBase(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings=false");
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings=false");
 
             foreach (GroupAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in SendGetRequest<List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -387,7 +406,9 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected IEnumerable<TGroup> GetApplicationComponentAndAccessLevelToGroupMappingsBase(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?includeIndirectMappings={includeIndirectMappings}");
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}?includeIndirectMappings={includeIndirectMappings}");
 
             foreach (GroupAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in SendGetRequest<List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -397,38 +418,43 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected void RemoveGroupToApplicationComponentAndAccessLevelMappingBase(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{groupStringifier.ToString(group)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{encodedGroup}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
             SendDeleteRequest(url);
         }
 
         protected void AddEntityTypeBase(String entityType)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}");
+            var url = new Uri(baseUrl, $"entityTypes/{Uri.EscapeDataString(entityType)}");
             SendPostRequest(url);
         }
 
         protected Boolean ContainsEntityTypeBase(String entityType)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}");
+            var url = new Uri(baseUrl, $"entityTypes/{Uri.EscapeDataString(entityType)}");
 
             return SendGetRequestForContainsMethod(url);
         }
 
         protected void RemoveEntityTypeBase(String entityType)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}");
+            var url = new Uri(baseUrl, $"entityTypes/{Uri.EscapeDataString(entityType)}");
             SendDeleteRequest(url);
         }
 
         protected void AddEntityBase(String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}/entities/{entity}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"entityTypes/{encodedEntityType}/entities/{encodedEntity}");
             SendPostRequest(url);
         }
 
         protected IEnumerable<String> GetEntitiesBase(String entityType)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}/entities");
+            var url = new Uri(baseUrl, $"entityTypes/{Uri.EscapeDataString(entityType)}/entities");
 
             foreach (EntityTypeAndEntity currentEntityTypeAndEntity in SendGetRequest<List<EntityTypeAndEntity>>(url))
             {
@@ -438,26 +464,33 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected Boolean ContainsEntityBase(String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}/entities/{entity}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"entityTypes/{encodedEntityType}/entities/{encodedEntity}");
 
             return SendGetRequestForContainsMethod(url);
         }
 
         protected void RemoveEntityBase(String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}/entities/{entity}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"entityTypes/{encodedEntityType}/entities/{encodedEntity}");
             SendDeleteRequest(url);
         }
 
         protected void AddUserToEntityMappingBase(TUser user, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}/entity/{entity}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}/entityType/{encodedEntityType}/entity/{encodedEntity}");
             SendPostRequest(url);
         }
 
         protected IEnumerable<Tuple<String, String>> GetUserToEntityMappingsBase(TUser user)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings=false");
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings=false");
 
             foreach (UserAndEntity<String> currentMapping in SendGetRequest<List<UserAndEntity<String>>>(url))
             {
@@ -471,7 +504,9 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected IEnumerable<String> GetUserToEntityMappingsBase(TUser user, String entityType)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}?includeIndirectMappings=false");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}/entityType/{encodedEntityType}?includeIndirectMappings=false");
 
             foreach (UserAndEntity<String> currentMapping in SendGetRequest<List<UserAndEntity<String>>>(url))
             {
@@ -481,7 +516,9 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected IEnumerable<TUser> GetEntityToUserMappingsBase(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/entityType/{entityType}/entity/{entity}?includeIndirectMappings={includeIndirectMappings}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"userToEntityMappings/entityType/{encodedEntityType}/entity/{encodedEntity}?includeIndirectMappings={includeIndirectMappings}");
 
             foreach (UserAndEntity<String> currentMapping in SendGetRequest<List<UserAndEntity<String>>>(url))
             {
@@ -491,19 +528,25 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected void RemoveUserToEntityMappingBase(TUser user, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}/entity/{entity}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}/entityType/{encodedEntityType}/entity/{encodedEntity}");
             SendDeleteRequest(url);
         }
 
         protected void AddGroupToEntityMappingBase(TGroup group, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}/entityType/{entityType}/entity/{entity}");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}/entityType/{encodedEntityType}/entity/{encodedEntity}");
             SendPostRequest(url);
         }
 
         protected IEnumerable<Tuple<String, String>> GetGroupToEntityMappingsBase(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings=false");
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings=false");
 
             foreach (GroupAndEntity<String> currentMapping in SendGetRequest<List<GroupAndEntity<String>>>(url))
             {
@@ -517,7 +560,9 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected IEnumerable<String> GetGroupToEntityMappingsBase(TGroup group, String entityType)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}/entityType/{entityType}?includeIndirectMappings=false");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}/entityType/{encodedEntityType}?includeIndirectMappings=false");
 
             foreach (GroupAndEntity<String> currentMapping in SendGetRequest<List<GroupAndEntity<String>>>(url))
             {
@@ -527,7 +572,9 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected IEnumerable<TGroup> GetEntityToGroupMappingsBase(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{entityType}/entity/{entity}?includeIndirectMappings={includeIndirectMappings}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{encodedEntityType}/entity/{encodedEntity}?includeIndirectMappings={includeIndirectMappings}");
 
             foreach (GroupAndEntity<String> currentMapping in SendGetRequest<List<GroupAndEntity<String>>>(url))
             {
@@ -537,27 +584,36 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected void RemoveGroupToEntityMappingBase(TGroup group, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}/entityType/{entityType}/entity/{entity}");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}/entityType/{encodedEntityType}/entity/{encodedEntity}");
             SendDeleteRequest(url);
         }
 
         protected Boolean HasAccessToApplicationComponentBase(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"dataElementAccess/applicationComponent/user/{userStringifier.ToString(user)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"dataElementAccess/applicationComponent/user/{encodedUser}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
 
             return SendGetRequest<Boolean>(url);
         }
 
         protected Boolean HasAccessToEntityBase(TUser user, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"dataElementAccess/entity/user/{userStringifier.ToString(user)}/entityType/{entityType}/entity/{entity}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"dataElementAccess/entity/user/{encodedUser}/entityType/{encodedEntityType}/entity/{encodedEntity}");
 
             return SendGetRequest<Boolean>(url);
         }
 
         protected HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByUserBase(TUser user)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings=true");
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings=true");
             var returnHashSet = new HashSet<Tuple<TComponent, TAccess>>();
             foreach (UserAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in SendGetRequest<List<UserAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -569,7 +625,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected HashSet<Tuple<TComponent, TAccess>> GetApplicationComponentsAccessibleByGroupBase(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings=true");
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings=true");
             var returnHashSet = new HashSet<Tuple<TComponent, TAccess>>();
             foreach (GroupAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in SendGetRequest<List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -581,7 +637,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected HashSet<Tuple<String, String>> GetEntitiesAccessibleByUserBase(TUser user)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings=true");
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings=true");
             var returnHashSet = new HashSet<Tuple<String, String>>();
             foreach (UserAndEntity<String> currentMapping in SendGetRequest<List<UserAndEntity<String>>>(url))
             {
@@ -593,7 +649,9 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected HashSet<String> GetEntitiesAccessibleByUserBase(TUser user, String entityType)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}?includeIndirectMappings=true");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}/entityType/{encodedEntityType}?includeIndirectMappings=true");
             var returnHashSet = new HashSet<String>();
             foreach (UserAndEntity<String> currentMapping in SendGetRequest<List<UserAndEntity<String>>>(url))
             {
@@ -605,7 +663,7 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected HashSet<Tuple<String, String>> GetEntitiesAccessibleByGroupBase(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings=true");
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings=true");
             var returnHashSet = new HashSet<Tuple<String, String>>();
             foreach (GroupAndEntity<String> currentMapping in SendGetRequest<List<GroupAndEntity<String>>>(url))
             {
@@ -617,7 +675,9 @@ namespace ApplicationAccess.Hosting.Rest.Client
 
         protected HashSet<String> GetEntitiesAccessibleByGroupBase(TGroup group, String entityType)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}/entityType/{entityType}?includeIndirectMappings=true");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}/entityType/{encodedEntityType}?includeIndirectMappings=true");
             var returnHashSet = new HashSet<String>();
             foreach (GroupAndEntity<String> currentMapping in SendGetRequest<List<GroupAndEntity<String>>>(url))
             {

@@ -53,7 +53,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddEntityType([FromRoute] String entityType)
         {
-            entityEventProcessor.AddEntityType(entityType);
+            entityEventProcessor.AddEntityType(Uri.UnescapeDataString(entityType));
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -69,7 +69,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
-            entityEventProcessor.AddEntity(entityType, entity);
+            entityEventProcessor.AddEntity(Uri.UnescapeDataString(entityType), Uri.UnescapeDataString(entity));
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }

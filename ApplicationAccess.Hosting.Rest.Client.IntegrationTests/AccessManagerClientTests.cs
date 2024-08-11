@@ -220,6 +220,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void RemoveUser_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveUser(urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).RemoveUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public void AddGroup()
         {
             const String testGroup = "group1";
@@ -228,6 +239,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddGroup(testGroup);
 
             mockGroupEventProcessor.Received(1).AddGroup(testGroup);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddGroup_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddGroup(urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).AddGroup(urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -256,6 +278,19 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void ContainsGroup_UrlEncoding()
+        {
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.ContainsGroup(urlReservedCharcters).Returns(true);
+
+            Boolean result = testAccessManagerClient.ContainsGroup(urlReservedCharcters);
+
+            mockGroupQueryProcessor.Received(1).ContainsGroup(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public void RemoveGroup()
         {
             const String testGroup = "group1";
@@ -264,6 +299,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.RemoveGroup(testGroup);
 
             mockGroupEventProcessor.Received(1).RemoveGroup(testGroup);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void RemoveGroup_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveGroup(urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).RemoveGroup(urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -277,6 +323,18 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddUserToGroupMapping(testUser, testGroup);
 
             mockUserEventProcessor.Received(1).AddUserToGroupMapping(testUser, testGroup);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddUserToGroupMapping_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).AddUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
@@ -351,6 +409,21 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetGroupToUserMappings_UrlEncoding()
+        {
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetGroupToUserMappings(urlReservedCharcters, false).Returns(testUsers);
+
+            HashSet<String> result = testAccessManagerClient.GetGroupToUserMappings(urlReservedCharcters, false);
+
+            mockUserQueryProcessor.Received(1).GetGroupToUserMappings(urlReservedCharcters, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void RemoveUserToGroupMapping()
         {
             const String testUser = "user1";
@@ -365,6 +438,18 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void RemoveUserToGroupMapping_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).RemoveUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public void AddGroupToGroupMapping()
         {
             const String testFromGroup = "group1";
@@ -374,6 +459,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddGroupToGroupMapping(testFromGroup, testToGroup);
 
             mockGroupToGroupEventProcessor.Received(1).AddGroupToGroupMapping(testFromGroup, testToGroup);
+            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddGroupToGroupMapping_UrlEncoding()
+        {
+            mockGroupToGroupEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupToGroupEventProcessor.Received(1).AddGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(2, groupStringifier.ToStringCallCount);
         }
 
@@ -394,6 +490,21 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.IsTrue(result.Contains("group2"));
             Assert.IsTrue(result.Contains("group3"));
             Assert.IsTrue(result.Contains("group4"));
+        }
+
+        [Test]
+        public void GetGroupToGroupMappings_UrlEncoding()
+        {
+            var testToGroups = new HashSet<String>() { "group2", "group3", "group4" };
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.GetGroupToGroupMappings(urlReservedCharcters, false).Returns(testToGroups);
+
+            HashSet<String> result = testAccessManagerClient.GetGroupToGroupMappings(urlReservedCharcters, false);
+
+            mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(urlReservedCharcters, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
         }
 
         [Test]
@@ -432,6 +543,21 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetGroupToGroupReverseMappings_UrlEncoding()
+        {
+            var testReturnGroups = new HashSet<String>() { "group2", "group3", "group4" };
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(urlReservedCharcters, false).Returns(testReturnGroups);
+
+            HashSet<String> result = testAccessManagerClient.GetGroupToGroupReverseMappings(urlReservedCharcters, false);
+
+            mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(urlReservedCharcters, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void RemoveGroupToGroupMapping()
         {
             const String testFromGroup = "group1";
@@ -441,6 +567,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.RemoveGroupToGroupMapping(testFromGroup, testToGroup);
 
             mockGroupToGroupEventProcessor.Received(1).RemoveGroupToGroupMapping(testFromGroup, testToGroup);
+            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void RemoveGroupToGroupMapping_UrlEncoding()
+        {
+            mockGroupToGroupEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupToGroupEventProcessor.Received(1).RemoveGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(2, groupStringifier.ToStringCallCount);
         }
 
@@ -455,6 +592,19 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel);
 
             mockUserEventProcessor.Received(1).AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddUserToApplicationComponentAndAccessLevelMapping_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).AddUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
             Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
             Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
@@ -483,6 +633,26 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual("Modify", result[0].Item2);
             Assert.AreEqual("SummaryScreen", result[1].Item1);
             Assert.AreEqual("View", result[1].Item2);
+        }
+
+        [Test]
+        public void GetUserToApplicationComponentAndAccessLevelMappings_UrlEncoding()
+        {
+            var testApplicationComponentsAndAccessLevels = new List<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ManageProductsScreen", "Modify"),
+                new Tuple<String, String>("SummaryScreen", "View")
+            };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetUserToApplicationComponentAndAccessLevelMappings(urlReservedCharcters).Returns(testApplicationComponentsAndAccessLevels);
+
+            var result = new List<Tuple<String, String>>(testAccessManagerClient.GetUserToApplicationComponentAndAccessLevelMappings(urlReservedCharcters));
+
+            mockUserQueryProcessor.Received(1).GetUserToApplicationComponentAndAccessLevelMappings(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -525,6 +695,22 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetApplicationComponentAndAccessLevelToUserMappings_UrlEncoding()
+        {
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(urlReservedCharcters, urlReservedCharcters, false).Returns(testUsers);
+
+            var result = new List<String>(testAccessManagerClient.GetApplicationComponentAndAccessLevelToUserMappings(urlReservedCharcters, urlReservedCharcters, false));
+
+            mockUserQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToUserMappings(urlReservedCharcters, urlReservedCharcters, false);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void RemoveUserToApplicationComponentAndAccessLevelMapping()
         {
             const String testUser = "user1";
@@ -541,6 +727,19 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).RemoveUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public void AddGroupToApplicationComponentAndAccessLevelMapping()
         {
             const String testGroup = "group1";
@@ -551,6 +750,19 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel);
 
             mockGroupEventProcessor.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddGroupToApplicationComponentAndAccessLevelMapping_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
             Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
             Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
@@ -579,6 +791,26 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual("Create", result[0].Item2);
             Assert.AreEqual("SummaryScreen", result[1].Item1);
             Assert.AreEqual("View", result[1].Item2);
+        }
+
+        [Test]
+        public void GetGroupToApplicationComponentAndAccessLevelMappings_UrlEncoding()
+        {
+            var testApplicationComponentsAndAccessLevels = new List<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ManageProductsScreen", "Create"),
+                new Tuple<String, String>("SummaryScreen", "View")
+            };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetGroupToApplicationComponentAndAccessLevelMappings(urlReservedCharcters).Returns(testApplicationComponentsAndAccessLevels);
+
+            var result = new List<Tuple<String, String>>(testAccessManagerClient.GetGroupToApplicationComponentAndAccessLevelMappings(urlReservedCharcters));
+
+            mockGroupQueryProcessor.Received(1).GetGroupToApplicationComponentAndAccessLevelMappings(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -621,6 +853,22 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetApplicationComponentAndAccessLevelToGroupMappings_UrlEncoding()
+        {
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(urlReservedCharcters, urlReservedCharcters, false).Returns(testGroups);
+
+            var result = new List<String>(testAccessManagerClient.GetApplicationComponentAndAccessLevelToGroupMappings(urlReservedCharcters, urlReservedCharcters, false));
+
+            mockGroupQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToGroupMappings(urlReservedCharcters, urlReservedCharcters, false);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping()
         {
             const String testGroup = "group1";
@@ -637,6 +885,19 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void RemoveGroupToApplicationComponentAndAccessLevelMapping_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).RemoveGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public void AddEntityType()
         {
             const String testEntityType = "BusinessUnit";
@@ -645,6 +906,16 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddEntityType(testEntityType);
 
             mockEntityEventProcessor.Received(1).AddEntityType(testEntityType);
+        }
+
+        [Test]
+        public void AddEntityType_UrlEncoding()
+        {
+            mockEntityEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddEntityType(urlReservedCharcters);
+
+            mockEntityEventProcessor.Received(1).AddEntityType(urlReservedCharcters);
         }
 
         [Test]
@@ -670,6 +941,18 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void ContainsEntityType_UrlEncoding()
+        {
+            mockEntityQueryProcessor.ClearReceivedCalls();
+            mockEntityQueryProcessor.ContainsEntityType(urlReservedCharcters).Returns(true);
+
+            Boolean result = testAccessManagerClient.ContainsEntityType(urlReservedCharcters);
+
+            mockEntityQueryProcessor.Received(1).ContainsEntityType(urlReservedCharcters);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public void RemoveEntityType()
         {
             const String testEntityType = "BusinessUnit";
@@ -678,6 +961,16 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.RemoveEntityType(testEntityType);
 
             mockEntityEventProcessor.Received(1).RemoveEntityType(testEntityType);
+        }
+
+        [Test]
+        public void RemoveEntityType_UrlEncoding()
+        {
+            mockEntityEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveEntityType(urlReservedCharcters);
+
+            mockEntityEventProcessor.Received(1).RemoveEntityType(urlReservedCharcters);
         }
 
         [Test]
@@ -690,6 +983,16 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddEntity(testEntityType, testEntity);
 
             mockEntityEventProcessor.Received(1).AddEntity(testEntityType, testEntity);
+        }
+
+        [Test]
+        public void AddEntity_UrlEncoding()
+        {
+            mockEntityEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddEntity(urlReservedCharcters, urlReservedCharcters);
+
+            mockEntityEventProcessor.Received(1).AddEntity(urlReservedCharcters, urlReservedCharcters);
         }
 
         [Test]
@@ -707,6 +1010,19 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual("ClientA", result[0]);
             Assert.AreEqual("ClientB", result[1]);
             Assert.AreEqual("ClientC", result[2]);
+        }
+
+        [Test]
+        public void GetEntities_UrlEncoding()
+        {
+            var testEntitiess = new List<String>() { "ClientA", "ClientB", "ClientC" };
+            mockEntityQueryProcessor.ClearReceivedCalls();
+            mockEntityQueryProcessor.GetEntities(urlReservedCharcters).Returns(testEntitiess);
+
+            var result = new List<String>(testAccessManagerClient.GetEntities(urlReservedCharcters));
+
+            mockEntityQueryProcessor.Received(1).GetEntities(urlReservedCharcters);
+            Assert.AreEqual(3, result.Count);
         }
 
         [Test]
@@ -733,6 +1049,18 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void ContainsEntity_UrlEncoding()
+        {
+            mockEntityQueryProcessor.ClearReceivedCalls();
+            mockEntityQueryProcessor.ContainsEntity(urlReservedCharcters, urlReservedCharcters).Returns(true);
+
+            Boolean result = testAccessManagerClient.ContainsEntity(urlReservedCharcters, urlReservedCharcters);
+
+            mockEntityQueryProcessor.Received(1).ContainsEntity(urlReservedCharcters, urlReservedCharcters);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public void RemoveEntity()
         {
             const String testEntityType = "BusinessUnit";
@@ -742,6 +1070,16 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.RemoveEntity(testEntityType, testEntity);
 
             mockEntityEventProcessor.Received(1).RemoveEntity(testEntityType, testEntity);
+        }
+
+        [Test]
+        public void RemoveEntity_UrlEncoding()
+        {
+            mockEntityEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveEntity(urlReservedCharcters, urlReservedCharcters);
+
+            mockEntityEventProcessor.Received(1).RemoveEntity(urlReservedCharcters, urlReservedCharcters);
         }
 
         [Test]
@@ -755,6 +1093,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddUserToEntityMapping(testUser, testEntityType, testEntity);
 
             mockUserEventProcessor.Received(1).AddUserToEntityMapping(testUser, testEntityType, testEntity);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddUserToEntityMapping_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).AddUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
         }
 
@@ -785,6 +1134,25 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetUserToEntityMappings_UrlEncoding()
+        {
+            var testEntittTypesAndEntities = new List<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("ClientAccount", "ClientA"),
+                new Tuple<String, String>("ClientAccount", "ClientB"),
+            };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetUserToEntityMappings(urlReservedCharcters).Returns(testEntittTypesAndEntities);
+
+            var result = new List<Tuple<String, String>>(testAccessManagerClient.GetUserToEntityMappings(urlReservedCharcters));
+
+            mockUserQueryProcessor.Received(1).GetUserToEntityMappings(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void GetUserToEntityMappingsUserAndEntityTypeOverload()
         {
             const String testUser = "user1";
@@ -800,6 +1168,20 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("ClientA", result[0]);
             Assert.AreEqual("ClientB", result[1]);
+        }
+
+        [Test]
+        public void GetUserToEntityMappingsUserAndEntityTypeOverload_UrlEncoding()
+        {
+            var testEntities = new List<String>() { "ClientA", "ClientB" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetUserToEntityMappings(urlReservedCharcters, urlReservedCharcters).Returns(testEntities);
+
+            var result = new List<String>(testAccessManagerClient.GetUserToEntityMappings(urlReservedCharcters, urlReservedCharcters));
+
+            mockUserQueryProcessor.Received(1).GetUserToEntityMappings(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -836,6 +1218,20 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetEntityToUserMappings_UrlEncoding()
+        {
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntityToUserMappings(urlReservedCharcters, urlReservedCharcters, false).Returns(testUsers);
+
+            var result = new List<String>(testAccessManagerClient.GetEntityToUserMappings(urlReservedCharcters, urlReservedCharcters, false));
+
+            mockUserQueryProcessor.Received(1).GetEntityToUserMappings(urlReservedCharcters, urlReservedCharcters, false);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void RemoveUserToEntityMapping()
         {
             const String testUser = "user1";
@@ -850,6 +1246,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void RemoveUserToEntityMapping_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).RemoveUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public void AddGroupToEntityMapping()
         {
             const String testGroup = "group1";
@@ -860,6 +1267,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
 
             mockGroupEventProcessor.Received(1).AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void AddGroupToEntityMapping_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.AddGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).AddGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -890,6 +1308,25 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetGroupToEntityMappings_UrlEncoding()
+        {
+            var testEntittTypesAndEntities = new List<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("ClientAccount", "ClientA"),
+                new Tuple<String, String>("ClientAccount", "ClientB"),
+            };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetGroupToEntityMappings(urlReservedCharcters).Returns(testEntittTypesAndEntities);
+
+            var result = new List<Tuple<String, String>>(testAccessManagerClient.GetGroupToEntityMappings(urlReservedCharcters));
+
+            mockGroupQueryProcessor.Received(1).GetGroupToEntityMappings(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void GetGroupToEntityMappingsUserAndEntityTypeOverload()
         {
             const String testGroup = "group1";
@@ -905,6 +1342,20 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("ClientA", result[0]);
             Assert.AreEqual("ClientB", result[1]);
+        }
+
+        [Test]
+        public void GetGroupToEntityMappingsUserAndEntityTypeOverload_UrlEncoding()
+        {
+            var testEntities = new List<String>() { "ClientA", "ClientB" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetGroupToEntityMappings(urlReservedCharcters, urlReservedCharcters).Returns(testEntities);
+
+            var result = new List<String>(testAccessManagerClient.GetGroupToEntityMappings(urlReservedCharcters, urlReservedCharcters));
+
+            mockGroupQueryProcessor.Received(1).GetGroupToEntityMappings(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -941,6 +1392,20 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetEntityToGroupMappings_UrlEncoding()
+        {
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntityToGroupMappings(urlReservedCharcters, urlReservedCharcters, false).Returns(testGroups);
+
+            var result = new List<String>(testAccessManagerClient.GetEntityToGroupMappings(urlReservedCharcters, urlReservedCharcters, false));
+
+            mockGroupQueryProcessor.Received(1).GetEntityToGroupMappings(urlReservedCharcters, urlReservedCharcters, false);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void RemoveGroupToEntityMapping()
         {
             const String testGroup = "group1";
@@ -951,6 +1416,17 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             testAccessManagerClient.RemoveGroupToEntityMapping(testGroup, testEntityType, testEntity);
 
             mockGroupEventProcessor.Received(1).RemoveGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public void RemoveGroupToEntityMapping_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            testAccessManagerClient.RemoveGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).RemoveGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -973,6 +1449,21 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void HasAccessToApplicationComponent_UrlEncoding()
+        {
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.HasAccessToApplicationComponent(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters).Returns(true);
+
+            Boolean result = testAccessManagerClient.HasAccessToApplicationComponent(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).HasAccessToApplicationComponent(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public void HasAccessToEntity()
         {
             const String testUser = "user1";
@@ -984,6 +1475,19 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Boolean result = testAccessManagerClient.HasAccessToEntity(testUser, testEntityType, testEntity);
 
             mockUserQueryProcessor.Received(1).HasAccessToEntity(testUser, testEntityType, testEntity);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void HasAccessToEntity_UrlEncoding()
+        {
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.HasAccessToEntity(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters).Returns(false);
+
+            Boolean result = testAccessManagerClient.HasAccessToEntity(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).HasAccessToEntity(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
             Assert.IsFalse(result);
         }
@@ -1012,6 +1516,26 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetApplicationComponentsAccessibleByUser_UrlEncoding()
+        {
+            var testApplicationComponentsAndAccessLevels = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ManageProductsScreen", "Modify"),
+                new Tuple<String, String>("SummaryScreen", "View")
+            };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetApplicationComponentsAccessibleByUser(urlReservedCharcters).Returns(testApplicationComponentsAndAccessLevels);
+
+            var result = new HashSet<Tuple<String, String>>(testAccessManagerClient.GetApplicationComponentsAccessibleByUser(urlReservedCharcters));
+
+            mockUserQueryProcessor.Received(1).GetApplicationComponentsAccessibleByUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
+        }
+
+        [Test]
         public void GetApplicationComponentsAccessibleByGroup()
         {
             const String testGroup = "group1";
@@ -1032,6 +1556,26 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains(new Tuple<String, String>("ManageProductsScreen", "Create")));
             Assert.IsTrue(result.Contains(new Tuple<String, String>("SummaryScreen", "View")));
+        }
+
+        [Test]
+        public void GetApplicationComponentsAccessibleByGroup_UrlEncoding()
+        {
+            var testApplicationComponentsAndAccessLevels = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ManageProductsScreen", "Create"),
+                new Tuple<String, String>("SummaryScreen", "View")
+            };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetApplicationComponentsAccessibleByGroup(urlReservedCharcters).Returns(testApplicationComponentsAndAccessLevels);
+
+            var result = new HashSet<Tuple<String, String>>(testAccessManagerClient.GetApplicationComponentsAccessibleByGroup(urlReservedCharcters));
+
+            mockGroupQueryProcessor.Received(1).GetApplicationComponentsAccessibleByGroup(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -1058,6 +1602,25 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetEntitiesAccessibleByUser_UrlEncoding()
+        {
+            var testEntittTypesAndEntities = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("ClientAccount", "ClientA"),
+                new Tuple<String, String>("ClientAccount", "ClientB"),
+            };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntitiesAccessibleByUser(urlReservedCharcters).Returns(testEntittTypesAndEntities);
+
+            var result = new HashSet<Tuple<String, String>>(testAccessManagerClient.GetEntitiesAccessibleByUser(urlReservedCharcters));
+
+            mockUserQueryProcessor.Received(1).GetEntitiesAccessibleByUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void GetEntitiesAccessibleByUserUserAndEntityTypeOverload()
         {
             const String testUser = "user1";
@@ -1073,6 +1636,20 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains("ClientA"));
             Assert.IsTrue(result.Contains("ClientB"));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByUserUserAndEntityTypeOverload_UrlEncoding()
+        {
+            var testEntities = new HashSet<String>() { "ClientA", "ClientB" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntitiesAccessibleByUser(urlReservedCharcters, urlReservedCharcters).Returns(testEntities);
+
+            var result = new HashSet<String>(testAccessManagerClient.GetEntitiesAccessibleByUser(urlReservedCharcters, urlReservedCharcters));
+
+            mockUserQueryProcessor.Received(1).GetEntitiesAccessibleByUser(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -1099,6 +1676,25 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         }
 
         [Test]
+        public void GetEntitiesAccessibleByGroup_UrlEncoding()
+        {
+            var testEntittTypesAndEntities = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("ClientAccount", "ClientA"),
+                new Tuple<String, String>("ClientAccount", "ClientC"),
+            };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntitiesAccessibleByGroup(urlReservedCharcters).Returns(testEntittTypesAndEntities);
+
+            var result = new HashSet<Tuple<String, String>>(testAccessManagerClient.GetEntitiesAccessibleByGroup(urlReservedCharcters));
+
+            mockGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroup(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public void GetEntitiesAccessibleByGroupGroupAndEntityTypeOverload()
         {
             const String testGroup = "group1";
@@ -1114,6 +1710,20 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains("ClientA"));
             Assert.IsTrue(result.Contains("ClientD"));
+        }
+
+        [Test]
+        public void GetEntitiesAccessibleByGroupGroupAndEntityTypeOverload_UrlEncoding()
+        {
+            var testEntities = new HashSet<String>() { "ClientA", "ClientD" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntitiesAccessibleByGroup(urlReservedCharcters, urlReservedCharcters).Returns(testEntities);
+
+            var result = new HashSet<String>(testAccessManagerClient.GetEntitiesAccessibleByGroup(urlReservedCharcters, urlReservedCharcters));
+
+            mockGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroup(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]

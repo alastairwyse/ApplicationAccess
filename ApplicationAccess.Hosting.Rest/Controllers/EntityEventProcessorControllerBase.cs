@@ -51,7 +51,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("entityTypes/{entityType}")]
         public void RemoveEntityType([FromRoute] String entityType)
         {
-            entityEventProcessor.RemoveEntityType(entityType);
+            entityEventProcessor.RemoveEntityType(Uri.UnescapeDataString(entityType));
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("entityTypes/{entityType}/entities/{entity}")]
         public void RemoveEntity([FromRoute] String entityType, [FromRoute] String entity)
         {
-            entityEventProcessor.RemoveEntity(entityType, entity);
+            entityEventProcessor.RemoveEntity(Uri.UnescapeDataString(entityType), Uri.UnescapeDataString(entity));
         }
     }
 }

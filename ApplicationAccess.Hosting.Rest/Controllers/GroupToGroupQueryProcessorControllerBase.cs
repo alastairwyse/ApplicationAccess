@@ -56,9 +56,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentGroup in groupToGroupQueryProcessor.GetGroupToGroupMappings(group, includeIndirectMappings))
+            String decodedGroup = Uri.UnescapeDataString(group);
+            foreach (String currentGroup in groupToGroupQueryProcessor.GetGroupToGroupMappings(decodedGroup, includeIndirectMappings))
             {
-                yield return new FromGroupAndToGroup<String>(group, currentGroup);
+                yield return new FromGroupAndToGroup<String>(decodedGroup, currentGroup);
             }
         }
 
@@ -73,9 +74,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupReverseMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentGroup in groupToGroupQueryProcessor.GetGroupToGroupReverseMappings(group, includeIndirectMappings))
+
+            String decodedGroup = Uri.UnescapeDataString(group);
+            foreach (String currentGroup in groupToGroupQueryProcessor.GetGroupToGroupReverseMappings(decodedGroup, includeIndirectMappings))
             {
-                yield return new FromGroupAndToGroup<String>(currentGroup, group);
+                yield return new FromGroupAndToGroup<String>(currentGroup, decodedGroup);
             }
         }
     }

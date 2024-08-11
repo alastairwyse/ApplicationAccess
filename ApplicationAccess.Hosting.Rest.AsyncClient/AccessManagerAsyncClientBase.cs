@@ -221,51 +221,53 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task AddUserBaseAsync(TUser user)
         {
-            var url = new Uri(baseUrl, $"users/{userStringifier.ToString(user)}");
+            var url = new Uri(baseUrl, $"users/{Uri.EscapeDataString(userStringifier.ToString(user))}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<Boolean> ContainsUserBaseAsync(TUser user)
         {
-            var url = new Uri(baseUrl, $"users/{userStringifier.ToString(user)}");
+            var url = new Uri(baseUrl, $"users/{Uri.EscapeDataString(userStringifier.ToString(user))}");
 
             return await SendGetRequestForContainsMethodAsync(url);
         }
 
         protected async Task RemoveUserBaseAsync(TUser user)
         {
-            var url = new Uri(baseUrl, $"users/{userStringifier.ToString(user)}");
+            var url = new Uri(baseUrl, $"users/{Uri.EscapeDataString(userStringifier.ToString(user))}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddGroupBaseAsync(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groups/{groupStringifier.ToString(group)}");
+            var url = new Uri(baseUrl, $"groups/{Uri.EscapeDataString(groupStringifier.ToString(group))}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<Boolean> ContainsGroupBaseAsync(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groups/{groupStringifier.ToString(group)}");
+            var url = new Uri(baseUrl, $"groups/{Uri.EscapeDataString(groupStringifier.ToString(group))}");
 
             return await SendGetRequestForContainsMethodAsync(url);
         }
 
         protected async Task RemoveGroupBaseAsync(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groups/{groupStringifier.ToString(group)}");
+            var url = new Uri(baseUrl, $"groups/{Uri.EscapeDataString(groupStringifier.ToString(group))}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddUserToGroupMappingBaseAsync(TUser user, TGroup group)
         {
-            var url = new Uri(baseUrl, $"userToGroupMappings/user/{userStringifier.ToString(user)}/group/{groupStringifier.ToString(group)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            var url = new Uri(baseUrl, $"userToGroupMappings/user/{encodedUser}/group/{encodedGroup}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<List<TGroup>> GetUserToGroupMappingsBaseAsync(TUser user, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"userToGroupMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings={includeIndirectMappings}");
+            var url = new Uri(baseUrl, $"userToGroupMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings={includeIndirectMappings}");
             var returnList = new List<TGroup>();
             foreach (UserAndGroup<String, String> currentUserAndGroup in await SendGetRequestAsync<List<UserAndGroup<String, String>>>(url))
             {
@@ -277,7 +279,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<TUser>> GetGroupToUserMappingsBaseAsync(TGroup group, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"userToGroupMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var url = new Uri(baseUrl, $"userToGroupMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings={includeIndirectMappings}");
             var returnList = new List<TUser>();
             foreach (UserAndGroup<String, String> currentUserAndGroup in await SendGetRequestAsync<List<UserAndGroup<String, String>>>(url))
             {
@@ -289,19 +291,23 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task RemoveUserToGroupMappingBaseAsync(TUser user, TGroup group)
         {
-            var url = new Uri(baseUrl, $"userToGroupMappings/user/{userStringifier.ToString(user)}/group/{groupStringifier.ToString(group)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            var url = new Uri(baseUrl, $"userToGroupMappings/user/{encodedUser}/group/{encodedGroup}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddGroupToGroupMappingBaseAsync(TGroup fromGroup, TGroup toGroup)
         {
-            var url = new Uri(baseUrl, $"groupToGroupMappings/fromGroup/{groupStringifier.ToString(fromGroup)}/toGroup/{groupStringifier.ToString(toGroup)}");
+            String encodedFromGroup = Uri.EscapeDataString(groupStringifier.ToString(fromGroup));
+            String encodedToGroup = Uri.EscapeDataString(groupStringifier.ToString(toGroup));
+            var url = new Uri(baseUrl, $"groupToGroupMappings/fromGroup/{encodedFromGroup}/toGroup/{encodedToGroup}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<List<TGroup>> GetGroupToGroupMappingsBaseAsync(TGroup group, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"groupToGroupMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var url = new Uri(baseUrl, $"groupToGroupMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings={includeIndirectMappings}");
             var returnList = new List<TGroup>();
             foreach (FromGroupAndToGroup<String> currentFromGroupAndToGroup in await SendGetRequestAsync<List<FromGroupAndToGroup<String>>>(url))
             {
@@ -313,7 +319,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<TGroup>> GetGroupToGroupReverseMappingsBaseAsync(TGroup group, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"groupToGroupReverseMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings={includeIndirectMappings}");
+            var url = new Uri(baseUrl, $"groupToGroupReverseMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings={includeIndirectMappings}");
             var returnList = new List<TGroup>();
             foreach (FromGroupAndToGroup<String> currentFromGroupAndToGroup in await SendGetRequestAsync<List<FromGroupAndToGroup<String>>>(url))
             {
@@ -325,19 +331,24 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task RemoveGroupToGroupMappingBaseAsync(TGroup fromGroup, TGroup toGroup)
         {
-            var url = new Uri(baseUrl, $"groupToGroupMappings/fromGroup/{groupStringifier.ToString(fromGroup)}/toGroup/{groupStringifier.ToString(toGroup)}");
+            String encodedFromGroup = Uri.EscapeDataString(groupStringifier.ToString(fromGroup));
+            String encodedToGroup = Uri.EscapeDataString(groupStringifier.ToString(toGroup));
+            var url = new Uri(baseUrl, $"groupToGroupMappings/fromGroup/{encodedFromGroup}/toGroup/{encodedToGroup}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddUserToApplicationComponentAndAccessLevelMappingBaseAsync(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{encodedUser}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<List<Tuple<TComponent, TAccess>>> GetUserToApplicationComponentAndAccessLevelMappingsBaseAsync(TUser user)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings=false");
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings=false");
             var returnList = new List<Tuple<TComponent, TAccess>>();
             foreach (UserAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in await SendGetRequestAsync<List<UserAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -353,7 +364,9 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<TUser>> GetApplicationComponentAndAccessLevelToUserMappingsBaseAsync(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?includeIndirectMappings={includeIndirectMappings}");
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}?includeIndirectMappings={includeIndirectMappings}");
             var returnList = new List<TUser>();
             foreach (UserAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in await SendGetRequestAsync<List<UserAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -365,19 +378,26 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task RemoveUserToApplicationComponentAndAccessLevelMappingBaseAsync(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{encodedUser}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddGroupToApplicationComponentAndAccessLevelMappingBaseAsync(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{groupStringifier.ToString(group)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{encodedGroup}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<List<Tuple<TComponent, TAccess>>> GetGroupToApplicationComponentAndAccessLevelMappingsBaseAsync(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings=false");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{encodedGroup}?includeIndirectMappings=false");
             var returnList = new List<Tuple<TComponent, TAccess>>();
             foreach (GroupAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in await SendGetRequestAsync<List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -393,7 +413,9 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<TGroup>> GetApplicationComponentAndAccessLevelToGroupMappingsBaseAsync(TComponent applicationComponent, TAccess accessLevel, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}?includeIndirectMappings={includeIndirectMappings}");
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}?includeIndirectMappings={includeIndirectMappings}");
             var returnList = new List<TGroup>();
             foreach (GroupAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in await SendGetRequestAsync<List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -405,38 +427,43 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task RemoveGroupToApplicationComponentAndAccessLevelMappingBaseAsync(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{groupStringifier.ToString(group)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{encodedGroup}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddEntityTypeBaseAsync(String entityType)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}");
+            var url = new Uri(baseUrl, $"entityTypes/{Uri.EscapeDataString(entityType)}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<Boolean> ContainsEntityTypeBaseAsync(String entityType)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}");
+            var url = new Uri(baseUrl, $"entityTypes/{Uri.EscapeDataString(entityType)}");
 
             return await SendGetRequestForContainsMethodAsync(url);
         }
 
         protected async Task RemoveEntityTypeBaseAsync(String entityType)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}");
+            var url = new Uri(baseUrl, $"entityTypes/{Uri.EscapeDataString(entityType)}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddEntityBaseAsync(String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}/entities/{entity}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"entityTypes/{encodedEntityType}/entities/{encodedEntity}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<List<String>> GetEntitiesBaseAsync(String entityType)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}/entities");
+            var url = new Uri(baseUrl, $"entityTypes/{Uri.EscapeDataString(entityType)}/entities");
             var returnList = new List<String>();
             foreach (EntityTypeAndEntity currentEntityTypeAndEntity in await SendGetRequestAsync<List<EntityTypeAndEntity>>(url))
             {
@@ -448,26 +475,34 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<Boolean> ContainsEntityBaseAsync(String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}/entities/{entity}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"entityTypes/{encodedEntityType}/entities/{encodedEntity}");
 
             return await SendGetRequestForContainsMethodAsync(url);
         }
 
         protected async Task RemoveEntityBaseAsync(String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"entityTypes/{entityType}/entities/{entity}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"entityTypes/{encodedEntityType}/entities/{encodedEntity}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddUserToEntityMappingBaseAsync(TUser user, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}/entity/{entity}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}/entityType/{encodedEntityType}/entity/{encodedEntity}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<List<Tuple<String, String>>> GetUserToEntityMappingsBaseAsync(TUser user)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings=false");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}?includeIndirectMappings=false");
             var returnList = new List<Tuple<String, String>>();
             foreach (UserAndEntity<String> currentMapping in await SendGetRequestAsync<List<UserAndEntity<String>>>(url))
             {
@@ -483,7 +518,9 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<String>> GetUserToEntityMappingsBaseAsync(TUser user, String entityType)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}?includeIndirectMappings=false");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}/entityType/{encodedEntityType}?includeIndirectMappings=false");
             var returnList = new List<String>();
             foreach (UserAndEntity<String> currentMapping in await SendGetRequestAsync<List<UserAndEntity<String>>>(url))
             {
@@ -495,7 +532,9 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<TUser>> GetEntityToUserMappingsBaseAsync(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/entityType/{entityType}/entity/{entity}?includeIndirectMappings={includeIndirectMappings}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"userToEntityMappings/entityType/{encodedEntityType}/entity/{encodedEntity}?includeIndirectMappings={includeIndirectMappings}");
             var returnList = new List<TUser>();
             foreach (UserAndEntity<String> currentMapping in await SendGetRequestAsync<List<UserAndEntity<String>>>(url))
             {
@@ -507,19 +546,26 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task RemoveUserToEntityMappingBaseAsync(TUser user, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}/entity/{entity}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}/entityType/{encodedEntityType}/entity/{encodedEntity}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task AddGroupToEntityMappingBaseAsync(TGroup group, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}/entityType/{entityType}/entity/{entity}");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}/entityType/{encodedEntityType}/entity/{encodedEntity}");
             await SendPostRequestAsync(url);
         }
 
         protected async Task<List<Tuple<String, String>>> GetGroupToEntityMappingsBaseAsync(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings=false");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}?includeIndirectMappings=false");
             var returnList = new List<Tuple<String, String>>();
             foreach (GroupAndEntity<String> currentMapping in await SendGetRequestAsync<List<GroupAndEntity<String>>>(url))
             {
@@ -535,7 +581,9 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<String>> GetGroupToEntityMappingsBaseAsync(TGroup group, String entityType)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}/entityType/{entityType}?includeIndirectMappings=false");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}/entityType/{encodedEntityType}?includeIndirectMappings=false");
             var returnList = new List<String>();
             foreach (GroupAndEntity<String> currentMapping in await SendGetRequestAsync<List<GroupAndEntity<String>>>(url))
             {
@@ -547,7 +595,9 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<TGroup>> GetEntityToGroupMappingsBaseAsync(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{entityType}/entity/{entity}?includeIndirectMappings={includeIndirectMappings}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{encodedEntityType}/entity/{encodedEntity}?includeIndirectMappings={includeIndirectMappings}");
             var returnList = new List<TGroup>();
             foreach (GroupAndEntity<String> currentMapping in await SendGetRequestAsync<List<GroupAndEntity<String>>>(url))
             {
@@ -559,27 +609,36 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task RemoveGroupToEntityMappingBaseAsync(TGroup group, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}/entityType/{entityType}/entity/{entity}");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}/entityType/{encodedEntityType}/entity/{encodedEntity}");
             await SendDeleteRequestAsync(url);
         }
 
         protected async Task<Boolean> HasAccessToApplicationComponentBaseAsync(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            var url = new Uri(baseUrl, $"dataElementAccess/applicationComponent/user/{userStringifier.ToString(user)}/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"dataElementAccess/applicationComponent/user/{encodedUser}/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
 
             return await SendGetRequestAsync<Boolean>(url);
         }
 
         protected async Task<Boolean> HasAccessToEntityBaseAsync(TUser user, String entityType, String entity)
         {
-            var url = new Uri(baseUrl, $"dataElementAccess/entity/user/{userStringifier.ToString(user)}/entityType/{entityType}/entity/{entity}");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"dataElementAccess/entity/user/{encodedUser}/entityType/{encodedEntityType}/entity/{encodedEntity}");
 
             return await SendGetRequestAsync<Boolean>(url);
         }
 
         protected async Task<List<Tuple<TComponent, TAccess>>> GetApplicationComponentsAccessibleByUserBaseAsync(TUser user)
         {
-            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings=true");
+            var url = new Uri(baseUrl, $"userToApplicationComponentAndAccessLevelMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings=true");
             var returnList = new List<Tuple<TComponent, TAccess>>();
             foreach (UserAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in await SendGetRequestAsync<List<UserAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -591,7 +650,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<Tuple<TComponent, TAccess>>> GetApplicationComponentsAccessibleByGroupBaseAsync(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings=true");
+            var url = new Uri(baseUrl, $"groupToApplicationComponentAndAccessLevelMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings=true");
             var returnList = new List<Tuple<TComponent, TAccess>>();
             foreach (GroupAndApplicationComponentAndAccessLevel<String, String, String> currentMapping in await SendGetRequestAsync<List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>>(url))
             {
@@ -603,7 +662,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByUserBaseAsync(TUser user)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}?includeIndirectMappings=true");
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{Uri.EscapeDataString(userStringifier.ToString(user))}?includeIndirectMappings=true");
             var returnList = new List<Tuple<String, String>>();
             foreach (UserAndEntity<String> currentMapping in await SendGetRequestAsync<List<UserAndEntity<String>>>(url))
             {
@@ -615,7 +674,9 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<String>> GetEntitiesAccessibleByUserBaseAsync(TUser user, String entityType)
         {
-            var url = new Uri(baseUrl, $"userToEntityMappings/user/{userStringifier.ToString(user)}/entityType/{entityType}?includeIndirectMappings=true");
+            String encodedUser = Uri.EscapeDataString(userStringifier.ToString(user));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"userToEntityMappings/user/{encodedUser}/entityType/{encodedEntityType}?includeIndirectMappings=true");
             var returnList = new List<String>();
             foreach (UserAndEntity<String> currentMapping in await SendGetRequestAsync<List<UserAndEntity<String>>>(url))
             {
@@ -627,7 +688,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupBaseAsync(TGroup group)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}?includeIndirectMappings=true");
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{Uri.EscapeDataString(groupStringifier.ToString(group))}?includeIndirectMappings=true");
             var returnHashSet = new List<Tuple<String, String>>();
             foreach (GroupAndEntity<String> currentMapping in await SendGetRequestAsync<List<GroupAndEntity<String>>>(url))
             {
@@ -639,7 +700,9 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
 
         protected async Task<List<String>> GetEntitiesAccessibleByGroupBaseAsync(TGroup group, String entityType)
         {
-            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{groupStringifier.ToString(group)}/entityType/{entityType}?includeIndirectMappings=true");
+            String encodedGroup = Uri.EscapeDataString(groupStringifier.ToString(group));
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/group/{encodedGroup}/entityType/{encodedEntityType}?includeIndirectMappings=true");
             var returnList = new List<String>();
             foreach (GroupAndEntity<String> currentMapping in await SendGetRequestAsync<List<GroupAndEntity<String>>>(url))
             {

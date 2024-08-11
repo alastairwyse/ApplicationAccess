@@ -11,6 +11,7 @@
     <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>

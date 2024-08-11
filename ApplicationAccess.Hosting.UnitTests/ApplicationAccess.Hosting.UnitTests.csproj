@@ -6,6 +6,7 @@
     <Authors>Alastair Wyse</Authors>
     <Company />
     <Description>Unit tests for classes in the ApplicationAccess.Hosting namespace.</Description>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>

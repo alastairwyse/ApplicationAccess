@@ -8,6 +8,7 @@
     <Authors>Alastair Wyse</Authors>
     <Company />
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
   
   <ItemGroup>

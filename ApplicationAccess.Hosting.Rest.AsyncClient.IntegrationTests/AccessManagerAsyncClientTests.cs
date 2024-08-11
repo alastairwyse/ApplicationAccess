@@ -207,6 +207,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task RemoveUserAsync_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveUserAsync(urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).RemoveUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public async Task AddGroupAsync()
         {
             const String testGroup = "group1";
@@ -215,6 +226,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.AddGroupAsync(testGroup);
 
             mockGroupEventProcessor.Received(1).AddGroup(testGroup);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task AddGroupAsync_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddGroupAsync(urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).AddGroup(urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -243,6 +265,19 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task ContainsGroupAsync_UrlEncoding()
+        {
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.ContainsGroup(urlReservedCharcters).Returns(true);
+
+            Boolean result = await testAccessManagerAsyncClient.ContainsGroupAsync(urlReservedCharcters);
+
+            mockGroupQueryProcessor.Received(1).ContainsGroup(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public async Task RemoveGroupAsync()
         {
             const String testGroup = "group1";
@@ -251,6 +286,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.RemoveGroupAsync(testGroup);
 
             mockGroupEventProcessor.Received(1).RemoveGroup(testGroup);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task RemoveGroupAsync_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveGroupAsync(urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).RemoveGroup(urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -264,6 +310,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.AddUserToGroupMappingAsync(testUser, testGroup);
 
             mockUserEventProcessor.Received(1).AddUserToGroupMapping(testUser, testGroup);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task AddUserToGroupMappingAsync_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddUserToGroupMappingAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).AddUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
@@ -338,6 +396,21 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetGroupToUserMappingsAsync_UrlEncoding()
+        {
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetGroupToUserMappings(urlReservedCharcters, false).Returns(testUsers);
+
+            List<String> result = await testAccessManagerAsyncClient.GetGroupToUserMappingsAsync(urlReservedCharcters, false);
+
+            mockUserQueryProcessor.Received(1).GetGroupToUserMappings(urlReservedCharcters, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task RemoveUserToGroupMappingAsync()
         {
             const String testUser = "user1";
@@ -352,6 +425,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task RemoveUserToGroupMappingAsync_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveUserToGroupMappingAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).RemoveUserToGroupMapping(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public async Task AddGroupToGroupMappingAsync()
         {
             const String testFromGroup = "group1";
@@ -361,6 +446,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.AddGroupToGroupMappingAsync(testFromGroup, testToGroup);
 
             mockGroupToGroupEventProcessor.Received(1).AddGroupToGroupMapping(testFromGroup, testToGroup);
+            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task AddGroupToGroupMappingAsync_UrlEncoding()
+        {
+            mockGroupToGroupEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddGroupToGroupMappingAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupToGroupEventProcessor.Received(1).AddGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(2, groupStringifier.ToStringCallCount);
         }
 
@@ -381,6 +477,21 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.IsTrue(result.Contains("group2"));
             Assert.IsTrue(result.Contains("group3"));
             Assert.IsTrue(result.Contains("group4"));
+        }
+
+        [Test]
+        public async Task GetGroupToGroupMappingsAsync_UrlEncoding()
+        {
+            var testToGroups = new HashSet<String>() { "group2", "group3", "group4" };
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.GetGroupToGroupMappings(urlReservedCharcters, false).Returns(testToGroups);
+
+            List<String> result = await testAccessManagerAsyncClient.GetGroupToGroupMappingsAsync(urlReservedCharcters, false);
+
+            mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupMappings(urlReservedCharcters, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
         }
 
         [Test]
@@ -419,6 +530,21 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetGroupToGroupReverseMappingsAsync_UrlEncoding()
+        {
+            var testReturnGroups = new HashSet<String>() { "group2", "group3", "group4" };
+            mockGroupToGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupToGroupQueryProcessor.GetGroupToGroupReverseMappings(urlReservedCharcters, false).Returns(testReturnGroups);
+
+            List<String> result = await testAccessManagerAsyncClient.GetGroupToGroupReverseMappingsAsync(urlReservedCharcters, false);
+
+            mockGroupToGroupQueryProcessor.Received(1).GetGroupToGroupReverseMappings(urlReservedCharcters, false);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task RemoveGroupToGroupMappingAsync()
         {
             const String testFromGroup = "group1";
@@ -428,6 +554,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.RemoveGroupToGroupMappingAsync(testFromGroup, testToGroup);
 
             mockGroupToGroupEventProcessor.Received(1).RemoveGroupToGroupMapping(testFromGroup, testToGroup);
+            Assert.AreEqual(2, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task RemoveGroupToGroupMappingAsync_UrlEncoding()
+        {
+            mockGroupToGroupEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveGroupToGroupMappingAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupToGroupEventProcessor.Received(1).RemoveGroupToGroupMapping(urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(2, groupStringifier.ToStringCallCount);
         }
 
@@ -442,6 +579,19 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.AddUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel);
 
             mockUserEventProcessor.Received(1).AddUserToApplicationComponentAndAccessLevelMapping(testUser, testApplicationComponent, testAccessLevel);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task AddUserToApplicationComponentAndAccessLevelMappingAsync_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddUserToApplicationComponentAndAccessLevelMappingAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).AddUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
             Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
             Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
@@ -470,6 +620,26 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.AreEqual("Modify", result[0].Item2);
             Assert.AreEqual("SummaryScreen", result[1].Item1);
             Assert.AreEqual("View", result[1].Item2);
+        }
+
+        [Test]
+        public async Task GetUserToApplicationComponentAndAccessLevelMappingsAsync_UrlEncoding()
+        {
+            var testApplicationComponentsAndAccessLevels = new List<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ManageProductsScreen", "Modify"),
+                new Tuple<String, String>("SummaryScreen", "View")
+            };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetUserToApplicationComponentAndAccessLevelMappings(urlReservedCharcters).Returns(testApplicationComponentsAndAccessLevels);
+
+            List<Tuple<String, String>> result = await testAccessManagerAsyncClient.GetUserToApplicationComponentAndAccessLevelMappingsAsync(urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).GetUserToApplicationComponentAndAccessLevelMappings(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -512,6 +682,22 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync_UrlEncoding()
+        {
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappings(urlReservedCharcters, urlReservedCharcters, false).Returns(testUsers);
+
+            List<String> result = await testAccessManagerAsyncClient.GetApplicationComponentAndAccessLevelToUserMappingsAsync(urlReservedCharcters, urlReservedCharcters, false);
+
+            mockUserQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToUserMappings(urlReservedCharcters, urlReservedCharcters, false);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync()
         {
             const String testUser = "user1";
@@ -528,6 +714,19 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).RemoveUserToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public async Task AddGroupToApplicationComponentAndAccessLevelMappingAsync()
         {
             const String testGroup = "group1";
@@ -538,6 +737,19 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.AddGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel);
 
             mockGroupEventProcessor.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping(testGroup, testApplicationComponent, testAccessLevel);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task AddGroupToApplicationComponentAndAccessLevelMappingAsync_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddGroupToApplicationComponentAndAccessLevelMappingAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).AddGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
             Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
             Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
@@ -566,6 +778,26 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.AreEqual("Create", result[0].Item2);
             Assert.AreEqual("SummaryScreen", result[1].Item1);
             Assert.AreEqual("View", result[1].Item2);
+        }
+
+        [Test]
+        public async Task GetGroupToApplicationComponentAndAccessLevelMappingsAsync_UrlEncoding()
+        {
+            var testApplicationComponentsAndAccessLevels = new List<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ManageProductsScreen", "Create"),
+                new Tuple<String, String>("SummaryScreen", "View")
+            };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetGroupToApplicationComponentAndAccessLevelMappings(urlReservedCharcters).Returns(testApplicationComponentsAndAccessLevels);
+
+            List<Tuple<String, String>> result = await testAccessManagerAsyncClient.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(urlReservedCharcters);
+
+            mockGroupQueryProcessor.Received(1).GetGroupToApplicationComponentAndAccessLevelMappings(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -608,6 +840,22 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync_UrlEncoding()
+        {
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(urlReservedCharcters, urlReservedCharcters, false).Returns(testGroups);
+
+            List<String> result = await testAccessManagerAsyncClient.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(urlReservedCharcters, urlReservedCharcters, false);
+
+            mockGroupQueryProcessor.Received(1).GetApplicationComponentAndAccessLevelToGroupMappings(urlReservedCharcters, urlReservedCharcters, false);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync()
         {
             const String testGroup = "group1";
@@ -624,6 +872,19 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).RemoveGroupToApplicationComponentAndAccessLevelMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public async Task AddEntityTypeAsync()
         {
             const String testEntityType = "BusinessUnit";
@@ -632,6 +893,16 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.AddEntityTypeAsync(testEntityType);
 
             mockEntityEventProcessor.Received(1).AddEntityType(testEntityType);
+        }
+
+        [Test]
+        public async Task AddEntityTypeAsync_UrlEncoding()
+        {
+            mockEntityEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddEntityTypeAsync(urlReservedCharcters);
+
+            mockEntityEventProcessor.Received(1).AddEntityType(urlReservedCharcters);
         }
 
         [Test]
@@ -657,6 +928,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task ContainsEntityTypeAsync_UrlEncoding()
+        {
+            mockEntityQueryProcessor.ClearReceivedCalls();
+            mockEntityQueryProcessor.ContainsEntityType(urlReservedCharcters).Returns(true);
+
+            Boolean result = await testAccessManagerAsyncClient.ContainsEntityTypeAsync(urlReservedCharcters);
+
+            mockEntityQueryProcessor.Received(1).ContainsEntityType(urlReservedCharcters);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public async Task RemoveEntityTypeAsync()
         {
             const String testEntityType = "BusinessUnit";
@@ -665,6 +948,16 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.RemoveEntityTypeAsync(testEntityType);
 
             mockEntityEventProcessor.Received(1).RemoveEntityType(testEntityType);
+        }
+
+        [Test]
+        public async Task RemoveEntityTypeAsync_UrlEncoding()
+        {
+            mockEntityEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveEntityTypeAsync(urlReservedCharcters);
+
+            mockEntityEventProcessor.Received(1).RemoveEntityType(urlReservedCharcters);
         }
 
         [Test]
@@ -680,6 +973,16 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task AddEntityAsync_UrlEncoding()
+        {
+            mockEntityEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddEntityAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockEntityEventProcessor.Received(1).AddEntity(urlReservedCharcters, urlReservedCharcters);
+        }
+
+        [Test]
         public async Task GetEntitiesAsync()
         {
             const String testEntityType = "ClientAccount";
@@ -690,6 +993,22 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             List<String> result = await testAccessManagerAsyncClient.GetEntitiesAsync(testEntityType);
 
             mockEntityQueryProcessor.Received(1).GetEntities(testEntityType);
+            Assert.AreEqual(3, result.Count);
+            Assert.AreEqual("ClientA", result[0]);
+            Assert.AreEqual("ClientB", result[1]);
+            Assert.AreEqual("ClientC", result[2]);
+        }
+
+        [Test]
+        public async Task GetEntitiesAsync_UrlEncoding()
+        {
+            var testEntitiess = new List<String>() { "ClientA", "ClientB", "ClientC" };
+            mockEntityQueryProcessor.ClearReceivedCalls();
+            mockEntityQueryProcessor.GetEntities(urlReservedCharcters).Returns(testEntitiess);
+
+            List<String> result = await testAccessManagerAsyncClient.GetEntitiesAsync(urlReservedCharcters);
+
+            mockEntityQueryProcessor.Received(1).GetEntities(urlReservedCharcters);
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual("ClientA", result[0]);
             Assert.AreEqual("ClientB", result[1]);
@@ -720,6 +1039,18 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task ContainsEntityAsync_UrlEncoding()
+        {
+            mockEntityQueryProcessor.ClearReceivedCalls();
+            mockEntityQueryProcessor.ContainsEntity(urlReservedCharcters, urlReservedCharcters).Returns(true);
+
+            Boolean result = await testAccessManagerAsyncClient.ContainsEntityAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockEntityQueryProcessor.Received(1).ContainsEntity(urlReservedCharcters, urlReservedCharcters);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public async Task RemoveEntityAsync()
         {
             const String testEntityType = "BusinessUnit";
@@ -729,6 +1060,16 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.RemoveEntityAsync(testEntityType, testEntity);
 
             mockEntityEventProcessor.Received(1).RemoveEntity(testEntityType, testEntity);
+        }
+
+        [Test]
+        public async Task RemoveEntityAsync_UrlEncoding()
+        {
+            mockEntityEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveEntityAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockEntityEventProcessor.Received(1).RemoveEntity(urlReservedCharcters, urlReservedCharcters);
         }
 
         [Test]
@@ -742,6 +1083,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.AddUserToEntityMappingAsync(testUser, testEntityType, testEntity);
 
             mockUserEventProcessor.Received(1).AddUserToEntityMapping(testUser, testEntityType, testEntity);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task AddUserToEntityMappingAsync_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddUserToEntityMappingAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).AddUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
         }
 
@@ -772,6 +1124,25 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetUserToEntityMappingsAsync_UrlEncoding()
+        {
+            var testEntittTypesAndEntities = new List<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("ClientAccount", "ClientA"),
+                new Tuple<String, String>("ClientAccount", "ClientB"),
+            };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetUserToEntityMappings(urlReservedCharcters).Returns(testEntittTypesAndEntities);
+
+            List<Tuple<String, String>> result = await testAccessManagerAsyncClient.GetUserToEntityMappingsAsync(urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).GetUserToEntityMappings(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task GetUserToEntityMappingsAsyncUserAndEntityTypeOverload()
         {
             const String testUser = "user1";
@@ -783,6 +1154,22 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             List<String> result = await testAccessManagerAsyncClient.GetUserToEntityMappingsAsync(testUser, testEntityType);
 
             mockUserQueryProcessor.Received(1).GetUserToEntityMappings(testUser, testEntityType);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual("ClientA", result[0]);
+            Assert.AreEqual("ClientB", result[1]);
+        }
+
+        [Test]
+        public async Task GetUserToEntityMappingsAsyncUserAndEntityTypeOverload_UrlEncoding()
+        {
+            var testEntities = new List<String>() { "ClientA", "ClientB" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetUserToEntityMappings(urlReservedCharcters, urlReservedCharcters).Returns(testEntities);
+
+            List<String> result = await testAccessManagerAsyncClient.GetUserToEntityMappingsAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).GetUserToEntityMappings(urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("ClientA", result[0]);
@@ -823,6 +1210,20 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetEntityToUserMappingsAsync_UrlEncoding()
+        {
+            var testUsers = new HashSet<String>() { "user1", "user2", "user3" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntityToUserMappings(urlReservedCharcters, urlReservedCharcters, false).Returns(testUsers);
+
+            List<String> result = await testAccessManagerAsyncClient.GetEntityToUserMappingsAsync(urlReservedCharcters, urlReservedCharcters, false);
+
+            mockUserQueryProcessor.Received(1).GetEntityToUserMappings(urlReservedCharcters, urlReservedCharcters, false);
+            Assert.AreEqual(3, userStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task RemoveUserToEntityMappingAsync()
         {
             const String testUser = "user1";
@@ -837,6 +1238,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task RemoveUserToEntityMappingAsync_UrlEncoding()
+        {
+            mockUserEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveUserToEntityMappingAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserEventProcessor.Received(1).RemoveUserToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+        }
+
+        [Test]
         public async Task AddGroupToEntityMappingAsync()
         {
             const String testGroup = "group1";
@@ -847,6 +1259,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
 
             mockGroupEventProcessor.Received(1).AddGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task AddGroupToEntityMappingAsync_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.AddGroupToEntityMappingAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).AddGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -877,6 +1300,25 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetGroupToEntityMappingsAsync_UrlEncoding()
+        {
+            var testEntittTypesAndEntities = new List<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("ClientAccount", "ClientA"),
+                new Tuple<String, String>("ClientAccount", "ClientB"),
+            };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetGroupToEntityMappings(urlReservedCharcters).Returns(testEntittTypesAndEntities);
+
+            List<Tuple<String, String>> result = await testAccessManagerAsyncClient.GetGroupToEntityMappingsAsync(urlReservedCharcters);
+
+            mockGroupQueryProcessor.Received(1).GetGroupToEntityMappings(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task GetGroupToEntityMappingsAsyncUserAndEntityTypeOverload()
         {
             const String testGroup = "group1";
@@ -892,6 +1334,20 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("ClientA", result[0]);
             Assert.AreEqual("ClientB", result[1]);
+        }
+
+        [Test]
+        public async Task GetGroupToEntityMappingsAsyncUserAndEntityTypeOverload_UrlEncoding()
+        {
+            var testEntities = new List<String>() { "ClientA", "ClientB" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetGroupToEntityMappings(urlReservedCharcters, urlReservedCharcters).Returns(testEntities);
+
+            List<String> result = await testAccessManagerAsyncClient.GetGroupToEntityMappingsAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupQueryProcessor.Received(1).GetGroupToEntityMappings(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -928,6 +1384,20 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetEntityToGroupMappingsAsync_UrlEncoding()
+        {
+            var testGroups = new HashSet<String>() { "group1", "group2", "group3" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntityToGroupMappings(urlReservedCharcters, urlReservedCharcters, false).Returns(testGroups);
+
+            List<String> result = await testAccessManagerAsyncClient.GetEntityToGroupMappingsAsync(urlReservedCharcters, urlReservedCharcters, false);
+
+            mockGroupQueryProcessor.Received(1).GetEntityToGroupMappings(urlReservedCharcters, urlReservedCharcters, false);
+            Assert.AreEqual(3, groupStringifier.FromStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task RemoveGroupToEntityMappingAsync()
         {
             const String testGroup = "group1";
@@ -938,6 +1408,17 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             await testAccessManagerAsyncClient.RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
 
             mockGroupEventProcessor.Received(1).RemoveGroupToEntityMapping(testGroup, testEntityType, testEntity);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+        }
+
+        [Test]
+        public async Task RemoveGroupToEntityMappingAsync_UrlEncoding()
+        {
+            mockGroupEventProcessor.ClearReceivedCalls();
+
+            await testAccessManagerAsyncClient.RemoveGroupToEntityMappingAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupEventProcessor.Received(1).RemoveGroupToEntityMapping(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, groupStringifier.ToStringCallCount);
         }
 
@@ -960,6 +1441,21 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task HasAccessToApplicationComponentAsync_UrlEncoding()
+        {
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.HasAccessToApplicationComponent(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters).Returns(true);
+
+            Boolean result = await testAccessManagerAsyncClient.HasAccessToApplicationComponentAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).HasAccessToApplicationComponent(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(1, applicationComponentStringifier.ToStringCallCount);
+            Assert.AreEqual(1, accessLevelStringifier.ToStringCallCount);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
         public async Task HasAccessToEntityAsync()
         {
             const String testUser = "user1";
@@ -971,6 +1467,19 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Boolean result = await testAccessManagerAsyncClient.HasAccessToEntityAsync(testUser, testEntityType, testEntity);
 
             mockUserQueryProcessor.Received(1).HasAccessToEntity(testUser, testEntityType, testEntity);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public async Task HasAccessToEntityAsync_UrlEncoding()
+        {
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.HasAccessToEntity(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters).Returns(false);
+
+            Boolean result = await testAccessManagerAsyncClient.HasAccessToEntityAsync(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).HasAccessToEntity(urlReservedCharcters, urlReservedCharcters, urlReservedCharcters);
             Assert.AreEqual(1, userStringifier.ToStringCallCount);
             Assert.IsFalse(result);
         }
@@ -999,6 +1508,26 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetApplicationComponentsAccessibleByUserAsync_UrlEncoding()
+        {
+            var testApplicationComponentsAndAccessLevels = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ManageProductsScreen", "Modify"),
+                new Tuple<String, String>("SummaryScreen", "View")
+            };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetApplicationComponentsAccessibleByUser(urlReservedCharcters).Returns(testApplicationComponentsAndAccessLevels);
+
+            List<Tuple<String, String>> result = await testAccessManagerAsyncClient.GetApplicationComponentsAccessibleByUserAsync(urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).GetApplicationComponentsAccessibleByUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
+        }
+
+        [Test]
         public async Task GetApplicationComponentsAccessibleByGroupAsync()
         {
             const String testGroup = "group1";
@@ -1019,6 +1548,26 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains(new Tuple<String, String>("ManageProductsScreen", "Create")));
             Assert.IsTrue(result.Contains(new Tuple<String, String>("SummaryScreen", "View")));
+        }
+
+        [Test]
+        public async Task GetApplicationComponentsAccessibleByGroupAsync_UrlEncoding()
+        {
+            var testApplicationComponentsAndAccessLevels = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("ManageProductsScreen", "Create"),
+                new Tuple<String, String>("SummaryScreen", "View")
+            };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetApplicationComponentsAccessibleByGroup(urlReservedCharcters).Returns(testApplicationComponentsAndAccessLevels);
+
+            List<Tuple<String, String>> result = await testAccessManagerAsyncClient.GetApplicationComponentsAccessibleByGroupAsync(urlReservedCharcters);
+
+            mockGroupQueryProcessor.Received(1).GetApplicationComponentsAccessibleByGroup(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, applicationComponentStringifier.FromStringCallCount);
+            Assert.AreEqual(2, accessLevelStringifier.FromStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -1045,6 +1594,25 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetEntitiesAccessibleByUserAsync_UrlEncoding()
+        {
+            var testEntittTypesAndEntities = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("ClientAccount", "ClientA"),
+                new Tuple<String, String>("ClientAccount", "ClientB"),
+            };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntitiesAccessibleByUser(urlReservedCharcters).Returns(testEntittTypesAndEntities);
+
+            List<Tuple<String, String>> result = await testAccessManagerAsyncClient.GetEntitiesAccessibleByUserAsync(urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).GetEntitiesAccessibleByUser(urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task GetEntitiesAccessibleByUserAsyncUserAndEntityTypeOverload()
         {
             const String testUser = "user1";
@@ -1060,6 +1628,20 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains("ClientA"));
             Assert.IsTrue(result.Contains("ClientB"));
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByUserAsyncUserAndEntityTypeOverload_UrlEncoding()
+        {
+            var testEntities = new HashSet<String>() { "ClientA", "ClientB" };
+            mockUserQueryProcessor.ClearReceivedCalls();
+            mockUserQueryProcessor.GetEntitiesAccessibleByUser(urlReservedCharcters, urlReservedCharcters).Returns(testEntities);
+
+            List<String> result = await testAccessManagerAsyncClient.GetEntitiesAccessibleByUserAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockUserQueryProcessor.Received(1).GetEntitiesAccessibleByUser(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, userStringifier.ToStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
@@ -1086,6 +1668,25 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task GetEntitiesAccessibleByGroupAsync_UrlEncoding()
+        {
+            var testEntittTypesAndEntities = new HashSet<Tuple<String, String>>()
+            {
+                new Tuple<String, String>("BusinessUnit", "Sales"),
+                new Tuple<String, String>("ClientAccount", "ClientA"),
+                new Tuple<String, String>("ClientAccount", "ClientC"),
+            };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntitiesAccessibleByGroup(urlReservedCharcters).Returns(testEntittTypesAndEntities);
+
+            List<Tuple<String, String>> result = await testAccessManagerAsyncClient.GetEntitiesAccessibleByGroupAsync(urlReservedCharcters);
+
+            mockGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroup(urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [Test]
         public async Task GetEntitiesAccessibleByGroupAsyncGroupAndEntityTypeOverload()
         {
             const String testGroup = "group1";
@@ -1101,6 +1702,20 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains("ClientA"));
             Assert.IsTrue(result.Contains("ClientD"));
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByGroupAsyncGroupAndEntityTypeOverload_UrlEncoding()
+        {
+            var testEntities = new HashSet<String>() { "ClientA", "ClientD" };
+            mockGroupQueryProcessor.ClearReceivedCalls();
+            mockGroupQueryProcessor.GetEntitiesAccessibleByGroup(urlReservedCharcters, urlReservedCharcters).Returns(testEntities);
+
+            List<String> result = await testAccessManagerAsyncClient.GetEntitiesAccessibleByGroupAsync(urlReservedCharcters, urlReservedCharcters);
+
+            mockGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroup(urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(1, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]

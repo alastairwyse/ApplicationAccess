@@ -53,7 +53,9 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddGroupToGroupMapping([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
-            groupToGroupEventProcessor.AddGroupToGroupMapping(fromGroup, toGroup);
+            String decodedFromGroup = Uri.UnescapeDataString(fromGroup);
+            String decodedToGroup = Uri.UnescapeDataString(toGroup);
+            groupToGroupEventProcessor.AddGroupToGroupMapping(decodedFromGroup, decodedToGroup);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -68,7 +70,9 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("groupToGroupMappings/fromGroup/{fromGroup}/toGroup/{toGroup}")]
         public void RemoveGroupToGroupMapping([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
-            groupToGroupEventProcessor.RemoveGroupToGroupMapping(fromGroup, toGroup);
+            String decodedFromGroup = Uri.UnescapeDataString(fromGroup);
+            String decodedToGroup = Uri.UnescapeDataString(toGroup);
+            groupToGroupEventProcessor.RemoveGroupToGroupMapping(decodedFromGroup, decodedToGroup);
         }
     }
 }

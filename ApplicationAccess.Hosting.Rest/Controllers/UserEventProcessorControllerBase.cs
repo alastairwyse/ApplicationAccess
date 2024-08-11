@@ -51,7 +51,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("users/{user}")]
         public void RemoveUser([FromRoute] String user)
         {
-            userEventProcessor.RemoveUser(user);
+            userEventProcessor.RemoveUser(Uri.UnescapeDataString(user));
         }
 
         /// <summary>
@@ -65,7 +65,9 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddUserToGroupMapping([FromRoute] String user, [FromRoute] String group)
         {
-            userEventProcessor.AddUserToGroupMapping(user, group);
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedGroup = Uri.UnescapeDataString(group);
+            userEventProcessor.AddUserToGroupMapping(decodedUser, decodedGroup);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -80,7 +82,9 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("userToGroupMappings/user/{user}/group/{group}")]
         public void RemoveUserToGroupMapping([FromRoute] String user, [FromRoute] String group)
         {
-            userEventProcessor.RemoveUserToGroupMapping(user, group);
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedGroup = Uri.UnescapeDataString(group);
+            userEventProcessor.RemoveUserToGroupMapping(decodedUser, decodedGroup);
         }
 
         /// <summary>
@@ -95,7 +99,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddUserToApplicationComponentAndAccessLevelMapping([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            userEventProcessor.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
+            String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
+            userEventProcessor.AddUserToApplicationComponentAndAccessLevelMapping(decodedUser, decodedApplicationComponent, decodedAccessLevel);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -111,7 +118,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("userToApplicationComponentAndAccessLevelMappings/user/{user}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         public void RemoveUserToApplicationComponentAndAccessLevelMapping([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            userEventProcessor.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
+            String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
+            userEventProcessor.RemoveUserToApplicationComponentAndAccessLevelMapping(decodedUser, decodedApplicationComponent, decodedAccessLevel);
         }
 
         /// <summary>
@@ -126,7 +136,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddUserToEntityMapping([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            userEventProcessor.AddUserToEntityMapping(user, entityType, entity);
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+            userEventProcessor.AddUserToEntityMapping(decodedUser, decodedEntityType, decodedEntity);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -142,7 +155,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("userToEntityMappings/user/{user}/entityType/{entityType}/entity/{entity}")]
         public void RemoveUserToEntityMapping([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            userEventProcessor.RemoveUserToEntityMapping(user, entityType, entity);
+            String decodedUser = Uri.UnescapeDataString(user);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+            userEventProcessor.RemoveUserToEntityMapping(decodedUser, decodedEntityType, decodedEntity);
         }
     }
 }

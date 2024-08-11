@@ -52,7 +52,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddUser([FromRoute] String user)
         {
-            userEventProcessor.AddUser(user);
+            userEventProcessor.AddUser(Uri.UnescapeDataString(user));
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }

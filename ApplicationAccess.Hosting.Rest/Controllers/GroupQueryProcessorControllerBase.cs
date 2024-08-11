@@ -71,13 +71,14 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<String> ContainsGroup([FromRoute] String group)
         {
-            if (groupQueryProcessor.ContainsGroup(group) == true)
+            String decodedGroup = Uri.UnescapeDataString(group);
+            if (groupQueryProcessor.ContainsGroup(decodedGroup) == true)
             {
                 return group;
             }
             else
             {
-                throw new NotFoundException($"Group '{group}' does not exist.", group);
+                throw new NotFoundException($"Group '{decodedGroup}' does not exist.", decodedGroup);
             }
         }
 
@@ -93,17 +94,18 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public IEnumerable<GroupAndApplicationComponentAndAccessLevel<String, String, String>> GetGroupToApplicationComponentAndAccessLevelMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
+            String decodedGroup = Uri.UnescapeDataString(group);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = groupQueryProcessor.GetGroupToApplicationComponentAndAccessLevelMappings(group);
+                methodReturnValue = groupQueryProcessor.GetGroupToApplicationComponentAndAccessLevelMappings(decodedGroup);
             }
             else
             {
-                methodReturnValue = groupQueryProcessor.GetApplicationComponentsAccessibleByGroup(group);
+                methodReturnValue = groupQueryProcessor.GetApplicationComponentsAccessibleByGroup(decodedGroup);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
-                yield return new GroupAndApplicationComponentAndAccessLevel<String, String, String>(group, currentTuple.Item1, currentTuple.Item2);
+                yield return new GroupAndApplicationComponentAndAccessLevel<String, String, String>(decodedGroup, currentTuple.Item1, currentTuple.Item2);
             }
         }
 
@@ -119,9 +121,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<GroupAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToGroupMappings([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentGroup in groupQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(applicationComponent, accessLevel, includeIndirectMappings))
+            String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
+            String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
+            foreach (String currentGroup in groupQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappings(decodedApplicationComponent, decodedAccessLevel, includeIndirectMappings))
             {
-                yield return new GroupAndApplicationComponentAndAccessLevel<String, String, String>(currentGroup, applicationComponent, accessLevel);
+                yield return new GroupAndApplicationComponentAndAccessLevel<String, String, String>(currentGroup, decodedApplicationComponent, decodedAccessLevel);
             }
         }
 
@@ -137,17 +141,18 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public IEnumerable<GroupAndEntity<String>> GetGroupToEntityMappings([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
+            String decodedGroup = Uri.UnescapeDataString(group);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = groupQueryProcessor.GetGroupToEntityMappings(group);
+                methodReturnValue = groupQueryProcessor.GetGroupToEntityMappings(decodedGroup);
             }
             else
             {
-                methodReturnValue = groupQueryProcessor.GetEntitiesAccessibleByGroup(group);
+                methodReturnValue = groupQueryProcessor.GetEntitiesAccessibleByGroup(decodedGroup);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
-                yield return new GroupAndEntity<String>(group, currentTuple.Item1, currentTuple.Item2);
+                yield return new GroupAndEntity<String>(decodedGroup, currentTuple.Item1, currentTuple.Item2);
             }
         }
 
@@ -164,17 +169,19 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public IEnumerable<GroupAndEntity<String>> GetGroupToEntityMappings([FromRoute] String group, [FromRoute] String entityType, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             IEnumerable<String> methodReturnValue = null;
+            String decodedGroup = Uri.UnescapeDataString(group);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = groupQueryProcessor.GetGroupToEntityMappings(group, entityType);
+                methodReturnValue = groupQueryProcessor.GetGroupToEntityMappings(decodedGroup, decodedEntityType);
             }
             else
             {
-                methodReturnValue = groupQueryProcessor.GetEntitiesAccessibleByGroup(group, entityType);
+                methodReturnValue = groupQueryProcessor.GetEntitiesAccessibleByGroup(decodedGroup, decodedEntityType);
             }
             foreach (String currentEntity in methodReturnValue)
             {
-                yield return new GroupAndEntity<String>(group, entityType, currentEntity);
+                yield return new GroupAndEntity<String>(decodedGroup, decodedEntityType, currentEntity);
             }
         }
 
@@ -190,9 +197,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<GroupAndEntity<String>> GetEntityToGroupMappings([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
-            foreach (String currentGroup in groupQueryProcessor.GetEntityToGroupMappings(entityType, entity, includeIndirectMappings))
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+            foreach (String currentGroup in groupQueryProcessor.GetEntityToGroupMappings(decodedEntityType, decodedEntity, includeIndirectMappings))
             {
-                yield return new GroupAndEntity<String>(currentGroup, entityType, entity);
+                yield return new GroupAndEntity<String>(currentGroup, decodedEntityType, decodedEntity);
             }
         }
     }

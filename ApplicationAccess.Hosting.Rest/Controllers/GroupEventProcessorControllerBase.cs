@@ -51,7 +51,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("groups/{group}")]
         public void RemoveGroup([FromRoute] String group)
         {
-            groupEventProcessor.RemoveGroup(group);
+            groupEventProcessor.RemoveGroup(Uri.UnescapeDataString(group));
         }
 
         /// <summary>
@@ -66,7 +66,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddGroupToApplicationComponentAndAccessLevelMapping([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            groupEventProcessor.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            String decodedGroup = Uri.UnescapeDataString(group);
+            String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
+            String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
+            groupEventProcessor.AddGroupToApplicationComponentAndAccessLevelMapping(decodedGroup, decodedApplicationComponent, decodedAccessLevel);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -82,7 +85,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("groupToApplicationComponentAndAccessLevelMappings/group/{group}/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            groupEventProcessor.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+            String decodedGroup = Uri.UnescapeDataString(group);
+            String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
+            String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
+            groupEventProcessor.RemoveGroupToApplicationComponentAndAccessLevelMapping(decodedGroup, decodedApplicationComponent, decodedAccessLevel);
         }
 
         /// <summary>
@@ -97,7 +103,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public StatusCodeResult AddGroupToEntityMapping([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            groupEventProcessor.AddGroupToEntityMapping(group, entityType, entity);
+            String decodedGroup = Uri.UnescapeDataString(group);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+            groupEventProcessor.AddGroupToEntityMapping(decodedGroup, decodedEntityType, decodedEntity);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -113,7 +122,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Route("groupToEntityMappings/group/{group}/entityType/{entityType}/entity/{entity}")]
         public void RemoveGroupToEntityMapping([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            groupEventProcessor.RemoveGroupToEntityMapping(group, entityType, entity);
+            String decodedGroup = Uri.UnescapeDataString(group);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+            groupEventProcessor.RemoveGroupToEntityMapping(decodedGroup, decodedEntityType, decodedEntity);
         }
     }
 }
