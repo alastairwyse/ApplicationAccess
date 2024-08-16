@@ -261,7 +261,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// </summary>
         /// <param name="group">The group to retrieve the mapped groups for.</param>
         /// <param name="includeIndirectMappings">Whether to include indirect mappings (i.e. those where the 'mapped to' group is itself mapped to further groups).</param>
-        /// <returns>>A collection of between two groups.</returns>
+        /// <returns>>A collection of mappings between two groups.</returns>
         [HttpGet]
         [Route("groupToGroupMappings/group/{group}")]
         [ApiExplorerSettings(GroupName = "GroupToGroupQueryProcessor")]
