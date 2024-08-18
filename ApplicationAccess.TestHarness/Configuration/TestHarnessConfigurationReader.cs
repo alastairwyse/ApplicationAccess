@@ -34,6 +34,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         protected const String operationLimitPropertyName = "OperationLimit";
         protected const String addOperationDelayTimePropertyName = "AddOperationDelayTime";
         protected const String generatePrimaryAddOperationsPropertyName = "GeneratePrimaryAddOperations";
+        protected const String addUrlReservedCharacterElementsPropertyName = "AddUrlReservedCharacterElements";
 
         public TestHarnessConfigurationReader()
         : base("Test harness")
@@ -54,6 +55,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             ThrowExceptionIfPropertyNotFound(operationLimitPropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(addOperationDelayTimePropertyName, configurationSection);
             ThrowExceptionIfPropertyNotFound(generatePrimaryAddOperationsPropertyName, configurationSection);
+            ThrowExceptionIfPropertyNotFound(addUrlReservedCharacterElementsPropertyName, configurationSection);
 
             var returnConfiguration = new TestHarnessConfiguration();
 
@@ -69,6 +71,7 @@ namespace ApplicationAccess.TestHarness.Configuration
             returnConfiguration.OperationLimit = GetConfigurationValueAsInt64(operationLimitPropertyName, configurationSection);
             returnConfiguration.AddOperationDelayTime = GetConfigurationValueAsInteger(addOperationDelayTimePropertyName, configurationSection);
             returnConfiguration.GeneratePrimaryAddOperations = GetConfigurationValueAsBoolean(generatePrimaryAddOperationsPropertyName, configurationSection);
+            returnConfiguration.AddUrlReservedCharacterElements = GetConfigurationValueAsBoolean(addUrlReservedCharacterElementsPropertyName, configurationSection);
 
             return returnConfiguration;
         }

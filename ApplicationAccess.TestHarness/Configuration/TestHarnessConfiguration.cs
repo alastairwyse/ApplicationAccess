@@ -37,6 +37,7 @@ namespace ApplicationAccess.TestHarness.Configuration
         public Int64 OperationLimit;
         public Int32 AddOperationDelayTime;
         public Boolean GeneratePrimaryAddOperations;
+        public Boolean AddUrlReservedCharacterElements;
     }
 
     #pragma warning restore 0649

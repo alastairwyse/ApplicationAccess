@@ -334,6 +334,10 @@ namespace ApplicationAccess.TestHarness
                                     {
                                         var stopSignalThread = new Thread(StopThreadTask);
                                         stopSignalThread.Start();
+                                        if (testHarnessConfiguration.AddUrlReservedCharacterElements == true)
+                                        {
+                                            AddUrlReservedCharacterElements(testAccessManagerEventProcessors[0], dataElementStorer);
+                                        }
                                         testHarness.Start();
                                         stopNotifySignal.WaitOne();
                                         stopped = true;
@@ -644,6 +648,10 @@ namespace ApplicationAccess.TestHarness
                     {
                         var stopSignalThread = new Thread(StopThreadTask);
                         stopSignalThread.Start();
+                        if (testHarnessConfiguration.AddUrlReservedCharacterElements == true)
+                        {
+                            AddUrlReservedCharacterElements(testAccessManagerEventProcessors[0], dataElementStorer);
+                        }
                         testHarness.Start();
                         stopNotifySignal.WaitOne();
                         stopped = true;
@@ -811,6 +819,30 @@ namespace ApplicationAccess.TestHarness
                 Console.WriteLine($"{currentUnmappedEntity.Item1}, {currentUnmappedEntity.Item2}");
             }
             Console.WriteLine();
+        }
+
+        protected static void AddUrlReservedCharacterElements
+        (
+            IAccessManagerEventProcessor<String, String, TestApplicationComponent, TestAccessLevel> eventProcessor,
+            IDataElementStorer<String, String, TestApplicationComponent, TestAccessLevel> dataElementStorer
+        )
+        {
+            const String urlReservedCharcters = "! * ' ( ) ; : @ & = + $ , / ? % # [ ]";
+            try
+            {
+                eventProcessor.AddUser(urlReservedCharcters);
+                dataElementStorer.AddUser(urlReservedCharcters);
+                eventProcessor.AddGroup(urlReservedCharcters);
+                dataElementStorer.AddGroup(urlReservedCharcters);
+                eventProcessor.AddEntityType(urlReservedCharcters);
+                dataElementStorer.AddEntityType(urlReservedCharcters);
+                eventProcessor.AddEntity(urlReservedCharcters, urlReservedCharcters);
+                dataElementStorer.AddEntity(urlReservedCharcters, urlReservedCharcters);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to add URL reserved character elements.", e);
+            }
         }
     }
 }
