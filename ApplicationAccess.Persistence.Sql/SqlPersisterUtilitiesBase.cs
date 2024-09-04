@@ -38,7 +38,7 @@ namespace ApplicationAccess.Persistence.Sql
         protected IUniqueStringifier<TGroup> groupStringifier;
         /// <summary>A string converter for application components.</summary>
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
-        /// <summary>A string converter for access levels</summary>
+        /// <summary>A string converter for access levels.</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
 
         /// <summary>The name of the SQL database platform/product.</summary>

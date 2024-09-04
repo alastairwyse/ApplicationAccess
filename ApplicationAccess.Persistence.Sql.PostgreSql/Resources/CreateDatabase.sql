@@ -1816,7 +1816,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE ProcessEvents
 (
-    Events json
+    Events                   json, 
+    IgnorePreExistingEvents  boolean
 )
 LANGUAGE 'plpgsql'
 AS $$
@@ -1845,6 +1846,7 @@ DECLARE
     CurrentEventData1            varchar;
     CurrentEventData2            varchar;
     CurrentEventData3            varchar;
+    ExistingEventId              uuid;
 
 BEGIN
 
@@ -1879,6 +1881,19 @@ BEGIN
                 RAISE EXCEPTION 'Failed to convert event OccurredTime ''%'' to a timestamp; %', COALESCE(CurrentOccurredTimeAsString, '(null)'), SQLERRM;
         END;
     
+        IF (IgnorePreExistingEvents = true) THEN
+            ExistingEventId = NULL;
+
+            SELECT  EventIdToTransactionTimeMap.EventId
+            INTO    ExistingEventId
+            FROM    EventIdToTransactionTimeMap
+            WHERE   EventIdToTransactionTimeMap.EventId = CurrentEventId;
+
+            IF (NOT(ExistingEventId IS NULL)) THEN
+                CONTINUE;
+            END IF;
+        END IF;
+
         CurrentEventData1 := CurrentEventAsJson->>'Data1';
         CurrentEventData2 := CurrentEventAsJson->>'Data2';
         CurrentEventData3 := CurrentEventAsJson->>'Data3';

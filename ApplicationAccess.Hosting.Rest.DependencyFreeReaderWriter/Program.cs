@@ -50,6 +50,9 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
                     builder.Services.AddOptions<EventBufferFlushingOptions>()
                         .Bind(builder.Configuration.GetSection(EventBufferFlushingOptions.EventBufferFlushingOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
+                    builder.Services.AddOptions<EventPersistenceOptions>()
+                        .Bind(builder.Configuration.GetSection(EventPersistenceOptions.EventPersistenceOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<ErrorHandlingOptions>()
                         .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();

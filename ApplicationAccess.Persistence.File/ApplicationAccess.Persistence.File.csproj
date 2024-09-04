@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Description>Classes which write and read data associated with AccessManager classes to and from the file system.</Description>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest\ApplicationAccess.Hosting.Rest.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

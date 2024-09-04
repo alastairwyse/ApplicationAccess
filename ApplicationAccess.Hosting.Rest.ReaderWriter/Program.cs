@@ -50,6 +50,9 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     builder.Services.AddOptions<EventBufferFlushingOptions>()
                         .Bind(builder.Configuration.GetSection(EventBufferFlushingOptions.EventBufferFlushingOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
+                    builder.Services.AddOptions<EventPersistenceOptions>()
+                        .Bind(builder.Configuration.GetSection(EventPersistenceOptions.EventPersistenceOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<ErrorHandlingOptions>()
                         .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
@@ -79,8 +82,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             };
 
             var initializer = new ApplicationInitializer();
-            //WebApplication app = initializer.Initialize<ReaderWriterNodeHostedServiceWrapper>(parameters);
-            WebApplication app = initializer.Initialize<NullEventPersistingReaderWriterNodeHostedServiceWrapper>(parameters);
+            WebApplication app = initializer.Initialize<ReaderWriterNodeHostedServiceWrapper>(parameters);
+            //WebApplication app = initializer.Initialize<NullEventPersistingReaderWriterNodeHostedServiceWrapper>(parameters);
             //WebApplication app = initializer.Initialize<JsonEventWritingReaderWriterNodeHostedServiceWrapper>(parameters);
 
             app.Run();

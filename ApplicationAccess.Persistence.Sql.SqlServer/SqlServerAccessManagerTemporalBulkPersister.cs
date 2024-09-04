@@ -24,7 +24,7 @@ using ApplicationMetrics;
 namespace ApplicationAccess.Persistence.Sql.SqlServer
 {
     /// <summary>
-    /// An implementation of <see cref="IAccessManagerTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> and see <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events in bulk to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a Microsoft SQL Server database.
+    /// An implementation of <see cref="IAccessManagerTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> and <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events in bulk to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a Microsoft SQL Server database.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
@@ -39,6 +39,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
 
         protected const String processEventsStoredProcedureName = "ProcessEvents";
         protected const String eventsParameterName = "@Events";
+        protected const String ignorePreExistingEventsParameterName = "@IgnorePreExistingEvents";
 
         // These values are used in the 'eventTypeColumn' column in the staging table
         protected const String userEventTypeValue = "user";
@@ -211,6 +212,12 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <inheritdoc/>
         public void PersistEvents(IList<TemporalEventBufferItemBase> events)
         {
+            PersistEvents(events, false);
+        }
+
+        /// <inheritdoc/>
+        public void PersistEvents(IList<TemporalEventBufferItemBase> events, Boolean ignorePreExistingEvents)
+        {
             stagingTable.Rows.Clear();
             foreach (TemporalEventBufferItemBase currentEventBufferItem in events)
             {
@@ -224,7 +231,8 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             }
             var parameters = new List<SqlParameter>()
             {
-                CreateSqlParameterWithValue(eventsParameterName, SqlDbType.Structured, stagingTable)
+                CreateSqlParameterWithValue(eventsParameterName, SqlDbType.Structured, stagingTable), 
+                CreateSqlParameterWithValue(ignorePreExistingEventsParameterName, SqlDbType.Bit, ConvertBooleanToSqlBitType(ignorePreExistingEvents))
             };
             storedProcedureExecutor.Execute(processEventsStoredProcedureName, parameters);
         }
@@ -400,6 +408,23 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                 row[eventActionColumnName] = removeEventActionValue;
             }
             row[occurredTimeColumnName] = eventBufferItem.OccurredTime;
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Boolean"/> to the equivalent <see cref="SqlDbType.Bit"/>.
+        /// </summary>
+        /// <param name="inputBoolean">The <see cref="Boolean"/> to convert.</param>
+        /// <returns>The converted <see cref="Boolean"/>.</returns>
+        protected Int32 ConvertBooleanToSqlBitType(Boolean inputBoolean)
+        {
+            if (inputBoolean == false)
+            {
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
         }
 
         #pragma warning disable 1591

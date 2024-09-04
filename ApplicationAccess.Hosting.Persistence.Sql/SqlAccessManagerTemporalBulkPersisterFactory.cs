@@ -17,6 +17,7 @@
 using System;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.File;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.Persistence.Sql.PostgreSql;
 using ApplicationLogging;
@@ -41,7 +42,7 @@ namespace ApplicationAccess.Hosting.Persistence.Sql
         protected IUniqueStringifier<TGroup> groupStringifier;
         /// <summary>A string converter for application components.</summary>
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
-        /// <summary>A string converter for access levels</summary>
+        /// <summary>A string converter for access levels.</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;        
         /// <summary>The logger for general logging.</summary>
         protected IApplicationLogger logger;
@@ -100,8 +101,9 @@ namespace ApplicationAccess.Hosting.Persistence.Sql
         /// </summary>
         /// <typeparam name="T">The type of database connection parameters to use to create the persister.</typeparam>
         /// <param name="databaseConnectionParameters">The database connection parameters to use to create the persister.</param>
+        /// <param name="persisterBackupFilePath">The full path to a file used to back up events in the case persistence to the SQL database fails, or null if no backup file should be used.</param>
         /// <returns>The <see cref="IAccessManagerTemporalBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</returns>
-        public IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> GetPersister<T>(T databaseConnectionParameters) 
+        public IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> GetPersister<T>(T databaseConnectionParameters, String persisterBackupFilePath) 
             where T: SqlDatabaseConnectionParametersBase
         {
             if (databaseConnectionParameters is SqlServerConnectionParameters)
@@ -131,10 +133,10 @@ namespace ApplicationAccess.Hosting.Persistence.Sql
                     connectionString = databaseConnectionParameters.ConnectionString;
                 }
 
-                SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> returnPersister;
+                SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> sqlPersister;
                 if (metricLogger == null)
                 {
-                    returnPersister = new SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                    sqlPersister = new SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
                     (
                         connectionString,
                         typedDatabaseConnectionParameters.RetryCount,
@@ -149,7 +151,7 @@ namespace ApplicationAccess.Hosting.Persistence.Sql
                 }
                 else
                 {
-                    returnPersister = new SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                    sqlPersister = new SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
                     (
                         connectionString,
                         typedDatabaseConnectionParameters.RetryCount,
@@ -164,7 +166,57 @@ namespace ApplicationAccess.Hosting.Persistence.Sql
                     );
                 }
 
-                return returnPersister;
+                if (persisterBackupFilePath == null)
+                {
+                    return sqlPersister;
+                }
+                else
+                {
+                    if (metricLogger == null)
+                    {
+                        var backupPersister = new FileAccessManagerTemporalEventBulkPersisterReader<TUser, TGroup, TComponent, TAccess>
+                        (
+                            persisterBackupFilePath,
+                            userStringifier,
+                            groupStringifier,
+                            applicationComponentStringifier,
+                            accessLevelStringifier, 
+                            logger
+                        );
+                        var redundantPersister = new AccessManagerRedundantTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                        (
+                            sqlPersister,
+                            sqlPersister, 
+                            backupPersister, 
+                            logger
+                        );
+
+                        return redundantPersister;
+                    }
+                    else
+                    {
+                        var backupPersister = new FileAccessManagerTemporalEventBulkPersisterReader<TUser, TGroup, TComponent, TAccess>
+                        (
+                            persisterBackupFilePath,
+                            userStringifier,
+                            groupStringifier,
+                            applicationComponentStringifier,
+                            accessLevelStringifier,
+                            logger, 
+                            metricLogger
+                        );
+                        var redundantPersister = new AccessManagerRedundantTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                        (
+                            sqlPersister,
+                            sqlPersister,
+                            backupPersister,
+                            logger,
+                            metricLogger
+                        );
+
+                        return redundantPersister;
+                    }
+                }
             }
             else if (databaseConnectionParameters is PostgreSqlConnectionParameters)
             {
@@ -191,10 +243,10 @@ namespace ApplicationAccess.Hosting.Persistence.Sql
                     connectionString = databaseConnectionParameters.ConnectionString;
                 }
 
-                PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> returnPersister;
+                PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> sqlPersister;
                 if (metricLogger == null)
                 {
-                    returnPersister = new PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                    sqlPersister = new PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
                     (
                         connectionString,
                         typedDatabaseConnectionParameters.CommandTimeout,
@@ -207,7 +259,7 @@ namespace ApplicationAccess.Hosting.Persistence.Sql
                 }
                 else
                 {
-                    returnPersister = new PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                    sqlPersister = new PostgreSqlAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
                     (
                         connectionString,
                         typedDatabaseConnectionParameters.CommandTimeout,
@@ -220,7 +272,57 @@ namespace ApplicationAccess.Hosting.Persistence.Sql
                     );
                 }
 
-                return returnPersister;
+                if (persisterBackupFilePath == null)
+                {
+                    return sqlPersister;
+                }
+                else
+                {
+                    if (metricLogger == null)
+                    {
+                        var backupPersister = new FileAccessManagerTemporalEventBulkPersisterReader<TUser, TGroup, TComponent, TAccess>
+                        (
+                            persisterBackupFilePath,
+                            userStringifier,
+                            groupStringifier,
+                            applicationComponentStringifier,
+                            accessLevelStringifier,
+                            logger
+                        );
+                        var redundantPersister = new AccessManagerRedundantTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                        (
+                            sqlPersister,
+                            sqlPersister,
+                            backupPersister,
+                            logger
+                        );
+
+                        return redundantPersister;
+                    }
+                    else
+                    {
+                        var backupPersister = new FileAccessManagerTemporalEventBulkPersisterReader<TUser, TGroup, TComponent, TAccess>
+                        (
+                            persisterBackupFilePath,
+                            userStringifier,
+                            groupStringifier,
+                            applicationComponentStringifier,
+                            accessLevelStringifier,
+                            logger,
+                            metricLogger
+                        );
+                        var redundantPersister = new AccessManagerRedundantTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>
+                        (
+                            sqlPersister,
+                            sqlPersister,
+                            backupPersister,
+                            logger,
+                            metricLogger
+                        );
+
+                        return redundantPersister;
+                    }
+                }
             }
             else
             {

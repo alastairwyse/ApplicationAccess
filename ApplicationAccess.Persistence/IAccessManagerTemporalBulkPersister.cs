@@ -24,7 +24,7 @@ namespace ApplicationAccess.Persistence
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public interface IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess>, IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
+    public interface IAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess>, IAccessManagerIdempotentTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>, IDisposable
     {
     }
 }

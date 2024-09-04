@@ -47,6 +47,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         // Members passed in via dependency injection
         protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
+        protected EventPersistenceOptions eventPersistenceOptions;
         protected MetricLoggingOptions metricLoggingOptions;
         protected EntityEventProcessorHolder entityEventProcessorHolder;
         protected EntityQueryProcessorHolder entityQueryProcessorHolder;
@@ -81,6 +82,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         (
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
+            IOptions<EventPersistenceOptions> eventPersistenceOptions, 
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
             EntityQueryProcessorHolder entityQueryProcessorHolder,
@@ -97,6 +99,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         {
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
+            this.eventPersistenceOptions = eventPersistenceOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
             this.entityEventProcessorHolder = entityEventProcessorHolder;
             this.entityQueryProcessorHolder = entityQueryProcessorHolder;
@@ -248,7 +251,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     new StringUniqueStringifier(),
                     eventPersisterLogger
                 );
-                eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters);
+                eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters, eventPersistenceOptions.EventPersisterBackupFilePath);
                 eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
                 (
                     eventBufferFlushingOptions.BufferSizeLimit,
@@ -300,7 +303,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     eventPersisterLogger,
                     metricLogger
                 );
-                eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters);
+                eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters, eventPersistenceOptions.EventPersisterBackupFilePath);
                 eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
                 (
                     eventBufferFlushingOptions.BufferSizeLimit,

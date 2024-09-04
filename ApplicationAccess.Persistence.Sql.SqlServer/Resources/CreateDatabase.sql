@@ -2050,7 +2050,8 @@ GO
 
 CREATE PROCEDURE dbo.ProcessEvents
 (
-    @Events  EventTableType  READONLY
+    @Events                   EventTableType  READONLY, 
+    @IgnorePreExistingEvents  bit
 )
 AS
 BEGIN
@@ -2077,6 +2078,7 @@ BEGIN
     DECLARE @CurrentEventData1    nvarchar(max);
     DECLARE @CurrentEventData2    nvarchar(max);
     DECLARE @CurrentEventData3    nvarchar(max);
+    DECLARE @ExistingEventId      uniqueidentifier;
 
     DECLARE InputTableCursor CURSOR LOCAL FAST_FORWARD FOR
     SELECT  EventType, 
@@ -2100,13 +2102,36 @@ BEGIN
                 @CurrentEventData2, 
                 @CurrentEventData3;
 
-    WHILE (@@FETCH_STATUS) = 0
+    WHILE (@@FETCH_STATUS = 0)
         BEGIN
 
             IF (NOT(@CurrentEventAction = @AddEventActionValue OR @CurrentEventAction = @RemoveEventActionValue))
             BEGIN
                 SET @ErrorMessage = N'Input table column ''EventAction'' should contain values ''' + @AddEventActionValue +  ''' or ''' + @RemoveEventActionValue + ''' but contained ''' + @CurrentEventAction + '''.';
                 THROW 50001, @ErrorMessage, 1;
+            END
+
+            IF (@IgnorePreExistingEvents = 1)
+            BEGIN
+                SET @ExistingEventId = NULL;
+
+                SELECT  @ExistingEventId = EventId
+                FROM    EventIdToTransactionTimeMap
+                WHERE   EventId = @CurrentEventId;
+
+                IF (NOT(@ExistingEventId IS NULL))
+                BEGIN
+                    FETCH NEXT 
+                    FROM        InputTableCursor
+                    INTO        @CurrentEventType, 
+                                @CurrentEventId, 
+                                @CurrentEventAction, 
+                                @CurrentOccurredTime, 
+                                @CurrentEventData1, 
+                                @CurrentEventData2, 
+                                @CurrentEventData3;
+                    CONTINUE;
+                END
             END
 
             BEGIN TRY

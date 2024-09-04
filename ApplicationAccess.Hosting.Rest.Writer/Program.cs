@@ -49,6 +49,9 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     builder.Services.AddOptions<EventBufferFlushingOptions>()
                         .Bind(builder.Configuration.GetSection(EventBufferFlushingOptions.EventBufferFlushingOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
+                    builder.Services.AddOptions<EventPersistenceOptions>()
+                        .Bind(builder.Configuration.GetSection(EventPersistenceOptions.EventPersistenceOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<EventCacheConnectionOptions>()
                         .Bind(builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();

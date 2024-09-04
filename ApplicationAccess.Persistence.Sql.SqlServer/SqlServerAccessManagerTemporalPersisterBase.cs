@@ -47,7 +47,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         protected IUniqueStringifier<TGroup> groupStringifier;
         /// <summary>A string converter for application components.</summary>
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
-        /// <summary>A string converter for access levels</summary>
+        /// <summary>A string converter for access levels.</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
         /// <summary>Used to execute queries and store procedures against SQL Server.</summary>
         protected SqlServerPersisterUtilities<TUser, TGroup, TComponent, TAccess> persisterUtilities;
@@ -74,7 +74,6 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
-
             IApplicationLogger logger
         ) : base(connectionString, retryCount, retryInterval, operationTimeout, logger)
         {

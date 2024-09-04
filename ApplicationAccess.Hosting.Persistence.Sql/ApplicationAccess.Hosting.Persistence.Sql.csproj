@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <Description>Classes which facilitate persistence of data in an ApplicationAccess hosting environment.</Description>
     <Authors>Alastair Wyse</Authors>
@@ -13,6 +14,7 @@
     <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence.SqlServer\ApplicationAccess.Distribution.Persistence.SqlServer.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence\ApplicationAccess.Distribution.Persistence.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.File\ApplicationAccess.Persistence.File.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.PostgreSql\ApplicationAccess.Persistence.Sql.PostgreSql.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />

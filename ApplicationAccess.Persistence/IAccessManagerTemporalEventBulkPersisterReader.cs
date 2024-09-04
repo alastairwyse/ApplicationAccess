@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2022 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
+using System;
 using System.Collections.Generic;
 
 namespace ApplicationAccess.Persistence
 {
     /// <summary>
-    /// Defines methods to write events which change the structure of an AccessManager class to persistent storage in a bulk/consolidated operation.  
+    /// Specialization of <see cref="IAccessManagerTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> which additionally implements retrieval of all persisted events.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public interface IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>
+    public interface IAccessManagerTemporalEventBulkPersisterReader<TUser, TGroup, TComponent, TAccess> : IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>
-        /// Writes a series of events to persistent storage.
+        /// Retrieves all events previously persisted.
         /// </summary>
-        /// <param name="events">The events to write.</param>
-        /// <remarks>This method may or may not throw exceptions when the <paramref name="events"/> parameter contains events which have already been persisted, depending on the specific implementation.  If this behaviour needs to be more deterministic, consider using the override of this method defined in <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/>.</remarks>
-        void PersistEvents(IList<TemporalEventBufferItemBase> events);
+        /// <returns>The events.</returns>
+        IList<TemporalEventBufferItemBase> GetAllEvents();
     }
 }

@@ -684,14 +684,59 @@ namespace ApplicationAccess.Persistence
     }
 
     /// <summary>
-    /// Interval metric which records the time taken read events from the cache (i.e. to execute the GetAllEventsSince() method).
+    /// Interval metric which records the time taken to read events from the cache (i.e. to execute the GetAllEventsSince() method).
     /// </summary>
     public class CachedEventsReadTime : IntervalMetric
     {
         protected static String staticName = "CachedEventsReadTime";
-        protected static String staticDescription = "The time taken read events from the cache (i.e. to execute the GetAllEventsSince() method)";
+        protected static String staticDescription = "The time taken to read events from the cache (i.e. to execute the GetAllEventsSince() method)";
 
         public CachedEventsReadTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that writing events to the primary event persister failed.
+    /// </summary>
+    public class EventWriteToPrimaryPersisterFailed : CountMetric
+    {
+        protected static String staticName = "EventWriteToPrimaryPersisterFailed";
+        protected static String staticDescription = "Writing events to the primary event persister failed";
+
+        public EventWriteToPrimaryPersisterFailed()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the number of events written to the backup event persister after a failure of the primary persister.
+    /// </summary>
+    public class EventsWrittenToBackupPersister : AmountMetric
+    {
+        protected static String staticName = "EventsWrittenToBackupPersister";
+        protected static String staticDescription = "The number of events written to the backup event persister after a failure of the primary persister";
+
+        public EventsWrittenToBackupPersister()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Amount metric which records the number of events read from the backup event persister after a previous failure of the primary persister.
+    /// </summary>
+    public class EventsReadFromBackupPersister : AmountMetric
+    {
+        protected static String staticName = "EventsReadFromBackupPersister";
+        protected static String staticDescription = "The number of events read from the backup event persister after a previous failure of the primary persister";
+
+        public EventsReadFromBackupPersister()
         {
             base.name = staticName;
             base.description = staticDescription;

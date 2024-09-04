@@ -45,6 +45,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         (
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
+            IOptions<EventPersistenceOptions> eventPersistenceOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
@@ -59,6 +60,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         (
             accessManagerSqlDatabaseConnectionOptions,
             eventBufferFlushingOptions,
+            eventPersistenceOptions, 
             eventCacheConnectionOptions,
             metricLoggingOptions,
             entityEventProcessorHolder,

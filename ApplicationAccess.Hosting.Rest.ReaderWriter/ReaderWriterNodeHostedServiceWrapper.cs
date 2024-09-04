@@ -43,6 +43,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         (
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
+            IOptions<EventPersistenceOptions> eventPersistenceOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
             EntityQueryProcessorHolder entityQueryProcessorHolder,
@@ -60,6 +61,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         (
             accessManagerSqlDatabaseConnectionOptions,
             eventBufferFlushingOptions,
+            eventPersistenceOptions, 
             metricLoggingOptions,
             entityEventProcessorHolder,
             entityQueryProcessorHolder,

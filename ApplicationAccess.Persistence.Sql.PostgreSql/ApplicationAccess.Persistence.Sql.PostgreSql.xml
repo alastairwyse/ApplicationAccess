@@ -18,7 +18,7 @@
         </member>
         <member name="T:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4">
             <summary>
-            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> and see <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> which persists access manager events in bulk to and allows reading of <see cref="T:ApplicationAccess.AccessManagerBase`4"/> objects from a PostgreSQL database.
+            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> and <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> which persists access manager events in bulk to and allows reading of <see cref="T:ApplicationAccess.AccessManagerBase`4"/> objects from a PostgreSQL database.
             </summary>
             <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
             <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
@@ -50,7 +50,7 @@
             <summary>A string converter for application components.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.accessLevelStringifier">
-            <summary>A string converter for access levels</summary>
+            <summary>A string converter for access levels.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.persisterUtilities">
             <summary>Used to execute queries and store procedures against PostgreSQL.</summary>
@@ -120,6 +120,9 @@
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase},System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.CreateNpgsqlParameterWithValue(NpgsqlTypes.NpgsqlDbType,System.Object)">

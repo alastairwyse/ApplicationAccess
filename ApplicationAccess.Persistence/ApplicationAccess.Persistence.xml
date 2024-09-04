@@ -34,6 +34,82 @@
             </summary>
             <param name="eventBufferItem">The event to process/apply.</param>
         </member>
+        <member name="T:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4">
+            <summary>
+            Implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalBulkPersister`4"/> which <see href="https://en.wikipedia.org/wiki/Decorator_pattern">decorates</see> another <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalBulkPersister`4"/> instance by attempting to persist events to a second <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> instance in the case that a call to the <see cref="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">PersistEvents()</see> method fails, and also attempts to re-persist any events which previously failed to be persisted on startup.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+            <remarks>The <see cref="M:System.IDisposable.Dispose">Dispose()</see> method will call Dispose() on constructor parameters 'primaryReader', 'primaryPersister', and 'backupPersister' (assuming they implement <see cref="T:System.IDisposable"/>), even though those onjects are instantiated outside the class.</remarks>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.primaryReader">
+            <summary>The primary (decorated) <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> instance.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.primaryPersister">
+            <summary>The primary (decorated) <see cref="T:ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister`4"/> instance.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.backupPersister">
+            <summary>The backup/secondary persister.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.logger">
+            <summary>The logger for general logging.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.metricLogger">
+            <summary>The logger for metrics.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.firstCallToPersistEventsOccurred">
+            <summary>Whether the first call to the PersistEvents() method has already occurred.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.#ctor(ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersisterReader{`0,`1,`2,`3},ApplicationLogging.IApplicationLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister class.
+            </summary>
+            <param name="primaryReader">The primary (decorated) <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> instance.</param>
+            <param name="primaryPersister">The primary (decorated) <see cref="T:ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister`4"/> instance.</param>
+            <param name="backupPersister">The backup/secondary persister.</param>
+            <param name="logger">The logger for general logging.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.#ctor(ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister{`0,`1,`2,`3},ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersisterReader{`0,`1,`2,`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister class.
+            </summary>
+            <param name="primaryReader">The primary (decorated) <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> instance.</param>
+            <param name="primaryPersister">The primary (decorated) <see cref="T:ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister`4"/> instance.</param>
+            <param name="backupPersister">The backup/secondary persister.</param>
+            <param name="logger">The logger for general logging.</param>
+            <param name="metricLogger">The logger for metrics.</param>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.Load(ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.Load(System.Guid,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase},System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the AccessManagerRedundantTemporalBulkPersister.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.AccessManagerRedundantTemporalBulkPersister`4.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.AccessManagerState">
             <summary>
             Container class holding properties which uniquely identify the persisted state of an AccessManager.
@@ -1315,6 +1391,22 @@
             The number of group to entity mapping events stored in the buffer.
             </summary>
         </member>
+        <member name="T:ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister`4">
+            <summary>
+            Specialization of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> which includes an overload of the <see cref="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">PersistEvents()</see> method which allows specifying whether events which have already been persisted should be ignored.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase},System.Boolean)">
+            <summary>
+            Writes a series of events to persistent storage.
+            </summary>
+            <param name="events">The events to write.</param>
+            <param name="ignorePreExistingEvents">Whether events in <paramref name="events"/> which have already been persisted will be ignored/excluded (i.e. not persisted again).  If set to false, an exception will be thrown on encountering events which have already been persisted.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerPersistentReader`4">
             <summary>
             Defines methods to read an AccessManager class from persistent storage.
@@ -1355,6 +1447,22 @@
             Writes a series of events to persistent storage.
             </summary>
             <param name="events">The events to write.</param>
+            <remarks>This method may or may not throw exceptions when the <paramref name="events"/> parameter contains events which have already been persisted, depending on the specific implementation.  If this behaviour needs to be more deterministic, consider using the override of this method defined in <see cref="T:ApplicationAccess.Persistence.IAccessManagerIdempotentTemporalEventBulkPersister`4"/>.</remarks>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersisterReader`4">
+            <summary>
+            Specialization of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> which additionally implements retrieval of all persisted events.
+            </summary>
+            <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+            <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersisterReader`4.GetAllEvents">
+            <summary>
+            Retrieves all events previously persisted.
+            </summary>
+            <returns>The events.</returns>
         </member>
         <member name="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventPersister`4">
             <summary>
@@ -1906,7 +2014,22 @@
         </member>
         <member name="T:ApplicationAccess.Persistence.CachedEventsReadTime">
             <summary>
-            Interval metric which records the time taken read events from the cache (i.e. to execute the GetAllEventsSince() method).
+            Interval metric which records the time taken to read events from the cache (i.e. to execute the GetAllEventsSince() method).
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventWriteToPrimaryPersisterFailed">
+            <summary>
+            Count metric which records that writing events to the primary event persister failed.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventsWrittenToBackupPersister">
+            <summary>
+            Amount metric which records the number of events written to the backup event persister after a failure of the primary persister.
+            </summary>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.EventsReadFromBackupPersister">
+            <summary>
+            Amount metric which records the number of events read from the backup event persister after a previous failure of the primary persister.
             </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.NullAccessManagerTemporalBulkPersister`4">

@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Description>Unit tests for classes in the ApplicationAccess.Hosting.Rest.AsyncClient namespace.</Description>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Description>Unit tests for classes in the ApplicationAccess.Hosting.Persistence.Sql namespace.</Description>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
@@ -16,7 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.AsyncClient\ApplicationAccess.Hosting.Rest.AsyncClient.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Persistence.Sql\ApplicationAccess.Hosting.Persistence.Sql.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.UnitTests\ApplicationAccess.UnitTests.csproj" />
   </ItemGroup>
 
 </Project>

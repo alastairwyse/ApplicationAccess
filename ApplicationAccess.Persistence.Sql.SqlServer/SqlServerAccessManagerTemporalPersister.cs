@@ -24,7 +24,7 @@ using ApplicationMetrics;
 namespace ApplicationAccess.Persistence.Sql.SqlServer
 {
     /// <summary>
-    /// An implementation of <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/> and see <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a Microsoft SQL Server database.
+    /// An implementation of <see cref="IAccessManagerTemporalEventPersister{TUser, TGroup, TComponent, TAccess}"/> and <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a Microsoft SQL Server database.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the IAccessManagerTemporalEventPersister and IAccessManagerTemporalPersistentReader implementations.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the IAccessManagerTemporalEventPersister and IAccessManagerTemporalPersistentReader implementations.</typeparam>

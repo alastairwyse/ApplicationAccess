@@ -50,6 +50,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         // Members passed in via dependency injection
         protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected EventBufferFlushingOptions eventBufferFlushingOptions;
+        protected EventPersistenceOptions eventPersistenceOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
         protected MetricLoggingOptions metricLoggingOptions;
         protected EntityEventProcessorHolder entityEventProcessorHolder;
@@ -83,6 +84,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         (
             IOptions<AccessManagerSqlDatabaseConnectionOptions> accessManagerSqlDatabaseConnectionOptions,
             IOptions<EventBufferFlushingOptions> eventBufferFlushingOptions,
+            IOptions<EventPersistenceOptions> eventPersistenceOptions,
             IOptions<EventCacheConnectionOptions> eventCacheConnectionOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
             EntityEventProcessorHolder entityEventProcessorHolder,
@@ -96,6 +98,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         {
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
+            this.eventPersistenceOptions = eventPersistenceOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
             this.entityEventProcessorHolder = entityEventProcessorHolder;
@@ -257,7 +260,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     new StringUniqueStringifier(),
                     eventPersisterLogger
                 );
-                eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters);
+                eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters, eventPersistenceOptions.EventPersisterBackupFilePath);
                 eventCacheClient = new EventCacheClient<String, String, String, String>
                 (
                     eventCacheClientBaseUri,
@@ -318,7 +321,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     new StringUniqueStringifier(),
                     eventPersisterLogger, metricLogger
                 );
-                eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters);
+                eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters, eventPersistenceOptions.EventPersisterBackupFilePath);
                 IApplicationLogger eventCacheClientLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
                     loggerFactory.CreateLogger<EventCacheClient<String, String, String, String>>()

@@ -26,11 +26,12 @@ using Npgsql;
 using NpgsqlTypes;
 using System.Data;
 using System.Security.Cryptography;
+using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Persistence.Sql.PostgreSql
 {
     /// <summary>
-    /// An implementation of <see cref="IAccessManagerTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> and see <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events in bulk to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a PostgreSQL database.
+    /// An implementation of <see cref="IAccessManagerTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> and <see cref="IAccessManagerTemporalPersistentReader{TUser, TGroup, TComponent, TAccess}"/> which persists access manager events in bulk to and allows reading of <see cref="AccessManagerBase{TUser, TGroup, TComponent, TAccess}"/> objects from a PostgreSQL database.
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
@@ -85,7 +86,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         protected IUniqueStringifier<TGroup> groupStringifier;
         /// <summary>A string converter for application components.</summary>
         protected IUniqueStringifier<TComponent> applicationComponentStringifier;
-        /// <summary>A string converter for access levels</summary>
+        /// <summary>A string converter for access levels.</summary>
         protected IUniqueStringifier<TAccess> accessLevelStringifier;
         /// <summary>Used to execute queries and store procedures against PostgreSQL.</summary>
         protected PostgreSqlPersisterUtilities<TUser, TGroup, TComponent, TAccess> persisterUtilities;
@@ -152,6 +153,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
             );
             this.eventTypeToJsonDocumentPopulationOperationMap = CreateEventTypeToJsonDocumentPopulationOperationMap();
             this.logger = logger;
+            this.metricLogger = new NullMetricLogger();
             this.storedProcedureExecutor = new StoredProcedureExecutionWrapper((String procedureName, IList<NpgsqlParameter> parameters) => { ExecuteStoredProcedure(procedureName, parameters); });
             disposed = false;
         }
@@ -232,6 +234,12 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         /// <inheritdoc/>
         public void PersistEvents(IList<TemporalEventBufferItemBase> events)
         {
+            PersistEvents(events, false);
+        }
+
+        /// <inheritdoc/>
+        public void PersistEvents(IList<TemporalEventBufferItemBase> events, Boolean ignorePreExistingEvents)
+        {
             using (var memoryStream = new MemoryStream())
             using (var writer = new Utf8JsonWriter(memoryStream))
             {
@@ -253,7 +261,8 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
                 {
                     var parameters = new List<NpgsqlParameter>()
                     {
-                        CreateNpgsqlParameterWithValue(NpgsqlDbType.Json, eventsJson)
+                        CreateNpgsqlParameterWithValue(NpgsqlDbType.Json, eventsJson),
+                        CreateNpgsqlParameterWithValue(NpgsqlDbType.Boolean, ignorePreExistingEvents)
                     };
                     storedProcedureExecutor.Execute(processEventsStoredProcedureName, parameters);
                 }
