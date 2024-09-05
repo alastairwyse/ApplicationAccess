@@ -179,6 +179,7 @@ namespace ApplicationAccess.TestHarness
                     var accessManagerEventBufferFlushStrategyAndActions = accessManagerEventBufferFlushStrategyFactory.MakeFlushStrategy
                     (
                         persisterBufferFlushStrategyConfiguration,
+                        false, 
                         (BufferFlushingException bufferFlushingException) =>
                         {
                             persisterLogger.Log(ApplicationLogging.LogLevel.Critical, "Exception occurred when flushing event buffer.", bufferFlushingException);

@@ -54,7 +54,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 testFlushingException = bufferFlushingException;
                 flushingExceptionActionCallCount++;
             };
-            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(3, new NullMetricLogger(), testFlushingExceptionAction, workerThreadCompleteSignal);
+            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(3, false, new NullMetricLogger(), testFlushingExceptionAction, workerThreadCompleteSignal);
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;
@@ -87,7 +87,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(0, new NullMetricLogger(), testFlushingExceptionAction, workerThreadCompleteSignal);
+                testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(0, false, new NullMetricLogger(), testFlushingExceptionAction, workerThreadCompleteSignal);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'bufferSizeLimit' with value 0 cannot be less than 1."));

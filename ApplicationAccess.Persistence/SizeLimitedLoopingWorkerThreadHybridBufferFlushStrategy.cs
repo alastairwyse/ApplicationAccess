@@ -48,9 +48,10 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction)
-            : base(bufferSizeLimit, flushingExceptionAction)
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, Action<BufferFlushingException> flushingExceptionAction)
+            : base(bufferSizeLimit, flushRemainingEventsAfterException, flushingExceptionAction)
         {
             if (flushLoopInterval < 1)
                 throw new ArgumentOutOfRangeException(nameof(flushLoopInterval), $"Parameter '{nameof(flushLoopInterval)}' with value {flushLoopInterval} cannot be less than 1.");
@@ -146,10 +147,11 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction, IMetricLogger metricLogger)
-            : this(bufferSizeLimit, flushLoopInterval, flushingExceptionAction)
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, Action<BufferFlushingException> flushingExceptionAction, IMetricLogger metricLogger)
+            : this(bufferSizeLimit, flushLoopInterval, flushRemainingEventsAfterException, flushingExceptionAction)
         {
             this.metricLogger = metricLogger;
         }
@@ -159,10 +161,11 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction, IDateTimeProvider dateTimeProvider)
-            : this(bufferSizeLimit, flushLoopInterval, flushingExceptionAction)
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, Action<BufferFlushingException> flushingExceptionAction, IDateTimeProvider dateTimeProvider)
+            : this(bufferSizeLimit, flushLoopInterval, flushRemainingEventsAfterException, flushingExceptionAction)
         {
             this.dateTimeProvider = dateTimeProvider;
         }
@@ -172,11 +175,12 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction, IDateTimeProvider dateTimeProvider, IMetricLogger metricLogger)
-            : this(bufferSizeLimit, flushLoopInterval, flushingExceptionAction, dateTimeProvider)
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, Action<BufferFlushingException> flushingExceptionAction, IDateTimeProvider dateTimeProvider, IMetricLogger metricLogger)
+            : this(bufferSizeLimit, flushLoopInterval, flushRemainingEventsAfterException, flushingExceptionAction, dateTimeProvider)
         {
             this.metricLogger = metricLogger;
         }
@@ -186,12 +190,13 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
         /// <param name="loopingTriggerThreadLoopCompleteSignal">Signal that is waited on each time an iteration of the looping trigger thread completes (for unit testing).</param>
         /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, IDateTimeProvider dateTimeProvider, AutoResetEvent loopingTriggerThreadLoopCompleteSignal, ManualResetEvent workerThreadCompleteSignal)
-            : this(bufferSizeLimit, flushLoopInterval, (BufferFlushingException bufferFlushingException) => { }, dateTimeProvider)
+        public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy(Int32 bufferSizeLimit, Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, IDateTimeProvider dateTimeProvider, AutoResetEvent loopingTriggerThreadLoopCompleteSignal, ManualResetEvent workerThreadCompleteSignal)
+            : this(bufferSizeLimit, flushLoopInterval, flushRemainingEventsAfterException, (BufferFlushingException bufferFlushingException) => { }, dateTimeProvider)
         {
             this.loopingTriggerThreadLoopCompleteSignal = loopingTriggerThreadLoopCompleteSignal;
             base.workerThreadCompleteSignal = workerThreadCompleteSignal;

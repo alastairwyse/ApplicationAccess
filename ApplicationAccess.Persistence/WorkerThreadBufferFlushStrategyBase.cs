@@ -54,6 +54,8 @@ namespace ApplicationAccess.Persistence
         private Thread bufferFlushingWorkerThread;
         /// <summary>An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</summary>
         protected Action<BufferFlushingException> flushingExceptionAction;
+        /// <summary>Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</summary>
+        protected Boolean flushRemainingEventsAfterException;
         /// <summary>Whether request to stop the worker thread has been received via the Stop() method.</summary>
         protected volatile Boolean stopMethodCalled;
         /// <summary>Signal that is set after the worker thread completes, either via explicit stopping or an exception occurring (for unit testing).</summary>
@@ -187,7 +189,8 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
         /// </summary>
-        public WorkerThreadBufferFlushStrategyBase()
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
+        public WorkerThreadBufferFlushStrategyBase(Boolean flushRemainingEventsAfterException)
         {
             userEventsBuffered = 0;
             groupEventsBuffered = 0;
@@ -202,6 +205,7 @@ namespace ApplicationAccess.Persistence
 
             metricLogger = new NullMetricLogger();
             flushingExceptionAction = (BufferFlushingException flushingException) => { };
+            this.flushRemainingEventsAfterException = flushRemainingEventsAfterException;
             stopMethodCalled = false;
             workerThreadCompleteSignal = null;
             disposed = false;
@@ -210,9 +214,10 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
         /// </summary>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
-        public WorkerThreadBufferFlushStrategyBase(Action<BufferFlushingException> flushingExceptionAction)
-            : this()
+        public WorkerThreadBufferFlushStrategyBase(Boolean flushRemainingEventsAfterException, Action<BufferFlushingException> flushingExceptionAction)
+            : this(flushRemainingEventsAfterException)
         {
             this.flushingExceptionAction = flushingExceptionAction;
         }
@@ -220,9 +225,10 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
         /// </summary>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public WorkerThreadBufferFlushStrategyBase(IMetricLogger metricLogger)
-            : this()
+        public WorkerThreadBufferFlushStrategyBase(Boolean flushRemainingEventsAfterException, IMetricLogger metricLogger)
+            : this(flushRemainingEventsAfterException)
         {
             this.metricLogger = metricLogger;
         }
@@ -230,10 +236,11 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.WorkerThreadBufferFlushStrategyBase class.
         /// </summary>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
-        public WorkerThreadBufferFlushStrategyBase(IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction)
-            : this()
+        public WorkerThreadBufferFlushStrategyBase(Boolean flushRemainingEventsAfterException, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction)
+            : this(flushRemainingEventsAfterException)
         {
             this.metricLogger = metricLogger;
             this.flushingExceptionAction = flushingExceptionAction;
@@ -288,7 +295,7 @@ namespace ApplicationAccess.Persistence
                         flushingExceptionAction.Invoke(wrappedException);
                     }
                     // If no exception has occurred, flush any remaining buffered events
-                    if (exceptionOccurred == false && TotalEventsBuffered > 0)
+                    if ((exceptionOccurred == false || flushRemainingEventsAfterException == true) && TotalEventsBuffered > 0)
                     {
                         metricLogger.Add(new EventsBufferedAfterFlushStrategyStop(), TotalEventsBuffered);
                         try

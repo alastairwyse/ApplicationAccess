@@ -260,7 +260,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     new StringUniqueStringifier(),
                     eventPersisterLogger
                 );
-                persistentReader = eventPersisterFactory.GetPersister(databaseConnectionParameters);
+                persistentReader = eventPersisterFactory.GetPersister(databaseConnectionParameters, null);
                 eventCacheClient = new EventCacheClient<String, String, String, String>
                 (
                     eventCacheClientBaseUri,
@@ -316,7 +316,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     eventPersisterLogger, 
                     metricLogger
                 );
-                persistentReader = eventPersisterFactory.GetPersister(databaseConnectionParameters);
+                persistentReader = eventPersisterFactory.GetPersister(databaseConnectionParameters, null);
                 IApplicationLogger eventCacheClientLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
                     loggerFactory.CreateLogger<EventCacheClient<String, String, String, String>>()

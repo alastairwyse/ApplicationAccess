@@ -165,8 +165,9 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
-        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit)
-            : base()
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, Boolean flushRemainingEventsAfterException)
+            : base(flushRemainingEventsAfterException)
         {
             if (bufferSizeLimit < 1)
                 throw new ArgumentOutOfRangeException(nameof(bufferSizeLimit), $"Parameter '{nameof(bufferSizeLimit)}' with value {bufferSizeLimit} cannot be less than 1.");
@@ -192,9 +193,10 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
-        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, Action<BufferFlushingException> flushingExceptionAction)
-            : this(bufferSizeLimit)
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, Boolean flushRemainingEventsAfterException, Action<BufferFlushingException> flushingExceptionAction)
+            : this(bufferSizeLimit, flushRemainingEventsAfterException)
         {
             base.flushingExceptionAction = flushingExceptionAction;
         }
@@ -203,9 +205,10 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger)
-            : this(bufferSizeLimit)
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, Boolean flushRemainingEventsAfterException, IMetricLogger metricLogger)
+            : this(bufferSizeLimit, flushRemainingEventsAfterException)
         {
             this.metricLogger = metricLogger;
         }
@@ -214,10 +217,11 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
-        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction)
-            : this(bufferSizeLimit)
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, Boolean flushRemainingEventsAfterException, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction)
+            : this(bufferSizeLimit, flushRemainingEventsAfterException)
         {
             this.metricLogger = metricLogger;
             base.flushingExceptionAction = flushingExceptionAction;
@@ -227,12 +231,13 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.SizeLimitedBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction, ManualResetEvent workerThreadCompleteSignal)
-            : this(bufferSizeLimit, metricLogger, flushingExceptionAction)
+        public SizeLimitedBufferFlushStrategy(Int32 bufferSizeLimit, Boolean flushRemainingEventsAfterException, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction, ManualResetEvent workerThreadCompleteSignal)
+            : this(bufferSizeLimit, flushRemainingEventsAfterException, metricLogger, flushingExceptionAction)
         {
             base.workerThreadCompleteSignal = workerThreadCompleteSignal;
         }

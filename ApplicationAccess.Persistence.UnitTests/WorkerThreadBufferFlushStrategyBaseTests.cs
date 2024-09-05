@@ -54,7 +54,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 testFlushingException = bufferFlushingException;
                 flushingExceptionActionCallCount++;
             };
-            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(3, new NullMetricLogger(), testFlushingExceptionAction, workerThreadCompleteSignal);
+            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(3, false, new NullMetricLogger(), testFlushingExceptionAction, workerThreadCompleteSignal);
             flushHandler = (Object sender, EventArgs e) =>
             {
                 flushEventsRaised++;
@@ -85,7 +85,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         [Test]
         public void Start_BufferFlushingActionNotSet()
         {
-            var testBufferFlushStrategyWithNoWorkerThreadImplementation = new BufferFlushStrategyWithNoWorkerThreadImplementation();
+            var testBufferFlushStrategyWithNoWorkerThreadImplementation = new BufferFlushStrategyWithNoWorkerThreadImplementation(false);
 
             InvalidOperationException e = Assert.Throws<InvalidOperationException>(delegate
             {
@@ -255,6 +255,40 @@ namespace ApplicationAccess.Persistence.UnitTests
         }
 
         [Test]
+        public void BufferFlushingAction_ExceptionOccursOnWorkerThreadAndFlushRemainingEventsAfterExceptionTrue()
+        {
+            testSizeLimitedBufferFlushStrategy.Stop();
+            workerThreadCompleteSignal.WaitOne();
+            workerThreadCompleteSignal.Reset();
+            testSizeLimitedBufferFlushStrategy = new SizeLimitedBufferFlushStrategy(3, true, new NullMetricLogger(), testFlushingExceptionAction, workerThreadCompleteSignal);
+            const string exceptionMessage = "Mock worker thread exception.";
+            var flushInnerException = new Exception(exceptionMessage);
+            Int32 flushCount = 0;
+            flushHandler = (Object sender, EventArgs e) => 
+            {
+                flushCount++;
+                if (flushCount == 1)
+                {
+                    testSizeLimitedBufferFlushStrategy.EntityEventBufferItemCount = 1;
+                    throw flushInnerException;
+                }
+            };
+            testSizeLimitedBufferFlushStrategy.BufferFlushed += flushHandler;
+            testSizeLimitedBufferFlushStrategy.Start();
+            testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
+            testSizeLimitedBufferFlushStrategy.GroupEventBufferItemCount = 1;
+
+            testSizeLimitedBufferFlushStrategy.EntityTypeEventBufferItemCount = 1;
+
+            workerThreadCompleteSignal.WaitOne();
+            Assert.NotNull(testFlushingException);
+            Assert.That(testFlushingException.Message, Does.StartWith("Exception occurred on buffer flushing worker thread at "));
+            Assert.AreSame(testFlushingException.InnerException, flushInnerException);
+            Assert.AreEqual(1, flushingExceptionActionCallCount);
+            Assert.AreEqual(2, flushCount);
+        }
+
+        [Test]
         public void Stop()
         {
             testSizeLimitedBufferFlushStrategy.UserEventBufferItemCount = 1;
@@ -282,8 +316,8 @@ namespace ApplicationAccess.Persistence.UnitTests
         /// </summary>
         private class BufferFlushStrategyWithNoWorkerThreadImplementation : WorkerThreadBufferFlushStrategyBase
         {
-            public BufferFlushStrategyWithNoWorkerThreadImplementation()
-                : base()
+            public BufferFlushStrategyWithNoWorkerThreadImplementation(Boolean flushRemainingEventsAfterException)
+                : base(flushRemainingEventsAfterException)
             {
             }
         }

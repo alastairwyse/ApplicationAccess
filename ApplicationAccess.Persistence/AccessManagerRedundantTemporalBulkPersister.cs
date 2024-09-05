@@ -45,6 +45,8 @@ namespace ApplicationAccess.Persistence
         protected IMetricLogger metricLogger;
         /// <summary>Whether the first call to the PersistEvents() method has already occurred.</summary>
         protected Boolean firstCallToPersistEventsOccurred;
+        /// <summary>Whether any failure has occurred during a call to the PersistEvents() method on the primary persister.</summary>
+        protected Boolean primaryPersisterFailed;
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
 
@@ -69,6 +71,7 @@ namespace ApplicationAccess.Persistence
             this.logger = logger;
             this.metricLogger = new NullMetricLogger();
             firstCallToPersistEventsOccurred = false;
+            primaryPersisterFailed = false;
             disposed = false;
         }
 
@@ -142,6 +145,7 @@ namespace ApplicationAccess.Persistence
                     }
                     catch (Exception primaryPersisterException)
                     {
+                        primaryPersisterFailed = true;
                         try
                         {
                             backupPersister.PersistEvents(backedUpEvents);
@@ -156,29 +160,47 @@ namespace ApplicationAccess.Persistence
                         logger.Log(this, LogLevel.Error, $"Wrote {backedUpEvents.Count + events.Count} events to backup event persister due to exception encountered during persist operation on primary persister.", primaryPersisterException);
                         throw new Exception("Failed to persist previously backed-up events to primary persister.", primaryPersisterException);
                     }
+                    metricLogger.Add(new BufferedEventsFlushed(), backedUpEvents.Count);
                 }
                 firstCallToPersistEventsOccurred = true;
             }
 
-            // Persist events using the primary persister
-            try
+            // Persist events using the primary persister (or the backup persister if a failure has occured on the primary)
+            if (primaryPersisterFailed == false)
             {
-                primaryPersister.PersistEvents(events, ignorePreExistingEvents);
+                try
+                {
+                    primaryPersister.PersistEvents(events, ignorePreExistingEvents);
+                }
+                catch (Exception primaryPersisterException)
+                {
+                    primaryPersisterFailed = true;
+                    try
+                    {
+                        backupPersister.PersistEvents(events);
+                    }
+                    catch (Exception backupPersisterException)
+                    {
+                        throw new AggregateException("Failed to persist events to backup persister whilst handling exception generated in primary persister.", primaryPersisterException, backupPersisterException);
+                    }
+                    metricLogger.Add(new EventsWrittenToBackupPersister(), events.Count);
+                    metricLogger.Increment(new EventWriteToPrimaryPersisterFailed());
+                    logger.Log(this, LogLevel.Error, $"Wrote {events.Count} events to backup event persister due to exception encountered during persist operation on primary persister.", primaryPersisterException);
+                    throw new Exception("Failed to persist events to primary persister.", primaryPersisterException);
+                }
             }
-            catch (Exception primaryPersisterException)
+            else
             {
                 try
                 {
                     backupPersister.PersistEvents(events);
                 }
-                catch (Exception backupPersisterException)
+                catch (Exception e)
                 {
-                    throw new AggregateException("Failed to persist events to backup persister whilst handling exception generated in primary persister.", primaryPersisterException, backupPersisterException);
+                    throw new Exception("Failed to persist events to backup persister after previous exception on primary persister.", e);
                 }
                 metricLogger.Add(new EventsWrittenToBackupPersister(), events.Count);
-                metricLogger.Increment(new EventWriteToPrimaryPersisterFailed());
-                logger.Log(this, LogLevel.Error, $"Wrote {events.Count} events to backup event persister due to exception encountered during persist operation on primary persister.", primaryPersisterException);
-                throw new Exception("Failed to persist events to primary persister.", primaryPersisterException);
+                logger.Log(this, LogLevel.Error, $"Wrote {events.Count} events to backup event persister after previous exception on primary persister.");
             }
         }
 

@@ -34,8 +34,9 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
         /// </summary>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
-        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval)
-            : base()
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
+        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException)
+            : base(flushRemainingEventsAfterException)
         {
             if (flushLoopInterval < 1)
                 throw new ArgumentOutOfRangeException(nameof(flushLoopInterval), $"Parameter '{nameof(flushLoopInterval)}' with value {flushLoopInterval} cannot be less than 1.");
@@ -67,9 +68,10 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
         /// </summary>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
-        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, Action<BufferFlushingException> flushingExceptionAction)
-            : this(flushLoopInterval)
+        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, Action<BufferFlushingException> flushingExceptionAction)
+            : this(flushLoopInterval, flushRemainingEventsAfterException)
         {
             base.flushingExceptionAction = flushingExceptionAction;
         }
@@ -78,9 +80,10 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
         /// </summary>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, IMetricLogger metricLogger)
-            : this(flushLoopInterval)
+        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, IMetricLogger metricLogger)
+            : this(flushLoopInterval, flushRemainingEventsAfterException)
         {
             this.metricLogger = metricLogger;
         }
@@ -89,10 +92,11 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
         /// </summary>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
-        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction)
-            : this(flushLoopInterval)
+        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction)
+            : this(flushLoopInterval, flushRemainingEventsAfterException)
         {
             this.metricLogger = metricLogger;
             base.flushingExceptionAction = flushingExceptionAction;
@@ -102,13 +106,14 @@ namespace ApplicationAccess.Persistence
         /// Initialises a new instance of the ApplicationAccess.Persistence.LoopingWorkerThreadBufferFlushStrategy class.
         /// </summary>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between iterations of the worker thread which flushes/processes buffered events.</param>
+        /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="flushingExceptionAction">An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</param>
         /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
         /// <param name="flushLoopIterationCount">The number of iterations of the worker thread to flush/process.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction, ManualResetEvent workerThreadCompleteSignal, Int32 flushLoopIterationCount)
-            : this(flushLoopInterval, metricLogger, flushingExceptionAction)
+        public LoopingWorkerThreadBufferFlushStrategy(Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, IMetricLogger metricLogger, Action<BufferFlushingException> flushingExceptionAction, ManualResetEvent workerThreadCompleteSignal, Int32 flushLoopIterationCount)
+            : this(flushLoopInterval, flushRemainingEventsAfterException, metricLogger, flushingExceptionAction)
         {
             if (flushLoopIterationCount < 1)
                 throw new ArgumentOutOfRangeException(nameof(flushLoopIterationCount), $"Parameter '{nameof(flushLoopIterationCount)}' with value {flushLoopIterationCount} cannot be less than 1.");

@@ -61,7 +61,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.UserToEntityMappingEventBufferItemCount = 0;
                 testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = 0;
             };
-            testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods(3, 250, mockDateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal);
+            testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods(3, 250, false, mockDateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal);
             testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy.BufferFlushed += flushHandler;
             flushEventsRaised = 0;
         }
@@ -80,7 +80,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods(3, 0, mockDateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal);
+                testSizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods(3, 0, false, mockDateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'flushLoopInterval' with value 0 cannot be less than 1."));
@@ -273,11 +273,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             /// </summary>
             /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
             /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
+            /// <param name="flushRemainingEventsAfterException">Whether any events remaining in the buffers should be attempted to be flushed/processed after an exception occurs during a previous flush operation.</param>
             /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
             /// <param name="loopingTriggerThreadLoopCompleteSignal">Signal that is waited on each time an iteration of the looping trigger thread completes (for unit testing).</param>
             /// <param name="workerThreadCompleteSignal">Signal that will be set when the worker thread processing is complete (for unit testing).</param>
-            public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods(Int32 bufferSizeLimit, Int32 flushLoopInterval, IDateTimeProvider dateTimeProvider, AutoResetEvent loopingTriggerThreadLoopCompleteSignal, ManualResetEvent workerThreadCompleteSignal)
-                : base(bufferSizeLimit, flushLoopInterval, dateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal)
+            public SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategyWithProtectedMethods(Int32 bufferSizeLimit, Int32 flushLoopInterval, Boolean flushRemainingEventsAfterException, IDateTimeProvider dateTimeProvider, AutoResetEvent loopingTriggerThreadLoopCompleteSignal, ManualResetEvent workerThreadCompleteSignal)
+                : base(bufferSizeLimit, flushLoopInterval, flushRemainingEventsAfterException, dateTimeProvider, loopingTriggerThreadLoopCompleteSignal, workerThreadCompleteSignal)
             {
             }
         }

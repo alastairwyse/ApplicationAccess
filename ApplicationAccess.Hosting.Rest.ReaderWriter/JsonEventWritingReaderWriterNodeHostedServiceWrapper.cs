@@ -199,6 +199,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             (
                 eventBufferFlushingOptions.BufferSizeLimit,
                 eventBufferFlushingOptions.FlushLoopInterval,
+                false, 
                 (BufferFlushingException bufferFlushingException) => { }
             );
             metricLogger = new NullMetricLogger();

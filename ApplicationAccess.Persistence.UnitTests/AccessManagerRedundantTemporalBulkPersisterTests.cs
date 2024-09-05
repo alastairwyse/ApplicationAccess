@@ -190,10 +190,11 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(2, mockPrimaryPersister.ReceivedCalls().Count());
             mockMetricLogger.Received(1).Add(Arg.Any<EventsReadFromBackupPersister>(), 3);
             mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Information, "Read 3 events from backup event persister.");
+            mockMetricLogger.Received(1).Add(Arg.Any<BufferedEventsFlushed>(), 3);
             mockMetricLogger.Received(1).Add(Arg.Any<EventsWrittenToBackupPersister>(), 2);
             mockMetricLogger.Received(1).Increment(Arg.Any<EventWriteToPrimaryPersisterFailed>());
             mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Error, "Wrote 2 events to backup event persister due to exception encountered during persist operation on primary persister.", mockException);
-            Assert.AreEqual(3, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(2, mockLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to persist events to primary persister."));
             Assert.AreSame(mockException, e.InnerException);
@@ -223,7 +224,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(2, mockPrimaryPersister.ReceivedCalls().Count());
             mockMetricLogger.Received(1).Add(Arg.Any<EventsReadFromBackupPersister>(), 3);
             mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Information, "Read 3 events from backup event persister.");
-            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+            mockMetricLogger.Received(1).Add(Arg.Any<BufferedEventsFlushed>(), 3);
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, mockLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to persist events to backup persister whilst handling exception generated in primary persister."));
             Assert.IsTrue(e.InnerExceptions.Contains(mockPrimaryException));
@@ -263,7 +265,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(2, mockPrimaryPersister.ReceivedCalls().Count());
             mockMetricLogger.Received(1).Add(Arg.Any<EventsReadFromBackupPersister>(), 3);
             mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Information, "Read 3 events from backup event persister.");
-            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+            mockMetricLogger.Received(1).Add(Arg.Any<BufferedEventsFlushed>(), 3);
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, mockLogger.ReceivedCalls().Count());
 
 
@@ -275,7 +278,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockPrimaryPersister.Received(2).PersistEvents(testEvents, false);
             Assert.AreEqual(1, mockBackupPersister.ReceivedCalls().Count());
             Assert.AreEqual(3, mockPrimaryPersister.ReceivedCalls().Count());
-            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, mockLogger.ReceivedCalls().Count());
         }
 
@@ -295,8 +298,106 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(2, mockPrimaryPersister.ReceivedCalls().Count());
             mockMetricLogger.Received(1).Add(Arg.Any<EventsReadFromBackupPersister>(), 3);
             mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Information, "Read 3 events from backup event persister.");
-            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+            mockMetricLogger.Received(1).Add(Arg.Any<BufferedEventsFlushed>(), 3);
+            Assert.AreEqual(2, mockMetricLogger.ReceivedCalls().Count());
             Assert.AreEqual(1, mockLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void PersistEvents_ExceptionWhenWritingToBackupAfterPreviousExceptionWhenWritingToPrimaryPersister()
+        {
+            var mockPrimaryException = new Exception("Mock primary PersistEvents() Exception.");
+            var mockBackupException = new Exception("Mock backup PersistEvents() Exception.");
+            IList<TemporalEventBufferItemBase> testBackedUpEvents = GenerateTestBackedUpEvents();
+            IList<TemporalEventBufferItemBase> testEvents = GenerateTestEvents();
+            var testEvents2 = new List<TemporalEventBufferItemBase>()
+            {
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User2", CreateDataTimeFromString("2024-08-25 15:58:01")),
+            };
+            mockBackupPersister.GetAllEvents().Returns<IList<TemporalEventBufferItemBase>>(testBackedUpEvents);
+            mockPrimaryPersister.When((persister) => persister.PersistEvents(testEvents, false)).Do((callInfo) => throw mockPrimaryException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testAccessManagerRedundantTemporalBulkPersister.PersistEvents(testEvents, false);
+            });
+
+            mockBackupPersister.Received(1).GetAllEvents();
+            mockPrimaryPersister.Received(1).PersistEvents(testBackedUpEvents, true);
+            mockPrimaryPersister.Received(1).PersistEvents(testEvents, false);
+            mockBackupPersister.Received(1).PersistEvents(testEvents);
+            Assert.AreEqual(2, mockBackupPersister.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockPrimaryPersister.ReceivedCalls().Count());
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsReadFromBackupPersister>(), 3);
+            mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Information, "Read 3 events from backup event persister.");
+            mockMetricLogger.Received(1).Add(Arg.Any<BufferedEventsFlushed>(), 3);
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsWrittenToBackupPersister>(), 2);
+            mockMetricLogger.Received(1).Increment(Arg.Any<EventWriteToPrimaryPersisterFailed>());
+            mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Error, "Wrote 2 events to backup event persister due to exception encountered during persist operation on primary persister.", mockPrimaryException);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to persist events to primary persister."));
+            Assert.AreSame(mockPrimaryException, e.InnerException);
+
+
+            mockBackupPersister.When((persister) => persister.PersistEvents(testEvents2)).Do((callInfo) => throw mockBackupException);
+
+            e = Assert.Throws<Exception>(delegate
+            {
+                testAccessManagerRedundantTemporalBulkPersister.PersistEvents(testEvents2, false);
+            });
+
+            mockBackupPersister.Received(1).PersistEvents(testEvents2);
+            Assert.AreEqual(3, mockBackupPersister.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to persist events to backup persister after previous exception on primary persister."));
+            Assert.AreSame(mockBackupException, e.InnerException);
+        }
+
+        [Test]
+        public void PersistEvents_PreviousExceptionWhenWritingToPrimaryPersister()
+        {
+            var mockPrimaryException = new Exception("Mock primary PersistEvents() Exception.");
+            var mockBackupException = new Exception("Mock backup PersistEvents() Exception.");
+            IList<TemporalEventBufferItemBase> testBackedUpEvents = GenerateTestBackedUpEvents();
+            IList<TemporalEventBufferItemBase> testEvents = GenerateTestEvents();
+            var testEvents2 = new List<TemporalEventBufferItemBase>()
+            {
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User2", CreateDataTimeFromString("2024-08-25 15:58:01")),
+            };
+            mockBackupPersister.GetAllEvents().Returns<IList<TemporalEventBufferItemBase>>(testBackedUpEvents);
+            mockPrimaryPersister.When((persister) => persister.PersistEvents(testEvents, false)).Do((callInfo) => throw mockPrimaryException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testAccessManagerRedundantTemporalBulkPersister.PersistEvents(testEvents, false);
+            });
+
+            mockBackupPersister.Received(1).GetAllEvents();
+            mockPrimaryPersister.Received(1).PersistEvents(testBackedUpEvents, true);
+            mockPrimaryPersister.Received(1).PersistEvents(testEvents, false);
+            mockBackupPersister.Received(1).PersistEvents(testEvents);
+            Assert.AreEqual(2, mockBackupPersister.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockPrimaryPersister.ReceivedCalls().Count());
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsReadFromBackupPersister>(), 3);
+            mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Information, "Read 3 events from backup event persister.");
+            mockMetricLogger.Received(1).Add(Arg.Any<BufferedEventsFlushed>(), 3);
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsWrittenToBackupPersister>(), 2);
+            mockMetricLogger.Received(1).Increment(Arg.Any<EventWriteToPrimaryPersisterFailed>());
+            mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Error, "Wrote 2 events to backup event persister due to exception encountered during persist operation on primary persister.", mockPrimaryException);
+            Assert.AreEqual(4, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to persist events to primary persister."));
+            Assert.AreSame(mockPrimaryException, e.InnerException);
+
+
+            testAccessManagerRedundantTemporalBulkPersister.PersistEvents(testEvents2, false);
+
+            mockBackupPersister.Received(1).PersistEvents(testEvents2);
+            Assert.AreEqual(3, mockBackupPersister.ReceivedCalls().Count());
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsWrittenToBackupPersister>(), 1);
+            mockLogger.Received(1).Log(testAccessManagerRedundantTemporalBulkPersister, LogLevel.Error, "Wrote 1 events to backup event persister after previous exception on primary persister.");
+            Assert.AreEqual(5, mockMetricLogger.ReceivedCalls().Count());
+            Assert.AreEqual(3, mockLogger.ReceivedCalls().Count());
         }
 
         #region Private/Protected Methods
