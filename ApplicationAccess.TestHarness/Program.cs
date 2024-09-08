@@ -337,7 +337,7 @@ namespace ApplicationAccess.TestHarness
                                         stopSignalThread.Start();
                                         if (testHarnessConfiguration.AddUrlReservedCharacterElements == true)
                                         {
-                                            AddUrlReservedCharacterElements(testAccessManagerEventProcessors[0], dataElementStorer);
+                                            AddUrlReservedCharacterElements(testAccessManagerEventProcessors[0], dataElementStorer, generatePrimaryAddOperations);
                                         }
                                         testHarness.Start();
                                         stopNotifySignal.WaitOne();
@@ -651,7 +651,7 @@ namespace ApplicationAccess.TestHarness
                         stopSignalThread.Start();
                         if (testHarnessConfiguration.AddUrlReservedCharacterElements == true)
                         {
-                            AddUrlReservedCharacterElements(testAccessManagerEventProcessors[0], dataElementStorer);
+                            AddUrlReservedCharacterElements(testAccessManagerEventProcessors[0], dataElementStorer, generatePrimaryAddOperations);
                         }
                         testHarness.Start();
                         stopNotifySignal.WaitOne();
@@ -825,19 +825,23 @@ namespace ApplicationAccess.TestHarness
         protected static void AddUrlReservedCharacterElements
         (
             IAccessManagerEventProcessor<String, String, TestApplicationComponent, TestAccessLevel> eventProcessor,
-            IDataElementStorer<String, String, TestApplicationComponent, TestAccessLevel> dataElementStorer
+            IDataElementStorer<String, String, TestApplicationComponent, TestAccessLevel> dataElementStorer, 
+            Boolean addToEventProcessor
         )
         {
             const String urlReservedCharcters = "! * ' ( ) ; : @ & = + $ , / ? % # [ ]";
             try
             {
-                eventProcessor.AddUser(urlReservedCharcters);
+                if (addToEventProcessor == true)
+                {
+                    eventProcessor.AddUser(urlReservedCharcters);
+                    eventProcessor.AddGroup(urlReservedCharcters);
+                    eventProcessor.AddEntityType(urlReservedCharcters);
+                    eventProcessor.AddEntity(urlReservedCharcters, urlReservedCharcters);
+                }
                 dataElementStorer.AddUser(urlReservedCharcters);
-                eventProcessor.AddGroup(urlReservedCharcters);
                 dataElementStorer.AddGroup(urlReservedCharcters);
-                eventProcessor.AddEntityType(urlReservedCharcters);
                 dataElementStorer.AddEntityType(urlReservedCharcters);
-                eventProcessor.AddEntity(urlReservedCharcters, urlReservedCharcters);
                 dataElementStorer.AddEntity(urlReservedCharcters, urlReservedCharcters);
             }
             catch (Exception e)
