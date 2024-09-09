@@ -43,6 +43,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
         //   slow, or start failing.
         //   Maybe need to see if I can use and start a second subclass of WebApplicationFactory which hosts an event cache.
 
+        private const String urlReservedCharcters = "! * ' ( ) ; : @ & = + $ , / ? % # [ ]";
+
         private IAccessManagerEntityQueryProcessor mockEntityQueryProcessor;
         private IAccessManagerGroupQueryProcessor<String, String, String> mockGroupQueryProcessor;
         private IDistributedAccessManagerGroupQueryProcessor<String, String, String> mockDistributedGroupQueryProcessor;
@@ -286,6 +288,20 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
         }
 
         [Test]
+        public async Task HasAccessToApplicationComponentAsync_UrlEncoding()
+        {
+            var testGroups = new List<String>() { "group1", "group2", "group3" };
+            mockDistributedGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedGroupQueryProcessor.HasAccessToApplicationComponent(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), urlReservedCharcters, urlReservedCharcters).Returns(false);
+
+            Boolean result = await testDistributedAccessManagerAsyncClient.HasAccessToApplicationComponentAsync(testGroups, urlReservedCharcters, urlReservedCharcters);
+
+            mockDistributedGroupQueryProcessor.Received(1).HasAccessToApplicationComponent(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(3, groupStringifier.ToStringCallCount);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
         public async Task HasAccessToEntityAsync()
         {
             var testGroups = new List<String>() { "group1", "group2", "group3" };
@@ -299,6 +315,20 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             mockDistributedGroupQueryProcessor.Received(1).HasAccessToEntity(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), testEntityType, testEntity);
             Assert.AreEqual(3, groupStringifier.ToStringCallCount);
             Assert.IsFalse(result);
+        }
+
+        [Test]
+        public async Task HasAccessToEntityAsync_UrlEncoding()
+        {
+            var testGroups = new List<String>() { "group1", "group2", "group3" };
+            mockDistributedGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedGroupQueryProcessor.HasAccessToEntity(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), urlReservedCharcters, urlReservedCharcters).Returns(true);
+
+            Boolean result = await testDistributedAccessManagerAsyncClient.HasAccessToEntityAsync(testGroups, urlReservedCharcters, urlReservedCharcters);
+
+            mockDistributedGroupQueryProcessor.Received(1).HasAccessToEntity(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), urlReservedCharcters, urlReservedCharcters);
+            Assert.AreEqual(3, groupStringifier.ToStringCallCount);
+            Assert.IsTrue(result);
         }
 
         [Test]
@@ -367,6 +397,21 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
             Assert.IsTrue(result.Contains("CompanyA"));
             Assert.IsTrue(result.Contains("CompanyB"));
             Assert.IsTrue(result.Contains("CompanyC"));
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByGroupsAsyncGroupsAndEntityTypeOverload_UrlEncoding()
+        {
+            var testGroups = new List<String>() { "group1", "group2", "group3" };
+            var testEntities = new HashSet<String>() { "CompanyA", "CompanyB", "CompanyC" };
+            mockDistributedGroupQueryProcessor.ClearReceivedCalls();
+            mockDistributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), urlReservedCharcters).Returns(testEntities);
+
+            List<String> result = await testDistributedAccessManagerAsyncClient.GetEntitiesAccessibleByGroupsAsync(testGroups, urlReservedCharcters);
+
+            mockDistributedGroupQueryProcessor.Received(1).GetEntitiesAccessibleByGroups(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)), urlReservedCharcters);
+            Assert.AreEqual(3, groupStringifier.ToStringCallCount);
+            Assert.AreEqual(3, result.Count);
         }
 
         #region Private/Protected Methods

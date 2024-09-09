@@ -225,7 +225,9 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         public async Task<Boolean> HasAccessToApplicationComponentAsync(IEnumerable<TGroup> groups, TComponent applicationComponent, TAccess accessLevel)
         {
             List<String> requestBody = StringifyGroupsParameter(groups);
-            var url = new Uri(baseUrl, $"dataElementAccess/applicationComponent/applicationComponent/{applicationComponentStringifier.ToString(applicationComponent)}/accessLevel/{accessLevelStringifier.ToString(accessLevel)}");
+            String encodedApplicationComponent = Uri.EscapeDataString(applicationComponentStringifier.ToString(applicationComponent));
+            String encodedAccessLevel = Uri.EscapeDataString(accessLevelStringifier.ToString(accessLevel));
+            var url = new Uri(baseUrl, $"dataElementAccess/applicationComponent/applicationComponent/{encodedApplicationComponent}/accessLevel/{encodedAccessLevel}");
 
             return await SendGetRequestAsync<List<String>, Boolean>(url, requestBody);
         }
@@ -234,7 +236,9 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         public async Task<Boolean> HasAccessToEntityAsync(IEnumerable<TGroup> groups, String entityType, String entity)
         {
             List<String> requestBody = StringifyGroupsParameter(groups);
-            var url = new Uri(baseUrl, $"dataElementAccess/entity/entityType/{entityType}/entity/{entity}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            String encodedEntity = Uri.EscapeDataString(entity);
+            var url = new Uri(baseUrl, $"dataElementAccess/entity/entityType/{encodedEntityType}/entity/{encodedEntity}");
 
             return await SendGetRequestAsync<List<String>, Boolean>(url, requestBody);
         }
@@ -279,7 +283,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         public async Task<List<String>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<TGroup> groups, String entityType)
         {
             List<String> requestBody = StringifyGroupsParameter(groups);
-            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{entityType}");
+            String encodedEntityType = Uri.EscapeDataString(entityType);
+            var url = new Uri(baseUrl, $"groupToEntityMappings/entityType/{encodedEntityType}");
             var returnList = new List<String>();
 
             return await SendGetRequestAsync<List<String>, List<String>>(url, requestBody);

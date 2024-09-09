@@ -58,7 +58,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public ActionResult<Boolean> HasAccessToApplicationComponent([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
-            return distributedGroupQueryProcessor.HasAccessToApplicationComponent(groups, applicationComponent, accessLevel);
+            String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
+            String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
+
+            return distributedGroupQueryProcessor.HasAccessToApplicationComponent(groups, decodedApplicationComponent, decodedAccessLevel);
         }
 
         /// <summary>
@@ -73,7 +76,10 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public ActionResult<Boolean> HasAccessToEntity([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType, [FromRoute] String entity)
         {
-            return distributedGroupQueryProcessor.HasAccessToEntity(groups, entityType, entity);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+            String decodedEntity = Uri.UnescapeDataString(entity);
+
+            return distributedGroupQueryProcessor.HasAccessToEntity(groups, decodedEntityType, decodedEntity);
         }
 
         /// <summary>
@@ -119,7 +125,9 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public IEnumerable<String> GetEntitiesAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType)
         {
-            return distributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(groups, entityType);
+            String decodedEntityType = Uri.UnescapeDataString(entityType);
+
+            return distributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(groups, decodedEntityType);
         }
     }
 }
