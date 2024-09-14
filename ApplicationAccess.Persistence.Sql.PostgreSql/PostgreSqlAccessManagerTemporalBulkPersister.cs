@@ -537,7 +537,8 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
                 if (disposing)
                 {
                     // Free other state (managed objects).
-                    dataSource.Dispose();
+                    //   Need to cast to IDisposable since updating to net8.0 to fix this bug https://github.com/npgsql/efcore.pg/issues/2834
+                    ((IDisposable)dataSource).Dispose();
                 }
                 // Free your own state (unmanaged objects).
 

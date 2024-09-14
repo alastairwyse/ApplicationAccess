@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
@@ -12,9 +12,9 @@
 
   <ItemGroup>
     <PackageReference Include="ApplicationMetrics" Version="6.3.0" />
-    <PackageReference Include="ApplicationMetrics.MetricLoggers.PostgreSql" Version="1.1.0" />
+    <PackageReference Include="ApplicationMetrics.MetricLoggers.PostgreSql" Version="1.2.0" />
     <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="2.3.0" />
-    <PackageReference Include="Npgsql" Version="8.0.3" />
+    <PackageReference Include="Npgsql" Version="8.0.4" />
   </ItemGroup>
 
   <ItemGroup>
