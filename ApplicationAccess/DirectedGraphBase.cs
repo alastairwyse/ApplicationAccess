@@ -43,6 +43,28 @@ namespace ApplicationAccess
         protected readonly IDictionary<TNonLeaf, ISet<TNonLeaf>> nonLeafToNonLeafReverseEdges;
 
         /// <summary>
+        /// Returns the number of leaf vertices in the graph.
+        /// </summary>
+        public Int32 LeafVertexCount
+        {
+            get
+            {
+                return leafVertices.Count;
+            }
+        }
+
+        /// <summary>
+        /// Returns the number of non-leaf vertices in the graph.
+        /// </summary>
+        public Int32 NonLeafVertexCount
+        {
+            get
+            {
+                return nonLeafVertices.Count;
+            }
+        }
+
+        /// <summary>
         /// Returns a collection of all leaf vertices in the graph.
         /// </summary>
         public IEnumerable<TLeaf> LeafVertices

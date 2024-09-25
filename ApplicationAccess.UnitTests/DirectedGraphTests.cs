@@ -36,6 +36,36 @@ namespace ApplicationAccess.UnitTests
         }
 
         [Test]
+        public void LeafVertexCount()
+        {
+            Int32 leafVertexCount = testDirectedGraph.LeafVertexCount;
+
+            Assert.AreEqual(0, leafVertexCount);
+
+
+            CreatePersonGroupGraph(testDirectedGraph);
+
+            leafVertexCount = testDirectedGraph.LeafVertexCount;
+
+            Assert.AreEqual(7, leafVertexCount);
+        }
+
+        [Test]
+        public void NonLeafVertexCount()
+        {
+            Int32 nonLeafVertexCount = testDirectedGraph.NonLeafVertexCount;
+
+            Assert.AreEqual(0, nonLeafVertexCount);
+
+
+            CreatePersonGroupGraph(testDirectedGraph);
+
+            nonLeafVertexCount = testDirectedGraph.NonLeafVertexCount;
+
+            Assert.AreEqual(4, nonLeafVertexCount);
+        }
+
+        [Test]
         public void LeafVertices()
         {
             var allLeafVertices = new HashSet<String>(testDirectedGraph.LeafVertices);
@@ -80,6 +110,8 @@ namespace ApplicationAccess.UnitTests
         public void Clear()
         {
             CreatePersonGroupGraph(testDirectedGraph);
+            Assert.AreNotEqual(0, testDirectedGraph.LeafVertexCount);
+            Assert.AreNotEqual(0, testDirectedGraph.NonLeafVertexCount);
             Assert.AreNotEqual(0, testDirectedGraph.LeafVertices.Count());
             Assert.AreNotEqual(0, testDirectedGraph.NonLeafVertices.Count());
             Assert.AreNotEqual(0, testDirectedGraph.LeafToNonLeafReverseEdges.Count());
@@ -87,6 +119,8 @@ namespace ApplicationAccess.UnitTests
 
             testDirectedGraph.Clear();
 
+            Assert.AreEqual(0, testDirectedGraph.LeafVertexCount);
+            Assert.AreEqual(0, testDirectedGraph.NonLeafVertexCount);
             Assert.AreEqual(0, testDirectedGraph.LeafVertices.Count());
             Assert.AreEqual(0, testDirectedGraph.NonLeafVertices.Count());
             Assert.AreEqual(0, testDirectedGraph.LeafToNonLeafReverseEdges.Count());

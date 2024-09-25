@@ -1312,6 +1312,16 @@
         <member name="F:ApplicationAccess.DirectedGraphBase`2.nonLeafToNonLeafReverseEdges">
             <summary>The reverse of the edges in member 'nonLeafToNonLeafEdges'.</summary>
         </member>
+        <member name="P:ApplicationAccess.DirectedGraphBase`2.LeafVertexCount">
+            <summary>
+            Returns the number of leaf vertices in the graph.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.DirectedGraphBase`2.NonLeafVertexCount">
+            <summary>
+            Returns the number of non-leaf vertices in the graph.
+            </summary>
+        </member>
         <member name="P:ApplicationAccess.DirectedGraphBase`2.LeafVertices">
             <summary>
             Returns a collection of all leaf vertices in the graph.
