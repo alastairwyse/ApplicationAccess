@@ -28,6 +28,7 @@
 # EXAMPLES
 #     .\Docker-Build.ps1 "EventCache" "C:\Temp\DockerBuild\EventCache\" "EventCache.tar"
 #     .\Docker-Build.ps1 "ReaderWriter" "C:\Temp\DockerBuild\ReaderWriter\" "ReaderWriter.tar"
+#     .\Docker-Build.ps1 "ReaderWriterLite" "C:\Temp\DockerBuild\ReaderWriterLite\" "ReaderWriterLite.tar"
 #     .\Docker-Build.ps1 "DependencyFreeReaderWriter" "C:\Temp\DockerBuild\DependencyFreeReaderWriter\" "DependencyFreeReaderWriter.tar"
 #     .\Docker-Build.ps1 "Reader" "C:\Temp\DockerBuild\Reader\" "Reader.tar"
 #     .\Docker-Build.ps1 "Writer" "C:\Temp\DockerBuild\Writer\" "Writer.tar"
@@ -49,7 +50,7 @@
 
 # Read and validate input parameters
 Param (
-[Parameter(Position=0, Mandatory=$True, HelpMessage="Enter the component to build (''Reader'', ''Writer'', ''ReaderWriter'', ''EventCache'', ''DependencyFreeReaderWriter'', ''DistributedReader'', or ''DistributedWriter'')")]
+[Parameter(Position=0, Mandatory=$True, HelpMessage="Enter the component to build (''Reader'', ''Writer'', ''ReaderWriter'', ''ReaderWriterLite'', ''EventCache'', ''DependencyFreeReaderWriter'', ''DistributedReader'', or ''DistributedWriter'')")]
 [ValidateNotNullorEmpty()]
 [string]$Component,
 [Parameter(Position=1, Mandatory=$True, HelpMessage="Enter the build destination folder")]
@@ -69,6 +70,9 @@ if ($Component -eq 'Reader') {
 }
 elseif ($Component -eq 'ReaderWriter') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.ReaderWriter'
+}
+elseif ($Component -eq 'ReaderWriterLite') {
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.ReaderWriterLite'
 }
 elseif ($Component -eq 'Writer') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.Writer'

@@ -30,6 +30,7 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
             { AccessManagerComponent.EventCacheNode, "ApplicationAccess.Hosting.Rest.EventCache.dll" },
             { AccessManagerComponent.ReaderNode, "ApplicationAccess.Hosting.Rest.Reader.dll" },
             { AccessManagerComponent.ReaderWriterNode, "ApplicationAccess.Hosting.Rest.ReaderWriter.dll" },
+            { AccessManagerComponent.ReaderWriterLiteNode, "ApplicationAccess.Hosting.Rest.ReaderWriterLite.dll" },
             { AccessManagerComponent.WriterNode, "ApplicationAccess.Hosting.Rest.Writer.dll" },
             { AccessManagerComponent.DependencyFreeReaderWriterNode, "ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter.dll" },
             { AccessManagerComponent.DistributedReaderNode, "ApplicationAccess.Hosting.Rest.DistributedReader.dll" },

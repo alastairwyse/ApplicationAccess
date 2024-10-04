@@ -323,6 +323,10 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
                                 throw new ArgumentNullException(parameterName, httpErrorResponse.Message);
                             }
                         }
+                        else if (httpErrorResponse.Code == typeof(InvalidOperationException).Name)
+                        {
+                            throw new InvalidOperationException(httpErrorResponse.Message);
+                        }
                         else
                         {
                             throw new ArgumentException(httpErrorResponse.Message);

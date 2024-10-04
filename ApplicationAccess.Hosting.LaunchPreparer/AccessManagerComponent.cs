@@ -27,6 +27,8 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         ReaderNode,
         /// <summary>A reader/writer node.</summary>
         ReaderWriterNode,
+        /// <summary>A lightweight version of the reader/writer node with limits on the number of elements stored.</summary>
+        ReaderWriterLiteNode,
         /// <summary>A writer node.</summary>
         WriterNode,
         /// <summary>A dependency-free reader/writer node.</summary>
