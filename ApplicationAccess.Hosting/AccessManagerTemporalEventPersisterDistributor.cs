@@ -44,7 +44,7 @@ namespace ApplicationAccess.Hosting
         public AccessManagerTemporalEventPersisterDistributor(IEnumerable<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>> eventPersisters)
         {
             guidProvider = new DefaultGuidProvider();
-            dateTimeProvider = new DefaultDateTimeProvider();
+            dateTimeProvider = new StopwatchDateTimeProvider();
             this.eventPersisters = new List<IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess>>(eventPersisters);
         }
 

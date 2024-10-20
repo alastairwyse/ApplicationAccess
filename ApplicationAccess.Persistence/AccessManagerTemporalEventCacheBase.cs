@@ -65,7 +65,7 @@ namespace ApplicationAccess.Persistence
             cachedEventsLock = new ReaderWriterLockSlim();
             metricLogger = new NullMetricLogger();
             guidProvider = new Utilities.DefaultGuidProvider();
-            dateTimeProvider = new DefaultDateTimeProvider();
+            dateTimeProvider = new Utilities.StopwatchDateTimeProvider();
             disposed = false;
         }
 

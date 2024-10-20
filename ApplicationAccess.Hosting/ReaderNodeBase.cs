@@ -83,7 +83,7 @@ namespace ApplicationAccess.Hosting
             this.refreshStrategy = refreshStrategy;
             this.eventCache = eventCache;
             this.persistentReader = persistentReader;
-            dateTimeProvider = new DefaultDateTimeProvider();
+            dateTimeProvider = new Utilities.StopwatchDateTimeProvider();
             metricLogger = new NullMetricLogger();
             concurrentAccessManager = InitializeAccessManager();
             // Subscribe to the refreshStrategy's 'ReaderNodeRefreshed' event

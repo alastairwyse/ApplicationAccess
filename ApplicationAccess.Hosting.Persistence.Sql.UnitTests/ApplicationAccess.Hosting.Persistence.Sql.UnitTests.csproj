@@ -6,7 +6,6 @@
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <ImplicitUsings>disable</ImplicitUsings>
     <Description>Unit tests for classes in the ApplicationAccess.Hosting.Persistence.Sql namespace.</Description>
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>
