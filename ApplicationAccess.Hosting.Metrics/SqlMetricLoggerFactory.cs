@@ -15,12 +15,12 @@
  */
 
 using System;
+using Microsoft.Data.SqlClient;
 using ApplicationAccess.Hosting.Models;
 using ApplicationMetrics.MetricLoggers;
 using ApplicationMetrics.MetricLoggers.SqlServer;
 using ApplicationMetrics.MetricLoggers.PostgreSql;
 using ApplicationLogging;
-using Microsoft.Data.SqlClient;
 using Npgsql;
 
 namespace ApplicationAccess.Hosting.Metrics
