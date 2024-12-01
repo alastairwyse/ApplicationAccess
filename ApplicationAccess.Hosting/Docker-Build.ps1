@@ -23,16 +23,16 @@
 #     to host the component in a Docker container, into a folder.
 #
 # SYNTAX
-#     Docker-Build [-Component] <String> [-OutputFolder] <String> [-TarFileName] <String> 
+#     Docker-Build [-Component] <String> [-OutputFolder] <String> [-TarFileName] <String> [-IncludePdbFiles] <Switch>
 #
 # EXAMPLES
-#     .\Docker-Build.ps1 "EventCache" "C:\Temp\DockerBuild\EventCache\" "EventCache.tar"
+#     .\Docker-Build.ps1 "EventCache" "C:\Temp\DockerBuild\EventCache\" "EventCache.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "ReaderWriter" "C:\Temp\DockerBuild\ReaderWriter\" "ReaderWriter.tar"
-#     .\Docker-Build.ps1 "ReaderWriterLite" "C:\Temp\DockerBuild\ReaderWriterLite\" "ReaderWriterLite.tar"
+#     .\Docker-Build.ps1 "ReaderWriterLite" "C:\Temp\DockerBuild\ReaderWriterLite\" "ReaderWriterLite.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "DependencyFreeReaderWriter" "C:\Temp\DockerBuild\DependencyFreeReaderWriter\" "DependencyFreeReaderWriter.tar"
-#     .\Docker-Build.ps1 "Reader" "C:\Temp\DockerBuild\Reader\" "Reader.tar"
+#     .\Docker-Build.ps1 "Reader" "C:\Temp\DockerBuild\Reader\" "Reader.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "Writer" "C:\Temp\DockerBuild\Writer\" "Writer.tar"
-#     .\Docker-Build.ps1 "DistributedReader" "C:\Temp\DockerBuild\DistributedReader\" "DistributedReader.tar"
+#     .\Docker-Build.ps1 "DistributedReader" "C:\Temp\DockerBuild\DistributedReader\" "DistributedReader.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "DistributedWriter" "C:\Temp\DockerBuild\DistributedWriter\" "DistributedWriter.tar"
 #     .\Docker-Build.ps1 "DistributedOperationCoordinator" "C:\Temp\DockerBuild\DistributedOperationCoordinator\" "DistributedOperationCoordinator.tar"
 #
@@ -56,9 +56,11 @@ Param (
 [Parameter(Position=1, Mandatory=$True, HelpMessage="Enter the build destination folder")]
 [ValidateNotNullorEmpty()]
 [string]$OutputFolder,
-[Parameter(Position=2 ,Mandatory=$True, HelpMessage="Enter the name of the tar archive to write the component's files' to")]
+[Parameter(Position=2, Mandatory=$True, HelpMessage="Enter the name of the tar archive to write the component's files' to")]
 [ValidateNotNullorEmpty()]
-[string]$TarFileName
+[string]$TarFileName,
+[Parameter(Position=3, Mandatory=$False, HelpMessage="Include this parameter if .pdb files should be included in the build files")]
+[switch]$IncludePdbFiles=$False
 )
 
 # Constants
@@ -124,6 +126,15 @@ foreach ($currentAppsettingsFile in $appsettingsFiles) {
 # Build the LaunchPreparer tool
 cd ..\ApplicationAccess.Hosting.LaunchPreparer\
 dotnet build -c Release -o $OutputFolder 
+
+# Remove .pdb files
+if ($IncludePdbFiles -eq $false) {
+    $pdbFiles = Get-ChildItem -Path $OutputFolder -Filter '*.pdb'
+    foreach ($currentPdbFile in $pdbFiles) {
+        $currentPdbFilePath = Join-Path -Path $OutputFolder -ChildPath $currentPdbFile
+        Remove-Item $currentPdbFilePath
+    }
+}
 
 # Set unix newlines in any script files used in the container
 foreach ($currentUnixScriptFile in $unixScriptFiles) {
