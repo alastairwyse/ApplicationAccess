@@ -21,8 +21,6 @@ namespace ApplicationAccess.Hosting.Rest
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
             app.MapControllers();
 
             app.Run();

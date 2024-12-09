@@ -20,9 +20,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient.IntegrationTests
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

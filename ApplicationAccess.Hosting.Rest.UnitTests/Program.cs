@@ -17,8 +17,6 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
 
             // Configure the HTTP request pipeline.
 
-            app.UseAuthorization();
-
             app.MapControllers();
 
             app.Run();

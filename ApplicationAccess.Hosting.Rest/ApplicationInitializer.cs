@@ -254,8 +254,6 @@ namespace ApplicationAccess.Hosting.Rest
                 app.UseCors();
             }
 
-            app.UseAuthorization();
-
             app.MapControllers();
 
             return app;

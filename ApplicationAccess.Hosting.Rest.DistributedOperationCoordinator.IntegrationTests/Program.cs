@@ -18,8 +18,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
 
             var app = builder.Build();
 
-            app.UseAuthorization();
-
             app.MapControllers();
 
             app.Run();

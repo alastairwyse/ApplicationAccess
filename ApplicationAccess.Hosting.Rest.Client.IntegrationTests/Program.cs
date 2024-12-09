@@ -18,8 +18,6 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
 
             var app = builder.Build();
 
-            app.UseAuthorization();
-
             app.MapControllers();
 
             app.Run();
