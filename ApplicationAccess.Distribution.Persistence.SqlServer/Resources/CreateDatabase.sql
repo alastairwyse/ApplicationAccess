@@ -27,7 +27,7 @@ CREATE INDEX ShardConfigurationTransactionIndex ON ShardConfiguration (Transacti
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccessConfiguration
+USE ApplicationAccessConfiguration;
 GO 
 
 CREATE TYPE dbo.ShardConfigurationStagingTableType 
@@ -47,7 +47,7 @@ GO
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccessConfiguration
+USE ApplicationAccessConfiguration;
 GO 
 
 --------------------------------------------------------------------------------

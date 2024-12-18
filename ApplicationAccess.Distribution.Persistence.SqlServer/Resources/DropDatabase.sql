@@ -4,7 +4,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccessConfiguration
+USE ApplicationAccessConfiguration;
 GO 
 
 DROP PROCEDURE dbo.UpdateShardConfiguration;
