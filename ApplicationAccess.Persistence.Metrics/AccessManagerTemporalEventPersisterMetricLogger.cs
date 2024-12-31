@@ -367,12 +367,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddUser(TUser user, Guid eventId, DateTime occurredTime)
+        public void AddUser(TUser user, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new UserAddTime());
             try
             {
-                persister.AddUser(user);
+                persister.AddUser(user, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -383,12 +383,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveUser(TUser user, Guid eventId, DateTime occurredTime)
+        public void RemoveUser(TUser user, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new UserRemoveTime());
             try
             {
-                persister.RemoveUser(user);
+                persister.RemoveUser(user, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -399,12 +399,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddGroup(TGroup group, Guid eventId, DateTime occurredTime)
+        public void AddGroup(TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new GroupAddTime());
             try
             {
-                persister.AddGroup(group);
+                persister.AddGroup(group, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -415,12 +415,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveGroup(TGroup group, Guid eventId, DateTime occurredTime)
+        public void RemoveGroup(TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new GroupRemoveTime());
             try
             {
-                persister.RemoveGroup(group);
+                persister.RemoveGroup(group, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -431,12 +431,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
+        public void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new UserToGroupMappingAddTime());
             try
             {
-                persister.AddUserToGroupMapping(user, group);
+                persister.AddUserToGroupMapping(user, group, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -447,12 +447,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
+        public void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new UserToGroupMappingRemoveTime());
             try
             {
-                persister.RemoveUserToGroupMapping(user, group);
+                persister.RemoveUserToGroupMapping(user, group, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -463,12 +463,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
+        public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new GroupToGroupMappingAddTime());
             try
             {
-                persister.AddGroupToGroupMapping(fromGroup, toGroup);
+                persister.AddGroupToGroupMapping(fromGroup, toGroup, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -479,12 +479,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
+        public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new GroupToGroupMappingRemoveTime());
             try
             {
-                persister.RemoveGroupToGroupMapping(fromGroup, toGroup);
+                persister.RemoveGroupToGroupMapping(fromGroup, toGroup, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -495,12 +495,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingAddTime());
             try
             {
-                persister.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+                persister.AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -511,12 +511,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new UserToApplicationComponentAndAccessLevelMappingRemoveTime());
             try
             {
-                persister.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel);
+                persister.RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -527,12 +527,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingAddTime());
             try
             {
-                persister.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+                persister.AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -543,12 +543,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new GroupToApplicationComponentAndAccessLevelMappingRemoveTime());
             try
             {
-                persister.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel);
+                persister.RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -559,12 +559,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddEntityType(String entityType, Guid eventId, DateTime occurredTime)
+        public void AddEntityType(String entityType, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new EntityTypeAddTime());
             try
             {
-                persister.AddEntityType(entityType);
+                persister.AddEntityType(entityType, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -575,12 +575,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime)
+        public void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new EntityTypeRemoveTime());
             try
             {
-                persister.RemoveEntityType(entityType);
+                persister.RemoveEntityType(entityType, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -591,12 +591,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         //// <inheritdoc/>
-        public void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new EntityAddTime());
             try
             {
-                persister.AddEntity(entityType, entity);
+                persister.AddEntity(entityType, entity, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -607,12 +607,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new EntityRemoveTime());
             try
             {
-                persister.RemoveEntity(entityType, entity);
+                persister.RemoveEntity(entityType, entity, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -623,12 +623,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new UserToEntityMappingAddTime());
             try
             {
-                persister.AddUserToEntityMapping(user, entityType, entity);
+                persister.AddUserToEntityMapping(user, entityType, entity, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -639,12 +639,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new UserToEntityMappingRemoveTime());
             try
             {
-                persister.RemoveUserToEntityMapping(user, entityType, entity);
+                persister.RemoveUserToEntityMapping(user, entityType, entity, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -655,12 +655,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new GroupToEntityMappingAddTime());
             try
             {
-                persister.AddGroupToEntityMapping(group, entityType, entity);
+                persister.AddGroupToEntityMapping(group, entityType, entity, eventId, occurredTime, hashCode);
             }
             catch
             {
@@ -671,12 +671,12 @@ namespace ApplicationAccess.Persistence.Metrics
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Guid beginId = metricLogger.Begin(new GroupToEntityMappingRemoveTime());
             try
             {
-                persister.RemoveGroupToEntityMapping(group, entityType, entity);
+                persister.RemoveGroupToEntityMapping(group, entityType, entity, eventId, occurredTime, hashCode);
             }
             catch
             {

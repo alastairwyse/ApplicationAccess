@@ -17,6 +17,7 @@
 using ApplicationAccess.Validation;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
+using System;
 
 namespace ApplicationAccess.Persistence
 {
@@ -37,13 +38,19 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="eventPersister">The bulk persister to use to write flushed events to permanent storage.</param>
         public DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister
-        ) : base(eventValidator, bufferFlushStrategy, eventPersister)
+        ) : base(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator, eventPersister)
         {
         }
 
@@ -52,15 +59,21 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="eventPersister">The bulk persister to use to write flushed events to permanent storage.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger
-        ) : base(eventValidator, bufferFlushStrategy, eventPersister, metricLogger)
+        ) : base(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator, eventPersister, metricLogger)
         {
         }
 
@@ -69,6 +82,9 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="eventPersister">The bulk persister to use to write flushed events to permanent storage.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="guidProvider">The provider to use for random Guids.</param>
@@ -78,11 +94,14 @@ namespace ApplicationAccess.Persistence
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger,
             IGuidProvider guidProvider,
             IDateTimeProvider dateTimeProvider
-        ) : base(eventValidator, bufferFlushStrategy, eventPersister, metricLogger, guidProvider, dateTimeProvider)
+        ) : base(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator, eventPersister, metricLogger, guidProvider, dateTimeProvider)
         {
         }
 

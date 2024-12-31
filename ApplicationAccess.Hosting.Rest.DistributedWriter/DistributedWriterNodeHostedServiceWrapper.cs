@@ -22,6 +22,7 @@ using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Writer;
 using ApplicationAccess.Metrics;
+using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedWriter
 {
@@ -79,13 +80,17 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         /// <inheritdoc/>
         protected override DistributedWriterNode<String, String, String, String> InitializeWriterNode()
         {
-            return new DistributedWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+
+            return new DistributedWriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient);
         }
 
         /// <inheritdoc/>
         protected override DistributedWriterNode<String, String, String, String> InitializeWriterNodeWithMetricLogging()
         {
-            return new DistributedWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+
+            return new DistributedWriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
         }
 
         #endregion

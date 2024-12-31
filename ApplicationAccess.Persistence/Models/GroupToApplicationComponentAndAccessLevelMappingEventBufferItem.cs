@@ -16,30 +16,26 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Persistence.Models
 {
     /// <summary>
-    /// Container class for a buffered/cached user to application component and access level mapping event.
+    /// Container class for a buffered/cached group to application component and access level mapping event.
     /// </summary>
-    public class UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess> : TemporalEventBufferItemBase
-    {
-        // TODO: This could derive from UserEventBufferItem and save repeating the User property
-        //   Same for GroupToApplicationComponentAndAccessLevelMappingEventBufferItem and others
-        //   Just need to check for effect on places where multiple TemporalEventBufferItemBase classes are stored in a list
-
-        /// <summary>The user in the mapping.</summary>
-        protected TUser user;
+    public class GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess> : TemporalEventBufferItemBase
+    {        
+        /// <summary>The group in the mapping.</summary>
+        protected TGroup group;
         /// <summary>The application component in the mapping.</summary>
         protected TComponent applicationComponent;
         /// <summary>The access level in the mapping.</summary>
         protected TAccess accessLevel;
 
         /// <summary>
-        /// The user in the mapping.
+        /// The group in the mapping.
         /// </summary>
-        public TUser User
+        public TGroup Group
         {
-            get { return user; }
+            get { return group; }
         }
 
         /// <summary>
@@ -59,18 +55,19 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.UserToApplicationComponentAndAccessLevelMappingEventBufferItem class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.GroupToApplicationComponentAndAccessLevelMappingEventBufferItem class.
         /// </summary>
         /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
-        /// <param name="user">The user in the mapping.</param>
+        /// <param name="group">The group in the mapping.</param>
         /// <param name="applicationComponent">The application component in the mapping.</param>
         /// <param name="accessLevel">The access level in the mapping.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        public UserToApplicationComponentAndAccessLevelMappingEventBufferItem(Guid eventId, EventAction eventAction, TUser user, TComponent applicationComponent, TAccess accessLevel, DateTime occurredTime)
-            : base(eventId, eventAction, occurredTime)
+        /// <param name="hashCode">The hash code for the group.</param>
+        public GroupToApplicationComponentAndAccessLevelMappingEventBufferItem(Guid eventId, EventAction eventAction, TGroup group, TComponent applicationComponent, TAccess accessLevel, DateTime occurredTime, Int32 hashCode)
+            : base(eventId, eventAction, occurredTime, hashCode)
         {
-            this.user = user;
+            this.group = group;
             this.applicationComponent = applicationComponent;
             this.accessLevel = accessLevel;
         }

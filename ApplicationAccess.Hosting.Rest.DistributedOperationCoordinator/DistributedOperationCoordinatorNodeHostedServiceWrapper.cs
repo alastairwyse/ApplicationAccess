@@ -24,16 +24,17 @@ using Microsoft.Extensions.Options;
 using Microsoft.Data.SqlClient;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Serialization;
+using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Hosting.Metrics;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Persistence;
 using ApplicationAccess.Hosting.Persistence.Sql;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
+using ApplicationAccess.Utilities;
 using ApplicationMetrics.MetricLoggers;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
-using ApplicationAccess.Distribution.Persistence;
-using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
 {

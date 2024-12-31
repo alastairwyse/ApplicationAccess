@@ -16,37 +16,36 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Persistence.Models
 {
     /// <summary>
-    /// Container class for a buffered/cached group to entity mapping event.
+    /// Container class for a buffered/cached entity type event.
     /// </summary>
-    public class GroupToEntityMappingEventBufferItem<TGroup> : EntityEventBufferItem
+    public class EntityTypeEventBufferItem : TemporalEventBufferItemBase
     {
-        /// <summary>The group the event occured for.</summary>
-        protected TGroup group;
+        /// <summary>The entity type the event occured for.</summary>
+        protected string entityType;
 
         /// <summary>
-        /// The group the event occured for.
+        /// The entity type the event occured for.
         /// </summary>
-        public TGroup Group
+        public string EntityType
         {
-            get { return group; }
+            get { return entityType; }
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.GroupToEntityMappingEventBufferItem class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.EntityTypeEventBufferItem class.
         /// </summary>
         /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
-        /// <param name="group">The group the event occured for.</param>
-        /// <param name="entityType">The type of the entity the event occured for.</param>
-        /// <param name="entity">The entity the event occured for.</param>
+        /// <param name="entityType">The entity type the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        public GroupToEntityMappingEventBufferItem(Guid eventId, EventAction eventAction, TGroup group, String entityType, String entity, DateTime occurredTime)
-            : base(eventId, eventAction, entityType, entity, occurredTime)
+        /// <param name="hashCode">The hash code for the entity type.</param>
+        public EntityTypeEventBufferItem(Guid eventId, EventAction eventAction, string entityType, DateTime occurredTime, Int32 hashCode)
+            : base(eventId, eventAction, occurredTime, hashCode)
         {
-            this.group = group;
+            this.entityType = entityType;
         }
     }
 }

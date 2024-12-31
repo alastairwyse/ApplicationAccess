@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Hosting
 {

@@ -20,6 +20,7 @@ using System.Linq;
 using System.Threading;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Utilities;
 using ApplicationAccess.Validation;
 using ApplicationMetrics;

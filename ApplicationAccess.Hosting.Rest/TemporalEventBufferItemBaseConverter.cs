@@ -19,6 +19,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Serialization;
 
 namespace ApplicationAccess.Hosting.Rest
@@ -37,6 +38,7 @@ namespace ApplicationAccess.Hosting.Rest
         protected const String EventIdPropertyName = "eventId";
         protected const String EventActionPropertyName = "eventAction";
         protected const String OccurredTimePropertyName = "occurredTime";
+        protected const String HashCodePropertyName = "hashCode";
         protected const String EntityTypePropertyName = "entityType";
         protected const String EntityPropertyName = "entity";
         protected const String UserPropertyName = "user";
@@ -89,10 +91,11 @@ namespace ApplicationAccess.Hosting.Rest
             // TODO: Move some parts into protected methods to reduce nesting
 
             // Read TemporalEventBufferItemBase properties
-            Tuple<Guid, EventAction, DateTime> baseProperties = ReadTemporalEventBufferItemBaseProperties(ref reader);
+            Tuple<Guid, EventAction, DateTime, Int32> baseProperties = ReadTemporalEventBufferItemBaseProperties(ref reader);
             Guid eventId = baseProperties.Item1;
             EventAction eventAction = baseProperties.Item2;
             DateTime occurredTime = baseProperties.Item3;
+            Int32 hashcode = baseProperties.Item4;
 
             reader.Read();
             ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.PropertyName);
@@ -121,7 +124,7 @@ namespace ApplicationAccess.Hosting.Rest
                                 reader.Read();
                                 ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                                return new UserToEntityMappingEventBufferItem<TUser>(eventId, eventAction, userStringifier.FromString(stringifiedUser), entityType, entity, occurredTime);
+                                return new UserToEntityMappingEventBufferItem<TUser>(eventId, eventAction, userStringifier.FromString(stringifiedUser), entityType, entity, occurredTime, hashcode);
                             }
                             // Handle GroupToEntityMappingEventBufferItem
                             if (nextPropertyName == GroupPropertyName)
@@ -130,7 +133,7 @@ namespace ApplicationAccess.Hosting.Rest
                                 reader.Read();
                                 ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                                return new GroupToEntityMappingEventBufferItem<TGroup>(eventId, eventAction, groupStringifier.FromString(stringifiedGroup), entityType, entity, occurredTime);
+                                return new GroupToEntityMappingEventBufferItem<TGroup>(eventId, eventAction, groupStringifier.FromString(stringifiedGroup), entityType, entity, occurredTime, hashcode);
                             }
                             else
                             {
@@ -141,7 +144,7 @@ namespace ApplicationAccess.Hosting.Rest
                         {
                             ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                            return new EntityEventBufferItem(eventId, eventAction, entityType, entity, occurredTime);
+                            return new EntityEventBufferItem(eventId, eventAction, entityType, entity, occurredTime, hashcode);
                         }
                     }
                     else
@@ -153,7 +156,7 @@ namespace ApplicationAccess.Hosting.Rest
                 {
                     ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                    return new EntityTypeEventBufferItem(eventId, eventAction, entityType, occurredTime);
+                    return new EntityTypeEventBufferItem(eventId, eventAction, entityType, occurredTime, hashcode);
                 }
             }
             // Handle documents with a 'user' property
@@ -176,7 +179,7 @@ namespace ApplicationAccess.Hosting.Rest
                         reader.Read();
                         ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                        return new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(eventId, eventAction, user, applicationComponent, accessLevel, occurredTime);
+                        return new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(eventId, eventAction, user, applicationComponent, accessLevel, occurredTime, hashcode);
                     }
                     // Handle UserToGroupMappingEventBufferItem
                     else if (nextPropertyName == GroupPropertyName)
@@ -186,7 +189,7 @@ namespace ApplicationAccess.Hosting.Rest
                         reader.Read();
                         ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                        return new UserToGroupMappingEventBufferItem<TUser, TGroup>(eventId, eventAction, user, group, occurredTime);
+                        return new UserToGroupMappingEventBufferItem<TUser, TGroup>(eventId, eventAction, user, group, occurredTime, hashcode);
                     }
                     else
                     {
@@ -197,7 +200,7 @@ namespace ApplicationAccess.Hosting.Rest
                 {
                     ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                    return new UserEventBufferItem<TUser>(eventId, eventAction, user, occurredTime);
+                    return new UserEventBufferItem<TUser>(eventId, eventAction, user, occurredTime, hashcode);
                 }
             }
             // Handle documents with a 'group' property
@@ -220,7 +223,7 @@ namespace ApplicationAccess.Hosting.Rest
                         reader.Read();
                         ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                        return new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(eventId, eventAction, group, applicationComponent, accessLevel, occurredTime);
+                        return new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(eventId, eventAction, group, applicationComponent, accessLevel, occurredTime, hashcode);
                     }
                     else
                     {
@@ -231,7 +234,7 @@ namespace ApplicationAccess.Hosting.Rest
                 {
                     ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                    return new GroupEventBufferItem<TGroup>(eventId, eventAction, group, occurredTime);
+                    return new GroupEventBufferItem<TGroup>(eventId, eventAction, group, occurredTime, hashcode);
                 }
             }
             // Handle GroupToGroupMappingEventBufferItem 
@@ -245,7 +248,7 @@ namespace ApplicationAccess.Hosting.Rest
                 reader.Read();
                 ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.EndObject);
 
-                return new GroupToGroupMappingEventBufferItem<TGroup>(eventId, eventAction, fromGroup, toGroup, occurredTime);
+                return new GroupToGroupMappingEventBufferItem<TGroup>(eventId, eventAction, fromGroup, toGroup, occurredTime, hashcode);
             }
             else
             {
@@ -262,6 +265,7 @@ namespace ApplicationAccess.Hosting.Rest
             writer.WriteString(EventIdPropertyName, value.EventId.ToString());
             writer.WriteString(EventActionPropertyName, value.EventAction.ToString());
             writer.WriteString(OccurredTimePropertyName, value.OccurredTime.ToString(dateTimeFormatString));
+            writer.WriteString(HashCodePropertyName, value.HashCode.ToString());
 
             if (typeof(EntityTypeEventBufferItem).IsAssignableFrom(value.GetType()) == true)
             {
@@ -341,7 +345,7 @@ namespace ApplicationAccess.Hosting.Rest
         /// <param name="reader">The reader.</param>
         /// <returns>A tuple containing the 'EventId', 'EventAction', and 'OccurredTime' properties.</returns>
         /// <exception cref="DeserializationException">If an error occurred during reading/deserialziation.</exception>
-        protected Tuple<Guid, EventAction, DateTime> ReadTemporalEventBufferItemBaseProperties(ref Utf8JsonReader reader)
+        protected Tuple<Guid, EventAction, DateTime, Int32> ReadTemporalEventBufferItemBaseProperties(ref Utf8JsonReader reader)
         {
             ThrowExceptionIfCurrentTokenIsNotOfType(ref reader, JsonTokenType.StartObject);
             ReadPropertyName(ref reader, EventIdPropertyName);
@@ -366,8 +370,14 @@ namespace ApplicationAccess.Hosting.Rest
             {
                 throw new DeserializationException($"Failed to convert '{OccurredTimePropertyName}' property to a {typeof(DateTime).Name}.", fe);
             }
-           
-            return new Tuple<Guid, EventAction, DateTime>(eventId, eventAction, occurredTime);
+
+            ReadPropertyName(ref reader, HashCodePropertyName);
+            String hashCodeAsString = ReadStringPropertyValue(ref reader);
+            Boolean intResult = Int32.TryParse(hashCodeAsString, out Int32 hashCode);
+            if (intResult == false)
+                throw new DeserializationException($"Failed to convert '{HashCodePropertyName}' property with value '{hashCodeAsString}' to a {typeof(Int32).Name}.");
+
+            return new Tuple<Guid, EventAction, DateTime, Int32>(eventId, eventAction, occurredTime, hashCode);
         }
 
         /// <summary>

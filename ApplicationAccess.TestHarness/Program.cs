@@ -189,6 +189,7 @@ namespace ApplicationAccess.TestHarness
                     ); ;
                     try
                     {
+                        var hashCodeGenerator = new DefaultStringHashCodeGenerator();
                         IAccessManagerEventBufferFlushStrategy persisterBufferFlushStrategy = accessManagerEventBufferFlushStrategyAndActions.BufferFlushStrategy;
                         {
                             // Setup the test AccessManager
@@ -227,6 +228,9 @@ namespace ApplicationAccess.TestHarness
                             (
                                 var testAccessManager = new ReaderWriterNode<String, String, TestApplicationComponent, TestAccessLevel>
                                 (
+                                    hashCodeGenerator,
+                                    hashCodeGenerator,
+                                    hashCodeGenerator,
                                     persisterBufferFlushStrategy,
                                     persister,
                                     persister,

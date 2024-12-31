@@ -20,6 +20,7 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using ApplicationLogging;
 using ApplicationMetrics;
+using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Persistence.Sql.SqlServer
 {
@@ -72,6 +73,13 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
 
         #pragma warning restore 1591
 
+        /// <summary>The hash code generator for users.</summary>
+        protected IHashCodeGenerator<TUser> userHashCodeGenerator;
+        /// <summary>The hash code generator for groups.</summary>
+        protected IHashCodeGenerator<TGroup> groupHashCodeGenerator;
+        /// <summary>The hash code generator for entity types.</summary>
+        protected IHashCodeGenerator<String> entityTypeHashCodeGenerator;
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister class.
         /// </summary>
@@ -83,6 +91,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="logger">The logger for general logging.</param>
         public SqlServerAccessManagerTemporalPersister
         (
@@ -94,10 +105,16 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator, 
             IApplicationLogger logger
         )
             :base(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
         {
+            this.userHashCodeGenerator = userHashCodeGenerator;
+            this.groupHashCodeGenerator = groupHashCodeGenerator;
+            this.entityTypeHashCodeGenerator = entityTypeHashCodeGenerator;
         }
 
         /// <summary>
@@ -111,6 +128,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         /// <param name="groupStringifier">A string converter for groups.</param>
         /// <param name="applicationComponentStringifier">A string converter for application components.</param>
         /// <param name="accessLevelStringifier">A string converter for access levels.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public SqlServerAccessManagerTemporalPersister
@@ -123,249 +143,255 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             IUniqueStringifier<TGroup> groupStringifier,
             IUniqueStringifier<TComponent> applicationComponentStringifier,
             IUniqueStringifier<TAccess> accessLevelStringifier,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator, 
             IApplicationLogger logger,
             IMetricLogger metricLogger
         )
             : base(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger, metricLogger)
         {
+            this.userHashCodeGenerator = userHashCodeGenerator;
+            this.groupHashCodeGenerator = groupHashCodeGenerator;
+            this.entityTypeHashCodeGenerator = entityTypeHashCodeGenerator;
         }
 
         /// <inheritdoc/>
         public void AddUser(TUser user)
         {
-            AddUser(user, Guid.NewGuid(), DateTime.UtcNow);
+            AddUser(user, Guid.NewGuid(), DateTime.UtcNow, userHashCodeGenerator.GetHashCode(user));
         }
 
         /// <inheritdoc/>
         public void RemoveUser(TUser user)
         {
-            RemoveUser(user, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveUser(user, Guid.NewGuid(), DateTime.UtcNow, userHashCodeGenerator.GetHashCode(user));
         }
 
         /// <inheritdoc/>
         public void AddGroup(TGroup group)
         {
-            AddGroup(group, Guid.NewGuid(), DateTime.UtcNow);
+            AddGroup(group, Guid.NewGuid(), DateTime.UtcNow, groupHashCodeGenerator.GetHashCode(group));
         }
 
         /// <inheritdoc/>
         public void RemoveGroup(TGroup group)
         {
-            RemoveGroup(group, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveGroup(group, Guid.NewGuid(), DateTime.UtcNow, groupHashCodeGenerator.GetHashCode(group));
         }
 
         /// <inheritdoc/>
         public void AddUserToGroupMapping(TUser user, TGroup group)
         {
-            AddUserToGroupMapping(user, group, Guid.NewGuid(), DateTime.UtcNow);
+            AddUserToGroupMapping(user, group, Guid.NewGuid(), DateTime.UtcNow, userHashCodeGenerator.GetHashCode(user));
         }
 
         /// <inheritdoc/>
         public void RemoveUserToGroupMapping(TUser user, TGroup group)
         {
-            RemoveUserToGroupMapping(user, group, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveUserToGroupMapping(user, group, Guid.NewGuid(), DateTime.UtcNow, userHashCodeGenerator.GetHashCode(user));
         }
 
         /// <inheritdoc/>
         public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-            AddGroupToGroupMapping(fromGroup, toGroup, Guid.NewGuid(), DateTime.UtcNow);
+            AddGroupToGroupMapping(fromGroup, toGroup, Guid.NewGuid(), DateTime.UtcNow, groupHashCodeGenerator.GetHashCode(fromGroup));
         }
 
         /// <inheritdoc/>
         public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup)
         {
-            RemoveGroupToGroupMapping(fromGroup, toGroup, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveGroupToGroupMapping(fromGroup, toGroup, Guid.NewGuid(), DateTime.UtcNow, groupHashCodeGenerator.GetHashCode(fromGroup));
         }
 
         /// <inheritdoc/>
         public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow);
+            AddUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow, userHashCodeGenerator.GetHashCode(user));
         }
 
         /// <inheritdoc/>
         public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel)
         {
-            RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveUserToApplicationComponentAndAccessLevelMapping(user, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow, userHashCodeGenerator.GetHashCode(user));
         }
 
         /// <inheritdoc/>
         public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow);
+            AddGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow, groupHashCodeGenerator.GetHashCode(group));
         }
 
         /// <inheritdoc/>
         public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel)
         {
-            RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveGroupToApplicationComponentAndAccessLevelMapping(group, applicationComponent, accessLevel, Guid.NewGuid(), DateTime.UtcNow, groupHashCodeGenerator.GetHashCode(group));
         }
 
         /// <inheritdoc/>
         public void AddEntityType(String entityType)
         {
-            AddEntityType(entityType, Guid.NewGuid(), DateTime.UtcNow);
+            AddEntityType(entityType, Guid.NewGuid(), DateTime.UtcNow, entityTypeHashCodeGenerator.GetHashCode(entityType));
         }
 
         /// <inheritdoc/>
         public void RemoveEntityType(String entityType)
         {
-            RemoveEntityType(entityType, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveEntityType(entityType, Guid.NewGuid(), DateTime.UtcNow, entityTypeHashCodeGenerator.GetHashCode(entityType));
         }
 
         /// <inheritdoc/>
         public void AddEntity(String entityType, String entity)
         {
-            AddEntity(entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
+            AddEntity(entityType, entity, Guid.NewGuid(), DateTime.UtcNow, entityTypeHashCodeGenerator.GetHashCode(entityType));
         }
 
         /// <inheritdoc/>
         public void RemoveEntity(String entityType, String entity)
         {
-            RemoveEntity(entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveEntity(entityType, entity, Guid.NewGuid(), DateTime.UtcNow, entityTypeHashCodeGenerator.GetHashCode(entityType));
         }
 
         /// <inheritdoc/>
         public void AddUserToEntityMapping(TUser user, String entityType, String entity)
         {
-            AddUserToEntityMapping(user, entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
+            AddUserToEntityMapping(user, entityType, entity, Guid.NewGuid(), DateTime.UtcNow, userHashCodeGenerator.GetHashCode(user));
         }
 
         /// <inheritdoc/>
         public void RemoveUserToEntityMapping(TUser user, String entityType, String entity)
         {
-            RemoveUserToEntityMapping(user, entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveUserToEntityMapping(user, entityType, entity, Guid.NewGuid(), DateTime.UtcNow, userHashCodeGenerator.GetHashCode(user));
         }
 
         /// <inheritdoc/>
         public void AddGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
-            AddGroupToEntityMapping(group, entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
+            AddGroupToEntityMapping(group, entityType, entity, Guid.NewGuid(), DateTime.UtcNow, groupHashCodeGenerator.GetHashCode(group));
         }
 
         /// <inheritdoc/>
         public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity)
         {
-            RemoveGroupToEntityMapping(group, entityType, entity, Guid.NewGuid(), DateTime.UtcNow);
+            RemoveGroupToEntityMapping(group, entityType, entity, Guid.NewGuid(), DateTime.UtcNow, groupHashCodeGenerator.GetHashCode(group));
         }
 
         /// <inheritdoc/>
-        public void AddUser(TUser user, Guid eventId, DateTime occurredTime)
+        public void AddUser(TUser user, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteUserStoredProcedure(addUserStoredProcedureName, user, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveUser(TUser user, Guid eventId, DateTime occurredTime)
+        public void RemoveUser(TUser user, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteUserStoredProcedure(removeUserStoredProcedureName, user, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddGroup(TGroup group, Guid eventId, DateTime occurredTime)
+        public void AddGroup(TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteGroupStoredProcedure(addGroupStoredProcedureName, group, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveGroup(TGroup group, Guid eventId, DateTime occurredTime)
+        public void RemoveGroup(TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteGroupStoredProcedure(removeGroupStoredProcedureName, group, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
+        public void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteUserToGroupMappingStoredProcedure(addUserToGroupMappingStoredProcedureName, user, group, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime)
+        public void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteUserToGroupMappingStoredProcedure(removeUserToGroupMappingStoredProcedureName, user, group, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
+        public void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteGroupToGroupMappingStoredProcedure(addGroupToGroupMappingProcedureName, fromGroup, toGroup, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime)
+        public void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteGroupToGroupMappingStoredProcedure(removeGroupToGroupMappingProcedureName, fromGroup, toGroup, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        public void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure(addUserToApplicationComponentAndAccessLevelMappingProcedureName, user, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        public void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteUserToApplicationComponentAndAccessLevelMappingStoredProcedure(removeUserToApplicationComponentAndAccessLevelMappingProcedureName, user, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        public void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure(addGroupToApplicationComponentAndAccessLevelMappingProcedureName, group, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime)
+        public void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteGroupToApplicationComponentAndAccessLevelMappingStoredProcedure(removeGroupToApplicationComponentAndAccessLevelMappingProcedureName, group, applicationComponent, accessLevel, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddEntityType(String entityType, Guid eventId, DateTime occurredTime)
+        public void AddEntityType(String entityType, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteEntityTypeStoredProcedure(addEntityTypeProcedureName, entityType, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime)
+        public void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteEntityTypeStoredProcedure(removeEntityTypeProcedureName, entityType, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteEntityStoredProcedure(addEntityProcedureName, entityType, entity, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteEntityStoredProcedure(removeEntityProcedureName, entityType, entity, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteUserToEntityMappingStoredProcedure(addUserToEntityMappingProcedureName, user, entityType, entity, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteUserToEntityMappingStoredProcedure(removeUserToEntityMappingProcedureName, user, entityType, entity, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteGroupToEntityMappingStoredProcedure(addGroupToEntityMappingProcedureName, group, entityType, entity, eventId, occurredTime);
         }
 
         /// <inheritdoc/>
-        public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime)
+        public void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             SetupAndExecuteGroupToEntityMappingStoredProcedure(removeGroupToEntityMappingProcedureName, group, entityType, entity, eventId, occurredTime);
         }

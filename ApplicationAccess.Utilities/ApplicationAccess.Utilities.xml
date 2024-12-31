@@ -20,6 +20,14 @@
         <member name="M:ApplicationAccess.Utilities.DefaultGuidProvider.NewGuid">
             <inheritdoc/>
         </member>
+        <member name="T:ApplicationAccess.Utilities.DefaultStringHashCodeGenerator">
+            <summary>
+            Default implementation of <see cref="T:ApplicationAccess.Utilities.IHashCodeGenerator`1"/> for strings.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultStringHashCodeGenerator.GetHashCode(System.String)">
+            <inheritdoc/>
+        </member>
         <member name="T:ApplicationAccess.Utilities.IDateTimeProvider">
             <summary>
             Defines methods which returns the current date and time.
@@ -41,6 +49,19 @@
             Creates a new random Guid.
             </summary>
             <returns>A new Guid.</returns>
+        </member>
+        <member name="T:ApplicationAccess.Utilities.IHashCodeGenerator`1">
+            <summary>
+            Defines methods to generate evenly distributed hash codes for the specified type.
+            </summary>
+            <typeparam name="T">The type to generate hash codes for.</typeparam>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.IHashCodeGenerator`1.GetHashCode(`0)">
+            <summary>
+            Generates a hash code for the specified value.
+            </summary>
+            <param name="inputValue">The value to generate the hash code for.</param>
+            <returns>The hash code.</returns>
         </member>
         <member name="T:ApplicationAccess.Utilities.LockManager">
             <summary>

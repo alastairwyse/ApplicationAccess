@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Persistence.Models
 {
     /// <summary>
     /// Container class for a buffered/cached group to group mapping event.
@@ -52,8 +52,9 @@ namespace ApplicationAccess.Persistence
         /// <param name="fromGroup">The 'from' group in the mapping.</param>
         /// <param name="toGroup">The 'to' group in the mapping.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        public GroupToGroupMappingEventBufferItem(Guid eventId, EventAction eventAction, TGroup fromGroup, TGroup toGroup, DateTime occurredTime)
-            : base(eventId, eventAction, occurredTime)
+        /// <param name="hashCode">The hash code for the 'from' group.</param>
+        public GroupToGroupMappingEventBufferItem(Guid eventId, EventAction eventAction, TGroup fromGroup, TGroup toGroup, DateTime occurredTime, Int32 hashCode)
+            : base(eventId, eventAction, occurredTime, hashCode)
         {
             this.fromGroup = fromGroup;
             this.toGroup = toGroup;

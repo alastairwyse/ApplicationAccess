@@ -25,7 +25,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 using ApplicationMetrics.MetricLoggers;
+using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 {
@@ -112,7 +114,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             );
 
             // Create the ReaderWriterNode
-            readerWriterNode = new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, new NullTemporalPersistentReader<String, String, String, String>(), eventPersister);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+            readerWriterNode = new ReaderWriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, new NullTemporalPersistentReader<String, String, String, String>(), eventPersister);
 
             // Set the ReaderWriterNode on the 'holder' classes
             entityEventProcessorHolder.EntityEventProcessor = readerWriterNode;

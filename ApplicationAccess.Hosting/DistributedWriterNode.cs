@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 
 namespace ApplicationAccess.Hosting
@@ -35,12 +36,18 @@ namespace ApplicationAccess.Hosting
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.DistributedWriterNode class.
         /// </summary>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
         /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
         /// <param name="eventCache">Cache for events which change the AccessManager.</param>
         public DistributedWriterNode
         (
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator,
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
@@ -51,7 +58,15 @@ namespace ApplicationAccess.Hosting
             (
                 new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
             );
-            eventBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor);
+            eventBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>
+            (
+                eventValidator,
+                eventBufferFlushStrategy,
+                userHashCodeGenerator,
+                groupHashCodeGenerator,
+                entityTypeHashCodeGenerator,
+                eventDistributor
+            );
             // Set the event buffer back on the access manager to handle any prepended primary 'add' events
             concurrentAccessManager.EventProcessor = eventBuffer;
         }
@@ -59,6 +74,9 @@ namespace ApplicationAccess.Hosting
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.DistributedWriterNode class.
         /// </summary>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="eventBufferFlushStrategy">Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the node.</param>
         /// <param name="persistentReader">Used to load the complete state of the AccessManager instance.</param>
         /// <param name="eventPersister">Used to persist changes to the AccessManager.</param>
@@ -66,6 +84,9 @@ namespace ApplicationAccess.Hosting
         /// <param name="metricLogger">The logger for metrics.</param>
         public DistributedWriterNode
         (
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator,
             IAccessManagerEventBufferFlushStrategy eventBufferFlushStrategy,
             IAccessManagerTemporalPersistentReader<TUser, TGroup, TComponent, TAccess> persistentReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
@@ -77,7 +98,16 @@ namespace ApplicationAccess.Hosting
             (
                 new List<IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess>>() { eventPersister, eventCache }
             );
-            eventBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>(eventValidator, eventBufferFlushStrategy, eventDistributor, metricLogger);
+            eventBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<TUser, TGroup, TComponent, TAccess>
+            (
+                eventValidator,
+                eventBufferFlushStrategy,
+                userHashCodeGenerator,
+                groupHashCodeGenerator,
+                entityTypeHashCodeGenerator,
+                eventDistributor, 
+                metricLogger
+            );
             // Set the event buffer back on the access manager to handle any prepended primary 'add' events
             concurrentAccessManager.EventProcessor = eventBuffer;
         }

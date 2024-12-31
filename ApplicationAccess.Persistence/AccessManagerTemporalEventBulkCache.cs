@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 

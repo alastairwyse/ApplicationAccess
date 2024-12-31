@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Persistence.Models
 {
     /// <summary>
     /// Container class holding properties which uniquely identify the persisted state of an AccessManager.
@@ -37,7 +37,7 @@ namespace ApplicationAccess.Persistence
         /// <summary>
         /// Sequence number used to distinguish events which occured at the same <see cref="StateTime"/> (higher numbers indicate later events.).
         /// </summary>
-        public Int32 StateSequence { get; protected set; }
+        public int StateSequence { get; protected set; }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.AccessManagerState class.
@@ -46,7 +46,7 @@ namespace ApplicationAccess.Persistence
         /// <param name="stateTime">The UTC timestamp the most recent event persisted into the access manager at the returned state occurred at.</param>
         /// <param name="stateSequence">Sequence number used to distinguish events which occured at the same <see cref="StateTime"/> (higher numbers indicate later events.).</param>
         /// <exception cref="ArgumentException">Parameter '<paramref name="stateTime"/>' must be expressed as UTC.</exception>
-        public AccessManagerState(Guid eventId, DateTime stateTime, Int32 stateSequence)
+        public AccessManagerState(Guid eventId, DateTime stateTime, int stateSequence)
         {
             if (stateTime.Kind != DateTimeKind.Utc)
                 throw new ArgumentException($"Parameter '{nameof(stateTime)}' must be expressed as UTC.", nameof(stateTime));

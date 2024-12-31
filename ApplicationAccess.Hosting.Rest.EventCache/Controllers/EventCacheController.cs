@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-using Microsoft.AspNetCore.Mvc;
-using ApplicationAccess.Persistence;
-using Microsoft.Extensions.Logging;
 using System;
-using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Net.Mime;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Rest.Utilities;
+using ApplicationAccess.Persistence.Models;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache.Controllers
 {

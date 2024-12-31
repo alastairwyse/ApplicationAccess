@@ -22,7 +22,7 @@ using System.Text.Json.Serialization;
 using ApplicationAccess.Distribution.Metrics;
 using ApplicationAccess.Hosting.Rest;
 using ApplicationAccess.Metrics;
-using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;

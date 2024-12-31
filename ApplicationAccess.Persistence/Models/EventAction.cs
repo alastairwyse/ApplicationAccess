@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Persistence.Models
 {
     /// <summary>
     /// The type of action associated with events which change the structure of an AccessManager class.

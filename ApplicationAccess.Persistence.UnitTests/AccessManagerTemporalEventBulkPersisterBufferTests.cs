@@ -25,6 +25,7 @@ using ApplicationMetrics;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence.UnitTests
 {
@@ -34,6 +35,9 @@ namespace ApplicationAccess.Persistence.UnitTests
     public class AccessManagerTemporalEventBulkPersisterBufferTests
     {
         protected IAccessManagerEventBufferFlushStrategy mockBufferFlushStrategy;
+        protected IHashCodeGenerator<String> mockUserHashCodeGenerator;
+        protected IHashCodeGenerator<String> mockGroupHashCodeGenerator;
+        protected IHashCodeGenerator<String> mockEntityTypeHashCodeGenerator;
         protected IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
         protected IMetricLogger mockMetricLogger;
         protected IGuidProvider mockGuidProvider;
@@ -44,6 +48,9 @@ namespace ApplicationAccess.Persistence.UnitTests
         protected void SetUp()
         {
             mockBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
+            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockEntityTypeHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockGuidProvider = Substitute.For<IGuidProvider>();
@@ -52,6 +59,9 @@ namespace ApplicationAccess.Persistence.UnitTests
             (
                 new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(), 
                 mockBufferFlushStrategy,
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator, 
                 mockEventPersister,
                 mockMetricLogger, 
                 mockGuidProvider,
@@ -65,11 +75,13 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             Guid eventId = Guid.Parse("00000000-0000-0000-0000-000000000001");
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:55");
+            Int32 hashCode = -20;
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var mockException = new Exception("Failed to persist events.");
 
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
             mockGuidProvider.NewGuid().Returns<Guid>(eventId);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             mockMetricLogger.Begin(Arg.Any<FlushTime>()).Returns(testBeginId);
             mockEventPersister.When((eventPersister) => eventPersister.PersistEvents(Arg.Any<IList<TemporalEventBufferItemBase>>())).Do((callInfo) => throw mockException);
 
@@ -114,6 +126,16 @@ namespace ApplicationAccess.Persistence.UnitTests
             var guid21 = Guid.Parse("00000000-0000-0000-0000-000000000015");
             var guid22 = Guid.Parse("00000000-0000-0000-0000-000000000016");
             mockBufferFlushStrategy.ClearReceivedCalls();
+
+            Int32 user1HashCode = 1;
+            Int32 group1HashCode = 11;
+            Int32 group2HashCode = 12;
+            Int32 clientsHashCode = 21;
+            mockUserHashCodeGenerator.GetHashCode("user1").Returns(user1HashCode);
+            mockGroupHashCodeGenerator.GetHashCode("group1").Returns(group1HashCode);
+            mockGroupHashCodeGenerator.GetHashCode("group2").Returns(group2HashCode);
+            mockEntityTypeHashCodeGenerator.GetHashCode("Clients").Returns(clientsHashCode);
+
             mockGuidProvider.NewGuid().Returns<Guid>
             (
                 guid1,
@@ -201,92 +223,92 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(1, mockEventPersister.ReceivedCalls().Count());
             Assert.AreEqual(22, capturedPersistedEvents.Count);
             UserEventBufferItem<String> addUserEventBufferItem = AssertEventIsOfTypeAndConvert<UserEventBufferItem<String>>(capturedPersistedEvents[0]);
-            AssertTemporalEventBufferItemBaseProperties(addUserEventBufferItem, EventAction.Add, guid1, CreateDataTimeFromString("2021-06-12 13:43:01"));
+            AssertTemporalEventBufferItemBaseProperties(addUserEventBufferItem, EventAction.Add, guid1, CreateDataTimeFromString("2021-06-12 13:43:01"), user1HashCode);
             Assert.AreEqual("user1", addUserEventBufferItem.User);
             GroupEventBufferItem<String> addGroupEventBufferItem1 = AssertEventIsOfTypeAndConvert<GroupEventBufferItem<String>>(capturedPersistedEvents[1]);
-            AssertTemporalEventBufferItemBaseProperties(addGroupEventBufferItem1, EventAction.Add, guid2, CreateDataTimeFromString("2021-06-12 13:43:02"));
+            AssertTemporalEventBufferItemBaseProperties(addGroupEventBufferItem1, EventAction.Add, guid2, CreateDataTimeFromString("2021-06-12 13:43:02"), group1HashCode);
             Assert.AreEqual("group1", addGroupEventBufferItem1.Group);
             GroupEventBufferItem<String> addGroupEventBufferItem2 = AssertEventIsOfTypeAndConvert<GroupEventBufferItem<String>>(capturedPersistedEvents[2]);
-            AssertTemporalEventBufferItemBaseProperties(addGroupEventBufferItem2, EventAction.Add, guid3, CreateDataTimeFromString("2021-06-12 13:43:03"));
+            AssertTemporalEventBufferItemBaseProperties(addGroupEventBufferItem2, EventAction.Add, guid3, CreateDataTimeFromString("2021-06-12 13:43:03"), group2HashCode);
             Assert.AreEqual("group2", addGroupEventBufferItem2.Group);
             UserToGroupMappingEventBufferItem<String, String> addUserToGroupMappingEventBufferItem = AssertEventIsOfTypeAndConvert<UserToGroupMappingEventBufferItem<String, String>>(capturedPersistedEvents[3]);
-            AssertTemporalEventBufferItemBaseProperties(addUserToGroupMappingEventBufferItem, EventAction.Add, guid4, CreateDataTimeFromString("2021-06-12 13:43:04"));
+            AssertTemporalEventBufferItemBaseProperties(addUserToGroupMappingEventBufferItem, EventAction.Add, guid4, CreateDataTimeFromString("2021-06-12 13:43:04"), user1HashCode);
             Assert.AreEqual("user1", addUserToGroupMappingEventBufferItem.User);
             Assert.AreEqual("group1", addUserToGroupMappingEventBufferItem.Group);
             GroupToGroupMappingEventBufferItem<String> addGroupToGroupMappingEventBufferItem = AssertEventIsOfTypeAndConvert<GroupToGroupMappingEventBufferItem<String>>(capturedPersistedEvents[4]);
-            AssertTemporalEventBufferItemBaseProperties(addGroupToGroupMappingEventBufferItem, EventAction.Add, guid5, CreateDataTimeFromString("2021-06-12 13:43:05"));
+            AssertTemporalEventBufferItemBaseProperties(addGroupToGroupMappingEventBufferItem, EventAction.Add, guid5, CreateDataTimeFromString("2021-06-12 13:43:05"), group1HashCode);
             Assert.AreEqual("group1", addGroupToGroupMappingEventBufferItem.FromGroup);
             Assert.AreEqual("group2", addGroupToGroupMappingEventBufferItem.ToGroup);
             UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel> addUserToApplicationComponentAndAccessLevelMappingEventBufferItem = AssertEventIsOfTypeAndConvert<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>>(capturedPersistedEvents[5]);
-            AssertTemporalEventBufferItemBaseProperties(addUserToApplicationComponentAndAccessLevelMappingEventBufferItem, EventAction.Add, guid6, CreateDataTimeFromString("2021-06-12 13:43:06"));
+            AssertTemporalEventBufferItemBaseProperties(addUserToApplicationComponentAndAccessLevelMappingEventBufferItem, EventAction.Add, guid6, CreateDataTimeFromString("2021-06-12 13:43:06"), user1HashCode);
             Assert.AreEqual("user1", addUserToApplicationComponentAndAccessLevelMappingEventBufferItem.User);
             Assert.AreEqual(ApplicationScreen.Order, addUserToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent);
             Assert.AreEqual(AccessLevel.Modify, addUserToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel);
             GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel> addGroupToApplicationComponentAndAccessLevelMappingEventBufferItem = AssertEventIsOfTypeAndConvert<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>>(capturedPersistedEvents[6]);
-            AssertTemporalEventBufferItemBaseProperties(addGroupToApplicationComponentAndAccessLevelMappingEventBufferItem, EventAction.Add, guid7, CreateDataTimeFromString("2021-06-12 13:43:07"));
+            AssertTemporalEventBufferItemBaseProperties(addGroupToApplicationComponentAndAccessLevelMappingEventBufferItem, EventAction.Add, guid7, CreateDataTimeFromString("2021-06-12 13:43:07"), group1HashCode);
             Assert.AreEqual("group1", addGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.Group);
             Assert.AreEqual(ApplicationScreen.Order, addGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent);
             Assert.AreEqual(AccessLevel.View, addGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel);
             EntityTypeEventBufferItem addEntityTypeEventBufferItem = AssertEventIsOfTypeAndConvert<EntityTypeEventBufferItem>(capturedPersistedEvents[7]);
-            AssertTemporalEventBufferItemBaseProperties(addEntityTypeEventBufferItem, EventAction.Add, guid8, CreateDataTimeFromString("2021-06-12 13:43:08"));
+            AssertTemporalEventBufferItemBaseProperties(addEntityTypeEventBufferItem, EventAction.Add, guid8, CreateDataTimeFromString("2021-06-12 13:43:08"), clientsHashCode);
             Assert.AreEqual("Clients", addEntityTypeEventBufferItem.EntityType);
             EntityEventBufferItem addEntityEventBufferItem = AssertEventIsOfTypeAndConvert<EntityEventBufferItem>(capturedPersistedEvents[8]);
-            AssertTemporalEventBufferItemBaseProperties(addEntityEventBufferItem, EventAction.Add, guid9, CreateDataTimeFromString("2021-06-12 13:43:09"));
+            AssertTemporalEventBufferItemBaseProperties(addEntityEventBufferItem, EventAction.Add, guid9, CreateDataTimeFromString("2021-06-12 13:43:09"), clientsHashCode);
             Assert.AreEqual("Clients", addEntityEventBufferItem.EntityType);
             Assert.AreEqual("CompanyA", addEntityEventBufferItem.Entity);
             UserToEntityMappingEventBufferItem<String> addUserToEntityMappingEventBufferItem = AssertEventIsOfTypeAndConvert<UserToEntityMappingEventBufferItem<String>>(capturedPersistedEvents[9]);
-            AssertTemporalEventBufferItemBaseProperties(addUserToEntityMappingEventBufferItem, EventAction.Add, guid10, CreateDataTimeFromString("2021-06-12 13:43:10"));
+            AssertTemporalEventBufferItemBaseProperties(addUserToEntityMappingEventBufferItem, EventAction.Add, guid10, CreateDataTimeFromString("2021-06-12 13:43:10"), user1HashCode);
             Assert.AreEqual("user1", addUserToEntityMappingEventBufferItem.User);
             Assert.AreEqual("Clients", addUserToEntityMappingEventBufferItem.EntityType);
             Assert.AreEqual("CompanyA", addUserToEntityMappingEventBufferItem.Entity);
             GroupToEntityMappingEventBufferItem<String> addGroupToEntityMappingEventBufferItem = AssertEventIsOfTypeAndConvert<GroupToEntityMappingEventBufferItem<String>>(capturedPersistedEvents[10]);
-            AssertTemporalEventBufferItemBaseProperties(addGroupToEntityMappingEventBufferItem, EventAction.Add, guid11, CreateDataTimeFromString("2021-06-12 13:43:11"));
+            AssertTemporalEventBufferItemBaseProperties(addGroupToEntityMappingEventBufferItem, EventAction.Add, guid11, CreateDataTimeFromString("2021-06-12 13:43:11"), group2HashCode);
             Assert.AreEqual("group2", addGroupToEntityMappingEventBufferItem.Group);
             Assert.AreEqual("Clients", addGroupToEntityMappingEventBufferItem.EntityType);
             Assert.AreEqual("CompanyA", addGroupToEntityMappingEventBufferItem.Entity);
             GroupToEntityMappingEventBufferItem<String> removeGroupToEntityMappingEventBufferItem = AssertEventIsOfTypeAndConvert<GroupToEntityMappingEventBufferItem<String>>(capturedPersistedEvents[11]);
-            AssertTemporalEventBufferItemBaseProperties(removeGroupToEntityMappingEventBufferItem, EventAction.Remove, guid12, CreateDataTimeFromString("2021-06-12 13:43:12"));
+            AssertTemporalEventBufferItemBaseProperties(removeGroupToEntityMappingEventBufferItem, EventAction.Remove, guid12, CreateDataTimeFromString("2021-06-12 13:43:12"), group2HashCode);
             Assert.AreEqual("group2", removeGroupToEntityMappingEventBufferItem.Group);
             Assert.AreEqual("Clients", removeGroupToEntityMappingEventBufferItem.EntityType);
             Assert.AreEqual("CompanyA", removeGroupToEntityMappingEventBufferItem.Entity);
             UserToEntityMappingEventBufferItem<String> removeUserToEntityMappingEventBufferItem = AssertEventIsOfTypeAndConvert<UserToEntityMappingEventBufferItem<String>>(capturedPersistedEvents[12]);
-            AssertTemporalEventBufferItemBaseProperties(removeUserToEntityMappingEventBufferItem, EventAction.Remove, guid13, CreateDataTimeFromString("2021-06-12 13:43:13"));
+            AssertTemporalEventBufferItemBaseProperties(removeUserToEntityMappingEventBufferItem, EventAction.Remove, guid13, CreateDataTimeFromString("2021-06-12 13:43:13"), user1HashCode);
             Assert.AreEqual("user1", removeUserToEntityMappingEventBufferItem.User);
             Assert.AreEqual("Clients", removeUserToEntityMappingEventBufferItem.EntityType);
             Assert.AreEqual("CompanyA", removeUserToEntityMappingEventBufferItem.Entity);
             EntityEventBufferItem removeEntityEventBufferItem = AssertEventIsOfTypeAndConvert<EntityEventBufferItem>(capturedPersistedEvents[13]);
-            AssertTemporalEventBufferItemBaseProperties(removeEntityEventBufferItem, EventAction.Remove, guid14, CreateDataTimeFromString("2021-06-12 13:43:14"));
+            AssertTemporalEventBufferItemBaseProperties(removeEntityEventBufferItem, EventAction.Remove, guid14, CreateDataTimeFromString("2021-06-12 13:43:14"), clientsHashCode);
             Assert.AreEqual("Clients", removeEntityEventBufferItem.EntityType);
             Assert.AreEqual("CompanyA", removeEntityEventBufferItem.Entity);
             EntityTypeEventBufferItem removeEntityTypeEventBufferItem = AssertEventIsOfTypeAndConvert<EntityTypeEventBufferItem>(capturedPersistedEvents[14]);
-            AssertTemporalEventBufferItemBaseProperties(removeEntityTypeEventBufferItem, EventAction.Remove, guid15, CreateDataTimeFromString("2021-06-12 13:43:15"));
+            AssertTemporalEventBufferItemBaseProperties(removeEntityTypeEventBufferItem, EventAction.Remove, guid15, CreateDataTimeFromString("2021-06-12 13:43:15"), clientsHashCode);
             Assert.AreEqual("Clients", removeEntityTypeEventBufferItem.EntityType);
             GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel> removeGroupToApplicationComponentAndAccessLevelMappingEventBufferItem = AssertEventIsOfTypeAndConvert<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>>(capturedPersistedEvents[15]);
-            AssertTemporalEventBufferItemBaseProperties(removeGroupToApplicationComponentAndAccessLevelMappingEventBufferItem, EventAction.Remove, guid16, CreateDataTimeFromString("2021-06-12 13:43:16"));
+            AssertTemporalEventBufferItemBaseProperties(removeGroupToApplicationComponentAndAccessLevelMappingEventBufferItem, EventAction.Remove, guid16, CreateDataTimeFromString("2021-06-12 13:43:16"), group1HashCode);
             Assert.AreEqual("group1", removeGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.Group);
             Assert.AreEqual(ApplicationScreen.Order, removeGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent);
             Assert.AreEqual(AccessLevel.View, removeGroupToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel);
             UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel> removeUserToApplicationComponentAndAccessLevelMappingEventBufferItem = AssertEventIsOfTypeAndConvert<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>>(capturedPersistedEvents[16]);
-            AssertTemporalEventBufferItemBaseProperties(removeUserToApplicationComponentAndAccessLevelMappingEventBufferItem, EventAction.Remove, guid17, CreateDataTimeFromString("2021-06-12 13:43:17"));
+            AssertTemporalEventBufferItemBaseProperties(removeUserToApplicationComponentAndAccessLevelMappingEventBufferItem, EventAction.Remove, guid17, CreateDataTimeFromString("2021-06-12 13:43:17"), user1HashCode);
             Assert.AreEqual("user1", removeUserToApplicationComponentAndAccessLevelMappingEventBufferItem.User);
             Assert.AreEqual(ApplicationScreen.Order, removeUserToApplicationComponentAndAccessLevelMappingEventBufferItem.ApplicationComponent);
             Assert.AreEqual(AccessLevel.Modify, removeUserToApplicationComponentAndAccessLevelMappingEventBufferItem.AccessLevel);
             GroupToGroupMappingEventBufferItem<String> removeGroupToGroupMappingEventBufferItem = AssertEventIsOfTypeAndConvert<GroupToGroupMappingEventBufferItem<String>>(capturedPersistedEvents[17]);
-            AssertTemporalEventBufferItemBaseProperties(removeGroupToGroupMappingEventBufferItem, EventAction.Remove, guid18, CreateDataTimeFromString("2021-06-12 13:43:18"));
+            AssertTemporalEventBufferItemBaseProperties(removeGroupToGroupMappingEventBufferItem, EventAction.Remove, guid18, CreateDataTimeFromString("2021-06-12 13:43:18"), group1HashCode);
             Assert.AreEqual("group1", removeGroupToGroupMappingEventBufferItem.FromGroup);
             Assert.AreEqual("group2", removeGroupToGroupMappingEventBufferItem.ToGroup);
             UserToGroupMappingEventBufferItem<String, String> removeUserToGroupMappingEventBufferItem = AssertEventIsOfTypeAndConvert<UserToGroupMappingEventBufferItem<String, String>>(capturedPersistedEvents[18]);
-            AssertTemporalEventBufferItemBaseProperties(removeUserToGroupMappingEventBufferItem, EventAction.Remove, guid19, CreateDataTimeFromString("2021-06-12 13:43:19"));
+            AssertTemporalEventBufferItemBaseProperties(removeUserToGroupMappingEventBufferItem, EventAction.Remove, guid19, CreateDataTimeFromString("2021-06-12 13:43:19"), user1HashCode);
             Assert.AreEqual("user1", removeUserToGroupMappingEventBufferItem.User);
             Assert.AreEqual("group1", removeUserToGroupMappingEventBufferItem.Group);
             GroupEventBufferItem<String> removeGroupEventBufferItem2 = AssertEventIsOfTypeAndConvert<GroupEventBufferItem<String>>(capturedPersistedEvents[19]);
-            AssertTemporalEventBufferItemBaseProperties(removeGroupEventBufferItem2, EventAction.Remove, guid20, CreateDataTimeFromString("2021-06-12 13:43:20"));
+            AssertTemporalEventBufferItemBaseProperties(removeGroupEventBufferItem2, EventAction.Remove, guid20, CreateDataTimeFromString("2021-06-12 13:43:20"), group2HashCode);
             Assert.AreEqual("group2", removeGroupEventBufferItem2.Group);
             GroupEventBufferItem<String> removeGroupEventBufferItem1 = AssertEventIsOfTypeAndConvert<GroupEventBufferItem<String>>(capturedPersistedEvents[20]);
-            AssertTemporalEventBufferItemBaseProperties(removeGroupEventBufferItem1, EventAction.Remove, guid21, CreateDataTimeFromString("2021-06-12 13:43:21"));
+            AssertTemporalEventBufferItemBaseProperties(removeGroupEventBufferItem1, EventAction.Remove, guid21, CreateDataTimeFromString("2021-06-12 13:43:21"), group1HashCode);
             Assert.AreEqual("group1", removeGroupEventBufferItem1.Group);
             UserEventBufferItem<String> removeUserEventBufferItem = AssertEventIsOfTypeAndConvert<UserEventBufferItem<String>>(capturedPersistedEvents[21]);
-            AssertTemporalEventBufferItemBaseProperties(removeUserEventBufferItem, EventAction.Remove, guid22, CreateDataTimeFromString("2021-06-12 13:43:22"));
+            AssertTemporalEventBufferItemBaseProperties(removeUserEventBufferItem, EventAction.Remove, guid22, CreateDataTimeFromString("2021-06-12 13:43:22"), user1HashCode);
             Assert.AreEqual("user1", removeUserEventBufferItem.User);
 
 
@@ -335,11 +357,12 @@ namespace ApplicationAccess.Persistence.UnitTests
         /// <param name="eventAction">The event action for check for.</param>
         /// <param name="eventId">The event id to check for.</param>
         /// <param name="occurredTime">The event occurred time to check for.</param>
-        protected void AssertTemporalEventBufferItemBaseProperties(TemporalEventBufferItemBase eventBufferItem, EventAction eventAction, Guid eventId, DateTime occurredTime)
+        protected void AssertTemporalEventBufferItemBaseProperties(TemporalEventBufferItemBase eventBufferItem, EventAction eventAction, Guid eventId, DateTime occurredTime, Int32 hashCode)
         {
             Assert.AreEqual(eventAction, eventBufferItem.EventAction);
             Assert.AreEqual(eventId, eventBufferItem.EventId);
             Assert.AreEqual(occurredTime, eventBufferItem.OccurredTime);
+            Assert.AreEqual(hashCode, eventBufferItem.HashCode);
         }
 
         #endregion

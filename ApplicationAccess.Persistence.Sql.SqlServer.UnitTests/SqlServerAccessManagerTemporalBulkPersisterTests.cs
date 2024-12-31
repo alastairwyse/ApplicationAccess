@@ -21,6 +21,7 @@ using System.Linq;
 using System.Globalization;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using NUnit.Framework;
@@ -55,6 +56,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         protected const String eventIdColumnName = "EventId";
         protected const String eventActionColumnName = "EventAction";
         protected const String occurredTimeColumnName = "OccurredTime";
+        protected const String hashCodeColumnName = "HashCode";
         protected const String eventData1ColumnName = "EventData1";
         protected const String eventData2ColumnName = "EventData2";
         protected const String eventData3ColumnName = "EventData3";
@@ -62,6 +64,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         protected const Int32 varCharColumnSizeLimit = 450;
         protected Guid testEventId;
         protected DateTime testOccurredTime;
+        protected Int32 testHashCode;
         protected IMetricLogger mockMetricLogger;
         protected IStoredProcedureExecutionWrapper mockStoredProcedureExecutionWrapper;
         protected SqlServerAccessManagerTemporalBulkPersister<String, String, String, String> testSqlServerAccessManagerTemporalBulkPersister;
@@ -72,6 +75,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             testEventId = Guid.Parse("e191a845-0f09-406c-b8e3-6c39663ef58b");
             testOccurredTime = DateTime.ParseExact("2022-07-18 12:15:33", "yyyy-MM-dd HH:mm:ss", DateTimeFormatInfo.InvariantInfo);
             testOccurredTime = DateTime.SpecifyKind(testOccurredTime, DateTimeKind.Utc);
+            testHashCode = 123;
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockStoredProcedureExecutionWrapper = Substitute.For<IStoredProcedureExecutionWrapper>();
             testSqlServerAccessManagerTemporalBulkPersister = new SqlServerAccessManagerTemporalBulkPersister<String, String, String, String>
@@ -100,7 +104,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         public void PersistEvents_UserEventUserLongerThanVarCharLimit()
         {
             String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime);
+            var testBufferItem = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -115,7 +119,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         public void PersistEvents_GroupEventGroupLongerThanVarCharLimit()
         {
             String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new GroupEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testOccurredTime);
+            var testBufferItem = new GroupEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -131,7 +135,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         {
             String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
             String testGroup = "group1";
-            var testBufferItem = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime);
+            var testBufferItem = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -147,7 +151,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         {
             String testUser = "user1";
             String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime);
+            var testBufferItem = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -163,7 +167,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         {
             String testFromGroup = GenerateLongString(varCharColumnSizeLimit + 1);
             String testToGroup = "group2";
-            var testBufferItem = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime);
+            var testBufferItem = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -179,7 +183,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         {
             String testFromGroup = "group1";
             String testToGroup = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime);
+            var testBufferItem = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -196,7 +200,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
             String testApplicationComponent = "SummaryScreen";
             String testAccessLevel = "View";
-            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -213,7 +217,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testUser = "user1";
             String testApplicationComponent = GenerateLongString(varCharColumnSizeLimit + 1);
             String testAccessLevel = "View";
-            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -230,7 +234,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testUser = "user1";
             String testApplicationComponent = "SummaryScreen";
             String testAccessLevel = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -247,7 +251,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
             String testApplicationComponent = "SummaryScreen";
             String testAccessLevel = "View";
-            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -264,7 +268,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testGroup = "group1";
             String testApplicationComponent = GenerateLongString(varCharColumnSizeLimit + 1);
             String testAccessLevel = "View";
-            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -281,7 +285,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testGroup = "group1";
             String testApplicationComponent = "SummaryScreen";
             String testAccessLevel = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -296,7 +300,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         public void PersistEvents_EntityTypeEventEntityTypeLongerThanVarCharLimit()
         {
             String testEntityType = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new EntityTypeEventBufferItem(testEventId, EventAction.Add, testEntityType, testOccurredTime);
+            var testBufferItem = new EntityTypeEventBufferItem(testEventId, EventAction.Add, testEntityType, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -312,7 +316,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         {
             String testEntityType = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntity = "CompanyA";
-            var testBufferItem = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -328,7 +332,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         {
             String testEntityType = "Clients";
             String testEntity = GenerateLongString(varCharColumnSizeLimit + 1); 
-            var testBufferItem = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -345,7 +349,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntityType = "Clients";
             String testEntity = "CompanyA";
-            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -362,7 +366,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testUser = "user1";
             String testEntityType = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntity = "CompanyA";
-            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -379,7 +383,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testUser = "user1";
             String testEntityType = "Clients";
             String testEntity = GenerateLongString(varCharColumnSizeLimit + 1); 
-            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -396,7 +400,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntityType = "Clients";
             String testEntity = "CompanyA";
-            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -413,7 +417,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testGroup = "group1";
             String testEntityType = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntity = "CompanyA";
-            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -430,7 +434,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             String testGroup = "group1";
             String testEntityType = "Clients";
             String testEntity = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -445,7 +449,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         public void PersistEvents_ExceptionExecutingStoredProcedure()
         {
             String testUser = "user1";
-            var testBufferItem = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime);
+            var testBufferItem = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime, testHashCode);
             string mockExceptionMessage = "Mock SQL Server exception";
             mockStoredProcedureExecutionWrapper.When(wrapper => wrapper.Execute(processEventsStoredProcedureName, Arg.Any<IEnumerable<SqlParameter>>())).Do(callInfo => { throw new Exception(mockExceptionMessage); });
 
@@ -500,29 +504,49 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             var occurredTime18 = CreateDataTimeFromString("2021-06-12 13:43:17");
             var occurredTime19 = CreateDataTimeFromString("2021-06-12 13:43:18");
             var occurredTime20 = CreateDataTimeFromString("2021-06-12 13:43:19");
+            Int32 hashCode1 = 1;
+            Int32 hashCode2 = 2;
+            Int32 hashCode3 = 3;
+            Int32 hashCode4 = 4;
+            Int32 hashCode5 = 5;
+            Int32 hashCode6 = 6;
+            Int32 hashCode7 = 7;
+            Int32 hashCode8 = 8;
+            Int32 hashCode9 = 9;
+            Int32 hashCode10 = 10;
+            Int32 hashCode11 = 11;
+            Int32 hashCode12 = 12;
+            Int32 hashCode13 = 13;
+            Int32 hashCode14 = 14;
+            Int32 hashCode15 = 15;
+            Int32 hashCode16 = 16;
+            Int32 hashCode17 = 17;
+            Int32 hashCode18 = 18;
+            Int32 hashCode19 = 19;
+            Int32 hashCode20 = 20;
 
             var testEvents = new List<TemporalEventBufferItemBase>()
             {
-                new UserEventBufferItem<String>(guid1, EventAction.Add, "user1", occurredTime1),
-                new UserEventBufferItem<String>(guid2, EventAction.Remove, "user2", occurredTime2),
-                new GroupEventBufferItem<String>(guid3, EventAction.Add, "group1", occurredTime3),
-                new GroupEventBufferItem<String>(guid4, EventAction.Remove, "group2", occurredTime4),
-                new UserToGroupMappingEventBufferItem<String, String>(guid5, EventAction.Add, "user3", "group3", occurredTime5),
-                new UserToGroupMappingEventBufferItem<String, String>(guid6, EventAction.Remove, "user4", "group4", occurredTime6),
-                new GroupToGroupMappingEventBufferItem<String>(guid7, EventAction.Add, "group5", "group6", occurredTime7),
-                new GroupToGroupMappingEventBufferItem<String>(guid8, EventAction.Remove, "group7", "group8", occurredTime8),
-                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid9, EventAction.Add, "user5", "SummaryScreen", "View", occurredTime9),
-                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid10, EventAction.Remove, "user6", "OrderScreen", "Modify", occurredTime10),
-                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid11, EventAction.Add, "group9", "SettingsScreen", "Save", occurredTime11),
-                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid12, EventAction.Remove, "group10", "AdminScreen", "Remove", occurredTime12),
-                new EntityTypeEventBufferItem(guid13, EventAction.Add, "Clients", occurredTime13),
-                new EntityTypeEventBufferItem(guid14, EventAction.Remove, "Products", occurredTime14),
-                new EntityEventBufferItem(guid15, EventAction.Add, "Accounts", "ABC123", occurredTime15),
-                new EntityEventBufferItem(guid16, EventAction.Remove, "Staff", "Jane.Smith@company.com",  occurredTime16),
-                new UserToEntityMappingEventBufferItem<String>(guid17, EventAction.Add, "user7", "EndPoints", "api/Staff/", occurredTime17),
-                new UserToEntityMappingEventBufferItem<String>(guid18, EventAction.Remove, "user8", "Software", "ServiceNow",  occurredTime18),
-                new GroupToEntityMappingEventBufferItem<String>(guid19, EventAction.Add, "group11", "Versions", "22H2 (2022 Update)", occurredTime19),
-                new GroupToEntityMappingEventBufferItem<String>(guid20, EventAction.Remove, "group12", "Packages", "NumPy",  occurredTime20),
+                new UserEventBufferItem<String>(guid1, EventAction.Add, "user1", occurredTime1, hashCode1),
+                new UserEventBufferItem<String>(guid2, EventAction.Remove, "user2", occurredTime2, hashCode2),
+                new GroupEventBufferItem<String>(guid3, EventAction.Add, "group1", occurredTime3, hashCode3),
+                new GroupEventBufferItem<String>(guid4, EventAction.Remove, "group2", occurredTime4, hashCode4),
+                new UserToGroupMappingEventBufferItem<String, String>(guid5, EventAction.Add, "user3", "group3", occurredTime5, hashCode5),
+                new UserToGroupMappingEventBufferItem<String, String>(guid6, EventAction.Remove, "user4", "group4", occurredTime6, hashCode6),
+                new GroupToGroupMappingEventBufferItem<String>(guid7, EventAction.Add, "group5", "group6", occurredTime7, hashCode7),
+                new GroupToGroupMappingEventBufferItem<String>(guid8, EventAction.Remove, "group7", "group8", occurredTime8, hashCode8),
+                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid9, EventAction.Add, "user5", "SummaryScreen", "View", occurredTime9, hashCode9),
+                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid10, EventAction.Remove, "user6", "OrderScreen", "Modify", occurredTime10, hashCode10),
+                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid11, EventAction.Add, "group9", "SettingsScreen", "Save", occurredTime11, hashCode11),
+                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid12, EventAction.Remove, "group10", "AdminScreen", "Remove", occurredTime12, hashCode12),
+                new EntityTypeEventBufferItem(guid13, EventAction.Add, "Clients", occurredTime13, hashCode13),
+                new EntityTypeEventBufferItem(guid14, EventAction.Remove, "Products", occurredTime14, hashCode14),
+                new EntityEventBufferItem(guid15, EventAction.Add, "Accounts", "ABC123", occurredTime15, hashCode15),
+                new EntityEventBufferItem(guid16, EventAction.Remove, "Staff", "Jane.Smith@company.com",  occurredTime16, hashCode16),
+                new UserToEntityMappingEventBufferItem<String>(guid17, EventAction.Add, "user7", "EndPoints", "api/Staff/", occurredTime17, hashCode17),
+                new UserToEntityMappingEventBufferItem<String>(guid18, EventAction.Remove, "user8", "Software", "ServiceNow",  occurredTime18, hashCode18),
+                new GroupToEntityMappingEventBufferItem<String>(guid19, EventAction.Add, "group11", "Versions", "22H2 (2022 Update)", occurredTime19, hashCode19),
+                new GroupToEntityMappingEventBufferItem<String>(guid20, EventAction.Remove, "group12", "Packages", "NumPy",  occurredTime20, hashCode20),
             };
             DataTable capturedStagingTable = null;
             mockStoredProcedureExecutionWrapper.Execute(processEventsStoredProcedureName, Arg.Do<IEnumerable<SqlParameter>>(parameters => capturedStagingTable = (DataTable)parameters.First<SqlParameter>().Value));
@@ -530,26 +554,26 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             testSqlServerAccessManagerTemporalBulkPersister.PersistEvents(testEvents);
 
             Assert.AreEqual(20, capturedStagingTable.Rows.Count);
-            AssertStagingTableRow(capturedStagingTable.Rows[0], 0, userEventTypeValue, guid1, addEventActionValue, occurredTime1, "user1");
-            AssertStagingTableRow(capturedStagingTable.Rows[1], 1, userEventTypeValue, guid2, removeEventActionValue, occurredTime2, "user2");
-            AssertStagingTableRow(capturedStagingTable.Rows[2], 2, groupEventTypeValue, guid3, addEventActionValue, occurredTime3, "group1");
-            AssertStagingTableRow(capturedStagingTable.Rows[3], 3, groupEventTypeValue, guid4, removeEventActionValue, occurredTime4, "group2");
-            AssertStagingTableRow(capturedStagingTable.Rows[4], 4, userToGroupMappingEventTypeValue, guid5, addEventActionValue, occurredTime5, "user3", "group3");
-            AssertStagingTableRow(capturedStagingTable.Rows[5], 5, userToGroupMappingEventTypeValue, guid6, removeEventActionValue, occurredTime6, "user4", "group4");
-            AssertStagingTableRow(capturedStagingTable.Rows[6], 6, groupToGroupMappingEventTypeValue, guid7, addEventActionValue, occurredTime7, "group5", "group6");
-            AssertStagingTableRow(capturedStagingTable.Rows[7], 7, groupToGroupMappingEventTypeValue, guid8, removeEventActionValue, occurredTime8, "group7", "group8");
-            AssertStagingTableRow(capturedStagingTable.Rows[8], 8, userToApplicationComponentAndAccessLevelMappingEventTypeValue, guid9, addEventActionValue, occurredTime9, "user5", "SummaryScreen", "View");
-            AssertStagingTableRow(capturedStagingTable.Rows[9], 9, userToApplicationComponentAndAccessLevelMappingEventTypeValue, guid10, removeEventActionValue, occurredTime10, "user6", "OrderScreen", "Modify");
-            AssertStagingTableRow(capturedStagingTable.Rows[10], 10, groupToApplicationComponentAndAccessLevelMappingEventTypeValue, guid11, addEventActionValue, occurredTime11, "group9", "SettingsScreen", "Save");
-            AssertStagingTableRow(capturedStagingTable.Rows[11], 11, groupToApplicationComponentAndAccessLevelMappingEventTypeValue, guid12, removeEventActionValue, occurredTime12, "group10", "AdminScreen", "Remove");
-            AssertStagingTableRow(capturedStagingTable.Rows[12], 12, entityTypeEventTypeValue, guid13, addEventActionValue, occurredTime13, "Clients");
-            AssertStagingTableRow(capturedStagingTable.Rows[13], 13, entityTypeEventTypeValue, guid14, removeEventActionValue, occurredTime14, "Products");
-            AssertStagingTableRow(capturedStagingTable.Rows[14], 14, entityEventTypeValue, guid15, addEventActionValue, occurredTime15, "Accounts", "ABC123");
-            AssertStagingTableRow(capturedStagingTable.Rows[15], 15, entityEventTypeValue, guid16, removeEventActionValue, occurredTime16, "Staff", "Jane.Smith@company.com");
-            AssertStagingTableRow(capturedStagingTable.Rows[16], 16, userToEntityMappingEventTypeValue, guid17, addEventActionValue, occurredTime17, "user7", "EndPoints", "api/Staff/");
-            AssertStagingTableRow(capturedStagingTable.Rows[17], 17, userToEntityMappingEventTypeValue, guid18, removeEventActionValue, occurredTime18, "user8", "Software", "ServiceNow");
-            AssertStagingTableRow(capturedStagingTable.Rows[18], 18, groupToEntityMappingEventTypeValue, guid19, addEventActionValue, occurredTime19, "group11", "Versions", "22H2 (2022 Update)");
-            AssertStagingTableRow(capturedStagingTable.Rows[19], 19, groupToEntityMappingEventTypeValue, guid20, removeEventActionValue, occurredTime20, "group12", "Packages", "NumPy");
+            AssertStagingTableRow(capturedStagingTable.Rows[0], 0, userEventTypeValue, guid1, addEventActionValue, occurredTime1, hashCode1, "user1");
+            AssertStagingTableRow(capturedStagingTable.Rows[1], 1, userEventTypeValue, guid2, removeEventActionValue, occurredTime2, hashCode2, "user2");
+            AssertStagingTableRow(capturedStagingTable.Rows[2], 2, groupEventTypeValue, guid3, addEventActionValue, occurredTime3, hashCode3, "group1");
+            AssertStagingTableRow(capturedStagingTable.Rows[3], 3, groupEventTypeValue, guid4, removeEventActionValue, occurredTime4, hashCode4, "group2");
+            AssertStagingTableRow(capturedStagingTable.Rows[4], 4, userToGroupMappingEventTypeValue, guid5, addEventActionValue, occurredTime5, hashCode5, "user3", "group3");
+            AssertStagingTableRow(capturedStagingTable.Rows[5], 5, userToGroupMappingEventTypeValue, guid6, removeEventActionValue, occurredTime6, hashCode6, "user4", "group4");
+            AssertStagingTableRow(capturedStagingTable.Rows[6], 6, groupToGroupMappingEventTypeValue, guid7, addEventActionValue, occurredTime7, hashCode7, "group5", "group6");
+            AssertStagingTableRow(capturedStagingTable.Rows[7], 7, groupToGroupMappingEventTypeValue, guid8, removeEventActionValue, occurredTime8, hashCode8, "group7", "group8");
+            AssertStagingTableRow(capturedStagingTable.Rows[8], 8, userToApplicationComponentAndAccessLevelMappingEventTypeValue, guid9, addEventActionValue, occurredTime9, hashCode9, "user5", "SummaryScreen", "View");
+            AssertStagingTableRow(capturedStagingTable.Rows[9], 9, userToApplicationComponentAndAccessLevelMappingEventTypeValue, guid10, removeEventActionValue, occurredTime10, hashCode10, "user6", "OrderScreen", "Modify");
+            AssertStagingTableRow(capturedStagingTable.Rows[10], 10, groupToApplicationComponentAndAccessLevelMappingEventTypeValue, guid11, addEventActionValue, occurredTime11, hashCode11, "group9", "SettingsScreen", "Save");
+            AssertStagingTableRow(capturedStagingTable.Rows[11], 11, groupToApplicationComponentAndAccessLevelMappingEventTypeValue, guid12, removeEventActionValue, occurredTime12, hashCode12, "group10", "AdminScreen", "Remove");
+            AssertStagingTableRow(capturedStagingTable.Rows[12], 12, entityTypeEventTypeValue, guid13, addEventActionValue, occurredTime13, hashCode13, "Clients");
+            AssertStagingTableRow(capturedStagingTable.Rows[13], 13, entityTypeEventTypeValue, guid14, removeEventActionValue, occurredTime14, hashCode14, "Products");
+            AssertStagingTableRow(capturedStagingTable.Rows[14], 14, entityEventTypeValue, guid15, addEventActionValue, occurredTime15, hashCode15, "Accounts", "ABC123");
+            AssertStagingTableRow(capturedStagingTable.Rows[15], 15, entityEventTypeValue, guid16, removeEventActionValue, occurredTime16, hashCode16, "Staff", "Jane.Smith@company.com");
+            AssertStagingTableRow(capturedStagingTable.Rows[16], 16, userToEntityMappingEventTypeValue, guid17, addEventActionValue, occurredTime17, hashCode17, "user7", "EndPoints", "api/Staff/");
+            AssertStagingTableRow(capturedStagingTable.Rows[17], 17, userToEntityMappingEventTypeValue, guid18, removeEventActionValue, occurredTime18, hashCode18, "user8", "Software", "ServiceNow");
+            AssertStagingTableRow(capturedStagingTable.Rows[18], 18, groupToEntityMappingEventTypeValue, guid19, addEventActionValue, occurredTime19, hashCode19, "group11", "Versions", "22H2 (2022 Update)");
+            AssertStagingTableRow(capturedStagingTable.Rows[19], 19, groupToEntityMappingEventTypeValue, guid20, removeEventActionValue, occurredTime20, hashCode20, "group12", "Packages", "NumPy");
         }
 
         #region Private/Protected Methods
@@ -608,6 +632,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             Guid eventIdValue, 
             String eventActionValue, 
             DateTime eventOccurredTimeValue,
+            Int32 hashCodeValue, 
             String eventData1Value, 
             String eventData2Value = null, 
             String eventData3Value = null
@@ -623,6 +648,8 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
             Assert.AreEqual(eventActionValue, row[eventActionColumnName]);
             Assert.IsInstanceOf<DateTime>(eventOccurredTimeValue);
             Assert.AreEqual(eventOccurredTimeValue, row[occurredTimeColumnName]);
+            Assert.IsInstanceOf<Int32>(hashCodeValue);
+            Assert.AreEqual(hashCodeValue, row[hashCodeColumnName]);
             Assert.IsInstanceOf<String>(eventData1Value);
             Assert.AreEqual(eventData1Value, row[eventData1ColumnName]);
             if (eventData2Value != null)

@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Persistence.Models
 {
     /// <summary>
     /// Base class for container classes which represent a change in the structure of an AccessManager implementation, and are stored in an AccessManager event buffer or cache.

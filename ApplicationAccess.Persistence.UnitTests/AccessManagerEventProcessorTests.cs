@@ -21,6 +21,7 @@ using ApplicationAccess.UnitTests;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence.UnitTests
 {
@@ -31,6 +32,7 @@ namespace ApplicationAccess.Persistence.UnitTests
     {
         private Guid testEventId;
         private DateTime testOccurredTime;
+        private Int32 testHashCode;
         private IAccessManagerEventProcessor<String, String, ApplicationScreen, AccessLevel> mockEventProcessor;
         private AccessManagerEventProcessor<String, String, ApplicationScreen, AccessLevel> testAccessManagerEventProcessor;
 
@@ -40,6 +42,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             testEventId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             testOccurredTime = DateTime.ParseExact("2022-10-03T18:29:53.0000001", "yyyy-MM-ddTHH:mm:ss.fffffff", DateTimeFormatInfo.InvariantInfo);
             testOccurredTime = DateTime.SpecifyKind(testOccurredTime, DateTimeKind.Utc);
+            testHashCode = 123;
             mockEventProcessor = Substitute.For<IAccessManagerEventProcessor<String, String, ApplicationScreen, AccessLevel>>();
             testAccessManagerEventProcessor = new AccessManagerEventProcessor<String, String, ApplicationScreen, AccessLevel>(mockEventProcessor);
         }
@@ -48,7 +51,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Process_UserEventBufferItem()
         {
             String testUser = "user1";
-            var testEvent = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime);
+            var testEvent = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -56,7 +59,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new UserEventBufferItem<String>(testEventId, EventAction.Remove, testUser, testOccurredTime);
+            testEvent = new UserEventBufferItem<String>(testEventId, EventAction.Remove, testUser, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -67,7 +70,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Process_GroupEventBufferItem()
         {
             String testGroup = "group1";
-            var testEvent = new GroupEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testOccurredTime);
+            var testEvent = new GroupEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -75,7 +78,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new GroupEventBufferItem<String>(testEventId, EventAction.Remove, testGroup, testOccurredTime);
+            testEvent = new GroupEventBufferItem<String>(testEventId, EventAction.Remove, testGroup, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -87,7 +90,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             String testUser = "user1";
             String testGroup = "group1";
-            var testEvent = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime);
+            var testEvent = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -95,7 +98,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Remove, testUser, testGroup, testOccurredTime);
+            testEvent = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Remove, testUser, testGroup, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -107,7 +110,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             String testFromGroup = "group1";
             String testToGroup = "group2";
-            var testEvent = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime);
+            var testEvent = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -115,7 +118,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Remove, testFromGroup, testToGroup, testOccurredTime);
+            testEvent = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Remove, testFromGroup, testToGroup, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -126,7 +129,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Process_UserToApplicationComponentAndAccessLevelMappingEventBufferItem()
         {
             String testUser = "user1";
-            var testEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(testEventId, EventAction.Add, testUser, ApplicationScreen.ManageProducts, AccessLevel.Modify, testOccurredTime);
+            var testEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(testEventId, EventAction.Add, testUser, ApplicationScreen.ManageProducts, AccessLevel.Modify, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -134,7 +137,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(testEventId, EventAction.Remove, testUser, ApplicationScreen.Order, AccessLevel.View, testOccurredTime);
+            testEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(testEventId, EventAction.Remove, testUser, ApplicationScreen.Order, AccessLevel.View, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -145,7 +148,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Process_GroupToApplicationComponentAndAccessLevelMappingEventBufferItem()
         {
             String testGroup = "group1";
-            var testEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(testEventId, EventAction.Add, testGroup, ApplicationScreen.Settings, AccessLevel.Delete, testOccurredTime);
+            var testEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(testEventId, EventAction.Add, testGroup, ApplicationScreen.Settings, AccessLevel.Delete, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -153,7 +156,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(testEventId, EventAction.Remove, testGroup, ApplicationScreen.Summary, AccessLevel.Create, testOccurredTime);
+            testEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel>(testEventId, EventAction.Remove, testGroup, ApplicationScreen.Summary, AccessLevel.Create, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -164,7 +167,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         public void Process_EntityTypeEventBufferItem()
         {
             String testEntityType = "ClientAccount";
-            var testEvent = new EntityTypeEventBufferItem(testEventId, EventAction.Add, testEntityType, testOccurredTime);
+            var testEvent = new EntityTypeEventBufferItem(testEventId, EventAction.Add, testEntityType, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -172,7 +175,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new EntityTypeEventBufferItem(testEventId, EventAction.Remove, testEntityType, testOccurredTime);
+            testEvent = new EntityTypeEventBufferItem(testEventId, EventAction.Remove, testEntityType, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -184,7 +187,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             String testEntityType = "ClientAccount";
             String testEntity = "CompanyA";
-            var testEvent = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime);
+            var testEvent = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -192,7 +195,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new EntityEventBufferItem(testEventId, EventAction.Remove, testEntityType, testEntity, testOccurredTime);
+            testEvent = new EntityEventBufferItem(testEventId, EventAction.Remove, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -205,7 +208,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             String testUser = "user1";
             String testEntityType = "ClientAccount";
             String testEntity = "CompanyA";
-            var testEvent = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime);
+            var testEvent = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -213,7 +216,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Remove, testUser, testEntityType, testEntity, testOccurredTime);
+            testEvent = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Remove, testUser, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -226,7 +229,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             String testGroup = "group1";
             String testEntityType = "ClientAccount";
             String testEntity = "CompanyA";
-            var testEvent = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime);
+            var testEvent = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 
@@ -234,7 +237,7 @@ namespace ApplicationAccess.Persistence.UnitTests
 
 
             mockEventProcessor.ClearReceivedCalls();
-            testEvent = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Remove, testGroup, testEntityType, testEntity, testOccurredTime);
+            testEvent = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Remove, testGroup, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             testAccessManagerEventProcessor.Process(new List<EventBufferItemBase>() { testEvent });
 

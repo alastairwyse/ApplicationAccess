@@ -20,11 +20,12 @@ using System.Linq;
 using System.Globalization;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
+using ApplicationMetrics;
 using NUnit.Framework;
 using NSubstitute;
-using ApplicationMetrics;
 
 namespace ApplicationAccess.Hosting.UnitTests
 {
@@ -971,12 +972,14 @@ namespace ApplicationAccess.Hosting.UnitTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var userEventId = Guid.Parse("625e7ff0-429a-40c8-a5d6-5c4457981522");
             DateTime userEventOccurredTime = CreateDataTimeFromString("2022-10-08 11:17:35");
+            Int32 userEventHashCode = 1;
             var entityTypeEventId = Guid.Parse("aca8565a-2d95-471e-8fe1-51d27024f793");
             DateTime entityTypeEventOccurredTime = CreateDataTimeFromString("2022-10-08 11:17:59");
+            Int32 entityTypeEventHashCode = 2;
             var testUpdateEvents = new List<TemporalEventBufferItemBase>()
             { 
-                new UserEventBufferItem<String>(userEventId, EventAction.Add, user, userEventOccurredTime), 
-                new EntityTypeEventBufferItem(entityTypeEventId, EventAction.Add, entityType, entityTypeEventOccurredTime)
+                new UserEventBufferItem<String>(userEventId, EventAction.Add, user, userEventOccurredTime, userEventHashCode), 
+                new EntityTypeEventBufferItem(entityTypeEventId, EventAction.Add, entityType, entityTypeEventOccurredTime, entityTypeEventHashCode)
             };
             EventHandler capturedSubscriberMethod = null;
             mockRefreshStrategy.ReaderNodeRefreshed += Arg.Do<EventHandler>(eventHandler => capturedSubscriberMethod = eventHandler);

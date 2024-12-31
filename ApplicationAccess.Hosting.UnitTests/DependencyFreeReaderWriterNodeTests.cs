@@ -31,6 +31,9 @@ namespace ApplicationAccess.Hosting.UnitTests
     /// </summary>
     public class DependencyFreeReaderWriterNodeTests
     {
+        private IHashCodeGenerator<String> mockUserHashCodeGenerator;
+        private IHashCodeGenerator<String> mockGroupHashCodeGenerator;
+        private IHashCodeGenerator<String> mockEntityTypeHashCodeGenerator;
         private IAccessManagerEventBufferFlushStrategy mockEventBufferFlushStrategy;
         private IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel> mockPersistentReader;
         private IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
@@ -40,11 +43,23 @@ namespace ApplicationAccess.Hosting.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockEntityTypeHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockEventBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
         }
 
         [TearDown]
@@ -58,60 +73,145 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testDependencyFreeReaderWriterNode;
             var fieldNamePath = new List<String>() { "metricLogger" };
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testDependencyFreeReaderWriterNode);
 
 
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDependencyFreeReaderWriterNode, true);
 
 
             // Checks the metric logger set on the ConcurrentAccessManagerMetricLogger instance
             fieldNamePath = new List<String>() { "concurrentAccessManager", "metricLoggingWrapper", "metricLogger" };
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testDependencyFreeReaderWriterNode);
 
 
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDependencyFreeReaderWriterNode, true);
 
 
             // Checks the MappingMetricLogger within the MetricLoggingConcurrentDirectedGraph
             fieldNamePath = new List<String>() { "concurrentAccessManager", "userToGroupMap", "metricLogger" };
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testDependencyFreeReaderWriterNode);
 
 
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testDependencyFreeReaderWriterNode);
 
 
             // Checks the actual metric logger wrapped by the MappingMetricLogger within the MetricLoggingConcurrentDirectedGraph
             fieldNamePath = new List<String>() { "concurrentAccessManager", "userToGroupMap", "metricLogger", "downstreamMetricLogger" };
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testDependencyFreeReaderWriterNode);
 
 
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDependencyFreeReaderWriterNode, true);
 
 
             // Checks the metric logger is set on the event buffer
             fieldNamePath = new List<String>() { "eventBuffer", "metricLogger" };
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testDependencyFreeReaderWriterNode);
 
 
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDependencyFreeReaderWriterNode, true);
         }
@@ -121,12 +221,29 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testDependencyFreeReaderWriterNode;
             var fieldNamePath = new List<String>() { "eventBuffer" };
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDependencyFreeReaderWriterNode);
 
 
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDependencyFreeReaderWriterNode);
         }
@@ -136,14 +253,69 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testDependencyFreeReaderWriterNode;
             var fieldNamePath = new List<String>() { "concurrentAccessManager", "eventProcessor" };
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDependencyFreeReaderWriterNode);
 
 
-            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDependencyFreeReaderWriterNode);
+        }
+
+        [Test]
+        public void Constructor_HashCodeGeneratorsSetCorrectlyOnComposedFields()
+        {
+            DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testDependencyFreeReaderWriterNode;
+            var userHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "userHashCodeGenerator" };
+            var groupHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "groupHashCodeGenerator" };
+            var entityTypeHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "entityTypeHashCodeGenerator" };
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader,
+                mockEventPersister
+            );
+
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(userHashCodeGeneratorFieldNamePath, mockUserHashCodeGenerator, testDependencyFreeReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(groupHashCodeGeneratorFieldNamePath, mockGroupHashCodeGenerator, testDependencyFreeReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(entityTypeHashCodeGeneratorFieldNamePath, mockEntityTypeHashCodeGenerator, testDependencyFreeReaderWriterNode, true);
+
+
+            testDependencyFreeReaderWriterNode = new DependencyFreeReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader,
+                mockEventPersister,
+                mockMetricLogger
+            );
+
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(userHashCodeGeneratorFieldNamePath, mockUserHashCodeGenerator, testDependencyFreeReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(groupHashCodeGeneratorFieldNamePath, mockGroupHashCodeGenerator, testDependencyFreeReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(entityTypeHashCodeGeneratorFieldNamePath, mockEntityTypeHashCodeGenerator, testDependencyFreeReaderWriterNode, true);
         }
 
         [Test]

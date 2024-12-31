@@ -24,6 +24,7 @@ using System.Net.Http.Json;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Rest.AsyncClient;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 using Polly;

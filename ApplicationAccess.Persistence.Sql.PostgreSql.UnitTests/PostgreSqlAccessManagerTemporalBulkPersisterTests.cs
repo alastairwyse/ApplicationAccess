@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Globalization;
 using System.Text.Json;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using Npgsql;
@@ -62,6 +63,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         protected const Int32 varCharColumnSizeLimit = 450;
         protected Guid testEventId;
         protected DateTime testOccurredTime;
+        protected Int32 testHashCode;
         protected IMetricLogger mockMetricLogger;
         private IStoredProcedureExecutionWrapper mockStoredProcedureExecutionWrapper;
         private PostgreSqlAccessManagerTemporalBulkPersister<String, String, String, String> testPostgreSqlAccessManagerTemporalBulkPersister;
@@ -72,6 +74,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             testEventId = Guid.Parse("e191a845-0f09-406c-b8e3-6c39663ef58b");
             testOccurredTime = DateTime.ParseExact("2022-07-18 12:15:33", "yyyy-MM-dd HH:mm:ss", DateTimeFormatInfo.InvariantInfo);
             testOccurredTime = DateTime.SpecifyKind(testOccurredTime, DateTimeKind.Utc);
+            testHashCode = 123;
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockStoredProcedureExecutionWrapper = Substitute.For<IStoredProcedureExecutionWrapper>();
             testPostgreSqlAccessManagerTemporalBulkPersister = new PostgreSqlAccessManagerTemporalBulkPersister<String, String, String, String>
@@ -160,7 +163,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         public void PersistEvents_UserEventUserLongerThanVarCharLimit()
         {
             String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime);
+            var testBufferItem = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -175,7 +178,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         public void PersistEvents_GroupEventGroupLongerThanVarCharLimit()
         {
             String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new GroupEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testOccurredTime);
+            var testBufferItem = new GroupEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -191,7 +194,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         {
             String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
             String testGroup = "group1";
-            var testBufferItem = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime);
+            var testBufferItem = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -207,7 +210,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         {
             String testUser = "user1";
             String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime);
+            var testBufferItem = new UserToGroupMappingEventBufferItem<String, String>(testEventId, EventAction.Add, testUser, testGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -223,7 +226,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         {
             String testFromGroup = GenerateLongString(varCharColumnSizeLimit + 1);
             String testToGroup = "group2";
-            var testBufferItem = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime);
+            var testBufferItem = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -239,7 +242,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         {
             String testFromGroup = "group1";
             String testToGroup = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime);
+            var testBufferItem = new GroupToGroupMappingEventBufferItem<String>(testEventId, EventAction.Add, testFromGroup, testToGroup, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -256,7 +259,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
             String testApplicationComponent = "SummaryScreen";
             String testAccessLevel = "View";
-            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -273,7 +276,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testUser = "user1";
             String testApplicationComponent = GenerateLongString(varCharColumnSizeLimit + 1);
             String testAccessLevel = "View";
-            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -290,7 +293,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testUser = "user1";
             String testApplicationComponent = "SummaryScreen";
             String testAccessLevel = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testUser, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -307,7 +310,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
             String testApplicationComponent = "SummaryScreen";
             String testAccessLevel = "View";
-            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -324,7 +327,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testGroup = "group1";
             String testApplicationComponent = GenerateLongString(varCharColumnSizeLimit + 1);
             String testAccessLevel = "View";
-            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -341,7 +344,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testGroup = "group1";
             String testApplicationComponent = "SummaryScreen";
             String testAccessLevel = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime);
+            var testBufferItem = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(testEventId, EventAction.Add, testGroup, testApplicationComponent, testAccessLevel, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -356,7 +359,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         public void PersistEvents_EntityTypeEventEntityTypeLongerThanVarCharLimit()
         {
             String testEntityType = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new EntityTypeEventBufferItem(testEventId, EventAction.Add, testEntityType, testOccurredTime);
+            var testBufferItem = new EntityTypeEventBufferItem(testEventId, EventAction.Add, testEntityType, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -372,7 +375,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         {
             String testEntityType = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntity = "CompanyA";
-            var testBufferItem = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -388,7 +391,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         {
             String testEntityType = "Clients";
             String testEntity = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new EntityEventBufferItem(testEventId, EventAction.Add, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -405,7 +408,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testUser = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntityType = "Clients";
             String testEntity = "CompanyA";
-            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -422,7 +425,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testUser = "user1";
             String testEntityType = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntity = "CompanyA";
-            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -439,7 +442,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testUser = "user1";
             String testEntityType = "Clients";
             String testEntity = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new UserToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testUser, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -456,7 +459,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testGroup = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntityType = "Clients";
             String testEntity = "CompanyA";
-            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -473,7 +476,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testGroup = "group1";
             String testEntityType = GenerateLongString(varCharColumnSizeLimit + 1);
             String testEntity = "CompanyA";
-            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -490,7 +493,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
             String testGroup = "group1";
             String testEntityType = "Clients";
             String testEntity = GenerateLongString(varCharColumnSizeLimit + 1);
-            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime);
+            var testBufferItem = new GroupToEntityMappingEventBufferItem<String>(testEventId, EventAction.Add, testGroup, testEntityType, testEntity, testOccurredTime, testHashCode);
 
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
@@ -505,7 +508,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
         public void PersistEvents_ExceptionExecutingStoredProcedure()
         {
             String testUser = "user1";
-            var testBufferItem = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime);
+            var testBufferItem = new UserEventBufferItem<String>(testEventId, EventAction.Add, testUser, testOccurredTime, testHashCode);
             string mockExceptionMessage = "Mock PostgreSql exception";
             mockStoredProcedureExecutionWrapper.When(wrapper => wrapper.Execute(processEventsStoredProcedureName, Arg.Any<IList<NpgsqlParameter>>())).Do(callInfo => { throw new Exception(mockExceptionMessage); });
 
@@ -563,26 +566,26 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql.UnitTests
 
             var testEvents = new List<TemporalEventBufferItemBase>()
             {
-                new UserEventBufferItem<String>(guid1, EventAction.Add, "user1", occurredTime1),
-                new UserEventBufferItem<String>(guid2, EventAction.Remove, "user2", occurredTime2),
-                new GroupEventBufferItem<String>(guid3, EventAction.Add, "group1", occurredTime3),
-                new GroupEventBufferItem<String>(guid4, EventAction.Remove, "group2", occurredTime4),
-                new UserToGroupMappingEventBufferItem<String, String>(guid5, EventAction.Add, "user3", "group3", occurredTime5),
-                new UserToGroupMappingEventBufferItem<String, String>(guid6, EventAction.Remove, "user4", "group4", occurredTime6),
-                new GroupToGroupMappingEventBufferItem<String>(guid7, EventAction.Add, "group5", "group6", occurredTime7),
-                new GroupToGroupMappingEventBufferItem<String>(guid8, EventAction.Remove, "group7", "group8", occurredTime8),
-                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid9, EventAction.Add, "user5", "SummaryScreen", "View", occurredTime9),
-                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid10, EventAction.Remove, "user6", "OrderScreen", "Modify", occurredTime10),
-                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid11, EventAction.Add, "group9", "SettingsScreen", "Save", occurredTime11),
-                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid12, EventAction.Remove, "group10", "AdminScreen", "Remove", occurredTime12),
-                new EntityTypeEventBufferItem(guid13, EventAction.Add, "Clients", occurredTime13),
-                new EntityTypeEventBufferItem(guid14, EventAction.Remove, "Products", occurredTime14),
-                new EntityEventBufferItem(guid15, EventAction.Add, "Accounts", "ABC123", occurredTime15),
-                new EntityEventBufferItem(guid16, EventAction.Remove, "Staff", "Jane.Smith@company.com",  occurredTime16),
-                new UserToEntityMappingEventBufferItem<String>(guid17, EventAction.Add, "user7", "EndPoints", "api/Staff/", occurredTime17),
-                new UserToEntityMappingEventBufferItem<String>(guid18, EventAction.Remove, "user8", "Software", "ServiceNow",  occurredTime18),
-                new GroupToEntityMappingEventBufferItem<String>(guid19, EventAction.Add, "group11", "Versions", "22H2 (2022 Update)", occurredTime19),
-                new GroupToEntityMappingEventBufferItem<String>(guid20, EventAction.Remove, "group12", "Packages", "NumPy",  occurredTime20),
+                new UserEventBufferItem<String>(guid1, EventAction.Add, "user1", occurredTime1, testHashCode),
+                new UserEventBufferItem<String>(guid2, EventAction.Remove, "user2", occurredTime2, testHashCode),
+                new GroupEventBufferItem<String>(guid3, EventAction.Add, "group1", occurredTime3, testHashCode),
+                new GroupEventBufferItem<String>(guid4, EventAction.Remove, "group2", occurredTime4, testHashCode),
+                new UserToGroupMappingEventBufferItem<String, String>(guid5, EventAction.Add, "user3", "group3", occurredTime5, testHashCode),
+                new UserToGroupMappingEventBufferItem<String, String>(guid6, EventAction.Remove, "user4", "group4", occurredTime6, testHashCode),
+                new GroupToGroupMappingEventBufferItem<String>(guid7, EventAction.Add, "group5", "group6", occurredTime7, testHashCode),
+                new GroupToGroupMappingEventBufferItem<String>(guid8, EventAction.Remove, "group7", "group8", occurredTime8, testHashCode),
+                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid9, EventAction.Add, "user5", "SummaryScreen", "View", occurredTime9, testHashCode),
+                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid10, EventAction.Remove, "user6", "OrderScreen", "Modify", occurredTime10, testHashCode),
+                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid11, EventAction.Add, "group9", "SettingsScreen", "Save", occurredTime11, testHashCode),
+                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(guid12, EventAction.Remove, "group10", "AdminScreen", "Remove", occurredTime12, testHashCode),
+                new EntityTypeEventBufferItem(guid13, EventAction.Add, "Clients", occurredTime13, testHashCode),
+                new EntityTypeEventBufferItem(guid14, EventAction.Remove, "Products", occurredTime14, testHashCode),
+                new EntityEventBufferItem(guid15, EventAction.Add, "Accounts", "ABC123", occurredTime15, testHashCode),
+                new EntityEventBufferItem(guid16, EventAction.Remove, "Staff", "Jane.Smith@company.com",  occurredTime16, testHashCode),
+                new UserToEntityMappingEventBufferItem<String>(guid17, EventAction.Add, "user7", "EndPoints", "api/Staff/", occurredTime17, testHashCode),
+                new UserToEntityMappingEventBufferItem<String>(guid18, EventAction.Remove, "user8", "Software", "ServiceNow",  occurredTime18, testHashCode),
+                new GroupToEntityMappingEventBufferItem<String>(guid19, EventAction.Add, "group11", "Versions", "22H2 (2022 Update)", occurredTime19, testHashCode),
+                new GroupToEntityMappingEventBufferItem<String>(guid20, EventAction.Remove, "group12", "Packages", "NumPy",  occurredTime20, testHashCode),
             };
             var capturedJsonParameter = new JArray();
             mockStoredProcedureExecutionWrapper.Execute(processEventsStoredProcedureName, Arg.Do<IList<NpgsqlParameter>>((parameters) =>

@@ -23,6 +23,7 @@ using ApplicationMetrics;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using NSubstitute;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence.UnitTests
 {
@@ -32,6 +33,9 @@ namespace ApplicationAccess.Persistence.UnitTests
     /// <remarks>Since  AccessManagerTemporalEventCacheBase is abstract, tests are performed through derived class AccessManagerTemporalEventCache.</remarks>
     public class AccessManagerTemporalEventCacheBaseTests
     {
+        private IHashCodeGenerator<String> mockUserHashCodeGenerator;
+        private IHashCodeGenerator<String> mockGroupHashCodeGenerator;
+        private IHashCodeGenerator<String> mockEntityTypeHashCodeGenerator;
         private IMetricLogger mockMetricLogger;
         private IGuidProvider mockGuidProvider;
         private IDateTimeProvider mockDateTimeProvider;
@@ -40,10 +44,22 @@ namespace ApplicationAccess.Persistence.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockEntityTypeHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockGuidProvider = Substitute.For<IGuidProvider>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
-            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(2, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
+            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator, 
+                mockGroupHashCodeGenerator, 
+                mockEntityTypeHashCodeGenerator, 
+                2, 
+                mockMetricLogger, 
+                mockGuidProvider, 
+                mockDateTimeProvider
+            );
         }
 
         [TearDown]
@@ -60,9 +76,9 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockMetricLogger.Begin(Arg.Any<CachedEventsReadTime>()).Returns(testBeginId);
 
             mockMetricLogger.ClearReceivedCalls();
-            testAccessManagerTemporalEventCache.AddUser("user1", Guid.Parse("00000000-0000-0000-0000-00000000002A"), DateTime.UtcNow);
-            testAccessManagerTemporalEventCache.AddUserToGroupMapping("user1", "group1", Guid.Parse("00000000-0000-0000-0000-00000000002B"), DateTime.UtcNow);
-            testAccessManagerTemporalEventCache.AddEntity("ClientAccount", "CompanyA", Guid.Parse("00000000-0000-0000-0000-00000000002C"), DateTime.UtcNow);
+            testAccessManagerTemporalEventCache.AddUser("user1", Guid.Parse("00000000-0000-0000-0000-00000000002A"), DateTime.UtcNow, 1);
+            testAccessManagerTemporalEventCache.AddUserToGroupMapping("user1", "group1", Guid.Parse("00000000-0000-0000-0000-00000000002B"), DateTime.UtcNow, 1);
+            testAccessManagerTemporalEventCache.AddEntity("ClientAccount", "CompanyA", Guid.Parse("00000000-0000-0000-0000-00000000002C"), DateTime.UtcNow, 21);
 
             var e = Assert.Throws<EventNotCachedException>(delegate
             {
@@ -109,10 +125,22 @@ namespace ApplicationAccess.Persistence.UnitTests
             DateTime occurredTime2 = CreateDataTimeFromString("2022-09-25 13:51:37");
             DateTime occurredTime3 = CreateDataTimeFromString("2022-09-25 13:51:38");
             DateTime occurredTime4 = CreateDataTimeFromString("2022-09-25 13:51:39");
+            Int32 user1HashCode = 1;
+            Int32 group1HashCode = 11;
+            Int32 clientAccountHashCode = 21;
             mockMetricLogger.Begin(Arg.Any<CachedEventsReadTime>()).Returns(testBeginId);
-            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(5, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
-            testAccessManagerTemporalEventCache.AddUser(user, eventId1, occurredTime1);
-            testAccessManagerTemporalEventCache.AddGroup(group, eventId2, occurredTime2);
+            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                5,
+                mockMetricLogger,
+                mockGuidProvider,
+                mockDateTimeProvider
+            );
+            testAccessManagerTemporalEventCache.AddUser(user, eventId1, occurredTime1, user1HashCode);
+            testAccessManagerTemporalEventCache.AddGroup(group, eventId2, occurredTime2, group1HashCode);
 
             IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
 
@@ -125,11 +153,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(eventId2, groupEventItem.EventId);
             Assert.AreEqual(EventAction.Add, groupEventItem.EventAction);
             Assert.AreEqual(occurredTime2, groupEventItem.OccurredTime);
+            Assert.AreEqual(group1HashCode, groupEventItem.HashCode);
             Assert.AreEqual(group, groupEventItem.Group);
 
 
             mockMetricLogger.ClearReceivedCalls();
-            testAccessManagerTemporalEventCache.AddEntityType(entityType, eventId3, occurredTime3);
+            testAccessManagerTemporalEventCache.AddEntityType(entityType, eventId3, occurredTime3, clientAccountHashCode);
 
             result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
 
@@ -142,17 +171,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(eventId2, groupEventItem.EventId);
             Assert.AreEqual(EventAction.Add, groupEventItem.EventAction);
             Assert.AreEqual(occurredTime2, groupEventItem.OccurredTime);
+            Assert.AreEqual(group1HashCode, groupEventItem.HashCode);
             Assert.AreEqual(group, groupEventItem.Group);
             Assert.IsInstanceOf<EntityTypeEventBufferItem>(result[1]);
             EntityTypeEventBufferItem entityTypeEventItem = (EntityTypeEventBufferItem)result[1];
             Assert.AreEqual(eventId3, entityTypeEventItem.EventId);
             Assert.AreEqual(EventAction.Add, entityTypeEventItem.EventAction);
             Assert.AreEqual(occurredTime3, entityTypeEventItem.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, entityTypeEventItem.HashCode);
             Assert.AreEqual(entityType, entityTypeEventItem.EntityType);
 
 
             mockMetricLogger.ClearReceivedCalls();
-            testAccessManagerTemporalEventCache.AddEntity(entityType, entity, eventId4, occurredTime4);
+            testAccessManagerTemporalEventCache.AddEntity(entityType, entity, eventId4, occurredTime4, clientAccountHashCode);
 
             result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
 
@@ -165,18 +196,21 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(eventId2, groupEventItem.EventId);
             Assert.AreEqual(EventAction.Add, groupEventItem.EventAction);
             Assert.AreEqual(occurredTime2, groupEventItem.OccurredTime);
+            Assert.AreEqual(group1HashCode, groupEventItem.HashCode);
             Assert.AreEqual(group, groupEventItem.Group);
             Assert.IsInstanceOf<EntityTypeEventBufferItem>(result[1]);
             entityTypeEventItem = (EntityTypeEventBufferItem)result[1];
             Assert.AreEqual(eventId3, entityTypeEventItem.EventId);
             Assert.AreEqual(EventAction.Add, entityTypeEventItem.EventAction);
             Assert.AreEqual(occurredTime3, entityTypeEventItem.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, entityTypeEventItem.HashCode);
             Assert.AreEqual(entityType, entityTypeEventItem.EntityType);
             Assert.IsInstanceOf<EntityTypeEventBufferItem>(result[2]);
             EntityEventBufferItem entityEventItem = (EntityEventBufferItem)result[2];
             Assert.AreEqual(eventId4, entityEventItem.EventId);
             Assert.AreEqual(EventAction.Add, entityEventItem.EventAction);
             Assert.AreEqual(occurredTime4, entityEventItem.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, entityEventItem.HashCode);
             Assert.AreEqual(entityType, entityEventItem.EntityType);
             Assert.AreEqual(entity, entityEventItem.Entity);
 
@@ -194,6 +228,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(eventId4, entityEventItem.EventId);
             Assert.AreEqual(EventAction.Add, entityEventItem.EventAction);
             Assert.AreEqual(occurredTime4, entityEventItem.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, entityEventItem.HashCode);
             Assert.AreEqual(entityType, entityEventItem.EntityType);
             Assert.AreEqual(entity, entityEventItem.Entity);
 
@@ -224,11 +259,23 @@ namespace ApplicationAccess.Persistence.UnitTests
             DateTime occurredTime2 = CreateDataTimeFromString("2022-09-25 14:04:11");
             DateTime occurredTime3 = CreateDataTimeFromString("2022-09-25 14:04:12");
             DateTime occurredTime4 = CreateDataTimeFromString("2022-09-25 14:04:13");
+            Int32 user1HashCode = 1;
+            Int32 group1HashCode = 11;
+            Int32 clientAccountHashCode = 21;
             mockMetricLogger.Begin(Arg.Any<CachedEventsReadTime>()).Returns(testBeginId);
-            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>(3, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
-            testAccessManagerTemporalEventCache.AddUser(user, eventId1, occurredTime1);
-            testAccessManagerTemporalEventCache.AddGroup(group, eventId2, occurredTime2);
-            testAccessManagerTemporalEventCache.AddEntityType(entityType, eventId3, occurredTime3);
+            testAccessManagerTemporalEventCache = new AccessManagerTemporalEventCache<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                3,
+                mockMetricLogger,
+                mockGuidProvider,
+                mockDateTimeProvider
+            );
+            testAccessManagerTemporalEventCache.AddUser(user, eventId1, occurredTime1, user1HashCode);
+            testAccessManagerTemporalEventCache.AddGroup(group, eventId2, occurredTime2, group1HashCode);
+            testAccessManagerTemporalEventCache.AddEntityType(entityType, eventId3, occurredTime3, clientAccountHashCode);
 
             IList<TemporalEventBufferItemBase> result = testAccessManagerTemporalEventCache.GetAllEventsSince(eventId1);
 
@@ -241,17 +288,19 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(eventId2, groupEventItem.EventId);
             Assert.AreEqual(EventAction.Add, groupEventItem.EventAction);
             Assert.AreEqual(occurredTime2, groupEventItem.OccurredTime);
+            Assert.AreEqual(group1HashCode, groupEventItem.HashCode);
             Assert.AreEqual(group, groupEventItem.Group);
             Assert.IsInstanceOf<EntityTypeEventBufferItem>(result[1]);
             EntityTypeEventBufferItem entityTypeEventItem = (EntityTypeEventBufferItem)result[1];
             Assert.AreEqual(eventId3, entityTypeEventItem.EventId);
             Assert.AreEqual(EventAction.Add, entityTypeEventItem.EventAction);
             Assert.AreEqual(occurredTime3, entityTypeEventItem.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, entityTypeEventItem.HashCode);
             Assert.AreEqual(entityType, entityTypeEventItem.EntityType);
 
 
             mockMetricLogger.ClearReceivedCalls();
-            testAccessManagerTemporalEventCache.AddEntity(entityType, entity, eventId4, occurredTime4);
+            testAccessManagerTemporalEventCache.AddEntity(entityType, entity, eventId4, occurredTime4, clientAccountHashCode);
 
             EventNotCachedException e = Assert.Throws<EventNotCachedException>(delegate
             {
@@ -277,12 +326,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(eventId3, entityTypeEventItem.EventId);
             Assert.AreEqual(EventAction.Add, entityTypeEventItem.EventAction);
             Assert.AreEqual(occurredTime3, entityTypeEventItem.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, entityTypeEventItem.HashCode);
             Assert.AreEqual(entityType, entityTypeEventItem.EntityType);
             Assert.IsInstanceOf<EntityTypeEventBufferItem>(result[1]);
             EntityEventBufferItem entityEventItem = (EntityEventBufferItem)result[1];
             Assert.AreEqual(eventId4, entityEventItem.EventId);
             Assert.AreEqual(EventAction.Add, entityEventItem.EventAction);
             Assert.AreEqual(occurredTime4, entityEventItem.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, entityEventItem.HashCode);
             Assert.AreEqual(entityType, entityEventItem.EntityType);
             Assert.AreEqual(entity, entityEventItem.Entity);
         }

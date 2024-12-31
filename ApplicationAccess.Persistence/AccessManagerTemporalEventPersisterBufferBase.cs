@@ -16,11 +16,12 @@
 
 using System;
 using System.Collections.Generic;
+using ApplicationAccess.Persistence.Models;
+using ApplicationAccess.Utilities;
 using ApplicationAccess.Validation;
 using MoreComplexDataStructures;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
-using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Persistence
 {
@@ -37,6 +38,12 @@ namespace ApplicationAccess.Persistence
         protected IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator;
         /// <summary>The strategy to use for flushing the buffers.</summary>
         protected IAccessManagerEventBufferFlushStrategy bufferFlushStrategy;
+        /// <summary>The hash code generator for users.</summary>
+        protected IHashCodeGenerator<TUser> userHashCodeGenerator;
+        /// <summary>The hash code generator for groups.</summary>
+        protected IHashCodeGenerator<TGroup> groupHashCodeGenerator;
+        /// <summary>The hash code generator for entity types.</summary>
+        protected IHashCodeGenerator<String> entityTypeHashCodeGenerator;
         /// <summary>The provider to use for random Guids.</summary>
         protected Utilities.IGuidProvider guidProvider;
         /// <summary>The provider to use for the current date and time.</summary>
@@ -103,13 +110,26 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
-        public AccessManagerTemporalEventPersisterBufferBase(IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator, IAccessManagerEventBufferFlushStrategy bufferFlushStrategy)
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
+        public AccessManagerTemporalEventPersisterBufferBase
+        (
+            IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
+            IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator
+        )
         {
             this.eventValidator = eventValidator;
             this.bufferFlushStrategy = bufferFlushStrategy;
             // Subscribe to the bufferFlushStrategy's 'BufferFlushed' event
             bufferFlushedEventHandler = (Object sender, EventArgs e) => { Flush(); };
             bufferFlushStrategy.BufferFlushed += bufferFlushedEventHandler;
+            this.userHashCodeGenerator = userHashCodeGenerator;
+            this.groupHashCodeGenerator = groupHashCodeGenerator;
+            this.entityTypeHashCodeGenerator = entityTypeHashCodeGenerator;
             guidProvider = new Utilities.DefaultGuidProvider();
             dateTimeProvider = new Utilities.StopwatchDateTimeProvider();
             metricLogger = new NullMetricLogger();
@@ -136,13 +156,19 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public AccessManagerTemporalEventPersisterBufferBase
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator, 
             IMetricLogger metricLogger
-        ) : this(eventValidator, bufferFlushStrategy)
+        ) : this(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator)
         {
             this.metricLogger = metricLogger;
         }
@@ -152,6 +178,9 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="guidProvider">The provider to use for random Guids.</param>
         /// <param name="dateTimeProvider">The provider to use for the current date and time.</param>
@@ -160,10 +189,13 @@ namespace ApplicationAccess.Persistence
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator,
             IMetricLogger metricLogger, 
             Utilities.IGuidProvider guidProvider,
             Utilities.IDateTimeProvider dateTimeProvider
-        ) : this(eventValidator, bufferFlushStrategy, metricLogger)
+        ) : this(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator, metricLogger)
         {
             this.guidProvider = guidProvider;
             this.dateTimeProvider = dateTimeProvider;
@@ -884,7 +916,7 @@ namespace ApplicationAccess.Persistence
                 return (TUser user) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, nextSequenceNumberAndTimestamp.Item2);
+                    var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, nextSequenceNumberAndTimestamp.Item2, userHashCodeGenerator.GetHashCode(user));
                     var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, nextSequenceNumberAndTimestamp.Item1);
                     userEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
@@ -902,7 +934,7 @@ namespace ApplicationAccess.Persistence
                 return (TUser user) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, nextSequenceNumberAndTimestamp.Item2);
+                    var userEvent = new UserEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, nextSequenceNumberAndTimestamp.Item2, userHashCodeGenerator.GetHashCode(user));
                     var bufferItem = new Tuple<UserEventBufferItem<TUser>, Int64>(userEvent, nextSequenceNumberAndTimestamp.Item1);
                     userEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.UserEventBufferItemCount = userEventBuffer.Count;
@@ -920,7 +952,7 @@ namespace ApplicationAccess.Persistence
                 return (TGroup group) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, nextSequenceNumberAndTimestamp.Item2);
+                    var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, nextSequenceNumberAndTimestamp.Item2, groupHashCodeGenerator.GetHashCode(group));
                     var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, nextSequenceNumberAndTimestamp.Item1);
                     groupEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
@@ -938,7 +970,7 @@ namespace ApplicationAccess.Persistence
                 return (TGroup group) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, nextSequenceNumberAndTimestamp.Item2);
+                    var groupEvent = new GroupEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, nextSequenceNumberAndTimestamp.Item2, groupHashCodeGenerator.GetHashCode(group));
                     var bufferItem = new Tuple<GroupEventBufferItem<TGroup>, Int64>(groupEvent, nextSequenceNumberAndTimestamp.Item1);
                     groupEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.GroupEventBufferItemCount = groupEventBuffer.Count;
@@ -956,7 +988,7 @@ namespace ApplicationAccess.Persistence
                 return (TUser user, TGroup group) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Add, user, group, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Add, user, group, nextSequenceNumberAndTimestamp.Item2, userHashCodeGenerator.GetHashCode(user));
                     var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     userToGroupMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
@@ -974,7 +1006,7 @@ namespace ApplicationAccess.Persistence
                 return (TUser user, TGroup group) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Remove, user, group, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new UserToGroupMappingEventBufferItem<TUser, TGroup>(guidProvider.NewGuid(), EventAction.Remove, user, group, nextSequenceNumberAndTimestamp.Item2, userHashCodeGenerator.GetHashCode(user));
                     var bufferItem = new Tuple<UserToGroupMappingEventBufferItem<TUser, TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     userToGroupMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.UserToGroupMappingEventBufferItemCount = userToGroupMappingEventBuffer.Count;
@@ -992,7 +1024,7 @@ namespace ApplicationAccess.Persistence
                 return (TGroup fromGroup, TGroup toGroup) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2, groupHashCodeGenerator.GetHashCode(fromGroup));
                     var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     groupToGroupMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
@@ -1010,7 +1042,7 @@ namespace ApplicationAccess.Persistence
                 return (TGroup fromGroup, TGroup toGroup) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new GroupToGroupMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, fromGroup, toGroup, nextSequenceNumberAndTimestamp.Item2, groupHashCodeGenerator.GetHashCode(fromGroup));
                     var bufferItem = new Tuple<GroupToGroupMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     groupToGroupMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.GroupToGroupMappingEventBufferItemCount = groupToGroupMappingEventBuffer.Count;
@@ -1028,7 +1060,7 @@ namespace ApplicationAccess.Persistence
                 return (TUser user, TComponent applicationComponent, TAccess accessLevel) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2, userHashCodeGenerator.GetHashCode(user));
                     var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
@@ -1046,7 +1078,7 @@ namespace ApplicationAccess.Persistence
                 return (TUser user, TComponent applicationComponent, TAccess accessLevel) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, user, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2, userHashCodeGenerator.GetHashCode(user));
                     var bufferItem = new Tuple<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     userToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.UserToApplicationComponentAndAccessLevelMappingEventBufferItemCount = userToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
@@ -1064,7 +1096,7 @@ namespace ApplicationAccess.Persistence
                 return (TGroup group, TComponent applicationComponent, TAccess accessLevel) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Add, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2, groupHashCodeGenerator.GetHashCode(group));
                     var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
@@ -1082,7 +1114,7 @@ namespace ApplicationAccess.Persistence
                 return (TGroup group, TComponent applicationComponent, TAccess accessLevel) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>(guidProvider.NewGuid(), EventAction.Remove, group, applicationComponent, accessLevel, nextSequenceNumberAndTimestamp.Item2, groupHashCodeGenerator.GetHashCode(group));
                     var bufferItem = new Tuple<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     groupToApplicationComponentAndAccessLevelMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.GroupToApplicationComponentAndAccessLevelMappingEventBufferItemCount = groupToApplicationComponentAndAccessLevelMappingEventBuffer.Count;
@@ -1100,7 +1132,7 @@ namespace ApplicationAccess.Persistence
                 return (String entityType) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, nextSequenceNumberAndTimestamp.Item2);
+                    var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, nextSequenceNumberAndTimestamp.Item2, entityTypeHashCodeGenerator.GetHashCode(entityType));
                     var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, nextSequenceNumberAndTimestamp.Item1);
                     entityTypeEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
@@ -1119,7 +1151,7 @@ namespace ApplicationAccess.Persistence
                 return (String entityType) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, nextSequenceNumberAndTimestamp.Item2);
+                    var entityTypeEvent = new EntityTypeEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, nextSequenceNumberAndTimestamp.Item2, entityTypeHashCodeGenerator.GetHashCode(entityType));
                     var bufferItem = new Tuple<EntityTypeEventBufferItem, Int64>(entityTypeEvent, nextSequenceNumberAndTimestamp.Item1);
                     entityTypeEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.EntityTypeEventBufferItemCount = entityTypeEventBuffer.Count;
@@ -1137,7 +1169,7 @@ namespace ApplicationAccess.Persistence
                 return (String entityType, String entity) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Add, entityType, entity, nextSequenceNumberAndTimestamp.Item2, entityTypeHashCodeGenerator.GetHashCode(entityType));
                     var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, nextSequenceNumberAndTimestamp.Item1);
                     entityEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
@@ -1155,7 +1187,7 @@ namespace ApplicationAccess.Persistence
                 return (String entityType, String entity) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var entityEvent = new EntityEventBufferItem(guidProvider.NewGuid(), EventAction.Remove, entityType, entity, nextSequenceNumberAndTimestamp.Item2, entityTypeHashCodeGenerator.GetHashCode(entityType));
                     var bufferItem = new Tuple<EntityEventBufferItem, Int64>(entityEvent, nextSequenceNumberAndTimestamp.Item1);
                     entityEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.EntityEventBufferItemCount = entityEventBuffer.Count;
@@ -1173,7 +1205,7 @@ namespace ApplicationAccess.Persistence
                 return (TUser user, String entityType, String entity) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Add, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2, userHashCodeGenerator.GetHashCode(user));
                     var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     userToEntityMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
@@ -1191,7 +1223,7 @@ namespace ApplicationAccess.Persistence
                 return (TUser user, String entityType, String entity) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new UserToEntityMappingEventBufferItem<TUser>(guidProvider.NewGuid(), EventAction.Remove, user, entityType, entity, nextSequenceNumberAndTimestamp.Item2, userHashCodeGenerator.GetHashCode(user));
                     var bufferItem = new Tuple<UserToEntityMappingEventBufferItem<TUser>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     userToEntityMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.UserToEntityMappingEventBufferItemCount = userToEntityMappingEventBuffer.Count;
@@ -1209,7 +1241,7 @@ namespace ApplicationAccess.Persistence
                 return (TGroup group, String entityType, String entity) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Add, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2, groupHashCodeGenerator.GetHashCode(group));
                     var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     groupToEntityMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;
@@ -1227,7 +1259,7 @@ namespace ApplicationAccess.Persistence
                 return (TGroup group, String entityType, String entity) =>
                 {
                     Tuple<Int64, DateTime> nextSequenceNumberAndTimestamp = GetNextEventSequenceNumberAndTimestamp();
-                    var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2);
+                    var mappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>(guidProvider.NewGuid(), EventAction.Remove, group, entityType, entity, nextSequenceNumberAndTimestamp.Item2, groupHashCodeGenerator.GetHashCode(group));
                     var bufferItem = new Tuple<GroupToEntityMappingEventBufferItem<TGroup>, Int64>(mappingEvent, nextSequenceNumberAndTimestamp.Item1);
                     groupToEntityMappingEventBuffer.AddLast(bufferItem);
                     bufferFlushStrategy.GroupToEntityMappingEventBufferItemCount = groupToEntityMappingEventBuffer.Count;

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;

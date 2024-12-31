@@ -21,10 +21,11 @@ using System.Threading;
 using ApplicationAccess.Distribution.Metrics;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
-using NUnit.Framework;
-using NSubstitute;
+using ApplicationAccess.Utilities;
 using MoreComplexDataStructures;
 using ApplicationMetrics;
+using NUnit.Framework;
+using NSubstitute;
 
 namespace ApplicationAccess.Distribution.UnitTests
 {

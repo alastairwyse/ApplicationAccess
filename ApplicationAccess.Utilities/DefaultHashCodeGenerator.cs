@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Utilities
 {
     /// <summary>
     /// Default implementation of <see cref="IHashCodeGenerator{T}"/> for strings.

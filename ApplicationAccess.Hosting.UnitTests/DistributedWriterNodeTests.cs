@@ -31,6 +31,9 @@ namespace ApplicationAccess.Hosting.UnitTests
     /// </summary>
     public class DistributedWriterNodeTests
     {
+        private IHashCodeGenerator<String> mockUserHashCodeGenerator;
+        private IHashCodeGenerator<String> mockGroupHashCodeGenerator;
+        private IHashCodeGenerator<String> mockEntityTypeHashCodeGenerator;
         private IAccessManagerEventBufferFlushStrategy mockEventBufferFlushStrategy;
         private IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel> mockPersistentReader;
         private IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel> mockEventBulkPersister;
@@ -41,12 +44,25 @@ namespace ApplicationAccess.Hosting.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockEntityTypeHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockEventBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             mockEventBulkPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockEventBulkCache = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
         }
 
         [TearDown]
@@ -60,55 +76,141 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             DistributedWriterNode<String, String, ApplicationScreen, AccessLevel> testDistributedDistributedWriterNode;
             var fieldNamePath = new List<String>() { "metricLogger" };
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
             // Checks the metric logger set on the ConcurrentAccessManagerMetricLogger instance
             fieldNamePath = new List<String>() { "concurrentAccessManager", "metricLoggingWrapper", "metricLogger" };
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister,
+                mockEventBulkCache
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDistributedDistributedWriterNode, true);
 
 
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDistributedDistributedWriterNode, true);
 
 
             // Checks the MappingMetricLogger within the MetricLoggingConcurrentDirectedGraph
             fieldNamePath = new List<String>() { "concurrentAccessManager", "userToGroupMap", "metricLogger" };
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache
+            );
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
             // Checks the actual metric logger wrapped by the MappingMetricLogger within the MetricLoggingConcurrentDirectedGraph
             fieldNamePath = new List<String>() { "concurrentAccessManager", "userToGroupMap", "metricLogger", "downstreamMetricLogger" };
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDistributedDistributedWriterNode, true);
 
 
             // Checks the metric logger is set on the event buffer
             fieldNamePath = new List<String>() { "eventBuffer", "metricLogger" };
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testDistributedDistributedWriterNode, true);
         }
@@ -118,12 +220,31 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             DistributedWriterNode<String, String, ApplicationScreen, AccessLevel> testDistributedDistributedWriterNode;
             var fieldNamePath = new List<String>() { "eventBuffer" };
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache
+            );
 
             NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister,
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
         }
@@ -133,12 +254,31 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             DistributedWriterNode<String, String, ApplicationScreen, AccessLevel> testDistributedDistributedWriterNode;
             var fieldNamePath = new List<String>() { "eventBuffer", "eventPersister" };
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache
+            );
 
             NonPublicFieldAssert.IsOfType<AccessManagerTemporalEventBulkPersisterDistributor<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<AccessManagerTemporalEventBulkPersisterDistributor<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
         }
@@ -148,14 +288,74 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             DistributedWriterNode<String, String, ApplicationScreen, AccessLevel> testDistributedDistributedWriterNode;
             var fieldNamePath = new List<String>() { "concurrentAccessManager", "eventProcessor" };
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache
+            );
 
             NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
 
 
-            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockEventBulkCache, mockMetricLogger);
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockEventBulkCache, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<DependencyFreeAccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testDistributedDistributedWriterNode);
+        }
+
+
+        [Test]
+        public void Constructor_HashCodeGeneratorsSetCorrectlyOnComposedFields()
+        {
+            DistributedWriterNode<String, String, ApplicationScreen, AccessLevel> testDistributedDistributedWriterNode;
+            var userHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "userHashCodeGenerator" };
+            var groupHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "groupHashCodeGenerator" };
+            var entityTypeHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "entityTypeHashCodeGenerator" };
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader,
+                mockEventBulkPersister,
+                mockEventBulkCache
+            );
+
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(userHashCodeGeneratorFieldNamePath, mockUserHashCodeGenerator, testDistributedDistributedWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(groupHashCodeGeneratorFieldNamePath, mockGroupHashCodeGenerator, testDistributedDistributedWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(entityTypeHashCodeGeneratorFieldNamePath, mockEntityTypeHashCodeGenerator, testDistributedDistributedWriterNode, true);
+
+
+            testDistributedDistributedWriterNode = new DistributedWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader,
+                mockEventBulkPersister,
+                mockEventBulkCache,
+                mockMetricLogger
+            );
+
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(userHashCodeGeneratorFieldNamePath, mockUserHashCodeGenerator, testDistributedDistributedWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(groupHashCodeGeneratorFieldNamePath, mockGroupHashCodeGenerator, testDistributedDistributedWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(entityTypeHashCodeGeneratorFieldNamePath, mockEntityTypeHashCodeGenerator, testDistributedDistributedWriterNode, true);
         }
     }
 }

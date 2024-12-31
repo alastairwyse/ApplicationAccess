@@ -200,6 +200,7 @@ AS TABLE
     EventId       uniqueidentifier, 
     EventAction   nvarchar(max), 
     OccurredTime  datetime2, 
+    HashCode      int, 
     EventData1    nvarchar(max), 
     EventData2    nvarchar(max), 
     EventData3    nvarchar(max) 

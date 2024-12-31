@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
 using ApplicationAccess.Validation;
@@ -38,6 +39,9 @@ namespace ApplicationAccess.Persistence.UnitTests
         protected IMethodCallInterceptor eventValidatorMethodCallInterceptor;
         protected IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel> mockEventValidator;
         protected IAccessManagerEventBufferFlushStrategy mockBufferFlushStrategy;
+        protected IHashCodeGenerator<String> mockUserHashCodeGenerator;
+        protected IHashCodeGenerator<String> mockGroupHashCodeGenerator;
+        protected IHashCodeGenerator<String> mockEntityTypeHashCodeGenerator;
         protected IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
         protected IMetricLogger mockMetricLogger;
         protected IGuidProvider mockGuidProvider;
@@ -48,6 +52,9 @@ namespace ApplicationAccess.Persistence.UnitTests
         protected void SetUp()
         {
             mockBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
+            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockEntityTypeHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             dateTimeProviderMethodCallInterceptor = Substitute.For<IMethodCallInterceptor>();
             eventValidatorMethodCallInterceptor = Substitute.For<IMethodCallInterceptor>();
             mockEventValidator = Substitute.For<IAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>>();
@@ -57,7 +64,18 @@ namespace ApplicationAccess.Persistence.UnitTests
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
             var methodInterceptingDateTimeProvider = new MethodInterceptingDateTimeProvider(dateTimeProviderMethodCallInterceptor, mockDateTimeProvider);
             var methodInterceptingValidator = new MethodInterceptingAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(eventValidatorMethodCallInterceptor, new NullAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>());
-            testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(methodInterceptingValidator, mockBufferFlushStrategy, mockEventPersister, mockMetricLogger, mockGuidProvider, methodInterceptingDateTimeProvider);
+            testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>
+            (
+                methodInterceptingValidator, 
+                mockBufferFlushStrategy,
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventPersister, 
+                mockMetricLogger, 
+                mockGuidProvider, 
+                methodInterceptingDateTimeProvider
+            );
         }
 
         [Test]
@@ -68,10 +86,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:55");
+            Int32 hashCode = -10;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -95,6 +115,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedEvent.EventAction);
             Assert.AreEqual(user, bufferedEvent.User);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
+            Assert.AreEqual(hashCode, bufferedEvent.HashCode);
             Assert.AreEqual(0, testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.UserEventBuffer.First.Value.Item2);
             Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
             Assert.IsTrue(validatorAssertionsWereChecked);
@@ -108,8 +129,10 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:55");
+            Int32 hashCode = -9;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
 
             lock (testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.UserEventBufferLock)
             {
@@ -123,6 +146,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedEvent.EventAction);
             Assert.AreEqual(user, bufferedEvent.User);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
+            Assert.AreEqual(hashCode, bufferedEvent.HashCode);
             Assert.AreEqual(0, testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.UserEventBuffer.First.Value.Item2);
         }
 
@@ -134,10 +158,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:56");
+            Int32 hashCode = -8;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -164,10 +190,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:57");
+            Int32 hashCode = -7;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -191,6 +219,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedEvent.EventAction);
             Assert.AreEqual(group, bufferedEvent.Group);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
+            Assert.AreEqual(hashCode, bufferedEvent.HashCode);
             Assert.AreEqual(0, testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.GroupEventBuffer.First.Value.Item2);
             Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
             Assert.IsTrue(validatorAssertionsWereChecked);
@@ -202,8 +231,10 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:57");
+            Int32 hashCode = -6;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns<Int32>(hashCode);
 
             lock (testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.GroupEventBufferLock)
             {
@@ -217,6 +248,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedEvent.EventAction);
             Assert.AreEqual(group, bufferedEvent.Group);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
+            Assert.AreEqual(hashCode, bufferedEvent.HashCode);
             Assert.AreEqual(0, testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.GroupEventBuffer.First.Value.Item2);
         }
 
@@ -226,10 +258,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:57");
+            Int32 hashCode = -5;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -259,10 +293,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:16:59");
+            Int32 hashCode = -4;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -291,10 +327,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String user = "user1";
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:00");
+            Int32 hashCode = -3;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -321,10 +359,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:01");
+            Int32 hashCode = -2;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(fromGroup).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -350,10 +390,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:02");
+            Int32 hashCode = -1;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(fromGroup).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -378,10 +420,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:03");
+            Int32 hashCode = 0;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -406,10 +450,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String user = "user1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:04");
+            Int32 hashCode = 1;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -434,10 +480,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:05");
+            Int32 hashCode = 2;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -462,10 +510,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String group = "group1";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:06");
+            Int32 hashCode = 3;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -490,10 +540,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String entityType = "ClientAccount";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:07");
+            Int32 hashCode = 4;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -516,6 +568,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedEvent.EventAction);
             Assert.AreEqual(entityType, bufferedEvent.EntityType);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
+            Assert.AreEqual(hashCode, bufferedEvent.HashCode);
             Assert.AreEqual(0, testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityTypeEventBuffer.First.Value.Item2);
             Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
             Assert.IsTrue(validatorAssertionsWereChecked);
@@ -527,8 +580,10 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String entityType = "ClientAccount";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:07");
+            Int32 hashCode = 5;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns<Int32>(hashCode);
 
             lock (testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityTypeEventBufferLock)
             {
@@ -542,6 +597,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedEvent.EventAction);
             Assert.AreEqual(entityType, bufferedEvent.EntityType);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
+            Assert.AreEqual(hashCode, bufferedEvent.HashCode);
             Assert.AreEqual(0, testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityTypeEventBuffer.First.Value.Item2);
         }
 
@@ -551,10 +607,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             Guid eventId = Guid.NewGuid();
             const String entityType = "ClientAccount";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:08");
+            Int32 hashCode = 6;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -581,10 +639,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:09");
+            Int32 hashCode = 7;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -609,6 +669,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entityType, bufferedEvent.EntityType);
             Assert.AreEqual(entity, bufferedEvent.Entity);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
+            Assert.AreEqual(hashCode, bufferedEvent.HashCode);
             Assert.AreEqual(0, testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityEventBuffer.First.Value.Item2);
             Assert.IsTrue(dateTimeProviderAssertionsWereChecked);
             Assert.IsTrue(validatorAssertionsWereChecked);
@@ -621,8 +682,10 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:09");
+            Int32 hashCode = 8;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns<Int32>(hashCode);
 
             lock (testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityEventBufferLock)
             {
@@ -637,6 +700,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entityType, bufferedEvent.EntityType);
             Assert.AreEqual(entity, bufferedEvent.Entity);
             Assert.AreEqual(eventOccurredTime, bufferedEvent.OccurredTime);
+            Assert.AreEqual(hashCode, bufferedEvent.HashCode);
             Assert.AreEqual(0, testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EntityEventBuffer.First.Value.Item2);
         }
 
@@ -647,10 +711,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:10");
+            Int32 hashCode = 9;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -678,10 +744,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:11");
+            Int32 hashCode = 10;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -710,10 +778,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:12");
+            Int32 hashCode = 11;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockUserHashCodeGenerator.GetHashCode(user).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -742,10 +812,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:13");
+            Int32 hashCode = 12;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -774,10 +846,12 @@ namespace ApplicationAccess.Persistence.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             DateTime eventOccurredTime = CreateDataTimeFromString("2021-06-09 00:17:14");
+            Int32 hashCode = 13;
             Boolean dateTimeProviderAssertionsWereChecked = false;
             Boolean validatorAssertionsWereChecked = false;
             mockGuidProvider.NewGuid().Returns(eventId);
             mockDateTimeProvider.UtcNow().Returns<DateTime>(eventOccurredTime);
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns<Int32>(hashCode);
             dateTimeProviderMethodCallInterceptor.When(interceptor => interceptor.Intercept()).Do(callInfo =>
             {
                 Assert.IsTrue(Monitor.IsEntered(testDependencyFreeAccessManagerTemporalEventBulkPersisterBuffer.EventSequenceNumberLock));
@@ -965,12 +1039,15 @@ namespace ApplicationAccess.Persistence.UnitTests
             (
                 IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
                 IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+                IHashCodeGenerator<TUser> userHashCodeGenerator,
+                IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+                IHashCodeGenerator<String> entityTypeHashCodeGenerator,
                 IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
                 IMetricLogger metricLogger,
                 IGuidProvider guidProvider,
                 IDateTimeProvider dateTimeProvider
             )
-                : base(eventValidator, bufferFlushStrategy, eventPersister, metricLogger, guidProvider, dateTimeProvider)
+                : base(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator, eventPersister, metricLogger, guidProvider, dateTimeProvider)
             {
             }
         }

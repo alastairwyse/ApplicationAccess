@@ -21,13 +21,14 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
+using ApplicationAccess.Serialization;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NSubstitute;
 using Microsoft.Extensions.Logging;
-using ApplicationAccess.Serialization;
-using ApplicationAccess.Hosting.Rest.Utilities;
 using NSubstitute.ClearExtensions;
 
 namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
@@ -83,6 +84,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000000"), entityTypeEvent.EventId);
                     Assert.AreEqual(EventAction.Remove, entityTypeEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000000"), entityTypeEvent.OccurredTime);
+                    Assert.AreEqual(-5, entityTypeEvent.HashCode);
                     Assert.AreEqual("ClientAccount", entityTypeEvent.EntityType);
 
                     Assert.IsInstanceOf<EntityEventBufferItem>(capturedEvents[1]);
@@ -90,6 +92,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000001"), entityEvent.EventId);
                     Assert.AreEqual(EventAction.Add, entityEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000001"), entityEvent.OccurredTime);
+                    Assert.AreEqual(-4, entityEvent.HashCode);
                     Assert.AreEqual("BusinessUnit", entityEvent.EntityType);
                     Assert.AreEqual("Sales", entityEvent.Entity);
 
@@ -98,6 +101,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000002"), userToEntityMappingEvent.EventId);
                     Assert.AreEqual(EventAction.Remove, userToEntityMappingEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000002"), userToEntityMappingEvent.OccurredTime);
+                    Assert.AreEqual(-3, userToEntityMappingEvent.HashCode);
                     Assert.AreEqual("user1", userToEntityMappingEvent.User);
                     Assert.AreEqual("ClientAccount", userToEntityMappingEvent.EntityType);
                     Assert.AreEqual("ClientA", userToEntityMappingEvent.Entity);
@@ -107,6 +111,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000003"), groupToEntityMappingEvent.EventId);
                     Assert.AreEqual(EventAction.Add, groupToEntityMappingEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000003"), groupToEntityMappingEvent.OccurredTime);
+                    Assert.AreEqual(-2, groupToEntityMappingEvent.HashCode);
                     Assert.AreEqual("group1", groupToEntityMappingEvent.Group);
                     Assert.AreEqual("BusinessUnit", groupToEntityMappingEvent.EntityType);
                     Assert.AreEqual("Marketing", groupToEntityMappingEvent.Entity);
@@ -116,6 +121,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000004"), userEvent.EventId);
                     Assert.AreEqual(EventAction.Add, userEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000004"), userEvent.OccurredTime);
+                    Assert.AreEqual(-1, userEvent.HashCode);
                     Assert.AreEqual("user2", userEvent.User);
 
                     Assert.IsInstanceOf<UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>>(capturedEvents[5]);
@@ -123,6 +129,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000005"), userToApplicationComponentAndAccessLevelMappingEvent.EventId);
                     Assert.AreEqual(EventAction.Remove, userToApplicationComponentAndAccessLevelMappingEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000005"), userToApplicationComponentAndAccessLevelMappingEvent.OccurredTime);
+                    Assert.AreEqual(0, userToApplicationComponentAndAccessLevelMappingEvent.HashCode);
                     Assert.AreEqual("user3", userToApplicationComponentAndAccessLevelMappingEvent.User);
                     Assert.AreEqual("Order", userToApplicationComponentAndAccessLevelMappingEvent.ApplicationComponent);
                     Assert.AreEqual("Create", userToApplicationComponentAndAccessLevelMappingEvent.AccessLevel);
@@ -132,6 +139,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000006"), userToGroupMappingEvent.EventId);
                     Assert.AreEqual(EventAction.Add, userToGroupMappingEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000006"), userToGroupMappingEvent.OccurredTime);
+                    Assert.AreEqual(1, userToGroupMappingEvent.HashCode);
                     Assert.AreEqual("user4", userToGroupMappingEvent.User);
                     Assert.AreEqual("group2", userToGroupMappingEvent.Group);
 
@@ -140,6 +148,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000007"), groupEvent.EventId);
                     Assert.AreEqual(EventAction.Remove, groupEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000007"), groupEvent.OccurredTime);
+                    Assert.AreEqual(2, groupEvent.HashCode);
                     Assert.AreEqual("group3", groupEvent.Group);
 
                     Assert.IsInstanceOf<GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>>(capturedEvents[8]);
@@ -147,6 +156,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000008"), groupToApplicationComponentAndAccessLevelMappingEvent.EventId);
                     Assert.AreEqual(EventAction.Add, groupToApplicationComponentAndAccessLevelMappingEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000008"), groupToApplicationComponentAndAccessLevelMappingEvent.OccurredTime);
+                    Assert.AreEqual(3, groupToApplicationComponentAndAccessLevelMappingEvent.HashCode);
                     Assert.AreEqual("group4", groupToApplicationComponentAndAccessLevelMappingEvent.Group);
                     Assert.AreEqual("Summary", groupToApplicationComponentAndAccessLevelMappingEvent.ApplicationComponent);
                     Assert.AreEqual("View", groupToApplicationComponentAndAccessLevelMappingEvent.AccessLevel);
@@ -156,6 +166,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
                     Assert.AreEqual(Guid.Parse("00000000-0000-0000-0000-000000000009"), groupToGroupMappingEvent.EventId);
                     Assert.AreEqual(EventAction.Remove, groupToGroupMappingEvent.EventAction);
                     Assert.AreEqual(CreateDataTimeFromString("2023-03-18 23:49:35.0000009"), groupToGroupMappingEvent.OccurredTime);
+                    Assert.AreEqual(4, groupToGroupMappingEvent.HashCode);
                     Assert.AreEqual("group5", groupToGroupMappingEvent.FromGroup);
                     Assert.AreEqual("group6", groupToGroupMappingEvent.ToGroup);
 
@@ -375,16 +386,16 @@ namespace ApplicationAccess.Hosting.Rest.EventCache.IntegrationTests
         {
             var testEvents = new List<TemporalEventBufferItemBase>()
             {
-                new EntityTypeEventBufferItem(Guid.Parse("00000000-0000-0000-0000-000000000000"), EventAction.Remove, "ClientAccount", CreateDataTimeFromString("2023-03-18 23:49:35.0000000")),
-                new EntityEventBufferItem(Guid.Parse("00000000-0000-0000-0000-000000000001"), EventAction.Add, "BusinessUnit", "Sales", CreateDataTimeFromString("2023-03-18 23:49:35.0000001")),
-                new UserToEntityMappingEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000002"), EventAction.Remove, "user1", "ClientAccount", "ClientA", CreateDataTimeFromString("2023-03-18 23:49:35.0000002")),
-                new GroupToEntityMappingEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000003"), EventAction.Add, "group1", "BusinessUnit", "Marketing", CreateDataTimeFromString("2023-03-18 23:49:35.0000003")),
-                new UserEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000004"), EventAction.Add, "user2", CreateDataTimeFromString("2023-03-18 23:49:35.0000004")),
-                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(Guid.Parse("00000000-0000-0000-0000-000000000005"), EventAction.Remove, "user3", "Order", "Create", CreateDataTimeFromString("2023-03-18 23:49:35.0000005")),
-                new UserToGroupMappingEventBufferItem<String, String>(Guid.Parse("00000000-0000-0000-0000-000000000006"), EventAction.Add, "user4", "group2", CreateDataTimeFromString("2023-03-18 23:49:35.0000006")),
-                new GroupEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000007"), EventAction.Remove, "group3", CreateDataTimeFromString("2023-03-18 23:49:35.0000007")),
-                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(Guid.Parse("00000000-0000-0000-0000-000000000008"), EventAction.Add, "group4", "Summary", "View", CreateDataTimeFromString("2023-03-18 23:49:35.0000008")),
-                new GroupToGroupMappingEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000009"), EventAction.Remove, "group5", "group6", CreateDataTimeFromString("2023-03-18 23:49:35.0000009"))
+                new EntityTypeEventBufferItem(Guid.Parse("00000000-0000-0000-0000-000000000000"), EventAction.Remove, "ClientAccount", CreateDataTimeFromString("2023-03-18 23:49:35.0000000"), -5),
+                new EntityEventBufferItem(Guid.Parse("00000000-0000-0000-0000-000000000001"), EventAction.Add, "BusinessUnit", "Sales", CreateDataTimeFromString("2023-03-18 23:49:35.0000001"), -4),
+                new UserToEntityMappingEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000002"), EventAction.Remove, "user1", "ClientAccount", "ClientA", CreateDataTimeFromString("2023-03-18 23:49:35.0000002"), -3),
+                new GroupToEntityMappingEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000003"), EventAction.Add, "group1", "BusinessUnit", "Marketing", CreateDataTimeFromString("2023-03-18 23:49:35.0000003"), -2),
+                new UserEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000004"), EventAction.Add, "user2", CreateDataTimeFromString("2023-03-18 23:49:35.0000004"), -1),
+                new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(Guid.Parse("00000000-0000-0000-0000-000000000005"), EventAction.Remove, "user3", "Order", "Create", CreateDataTimeFromString("2023-03-18 23:49:35.0000005"), 0),
+                new UserToGroupMappingEventBufferItem<String, String>(Guid.Parse("00000000-0000-0000-0000-000000000006"), EventAction.Add, "user4", "group2", CreateDataTimeFromString("2023-03-18 23:49:35.0000006"), 1),
+                new GroupEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000007"), EventAction.Remove, "group3", CreateDataTimeFromString("2023-03-18 23:49:35.0000007"), 2),
+                new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, String, String>(Guid.Parse("00000000-0000-0000-0000-000000000008"), EventAction.Add, "group4", "Summary", "View", CreateDataTimeFromString("2023-03-18 23:49:35.0000008"), 3),
+                new GroupToGroupMappingEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000009"), EventAction.Remove, "group5", "group6", CreateDataTimeFromString("2023-03-18 23:49:35.0000009"), 4)
             };
 
             return testEvents;

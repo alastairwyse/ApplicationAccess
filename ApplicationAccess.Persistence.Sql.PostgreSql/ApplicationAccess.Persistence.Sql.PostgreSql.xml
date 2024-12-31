@@ -56,7 +56,7 @@
             <summary>Used to execute queries and store procedures against PostgreSQL.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.eventTypeToJsonDocumentPopulationOperationMap">
-            <summary>Maps types (subclasses of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/>) to actions which populate a JSON array element with details of an event of that type.</summary>
+            <summary>Maps types (subclasses of <see cref="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/>) to actions which populate a JSON array element with details of an event of that type.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.logger">
             <summary>The logger for general logging.</summary>
@@ -119,10 +119,10 @@
         <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase})">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase},System.Boolean)">
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase},System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.CreateNpgsqlParameterWithValue(NpgsqlTypes.NpgsqlDbType,System.Object)">
@@ -142,12 +142,12 @@
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.CreateEventTypeToJsonDocumentPopulationOperationMap">
             <summary>
-            Returns a dictionary mapping types (subclasses of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/>) to actions which populate a JSON array element with details of an event of that type.
+            Returns a dictionary mapping types (subclasses of <see cref="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/>) to actions which populate a JSON array element with details of an event of that type.
             </summary>
-            <returns>A dictionary keyed by type, whose value is an action which accepts a subclass of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> (having the same type as the key), and a <see cref="T:System.Text.Json.Utf8JsonWriter"/>, and which populates a JSON array element with details of the event.</returns>
-            <remarks>Traditionally, the 'switch' statement in C# was preferred to multiple 'if / else' as apparently the compiler was able to use branch tables to more quickly move to a matching condition within the statement (instead of having to iterate on average 1/2 the cases each time with 'if / else').  However <see href="https://devblogs.microsoft.com/dotnet/new-features-in-c-7-0/#switch-statements-with-patterns">since C# 7 we're now able to use non-equality / range / pattern conditions within the 'switch' statement</see>.  I haven't been able to find any documentation as to whether this has had a negative impact on performance (although difficult to see how it cannot have), however to mitigate I'm putting all the processing routines for different <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> subclasses into a dictionary... hence the lookup speed should at least scale equivalently to the aforementioned branch tables.</remarks>
+            <returns>A dictionary keyed by type, whose value is an action which accepts a subclass of <see cref="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/> (having the same type as the key), and a <see cref="T:System.Text.Json.Utf8JsonWriter"/>, and which populates a JSON array element with details of the event.</returns>
+            <remarks>Traditionally, the 'switch' statement in C# was preferred to multiple 'if / else' as apparently the compiler was able to use branch tables to more quickly move to a matching condition within the statement (instead of having to iterate on average 1/2 the cases each time with 'if / else').  However <see href="https://devblogs.microsoft.com/dotnet/new-features-in-c-7-0/#switch-statements-with-patterns">since C# 7 we're now able to use non-equality / range / pattern conditions within the 'switch' statement</see>.  I haven't been able to find any documentation as to whether this has had a negative impact on performance (although difficult to see how it cannot have), however to mitigate I'm putting all the processing routines for different <see cref="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/> subclasses into a dictionary... hence the lookup speed should at least scale equivalently to the aforementioned branch tables.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PopulateJsonElementWithTemporalEventBufferItemBaseProperties(ApplicationAccess.Persistence.TemporalEventBufferItemBase,System.Text.Json.Utf8JsonWriter)">
+        <member name="M:ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlAccessManagerTemporalBulkPersister`4.PopulateJsonElementWithTemporalEventBufferItemBaseProperties(ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase,System.Text.Json.Utf8JsonWriter)">
             <summary>
             Populates a JSON array element with base/common properties of the specified event buffer item.
             </summary>

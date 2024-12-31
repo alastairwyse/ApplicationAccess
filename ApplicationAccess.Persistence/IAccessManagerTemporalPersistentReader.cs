@@ -16,6 +16,7 @@
 
 using System;
 using ApplicationAccess;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence
 {

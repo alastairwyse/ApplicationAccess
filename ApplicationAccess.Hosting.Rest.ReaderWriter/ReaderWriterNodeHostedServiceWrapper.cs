@@ -17,6 +17,7 @@
 using System;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Metrics;
+using ApplicationAccess.Utilities;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -83,13 +84,17 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         /// <inheritdoc/>
         protected override ReaderWriterNode<String, String, String, String> InitializeReaderWriterNode()
         {
-            return new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+
+            return new ReaderWriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister);
         }
 
         /// <inheritdoc/>
         protected override ReaderWriterNode<String, String, String, String> InitializeReaderWriterNodeWithMetricLogging()
         {
-            return new ReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, metricLogger);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+
+            return new ReaderWriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister, metricLogger);
         }
 
         #endregion

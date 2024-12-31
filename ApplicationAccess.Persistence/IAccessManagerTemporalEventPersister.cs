@@ -33,7 +33,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="user">The user to add.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the user was added.</param>
-        void AddUser(TUser user, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the user.</param>
+        void AddUser(TUser user, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes a user.
@@ -41,7 +42,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="user">The user to remove.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the user was removed.</param>
-        void RemoveUser(TUser user, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the user.</param>
+        void RemoveUser(TUser user, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds a group.
@@ -49,7 +51,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="group">The group to add.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the group was added.</param>
-        void AddGroup(TGroup group, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the group.</param>
+        void AddGroup(TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes a group.
@@ -57,7 +60,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="group">The group to remove.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the group was removed.</param>
-        void RemoveGroup(TGroup group, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the group.</param>
+        void RemoveGroup(TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds a mapping between the specified user and group.
@@ -66,7 +70,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="group">The group in the mapping.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the user to group mapping was added.</param>
-        void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the user.</param>
+        void AddUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes a mapping between the specified user and group.
@@ -75,7 +80,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="group">The group in the mapping.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the user to group mapping was removed.</param>
-        void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the user.</param>
+        void RemoveUserToGroupMapping(TUser user, TGroup group, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds a mapping between the specified groups.
@@ -84,7 +90,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="toGroup">The 'to' group in the mapping.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping between the groups was added.</param>
-        void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the group.</param>
+        void AddGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes a mapping between the specified groups.
@@ -93,7 +100,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="toGroup">The 'to' group in the mapping.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping between the groups was removed.</param>
-        void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the group.</param>
+        void RemoveGroupToGroupMapping(TGroup fromGroup, TGroup toGroup, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds a mapping between the specified user, application component, and level of access to that component.
@@ -103,7 +111,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping was added.</param>
-        void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the user.</param>
+        void AddUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes a mapping between the specified user, application component, and level of access to that component.
@@ -113,7 +122,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping was removed.</param>
-        void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the user.</param>
+        void RemoveUserToApplicationComponentAndAccessLevelMapping(TUser user, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds a mapping between the specified group, application component, and level of access to that component.
@@ -123,7 +133,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping was added.</param>
-        void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the group.</param>
+        void AddGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes a mapping between the specified group, application component, and level of access to that component.
@@ -133,7 +144,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="accessLevel">The level of access to the component.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping was removed.</param>
-        void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the group.</param>
+        void RemoveGroupToApplicationComponentAndAccessLevelMapping(TGroup group, TComponent applicationComponent, TAccess accessLevel, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds an entity type.
@@ -141,7 +153,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="entityType">The entity type to add.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the entity type was added.</param>
-        void AddEntityType(String entityType, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the entity type.</param>
+        void AddEntityType(String entityType, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes an entity type.
@@ -149,7 +162,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="entityType">The entity type to remove.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the entity type was removed.</param>
-        void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the entity type.</param>
+        void RemoveEntityType(String entityType, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds an entity.
@@ -158,7 +172,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="entity">The entity to add.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the entity was added.</param>
-        void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the entity type.</param>
+        void AddEntity(String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes an entity.
@@ -167,7 +182,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="entity">The entity to remove.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the entity was removed.</param>
-        void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the entity type.</param>
+        void RemoveEntity(String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds a mapping between the specified user, and entity.
@@ -177,7 +193,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping was added.</param>
-        void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the user.</param>
+        void AddUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes a mapping between the specified user, and entity.
@@ -187,7 +204,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping was removed.</param>
-        void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the user.</param>
+        void RemoveUserToEntityMapping(TUser user, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Adds a mapping between the specified group, and entity.
@@ -197,7 +215,8 @@ namespace ApplicationAccess.Persistence
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping was added.</param>
-        void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the group.</param>
+        void AddGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode);
 
         /// <summary>
         /// Removes a mapping between the specified group, and entity.
@@ -207,6 +226,7 @@ namespace ApplicationAccess.Persistence
         /// <param name="entity">The entity in the mapping.</param>
         /// <param name="eventId">The unique id of the event.</param>
         /// <param name="occurredTime">The historic date and time that the mapping was removed.</param>
-        void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime);
+        /// <param name="hashCode">The hash code for the group.</param>
+        void RemoveGroupToEntityMapping(TGroup group, String entityType, String entity, Guid eventId, DateTime occurredTime, Int32 hashCode);
     }
 }

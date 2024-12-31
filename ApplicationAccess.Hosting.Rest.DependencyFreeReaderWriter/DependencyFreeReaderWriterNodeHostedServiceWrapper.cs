@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.ReaderWriter;
+using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
 {
@@ -85,13 +86,17 @@ namespace ApplicationAccess.Hosting.Rest.DependencyFreeReaderWriter
         /// <inheritdoc/>
         protected override DependencyFreeReaderWriterNode<String, String, String, String> InitializeReaderWriterNode()
         {
-            return new DependencyFreeReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+
+            return new DependencyFreeReaderWriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister);
         }
 
         /// <inheritdoc/>
         protected override DependencyFreeReaderWriterNode<String, String, String, String> InitializeReaderWriterNodeWithMetricLogging()
         {
-            return new DependencyFreeReaderWriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, metricLogger);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+
+            return new DependencyFreeReaderWriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister, metricLogger);
         }
 
         #endregion

@@ -62,6 +62,9 @@
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.occurredTimeColumn">
             <summary>Column in the staging table which holds time that the event originally occurred.</summary>
         </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.hashCodeColumn">
+            <summary>Column in the staging table which holds hash code for the primary element of the event.</summary>
+        </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.eventData1Column">
             <summary>Column in the staging table which holds the first piece of data pertaining to the event.</summary>
         </member>
@@ -72,7 +75,7 @@
             <summary>Column in the staging table which holds the third piece of data pertaining to the event.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.eventTypeToStagingTablePopulationOperationMap">
-            <summary>Maps types (subclasses of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/>) to actions which populate a row in the staging table with details of an event of that type.</summary>
+            <summary>Maps types (subclasses of <see cref="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/>) to actions which populate a row in the staging table with details of an event of that type.</summary>
         </member>
         <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.idColumnValue">
             <summary>Holds the value to put in the 'Id' column in the staging table.</summary>
@@ -129,20 +132,20 @@
             <param name="storedProcedureExecutor">A test (mock) <see cref="T:ApplicationAccess.Persistence.Sql.SqlServer.IStoredProcedureExecutionWrapper"/> object.</param>
             <remarks>This constructor is included to facilitate unit testing.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase})">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase})">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.TemporalEventBufferItemBase},System.Boolean)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.PersistEvents(System.Collections.Generic.IList{ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase},System.Boolean)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.CreateEventTypeToStagingTablePopulationOperationMap">
             <summary>
-            Returns a dictionary mapping types (subclasses of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/>) to actions which populate a row in the staging table with details of an event of that type.
+            Returns a dictionary mapping types (subclasses of <see cref="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/>) to actions which populate a row in the staging table with details of an event of that type.
             </summary>
-            <returns>A dictionary keyed by type, whose value is an action which accepts a subclass of <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> (having the same type as the key), and a <see cref="T:System.Data.DataRow"/>, and which populates the row with details of the event.</returns>
-            <remarks>Traditionally, the 'switch' statement in C# was preferred to multiple 'if / else' as apparently the compiler was able to use branch tables to more quickly move to a matching condition within the statement (instead of having to iterate on average 1/2 the cases each time with 'if / else').  However <see href="https://devblogs.microsoft.com/dotnet/new-features-in-c-7-0/#switch-statements-with-patterns">since C# 7 we're now able to use non-equality / range / pattern conditions within the 'switch' statement</see>.  I haven't been able to find any documentation as to whether this has had a negative impact on performance (although difficult to see how it cannot have), however to mitigate I'm putting all the processing routines for different <see cref="T:ApplicationAccess.Persistence.TemporalEventBufferItemBase"/> subclasses into a dictionary... hence the lookup speed should at least scale equivalently to the aforementioned branch tables.</remarks>
+            <returns>A dictionary keyed by type, whose value is an action which accepts a subclass of <see cref="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/> (having the same type as the key), and a <see cref="T:System.Data.DataRow"/>, and which populates the row with details of the event.</returns>
+            <remarks>Traditionally, the 'switch' statement in C# was preferred to multiple 'if / else' as apparently the compiler was able to use branch tables to more quickly move to a matching condition within the statement (instead of having to iterate on average 1/2 the cases each time with 'if / else').  However <see href="https://devblogs.microsoft.com/dotnet/new-features-in-c-7-0/#switch-statements-with-patterns">since C# 7 we're now able to use non-equality / range / pattern conditions within the 'switch' statement</see>.  I haven't been able to find any documentation as to whether this has had a negative impact on performance (although difficult to see how it cannot have), however to mitigate I'm putting all the processing routines for different <see cref="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase"/> subclasses into a dictionary... hence the lookup speed should at least scale equivalently to the aforementioned branch tables.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.PopulateDataRowWithTemporalEventBufferItemBaseProperties(ApplicationAccess.Persistence.TemporalEventBufferItemBase,System.Data.DataRow)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4.PopulateDataRowWithTemporalEventBufferItemBaseProperties(ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase,System.Data.DataRow)">
             <summary>
             Populates a row of the staging table with base/common properties of the specified event buffer item.
             </summary>
@@ -198,7 +201,16 @@
             <typeparam name="TAccess">The type of levels of access in the IAccessManagerTemporalEventPersister and IAccessManagerTemporalPersistentReader implementations.</typeparam>
             <remarks>Note that <see cref="T:ApplicationAccess.IAccessManagerEventProcessor`4">IAccessManagerEventProcessor</see> methods implemented in this class should not be called from concurrent threads.  The class is designed to operate behind a class which manages mutual exclusion such as the <see cref="T:ApplicationAccess.Persistence.AccessManagerTemporalEventPersisterBuffer`4">AccessManagerTemporalEventPersisterBuffer</see> or <see cref="T:ApplicationAccess.Validation.ConcurrentAccessManagerEventValidator`4">ConcurrentAccessManagerEventValidator</see> classes.</remarks>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger)">
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.userHashCodeGenerator">
+            <summary>The hash code generator for users.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.groupHashCodeGenerator">
+            <summary>The hash code generator for groups.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.entityTypeHashCodeGenerator">
+            <summary>The hash code generator for entity types.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationAccess.Utilities.IHashCodeGenerator{`0},ApplicationAccess.Utilities.IHashCodeGenerator{`1},ApplicationAccess.Utilities.IHashCodeGenerator{System.String},ApplicationLogging.IApplicationLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister class.
             </summary>
@@ -210,9 +222,12 @@
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="userHashCodeGenerator">The hash code generator for users.</param>
+            <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+            <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
             <param name="logger">The logger for general logging.</param>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.#ctor(System.String,System.Int32,System.Int32,System.Int32,ApplicationAccess.IUniqueStringifier{`0},ApplicationAccess.IUniqueStringifier{`1},ApplicationAccess.IUniqueStringifier{`2},ApplicationAccess.IUniqueStringifier{`3},ApplicationAccess.Utilities.IHashCodeGenerator{`0},ApplicationAccess.Utilities.IHashCodeGenerator{`1},ApplicationAccess.Utilities.IHashCodeGenerator{System.String},ApplicationLogging.IApplicationLogger,ApplicationMetrics.IMetricLogger)">
             <summary>
             Initialises a new instance of the ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister class.
             </summary>
@@ -224,6 +239,9 @@
             <param name="groupStringifier">A string converter for groups.</param>
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
+            <param name="userHashCodeGenerator">The hash code generator for users.</param>
+            <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+            <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
             <param name="logger">The logger for general logging.</param>
             <param name="metricLogger">The logger for metrics.</param>
         </member>
@@ -287,64 +305,64 @@
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUser(`0,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUser(`0,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUser(`0,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUser(`0,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroup(`1,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroup(`1,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroup(`1,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroup(`1,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToGroupMapping(`0,`1,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToGroupMapping(`0,`1,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToGroupMapping(`1,`1,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToGroupMapping(`1,`1,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToApplicationComponentAndAccessLevelMapping(`0,`2,`3,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToApplicationComponentAndAccessLevelMapping(`1,`2,`3,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddEntityType(System.String,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddEntityType(System.String,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveEntityType(System.String,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveEntityType(System.String,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddEntity(System.String,System.String,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddEntity(System.String,System.String,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveEntity(System.String,System.String,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveEntity(System.String,System.String,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveUserToEntityMapping(`0,System.String,System.String,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.AddGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime)">
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.RemoveGroupToEntityMapping(`1,System.String,System.String,System.Guid,System.DateTime,System.Int32)">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersister`4.SetupAndExecuteUserStoredProcedure(System.String,`0,System.Guid,System.DateTime)">

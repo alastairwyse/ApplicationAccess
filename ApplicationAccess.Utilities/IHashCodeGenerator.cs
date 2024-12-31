@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Utilities
 {
     /// <summary>
     /// Defines methods to generate evenly distributed hash codes for the specified type.

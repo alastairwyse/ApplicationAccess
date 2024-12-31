@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using ApplicationAccess.Persistence.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 
@@ -62,6 +63,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         protected const String eventIdColumnName = "EventId";
         protected const String eventActionColumnName = "EventAction";
         protected const String occurredTimeColumnName = "OccurredTime";
+        protected const String hashCodeColumnName = "HashCode";
         protected const String eventData1ColumnName = "EventData1";
         protected const String eventData2ColumnName = "EventData2";
         protected const String eventData3ColumnName = "EventData3";
@@ -80,6 +82,8 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         protected DataColumn eventActionColumn;
         /// <summary>Column in the staging table which holds time that the event originally occurred.</summary>
         protected DataColumn occurredTimeColumn;
+        /// <summary>Column in the staging table which holds hash code for the primary element of the event.</summary>
+        protected DataColumn hashCodeColumn;
         /// <summary>Column in the staging table which holds the first piece of data pertaining to the event.</summary>
         protected DataColumn eventData1Column;
         /// <summary>Column in the staging table which holds the second piece of data pertaining to the event.</summary>
@@ -127,6 +131,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             eventIdColumn = new DataColumn(eventIdColumnName, typeof(Guid));
             eventActionColumn = new DataColumn(eventActionColumnName, typeof(String));
             occurredTimeColumn = new DataColumn(occurredTimeColumnName, typeof(DateTime));
+            hashCodeColumn = new DataColumn(hashCodeColumnName, typeof(Int32));
             eventData1Column = new DataColumn(eventData1ColumnName, typeof(String));
             eventData2Column = new DataColumn(eventData2ColumnName, typeof(String));
             eventData3Column = new DataColumn(eventData3ColumnName, typeof(String));
@@ -135,6 +140,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             stagingTable.Columns.Add(eventIdColumn);
             stagingTable.Columns.Add(eventActionColumn);
             stagingTable.Columns.Add(occurredTimeColumn);
+            stagingTable.Columns.Add(hashCodeColumn);
             stagingTable.Columns.Add(eventData1Column);
             stagingTable.Columns.Add(eventData2Column);
             stagingTable.Columns.Add(eventData3Column);
@@ -408,6 +414,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                 row[eventActionColumnName] = removeEventActionValue;
             }
             row[occurredTimeColumnName] = eventBufferItem.OccurredTime;
+            row[hashCodeColumnName] = eventBufferItem.HashCode;
         }
 
         /// <summary>
@@ -475,6 +482,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                     eventIdColumn.Dispose();
                     eventActionColumn.Dispose();
                     occurredTimeColumn.Dispose();
+                    hashCodeColumn.Dispose();
                     eventData1Column.Dispose();
                     eventData2Column.Dispose();
                     eventData3Column.Dispose();

@@ -26,11 +26,13 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
     /// <remarks>Since <see cref="SqlServerPersisterBase"/> is abstract tests are performed through derived class <see cref="SqlServerAccessManagerTemporalPersister{TUser, TGroup, TComponent, TAccess}"/>.</remarks>
     public class SqlServerPersisterBaseTests
     {
+        private IHashCodeGenerator<String> testHashCodeGenerator;
         private SqlServerAccessManagerTemporalPersister<String, String, String, String> testSqlServerAccessManagerTemporalPersister;
 
         [SetUp]
         protected void SetUp()
         {
+            testHashCodeGenerator = new DefaultStringHashCodeGenerator();
             testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
             (
                 "Server=testServer; Database=testDB; User Id=userId; Password=password;",
@@ -41,6 +43,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
+                testHashCodeGenerator,
+                testHashCodeGenerator,
+                testHashCodeGenerator, 
                 new NullLogger()
             );
         }
@@ -55,11 +60,14 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                     "  ",
                     5,
                     10,
-                60,
+                    60,
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
                     new NullLogger()
                 );
             });
@@ -83,6 +91,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
                     new NullLogger()
                 );
             });
@@ -106,6 +117,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
                     new NullLogger()
                 );
             });
@@ -129,6 +143,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
                     new NullLogger()
                 );
             });
@@ -152,6 +169,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
                     new NullLogger()
                 );
             });
@@ -175,6 +195,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
+                    testHashCodeGenerator,
                     new NullLogger()
                 );
             });

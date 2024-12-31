@@ -31,6 +31,9 @@ namespace ApplicationAccess.Hosting.UnitTests
     /// </summary>
     public class ReaderWriterNodeTests
     {
+        private IHashCodeGenerator<String> mockUserHashCodeGenerator;
+        private IHashCodeGenerator<String> mockGroupHashCodeGenerator;
+        private IHashCodeGenerator<String> mockEntityTypeHashCodeGenerator;
         private IAccessManagerEventBufferFlushStrategy mockEventBufferFlushStrategy;
         private IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel> mockPersistentReader;
         private IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
@@ -41,12 +44,24 @@ namespace ApplicationAccess.Hosting.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockEntityTypeHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockEventBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
             mockPersistentReader = Substitute.For<IAccessManagerTemporalPersistentReader<String, String, ApplicationScreen, AccessLevel>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockEventBulkPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
         }
 
         [TearDown]
@@ -60,110 +75,280 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             ReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testReaderWriterNode;
             var fieldNamePath = new List<String>() { "metricLogger" };
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderWriterNode, true);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderWriterNode, true);
 
 
             // Checks the metric logger set on the ConcurrentAccessManagerMetricLogger instance
             fieldNamePath = new List<String>() { "concurrentAccessManager", "metricLoggingWrapper", "metricLogger" };
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderWriterNode, true);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderWriterNode, true);
 
 
             // Checks the MappingMetricLogger within the MetricLoggingConcurrentDirectedGraph
             fieldNamePath = new List<String>() { "concurrentAccessManager", "userToGroupMap", "metricLogger" };
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister
+            );
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<MappingMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
             // Checks the actual metric logger wrapped by the MappingMetricLogger within the MetricLoggingConcurrentDirectedGraph
             fieldNamePath = new List<String>() { "concurrentAccessManager", "userToGroupMap", "metricLogger", "downstreamMetricLogger" };
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister,
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderWriterNode, true);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderWriterNode, true);
 
 
             // Checks the metric logger is set on the event buffer
             fieldNamePath = new List<String>() { "eventBuffer", "metricLogger" };
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister
+            );
 
             NonPublicFieldAssert.IsOfType<NullMetricLogger>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderWriterNode, true);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.HasValue<IMetricLogger>(fieldNamePath, mockMetricLogger, testReaderWriterNode, true);
         }
@@ -173,24 +358,127 @@ namespace ApplicationAccess.Hosting.UnitTests
         {
             ReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testReaderWriterNode;
             var fieldNamePath = new List<String>() { "eventBuffer" };
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister
+            );
 
             NonPublicFieldAssert.IsOfType<AccessManagerTemporalEventPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister
+            );
 
             NonPublicFieldAssert.IsOfType<AccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<AccessManagerTemporalEventPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testReaderWriterNode);
 
 
-            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>(mockEventBufferFlushStrategy, mockPersistentReader, mockEventBulkPersister, mockMetricLogger);
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy, 
+                mockPersistentReader, 
+                mockEventBulkPersister, 
+                mockMetricLogger
+            );
 
             NonPublicFieldAssert.IsOfType<AccessManagerTemporalEventBulkPersisterBuffer<String, String, ApplicationScreen, AccessLevel>>(fieldNamePath, testReaderWriterNode);
+        }
+
+        [Test]
+        public void Constructor_HashCodeGeneratorsSetCorrectlyOnComposedFields()
+        {
+            ReaderWriterNode<String, String, ApplicationScreen, AccessLevel> testReaderWriterNode;
+            var userHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "userHashCodeGenerator" };
+            var groupHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "groupHashCodeGenerator" };
+            var entityTypeHashCodeGeneratorFieldNamePath = new List<String>() { "eventBuffer", "entityTypeHashCodeGenerator" };
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader,
+                mockEventPersister
+            );
+
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(userHashCodeGeneratorFieldNamePath, mockUserHashCodeGenerator, testReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(groupHashCodeGeneratorFieldNamePath, mockGroupHashCodeGenerator, testReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(entityTypeHashCodeGeneratorFieldNamePath, mockEntityTypeHashCodeGenerator, testReaderWriterNode, true);
+
+
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader,
+                mockEventBulkPersister
+            );
+
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(userHashCodeGeneratorFieldNamePath, mockUserHashCodeGenerator, testReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(groupHashCodeGeneratorFieldNamePath, mockGroupHashCodeGenerator, testReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(entityTypeHashCodeGeneratorFieldNamePath, mockEntityTypeHashCodeGenerator, testReaderWriterNode, true);
+
+
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader,
+                mockEventPersister,
+                mockMetricLogger
+            );
+
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(userHashCodeGeneratorFieldNamePath, mockUserHashCodeGenerator, testReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(groupHashCodeGeneratorFieldNamePath, mockGroupHashCodeGenerator, testReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(entityTypeHashCodeGeneratorFieldNamePath, mockEntityTypeHashCodeGenerator, testReaderWriterNode, true);
+
+
+            testReaderWriterNode = new ReaderWriterNode<String, String, ApplicationScreen, AccessLevel>
+            (
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventBufferFlushStrategy,
+                mockPersistentReader,
+                mockEventBulkPersister,
+                mockMetricLogger
+            );
+
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(userHashCodeGeneratorFieldNamePath, mockUserHashCodeGenerator, testReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(groupHashCodeGeneratorFieldNamePath, mockGroupHashCodeGenerator, testReaderWriterNode, true);
+            NonPublicFieldAssert.HasValue<IHashCodeGenerator<String>>(entityTypeHashCodeGeneratorFieldNamePath, mockEntityTypeHashCodeGenerator, testReaderWriterNode, true);
         }
 
         [Test]

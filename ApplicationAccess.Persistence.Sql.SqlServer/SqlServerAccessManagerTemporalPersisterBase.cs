@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using ApplicationAccess.Persistence.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;

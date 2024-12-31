@@ -19,14 +19,15 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.IO;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Persistence.Sql;
 using ApplicationLogging;
 using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 using Npgsql;
 using NpgsqlTypes;
 using System.Data;
 using System.Security.Cryptography;
-using ApplicationMetrics.MetricLoggers;
 
 namespace ApplicationAccess.Persistence.Sql.PostgreSql
 {

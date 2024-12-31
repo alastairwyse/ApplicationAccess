@@ -16,18 +16,20 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Persistence.Models
 {
-    /// <summary>
-    /// Container class for a buffered/cached user event.
+    /// <summary> 
+    /// Container class for a buffered/cached user to group mapping event.
     /// </summary>
-    public class UserEventBufferItem<TUser> : TemporalEventBufferItemBase
+    public class UserToGroupMappingEventBufferItem<TUser, TGroup> : TemporalEventBufferItemBase
     {
-        /// <summary>The user the event occured for.</summary>
+        /// <summary>The user in the mapping.</summary>
         protected TUser user;
+        /// <summary>The group in the mapping.</summary>
+        protected TGroup group;
 
         /// <summary>
-        /// The user the event occured for.
+        /// The user in the mapping.
         /// </summary>
         public TUser User
         {
@@ -35,16 +37,27 @@ namespace ApplicationAccess.Persistence
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.UserEventBufferItem class.
+        /// The group in the mapping.
+        /// </summary>
+        public TGroup Group
+        {
+            get { return group; }
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the ApplicationAccess.Persistence.UserToGroupMappingEventBufferItem class.
         /// </summary>
         /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
-        /// <param name="user">The user the event occured for.</param>
+        /// <param name="user">The user in the mapping.</param>
+        /// <param name="group">The group in the mapping.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        public UserEventBufferItem(Guid eventId, EventAction eventAction, TUser user, DateTime occurredTime)
-            : base(eventId, eventAction, occurredTime)
+        /// <param name="hashCode">The hash code for the user.</param>
+        public UserToGroupMappingEventBufferItem(Guid eventId, EventAction eventAction, TUser user, TGroup group, DateTime occurredTime, Int32 hashCode)
+            : base(eventId, eventAction, occurredTime, hashCode)
         {
             this.user = user;
+            this.group = group;
         }
     }
 }

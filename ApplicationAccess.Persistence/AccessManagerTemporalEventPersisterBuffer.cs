@@ -15,8 +15,9 @@
  */
 
 using System;
-using ApplicationAccess.Validation;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Utilities;
+using ApplicationAccess.Validation;
 using ApplicationMetrics;
 
 namespace ApplicationAccess.Persistence
@@ -40,13 +41,19 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator, 
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister
-        ) : base(eventValidator, bufferFlushStrategy)
+        ) : base(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator)
         {
             this.eventPersister = eventPersister;
         }
@@ -56,15 +63,21 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public AccessManagerTemporalEventPersisterBuffer
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger
-        ) : base(eventValidator, bufferFlushStrategy, metricLogger)
+        ) : base(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator, metricLogger)
         {
             this.eventPersister = eventPersister;
         }
@@ -74,6 +87,9 @@ namespace ApplicationAccess.Persistence
         /// </summary>
         /// <param name="eventValidator">The validator to use to validate events.</param>
         /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+        /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+        /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+        /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
         /// <param name="eventPersister">The persister to use to write flushed events to permanent storage.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <param name="guidProvider">The provider to use for random Guids.</param>
@@ -83,11 +99,14 @@ namespace ApplicationAccess.Persistence
         (
             IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
             IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+            IHashCodeGenerator<TUser> userHashCodeGenerator,
+            IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+            IHashCodeGenerator<String> entityTypeHashCodeGenerator,
             IAccessManagerTemporalEventPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
             IMetricLogger metricLogger, 
             IGuidProvider guidProvider,
             IDateTimeProvider dateTimeProvider
-        ) : base(eventValidator, bufferFlushStrategy, metricLogger, guidProvider, dateTimeProvider)
+        ) : base(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator, metricLogger, guidProvider, dateTimeProvider)
         {
             this.eventPersister = eventPersister;
         }
@@ -125,7 +144,8 @@ namespace ApplicationAccess.Persistence
                     (
                         eventBufferItem.User,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime, 
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -137,7 +157,8 @@ namespace ApplicationAccess.Persistence
                     (
                         eventBufferItem.User,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -158,7 +179,8 @@ namespace ApplicationAccess.Persistence
                     (
                         eventBufferItem.Group,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -170,7 +192,8 @@ namespace ApplicationAccess.Persistence
                     (
                         eventBufferItem.Group,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -192,7 +215,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.User,
                         eventBufferItem.Group,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -205,7 +229,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.User,
                         eventBufferItem.Group,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -227,7 +252,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.FromGroup,
                         eventBufferItem.ToGroup,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -240,7 +266,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.FromGroup,
                         eventBufferItem.ToGroup,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -263,7 +290,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.ApplicationComponent,
                         eventBufferItem.AccessLevel,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -277,7 +305,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.ApplicationComponent,
                         eventBufferItem.AccessLevel,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -300,7 +329,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.ApplicationComponent,
                         eventBufferItem.AccessLevel,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -314,7 +344,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.ApplicationComponent,
                         eventBufferItem.AccessLevel,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -335,7 +366,8 @@ namespace ApplicationAccess.Persistence
                     (
                         eventBufferItem.EntityType,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -347,7 +379,8 @@ namespace ApplicationAccess.Persistence
                     (
                         eventBufferItem.EntityType,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -369,7 +402,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.EntityType,
                         eventBufferItem.Entity,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -382,7 +416,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.EntityType,
                         eventBufferItem.Entity,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -405,7 +440,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.EntityType,
                         eventBufferItem.Entity,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -419,7 +455,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.EntityType,
                         eventBufferItem.Entity,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -442,7 +479,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.EntityType,
                         eventBufferItem.Entity,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     );
                 };
             }
@@ -456,7 +494,8 @@ namespace ApplicationAccess.Persistence
                         eventBufferItem.EntityType,
                         eventBufferItem.Entity,
                         eventBufferItem.EventId,
-                        eventBufferItem.OccurredTime
+                        eventBufferItem.OccurredTime,
+                        eventBufferItem.HashCode
                     ); ;
                 };
             }

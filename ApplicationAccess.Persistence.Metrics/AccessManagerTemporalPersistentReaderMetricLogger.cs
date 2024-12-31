@@ -16,6 +16,7 @@
 
 using System;
 using ApplicationAccess.Metrics;
+using ApplicationAccess.Persistence.Models;
 using ApplicationMetrics;
 
 namespace ApplicationAccess.Persistence.Metrics

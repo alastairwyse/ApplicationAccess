@@ -32,6 +32,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
             testSqlServerAccessManagerTemporalPersister = new SqlServerAccessManagerTemporalPersister<String, String, String, String>
             (
                 "Server=testServer; Database=testDB; User Id=userId; Password=password;",
@@ -42,6 +43,9 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
                 new StringUniqueStringifier(),
+                hashCodeGenerator,
+                hashCodeGenerator,
+                hashCodeGenerator,
                 new NullLogger()
             );
         }

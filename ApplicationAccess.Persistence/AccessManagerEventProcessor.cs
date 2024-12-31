@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence
 {

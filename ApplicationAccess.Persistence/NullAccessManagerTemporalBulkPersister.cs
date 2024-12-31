@@ -15,6 +15,7 @@
  */
 
 using System.Collections.Generic;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence
 {

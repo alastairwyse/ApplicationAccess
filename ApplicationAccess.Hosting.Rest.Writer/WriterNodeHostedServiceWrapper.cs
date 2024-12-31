@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Metrics;
+using ApplicationAccess.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.Writer
 {
@@ -77,13 +78,17 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// <inheritdoc/>
         protected override WriterNode<String, String, String, String> InitializeWriterNode()
         {
-            return new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+
+            return new WriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient);
         }
 
         /// <inheritdoc/>
         protected override WriterNode<String, String, String, String> InitializeWriterNodeWithMetricLogging()
         {
-            return new WriterNode<String, String, String, String>(eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
+            var hashCodeGenerator = new DefaultStringHashCodeGenerator();
+
+            return new WriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
         }
 
         #endregion

@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using ApplicationAccess.Distribution.Metrics;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
+using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using NUnit.Framework;
 using NSubstitute;

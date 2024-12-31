@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.UnitTests;
 using ApplicationAccess.Utilities;
 using ApplicationAccess.Validation;
@@ -33,6 +34,9 @@ namespace ApplicationAccess.Persistence.UnitTests
     public class DependencyFreeAccessManagerTemporalEventBulkPersisterBufferIntegrationTests
     {
         protected IAccessManagerEventBufferFlushStrategy mockBufferFlushStrategy;
+        protected IHashCodeGenerator<String> mockUserHashCodeGenerator;
+        protected IHashCodeGenerator<String> mockGroupHashCodeGenerator;
+        protected IHashCodeGenerator<String> mockEntityTypeHashCodeGenerator;
         protected IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel> mockEventPersister;
         protected IMetricLogger mockMetricLogger;
         protected IGuidProvider mockGuidProvider;
@@ -45,13 +49,27 @@ namespace ApplicationAccess.Persistence.UnitTests
         protected void SetUp()
         {
             mockBufferFlushStrategy = Substitute.For<IAccessManagerEventBufferFlushStrategy>();
+            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockEntityTypeHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockEventPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, ApplicationScreen, AccessLevel>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             mockGuidProvider = Substitute.For<IGuidProvider>();
             mockDateTimeProvider = Substitute.For<IDateTimeProvider>();
             testAccessManager = new DependencyFreeAccessManager<String, String, ApplicationScreen, AccessLevel>();
             testEventValidator = new ConcurrentAccessManagerEventValidator<String, String, ApplicationScreen, AccessLevel>(testAccessManager);
-            testEventBulkPersisterBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>(testEventValidator, mockBufferFlushStrategy, mockEventPersister, mockMetricLogger, mockGuidProvider, mockDateTimeProvider);
+            testEventBulkPersisterBuffer = new DependencyFreeAccessManagerTemporalEventBulkPersisterBufferWithProtectedMembers<String, String, ApplicationScreen, AccessLevel>
+            (
+                testEventValidator, 
+                mockBufferFlushStrategy,
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                mockEntityTypeHashCodeGenerator,
+                mockEventPersister, 
+                mockMetricLogger, 
+                mockGuidProvider, 
+                mockDateTimeProvider
+            );
             // Set the PersisterBuffer on the AccessManager to complete the 'loop back'
             testAccessManager.EventProcessor = testEventBulkPersisterBuffer;
         }
@@ -65,6 +83,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             var eventTime1 = CreateDataTimeFromString("2023-08-05 12:32:04");
             var eventTime2 = CreateDataTimeFromString("2023-08-05 12:32:05");
             var eventTime3 = CreateDataTimeFromString("2023-08-05 12:32:06");
+            Int32 user1HashCode = 1;
+            Int32 group1HashCode = 11;
             const String user = "user1";
             const String group = "group1";
             mockGuidProvider.NewGuid().Returns<Guid>
@@ -79,6 +99,8 @@ namespace ApplicationAccess.Persistence.UnitTests
                 eventTime2,
                 eventTime3
             );
+            mockUserHashCodeGenerator.GetHashCode(user).Returns(user1HashCode);
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns(group1HashCode);
 
             testEventBulkPersisterBuffer.AddUserToGroupMapping(user, group);
 
@@ -93,17 +115,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedUserEvent.EventAction);
             Assert.AreEqual(user, bufferedUserEvent.User);
             Assert.AreEqual(eventTime1, bufferedUserEvent.OccurredTime);
+            Assert.AreEqual(user1HashCode, bufferedUserEvent.HashCode);
             GroupEventBufferItem<String> bufferedGroupEvent = testEventBulkPersisterBuffer.GroupEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId2, bufferedGroupEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedGroupEvent.EventAction);
             Assert.AreEqual(group, bufferedGroupEvent.Group);
             Assert.AreEqual(eventTime2, bufferedGroupEvent.OccurredTime);
+            Assert.AreEqual(group1HashCode, bufferedGroupEvent.HashCode);
             UserToGroupMappingEventBufferItem<String, String> bufferedUserToGroupEvent = testEventBulkPersisterBuffer.UserToGroupMappingEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId3, bufferedUserToGroupEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedUserToGroupEvent.EventAction);
             Assert.AreEqual(user, bufferedUserToGroupEvent.User);
             Assert.AreEqual(group, bufferedUserToGroupEvent.Group);
             Assert.AreEqual(eventTime3, bufferedUserToGroupEvent.OccurredTime);
+            Assert.AreEqual(user1HashCode, bufferedUserToGroupEvent.HashCode);
         }
 
         [Test]
@@ -115,6 +140,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             var eventTime1 = CreateDataTimeFromString("2023-08-05 12:32:04");
             var eventTime2 = CreateDataTimeFromString("2023-08-05 12:32:05");
             var eventTime3 = CreateDataTimeFromString("2023-08-05 12:32:06");
+            Int32 group1HashCode = 11;
+            Int32 group2HashCode = 12;
             const String fromGroup = "group1";
             const String toGroup = "group2";
             mockGuidProvider.NewGuid().Returns<Guid>
@@ -129,6 +156,8 @@ namespace ApplicationAccess.Persistence.UnitTests
                 eventTime2,
                 eventTime3
             );
+            mockGroupHashCodeGenerator.GetHashCode(fromGroup).Returns(group1HashCode);
+            mockGroupHashCodeGenerator.GetHashCode(toGroup).Returns(group2HashCode);
 
             testEventBulkPersisterBuffer.AddGroupToGroupMapping(fromGroup, toGroup);
 
@@ -142,17 +171,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedFromGroupEvent.EventAction);
             Assert.AreEqual(fromGroup, bufferedFromGroupEvent.Group);
             Assert.AreEqual(eventTime1, bufferedFromGroupEvent.OccurredTime);
+            Assert.AreEqual(group1HashCode, bufferedFromGroupEvent.HashCode);
             GroupEventBufferItem<String> bufferedToGroupEvent = testEventBulkPersisterBuffer.GroupEventBuffer.First.Next.Value.Item1;
             Assert.AreEqual(eventId2, bufferedToGroupEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedToGroupEvent.EventAction);
             Assert.AreEqual(toGroup, bufferedToGroupEvent.Group);
             Assert.AreEqual(eventTime2, bufferedToGroupEvent.OccurredTime);
+            Assert.AreEqual(group2HashCode, bufferedToGroupEvent.HashCode);
             GroupToGroupMappingEventBufferItem<String> bufferedGroupToGroupEvent = testEventBulkPersisterBuffer.GroupToGroupMappingEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId3, bufferedGroupToGroupEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedGroupToGroupEvent.EventAction);
             Assert.AreEqual(fromGroup, bufferedGroupToGroupEvent.FromGroup);
             Assert.AreEqual(toGroup, bufferedGroupToGroupEvent.ToGroup);
             Assert.AreEqual(eventTime3, bufferedGroupToGroupEvent.OccurredTime);
+            Assert.AreEqual(group1HashCode, bufferedGroupToGroupEvent.HashCode);
         }
 
         [Test]
@@ -162,6 +194,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             var eventId2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
             var eventTime1 = CreateDataTimeFromString("2023-08-05 12:32:04");
             var eventTime2 = CreateDataTimeFromString("2023-08-05 12:32:05");
+            Int32 user1HashCode = 1;
             const String user = "user1";
             mockGuidProvider.NewGuid().Returns<Guid>
             (
@@ -173,6 +206,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 eventTime1,
                 eventTime2
             );
+            mockUserHashCodeGenerator.GetHashCode(user).Returns(user1HashCode);
 
             testEventBulkPersisterBuffer.AddUserToApplicationComponentAndAccessLevelMapping(user, ApplicationScreen.ManageProducts, AccessLevel.Delete);
 
@@ -185,6 +219,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedUserEvent.EventAction);
             Assert.AreEqual(user, bufferedUserEvent.User);
             Assert.AreEqual(eventTime1, bufferedUserEvent.OccurredTime);
+            Assert.AreEqual(user1HashCode, bufferedUserEvent.HashCode);
             UserToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel> bufferedUserToApplicationComponentAndAccessLevelEvent = testEventBulkPersisterBuffer.UserToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId2, bufferedUserToApplicationComponentAndAccessLevelEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedUserToApplicationComponentAndAccessLevelEvent.EventAction);
@@ -192,6 +227,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(ApplicationScreen.ManageProducts, bufferedUserToApplicationComponentAndAccessLevelEvent.ApplicationComponent);
             Assert.AreEqual(AccessLevel.Delete, bufferedUserToApplicationComponentAndAccessLevelEvent.AccessLevel);
             Assert.AreEqual(eventTime2, bufferedUserToApplicationComponentAndAccessLevelEvent.OccurredTime);
+            Assert.AreEqual(user1HashCode, bufferedUserToApplicationComponentAndAccessLevelEvent.HashCode);
         }
 
         [Test]
@@ -201,6 +237,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             var eventId2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
             var eventTime1 = CreateDataTimeFromString("2023-08-05 12:32:04");
             var eventTime2 = CreateDataTimeFromString("2023-08-05 12:32:05");
+            Int32 group1HashCode = 11;
             const String group = "group1";
             mockGuidProvider.NewGuid().Returns<Guid>
             (
@@ -212,6 +249,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 eventTime1,
                 eventTime2
             );
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns(group1HashCode);
 
             testEventBulkPersisterBuffer.AddGroupToApplicationComponentAndAccessLevelMapping(group, ApplicationScreen.Summary, AccessLevel.View);
 
@@ -224,6 +262,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedGroupEvent.EventAction);
             Assert.AreEqual(group, bufferedGroupEvent.Group);
             Assert.AreEqual(eventTime1, bufferedGroupEvent.OccurredTime);
+            Assert.AreEqual(group1HashCode, bufferedGroupEvent.HashCode);
             GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<String, ApplicationScreen, AccessLevel> bufferedGroupToApplicationComponentAndAccessLevelEvent = testEventBulkPersisterBuffer.GroupToApplicationComponentAndAccessLevelMappingEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId2, bufferedGroupToApplicationComponentAndAccessLevelEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedGroupToApplicationComponentAndAccessLevelEvent.EventAction);
@@ -231,6 +270,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(ApplicationScreen.Summary, bufferedGroupToApplicationComponentAndAccessLevelEvent.ApplicationComponent);
             Assert.AreEqual(AccessLevel.View, bufferedGroupToApplicationComponentAndAccessLevelEvent.AccessLevel);
             Assert.AreEqual(eventTime2, bufferedGroupToApplicationComponentAndAccessLevelEvent.OccurredTime);
+            Assert.AreEqual(group1HashCode, bufferedGroupToApplicationComponentAndAccessLevelEvent.HashCode);
         }
 
         [Test]
@@ -240,6 +280,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             var eventId2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
             var eventTime1 = CreateDataTimeFromString("2023-08-05 12:32:04");
             var eventTime2 = CreateDataTimeFromString("2023-08-05 12:32:05");
+            Int32 clientAccountHashCode = 21;
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
             mockGuidProvider.NewGuid().Returns<Guid>
@@ -252,6 +293,7 @@ namespace ApplicationAccess.Persistence.UnitTests
                 eventTime1,
                 eventTime2
             );
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns(clientAccountHashCode);
 
             testEventBulkPersisterBuffer.AddEntity(entityType, entity);
 
@@ -264,12 +306,14 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedEntityTypeEvent.EventAction);
             Assert.AreEqual(entityType, bufferedEntityTypeEvent.EntityType);
             Assert.AreEqual(eventTime1, bufferedEntityTypeEvent.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, bufferedEntityTypeEvent.HashCode);
             EntityEventBufferItem bufferedEntityEvent = testEventBulkPersisterBuffer.EntityEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId2, bufferedEntityEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedEntityEvent.EventAction);
             Assert.AreEqual(entityType, bufferedEntityEvent.EntityType);
             Assert.AreEqual(entity, bufferedEntityEvent.Entity);
             Assert.AreEqual(eventTime2, bufferedEntityEvent.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, bufferedEntityEvent.HashCode);
         }
 
         [Test]
@@ -283,6 +327,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             var eventTime2 = CreateDataTimeFromString("2023-08-05 12:32:05");
             var eventTime3 = CreateDataTimeFromString("2023-08-05 12:32:06");
             var eventTime4 = CreateDataTimeFromString("2023-08-05 12:32:07");
+            Int32 user1HashCode = 1;
+            Int32 clientAccountHashCode = 21;
             const String user = "user1";
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
@@ -300,6 +346,8 @@ namespace ApplicationAccess.Persistence.UnitTests
                 eventTime3,
                 eventTime4
             );
+            mockUserHashCodeGenerator.GetHashCode(user).Returns(user1HashCode);
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns(clientAccountHashCode);
 
             testEventBulkPersisterBuffer.AddUserToEntityMapping(user, entityType, entity);
 
@@ -316,17 +364,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedUserEvent.EventAction);
             Assert.AreEqual(user, bufferedUserEvent.User);
             Assert.AreEqual(eventTime1, bufferedUserEvent.OccurredTime);
+            Assert.AreEqual(user1HashCode, bufferedUserEvent.HashCode);
             EntityTypeEventBufferItem bufferedEntityTypeEvent = testEventBulkPersisterBuffer.EntityTypeEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId2, bufferedEntityTypeEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedEntityTypeEvent.EventAction);
             Assert.AreEqual(entityType, bufferedEntityTypeEvent.EntityType);
             Assert.AreEqual(eventTime2, bufferedEntityTypeEvent.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, bufferedEntityTypeEvent.HashCode);
             EntityEventBufferItem bufferedEntityEvent = testEventBulkPersisterBuffer.EntityEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId3, bufferedEntityEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedEntityEvent.EventAction);
             Assert.AreEqual(entityType, bufferedEntityEvent.EntityType);
             Assert.AreEqual(entity, bufferedEntityEvent.Entity);
             Assert.AreEqual(eventTime3, bufferedEntityEvent.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, bufferedEntityEvent.HashCode);
             UserToEntityMappingEventBufferItem<String> bufferedUserToEntityEvent = testEventBulkPersisterBuffer.UserToEntityMappingEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId4, bufferedUserToEntityEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedUserToEntityEvent.EventAction);
@@ -334,6 +385,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entityType, bufferedUserToEntityEvent.EntityType);
             Assert.AreEqual(entity, bufferedUserToEntityEvent.Entity);
             Assert.AreEqual(eventTime4, bufferedUserToEntityEvent.OccurredTime);
+            Assert.AreEqual(user1HashCode, bufferedUserToEntityEvent.HashCode);
         }
 
         [Test]
@@ -347,6 +399,8 @@ namespace ApplicationAccess.Persistence.UnitTests
             var eventTime2 = CreateDataTimeFromString("2023-08-05 12:32:05");
             var eventTime3 = CreateDataTimeFromString("2023-08-05 12:32:06");
             var eventTime4 = CreateDataTimeFromString("2023-08-05 12:32:07");
+            Int32 group1HashCode = 11;
+            Int32 clientAccountHashCode = 21;
             const String group = "group1";
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
@@ -364,6 +418,8 @@ namespace ApplicationAccess.Persistence.UnitTests
                 eventTime3,
                 eventTime4
             );
+            mockGroupHashCodeGenerator.GetHashCode(group).Returns(group1HashCode);
+            mockEntityTypeHashCodeGenerator.GetHashCode(entityType).Returns(clientAccountHashCode);
 
             testEventBulkPersisterBuffer.AddGroupToEntityMapping(group, entityType, entity);
 
@@ -380,17 +436,20 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(EventAction.Add, bufferedGroupEvent.EventAction);
             Assert.AreEqual(group, bufferedGroupEvent.Group);
             Assert.AreEqual(eventTime1, bufferedGroupEvent.OccurredTime);
+            Assert.AreEqual(group1HashCode, bufferedGroupEvent.HashCode);
             EntityTypeEventBufferItem bufferedEntityTypeEvent = testEventBulkPersisterBuffer.EntityTypeEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId2, bufferedEntityTypeEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedEntityTypeEvent.EventAction);
             Assert.AreEqual(entityType, bufferedEntityTypeEvent.EntityType);
             Assert.AreEqual(eventTime2, bufferedEntityTypeEvent.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, bufferedEntityTypeEvent.HashCode);
             EntityEventBufferItem bufferedEntityEvent = testEventBulkPersisterBuffer.EntityEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId3, bufferedEntityEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedEntityEvent.EventAction);
             Assert.AreEqual(entityType, bufferedEntityEvent.EntityType);
             Assert.AreEqual(entity, bufferedEntityEvent.Entity);
             Assert.AreEqual(eventTime3, bufferedEntityEvent.OccurredTime);
+            Assert.AreEqual(clientAccountHashCode, bufferedEntityTypeEvent.HashCode);
             GroupToEntityMappingEventBufferItem<String> bufferedGroupToEntityEvent = testEventBulkPersisterBuffer.GroupToEntityMappingEventBuffer.First.Value.Item1;
             Assert.AreEqual(eventId4, bufferedGroupToEntityEvent.EventId);
             Assert.AreEqual(EventAction.Add, bufferedGroupToEntityEvent.EventAction);
@@ -398,6 +457,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             Assert.AreEqual(entityType, bufferedGroupToEntityEvent.EntityType);
             Assert.AreEqual(entity, bufferedGroupToEntityEvent.Entity);
             Assert.AreEqual(eventTime4, bufferedGroupToEntityEvent.OccurredTime);
+            Assert.AreEqual(group1HashCode, bufferedGroupToEntityEvent.HashCode);
         }
 
         #region Private/Protected Methods
@@ -558,6 +618,9 @@ namespace ApplicationAccess.Persistence.UnitTests
             /// </summary>
             /// <param name="eventValidator">The validator to use to validate events.</param>
             /// <param name="bufferFlushStrategy">The strategy to use for flushing the buffers.</param>
+            /// <param name="userHashCodeGenerator">The hash code generator for users.</param>
+            /// <param name="groupHashCodeGenerator">The hash code generator for groups.</param>
+            /// <param name="entityTypeHashCodeGenerator">The hash code generator for entity types.</param>
             /// <param name="eventPersister">The bulk persister to use to write flushed events to permanent storage.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
             /// <param name="guidProvider">The provider to use for random Guids.</param>
@@ -566,12 +629,15 @@ namespace ApplicationAccess.Persistence.UnitTests
             (
                 IAccessManagerEventValidator<TUser, TGroup, TComponent, TAccess> eventValidator,
                 IAccessManagerEventBufferFlushStrategy bufferFlushStrategy,
+                IHashCodeGenerator<TUser> userHashCodeGenerator,
+                IHashCodeGenerator<TGroup> groupHashCodeGenerator,
+                IHashCodeGenerator<String> entityTypeHashCodeGenerator,
                 IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> eventPersister,
                 IMetricLogger metricLogger,
                 IGuidProvider guidProvider,
                 IDateTimeProvider dateTimeProvider
             )
-                : base(eventValidator, bufferFlushStrategy, eventPersister, metricLogger, guidProvider, dateTimeProvider)
+                : base(eventValidator, bufferFlushStrategy, userHashCodeGenerator, groupHashCodeGenerator, entityTypeHashCodeGenerator, eventPersister, metricLogger, guidProvider, dateTimeProvider)
             {
             }
         }

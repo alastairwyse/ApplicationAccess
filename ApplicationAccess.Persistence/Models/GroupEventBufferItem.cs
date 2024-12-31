@@ -16,35 +16,36 @@
 
 using System;
 
-namespace ApplicationAccess.Persistence
+namespace ApplicationAccess.Persistence.Models
 {
     /// <summary>
-    /// Container class for a buffered/cached entity type event.
+    /// Container class for a buffered/cached group event.
     /// </summary>
-    public class EntityTypeEventBufferItem : TemporalEventBufferItemBase
+    public class GroupEventBufferItem<TGroup> : TemporalEventBufferItemBase
     {
-        /// <summary>The entity type the event occured for.</summary>
-        protected String entityType;
+        /// <summary>The group the event occured for.</summary>
+        protected TGroup group;
 
         /// <summary>
-        /// The entity type the event occured for.
+        /// The group the event occured for.
         /// </summary>
-        public String EntityType
+        public TGroup Group
         {
-            get { return entityType; }
+            get { return group; }
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Persistence.EntityTypeEventBufferItem class.
+        /// Initialises a new instance of the ApplicationAccess.Persistence.GroupEventBufferItem class.
         /// </summary>
         /// <param name="eventId">A unique id for the event.</param>
         /// <param name="eventAction">The action of the event.</param>
-        /// <param name="entityType">The entity type the event occured for.</param>
+        /// <param name="group">The group the event occured for.</param>
         /// <param name="occurredTime">The time that the event originally occurred.</param>
-        public EntityTypeEventBufferItem(Guid eventId, EventAction eventAction, String entityType, DateTime occurredTime)
-            : base(eventId, eventAction, occurredTime)
+        /// <param name="hashCode">The hash code for the group.</param>
+        public GroupEventBufferItem(Guid eventId, EventAction eventAction, TGroup group, DateTime occurredTime, Int32 hashCode)
+            : base(eventId, eventAction, occurredTime, hashCode)
         {
-            this.entityType = entityType;
+            this.group = group;
         }
     }
 }

@@ -20,6 +20,7 @@ using System.Globalization;
 using System.IO;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence.File;
+using ApplicationAccess.Persistence.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 using NUnit.Framework;
@@ -186,9 +187,9 @@ namespace ApplicationAccess.Persistence.File.IntegrationTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var testEvents = new List<TemporalEventBufferItemBase>()
             {
-                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "User1", CreateDataTimeFromString("2024-08-25 15:57:00")),
-                new GroupEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "Group1", CreateDataTimeFromString("2024-08-25 15:57:10")),
-                new UserToGroupMappingEventBufferItem<String, String>(Guid.NewGuid(), EventAction.Add, "User1", "Group1", CreateDataTimeFromString("2024-08-25 15:57:20"))
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "User1", CreateDataTimeFromString("2024-08-25 15:57:00"), 1),
+                new GroupEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "Group1", CreateDataTimeFromString("2024-08-25 15:57:10"), 11),
+                new UserToGroupMappingEventBufferItem<String, String>(Guid.NewGuid(), EventAction.Add, "User1", "Group1", CreateDataTimeFromString("2024-08-25 15:57:20"), 1)
             };
             testFileAccessManagerTemporalEventBulkPersisterReader = new FileAccessManagerTemporalEventBulkPersisterReader<String, String, String, String>
             (
@@ -216,16 +217,19 @@ namespace ApplicationAccess.Persistence.File.IntegrationTests
             Assert.AreEqual(testEvents[0].EventId, results[0].EventId);
             Assert.AreEqual(testEvents[0].EventAction, results[0].EventAction);
             Assert.AreEqual(testEvents[0].OccurredTime, results[0].OccurredTime);
+            Assert.AreEqual(testEvents[0].HashCode, results[0].HashCode);
             Assert.AreEqual(((UserEventBufferItem<String>)testEvents[0]).User, ((UserEventBufferItem<String>)results[0]).User);
             Assert.IsAssignableFrom<GroupEventBufferItem<String>>(results[1]);
             Assert.AreEqual(testEvents[1].EventId, results[1].EventId);
             Assert.AreEqual(testEvents[1].EventAction, results[1].EventAction);
             Assert.AreEqual(testEvents[1].OccurredTime, results[1].OccurredTime);
+            Assert.AreEqual(testEvents[1].HashCode, results[1].HashCode);
             Assert.AreEqual(((GroupEventBufferItem<String>)testEvents[1]).Group, ((GroupEventBufferItem<String>)results[1]).Group);
             Assert.IsAssignableFrom<UserToGroupMappingEventBufferItem<String, String>>(results[2]);
             Assert.AreEqual(testEvents[2].EventId, results[2].EventId);
             Assert.AreEqual(testEvents[2].EventAction, results[2].EventAction);
             Assert.AreEqual(testEvents[2].OccurredTime, results[2].OccurredTime);
+            Assert.AreEqual(testEvents[2].HashCode, results[2].HashCode);
             Assert.AreEqual(((UserToGroupMappingEventBufferItem<String, String>)testEvents[2]).User, ((UserToGroupMappingEventBufferItem<String, String>)results[2]).User);
             Assert.AreEqual(((UserToGroupMappingEventBufferItem<String, String>)testEvents[2]).Group, ((UserToGroupMappingEventBufferItem<String, String>)results[2]).Group);
             Assert.IsFalse(System.IO.File.Exists(testEventFilePath));
@@ -238,14 +242,14 @@ namespace ApplicationAccess.Persistence.File.IntegrationTests
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var testEvents1 = new List<TemporalEventBufferItemBase>()
             {
-                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "User1", CreateDataTimeFromString("2024-08-25 15:57:00")),
-                new GroupEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "Group1", CreateDataTimeFromString("2024-08-25 15:57:10")),
-                new UserToGroupMappingEventBufferItem<String, String>(Guid.NewGuid(), EventAction.Add, "User1", "Group1", CreateDataTimeFromString("2024-08-25 15:57:20"))
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "User1", CreateDataTimeFromString("2024-08-25 15:57:00"), 1),
+                new GroupEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "Group1", CreateDataTimeFromString("2024-08-25 15:57:10"), 11),
+                new UserToGroupMappingEventBufferItem<String, String>(Guid.NewGuid(), EventAction.Add, "User1", "Group1", CreateDataTimeFromString("2024-08-25 15:57:20"), 1)
             };
             var testEvents2 = new List<TemporalEventBufferItemBase>()
             {
-                new EntityTypeEventBufferItem(Guid.NewGuid(), EventAction.Add, "Clients", CreateDataTimeFromString("2024-08-25 15:57:30")),
-                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User1", CreateDataTimeFromString("2024-08-25 15:57:40")),
+                new EntityTypeEventBufferItem(Guid.NewGuid(), EventAction.Add, "Clients", CreateDataTimeFromString("2024-08-25 15:57:30"), 21),
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User1", CreateDataTimeFromString("2024-08-25 15:57:40"), 1),
             };
             testFileAccessManagerTemporalEventBulkPersisterReader = new FileAccessManagerTemporalEventBulkPersisterReader<String, String, String, String>
             (
@@ -278,27 +282,32 @@ namespace ApplicationAccess.Persistence.File.IntegrationTests
             Assert.AreEqual(testEvents1[0].EventId, results[0].EventId);
             Assert.AreEqual(testEvents1[0].EventAction, results[0].EventAction);
             Assert.AreEqual(testEvents1[0].OccurredTime, results[0].OccurredTime);
+            Assert.AreEqual(testEvents1[0].HashCode, results[0].HashCode);
             Assert.AreEqual(((UserEventBufferItem<String>)testEvents1[0]).User, ((UserEventBufferItem<String>)results[0]).User);
             Assert.IsAssignableFrom<GroupEventBufferItem<String>>(results[1]);
             Assert.AreEqual(testEvents1[1].EventId, results[1].EventId);
             Assert.AreEqual(testEvents1[1].EventAction, results[1].EventAction);
             Assert.AreEqual(testEvents1[1].OccurredTime, results[1].OccurredTime);
+            Assert.AreEqual(testEvents1[1].HashCode, results[1].HashCode);
             Assert.AreEqual(((GroupEventBufferItem<String>)testEvents1[1]).Group, ((GroupEventBufferItem<String>)results[1]).Group);
             Assert.IsAssignableFrom<UserToGroupMappingEventBufferItem<String, String>>(results[2]);
             Assert.AreEqual(testEvents1[2].EventId, results[2].EventId);
             Assert.AreEqual(testEvents1[2].EventAction, results[2].EventAction);
             Assert.AreEqual(testEvents1[2].OccurredTime, results[2].OccurredTime);
+            Assert.AreEqual(testEvents1[2].HashCode, results[2].HashCode);
             Assert.AreEqual(((UserToGroupMappingEventBufferItem<String, String>)testEvents1[2]).User, ((UserToGroupMappingEventBufferItem<String, String>)results[2]).User);
             Assert.AreEqual(((UserToGroupMappingEventBufferItem<String, String>)testEvents1[2]).Group, ((UserToGroupMappingEventBufferItem<String, String>)results[2]).Group);
             Assert.IsAssignableFrom<EntityTypeEventBufferItem>(results[3]);
             Assert.AreEqual(testEvents2[0].EventId, results[3].EventId);
             Assert.AreEqual(testEvents2[0].EventAction, results[3].EventAction);
             Assert.AreEqual(testEvents2[0].OccurredTime, results[3].OccurredTime);
+            Assert.AreEqual(testEvents2[0].HashCode, results[3].HashCode);
             Assert.AreEqual(((EntityTypeEventBufferItem)testEvents2[0]).EntityType, ((EntityTypeEventBufferItem)results[3]).EntityType);
             Assert.IsAssignableFrom<UserEventBufferItem<String>>(results[4]);
             Assert.AreEqual(testEvents2[1].EventId, results[4].EventId);
             Assert.AreEqual(testEvents2[1].EventAction, results[4].EventAction);
             Assert.AreEqual(testEvents2[1].OccurredTime, results[4].OccurredTime);
+            Assert.AreEqual(testEvents2[1].HashCode, results[4].HashCode);
             Assert.AreEqual(((UserEventBufferItem<String>)testEvents2[1]).User, ((UserEventBufferItem<String>)results[4]).User);
             Assert.IsFalse(System.IO.File.Exists(testEventFilePath));
         }

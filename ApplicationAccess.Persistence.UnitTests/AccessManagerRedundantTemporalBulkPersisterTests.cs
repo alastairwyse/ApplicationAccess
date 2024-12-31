@@ -22,6 +22,7 @@ using NUnit.Framework;
 using NSubstitute;
 using ApplicationLogging;
 using ApplicationMetrics;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence.UnitTests
 {
@@ -312,7 +313,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             IList<TemporalEventBufferItemBase> testEvents = GenerateTestEvents();
             var testEvents2 = new List<TemporalEventBufferItemBase>()
             {
-                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User2", CreateDataTimeFromString("2024-08-25 15:58:01")),
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User2", CreateDataTimeFromString("2024-08-25 15:58:01"), 2),
             };
             mockBackupPersister.GetAllEvents().Returns<IList<TemporalEventBufferItemBase>>(testBackedUpEvents);
             mockPrimaryPersister.When((persister) => persister.PersistEvents(testEvents, false)).Do((callInfo) => throw mockPrimaryException);
@@ -362,7 +363,7 @@ namespace ApplicationAccess.Persistence.UnitTests
             IList<TemporalEventBufferItemBase> testEvents = GenerateTestEvents();
             var testEvents2 = new List<TemporalEventBufferItemBase>()
             {
-                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User2", CreateDataTimeFromString("2024-08-25 15:58:01")),
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User2", CreateDataTimeFromString("2024-08-25 15:58:01"), 2),
             };
             mockBackupPersister.GetAllEvents().Returns<IList<TemporalEventBufferItemBase>>(testBackedUpEvents);
             mockPrimaryPersister.When((persister) => persister.PersistEvents(testEvents, false)).Do((callInfo) => throw mockPrimaryException);
@@ -410,9 +411,9 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var returnEvents = new List<TemporalEventBufferItemBase>()
             {
-                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "User1", CreateDataTimeFromString("2024-08-25 15:57:00")),
-                new GroupEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "Group1", CreateDataTimeFromString("2024-08-25 15:57:10")),
-                new UserToGroupMappingEventBufferItem<String, String>(Guid.NewGuid(), EventAction.Add, "User1", "Group1", CreateDataTimeFromString("2024-08-25 15:57:20"))
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "User1", CreateDataTimeFromString("2024-08-25 15:57:00"), 1),
+                new GroupEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "Group1", CreateDataTimeFromString("2024-08-25 15:57:10"), 11),
+                new UserToGroupMappingEventBufferItem<String, String>(Guid.NewGuid(), EventAction.Add, "User1", "Group1", CreateDataTimeFromString("2024-08-25 15:57:20"), 1)
             };
 
             return returnEvents;
@@ -426,8 +427,8 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var returnEvents = new List<TemporalEventBufferItemBase>()
             {
-                new EntityTypeEventBufferItem(Guid.NewGuid(), EventAction.Add, "Clients", CreateDataTimeFromString("2024-08-25 15:57:30")),
-                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User1", CreateDataTimeFromString("2024-08-25 15:57:40")),
+                new EntityTypeEventBufferItem(Guid.NewGuid(), EventAction.Add, "Clients", CreateDataTimeFromString("2024-08-25 15:57:30"), 21),
+                new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Remove, "User1", CreateDataTimeFromString("2024-08-25 15:57:40"), 1),
             };
 
             return returnEvents;

@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using ApplicationAccess;
-using ApplicationAccess.Persistence;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Persistence.Sql
 {

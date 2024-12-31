@@ -15,6 +15,7 @@
  */
 
 using System;
+using ApplicationAccess.Persistence.Models;
 using NUnit.Framework;
 
 namespace ApplicationAccess.Persistence.UnitTests
@@ -30,7 +31,7 @@ namespace ApplicationAccess.Persistence.UnitTests
         {
             var e = Assert.Throws<ArgumentException>(delegate
             {
-                var testUserEventBufferItem = new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "user1", new DateTime(2021, 11, 3));
+                var testUserEventBufferItem = new UserEventBufferItem<String>(Guid.NewGuid(), EventAction.Add, "user1", new DateTime(2021, 11, 3), 123);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'occurredTime' must be based in UTC (i.e. 'Kind' property must be 'Utc')."));
