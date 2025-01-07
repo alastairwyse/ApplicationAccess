@@ -47,7 +47,6 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            var initialShardConfiguration = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(Enumerable.Empty<ShardConfiguration<AccessManagerRestClientConfiguration>>());
             testOperationCoordinator = new DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>
             (
                 mockShardClientManager, 

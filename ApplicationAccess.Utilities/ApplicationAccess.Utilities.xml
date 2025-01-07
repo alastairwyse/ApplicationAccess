@@ -28,6 +28,42 @@
         <member name="M:ApplicationAccess.Utilities.DefaultStringHashCodeGenerator.GetHashCode(System.String)">
             <inheritdoc/>
         </member>
+        <member name="T:ApplicationAccess.Utilities.DefaultThreadPauser">
+            <summary>
+            Default implementation of <see cref="T:ApplicationAccess.Utilities.IThreadPauser"/> which wraps a <see cref="T:System.Threading.ManualResetEvent"/>.
+            </summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.DefaultThreadPauser.resetEvent">
+            <summary>The underlying <see cref="T:System.Threading.ManualResetEvent"/> which implements the pausing.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.DefaultThreadPauser.disposed">
+            <summary>Indicates whether the object has been disposed.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Utilities.DefaultThreadPauser class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.TestPaused">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.Pause">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.Unpause">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.Dispose">
+            <summary>
+            Releases the unmanaged resources used by the DefaultThreadPauser.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.Dispose(System.Boolean)">
+            <summary>
+            Provides a method to free unmanaged resources used by this class.
+            </summary>
+            <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
+        </member>
         <member name="T:ApplicationAccess.Utilities.IDateTimeProvider">
             <summary>
             Defines methods which returns the current date and time.
@@ -62,6 +98,26 @@
             </summary>
             <param name="inputValue">The value to generate the hash code for.</param>
             <returns>The hash code.</returns>
+        </member>
+        <member name="T:ApplicationAccess.Utilities.IThreadPauser">
+            <summary>
+            Defines methods to pause/hold processing of a collection of threads, and then subsequently allow them to continue processing.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.IThreadPauser.TestPaused">
+            <summary>
+            Should be called by the threads performing the processing to check whether the <see cref="T:ApplicationAccess.Utilities.IThreadPauser"/> is paused.  If paused, the thread will wait until the <see cref="M:ApplicationAccess.Utilities.IThreadPauser.Unpause"/> method is called.  If not paused, the method will return immediately.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.IThreadPauser.Pause">
+            <summary>
+            Pauses/holds any threads which subsequently call the <see cref="M:ApplicationAccess.Utilities.IThreadPauser.TestPaused"/> method.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.IThreadPauser.Unpause">
+            <summary>
+            Releases any threads which are currently paused/held, and allows subsequent calls to <see cref="M:ApplicationAccess.Utilities.IThreadPauser.TestPaused"/> to return immediately.
+            </summary>
         </member>
         <member name="T:ApplicationAccess.Utilities.LockManager">
             <summary>
