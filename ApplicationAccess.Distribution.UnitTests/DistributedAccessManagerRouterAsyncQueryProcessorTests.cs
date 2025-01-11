@@ -35,8 +35,6 @@ namespace ApplicationAccess.Distribution.UnitTests
     public class DistributedAccessManagerRouterAsyncQueryProcessorTests
     {
         private IShardClientManager<AccessManagerRestClientConfiguration> mockShardClientManager;
-        private IHashCodeGenerator<String> mockUserHashCodeGenerator;
-        private IHashCodeGenerator<String> mockGroupHashCodeGenerator;
         private IMetricLogger mockMetricLogger;
         private DistributedAccessManagerRouterAsyncQueryProcessor<AccessManagerRestClientConfiguration> testRouterQueryProcessor;
 
@@ -44,16 +42,8 @@ namespace ApplicationAccess.Distribution.UnitTests
         protected void SetUp()
         {
             mockShardClientManager = Substitute.For<IShardClientManager<AccessManagerRestClientConfiguration>>();
-            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
-            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testRouterQueryProcessor = new DistributedAccessManagerRouterAsyncQueryProcessor<AccessManagerRestClientConfiguration>
-            (
-                mockShardClientManager,
-                mockUserHashCodeGenerator,
-                mockGroupHashCodeGenerator,
-                mockMetricLogger
-            );
+            testRouterQueryProcessor = new DistributedAccessManagerRouterAsyncQueryProcessor<AccessManagerRestClientConfiguration>(mockShardClientManager, mockMetricLogger);
         }
 
         [Test]

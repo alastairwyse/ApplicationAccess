@@ -39,16 +39,12 @@ namespace ApplicationAccess.Distribution
         /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManagerRouterAsyncQueryProcessor class.
         /// </summary>
         /// <param name="shardClientManager">Manages the clients used to connect to shards managing the subsets of elements in the distributed access manager implementation.</param>
-        /// <param name="userHashCodeGenerator">Hash code generator for users.</param>
-        /// <param name="groupHashCodeGenerator">Hash code generator for groups.</param>
         /// <param name="metricLogger">Logger for metrics.</param>
         public DistributedAccessManagerRouterAsyncQueryProcessor
         (
             IShardClientManager<TClientConfiguration> shardClientManager,
-            IHashCodeGenerator<String> userHashCodeGenerator,
-            IHashCodeGenerator<String> groupHashCodeGenerator,
             IMetricLogger metricLogger
-        ) : base(shardClientManager, userHashCodeGenerator, groupHashCodeGenerator, metricLogger)
+        ) : base(shardClientManager, metricLogger)
         {
         }
 

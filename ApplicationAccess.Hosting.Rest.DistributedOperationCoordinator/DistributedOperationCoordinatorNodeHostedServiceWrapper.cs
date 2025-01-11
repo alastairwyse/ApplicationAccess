@@ -322,13 +322,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                     shardConfigurationRefreshOptions.RefreshInterval,
                     shardConfigurationRefreshExceptionAction
                 );
-                distributedOperationCoordinator = new DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>
-                (
-                    shardClientManager,
-                    hashCodeGenerator,
-                    hashCodeGenerator,
-                    metricLogger
-                );
+                distributedOperationCoordinator = new DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>(shardClientManager, metricLogger);
             }
         }
 

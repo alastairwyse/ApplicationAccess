@@ -182,7 +182,7 @@ namespace ApplicationAccess.Utilities
         }
 
         /// <summary>
-        /// Acquires locks on the specified object and objects which it's associated with (either all objects which it depends on, or which depend on it), the invokes the specified action.
+        /// Acquires locks on all objects and invokes the specified action.
         /// </summary>
         /// <param name="action">The action to invoke.</param>
         public void AcquireAllLocksAndInvokeAction(Action action)

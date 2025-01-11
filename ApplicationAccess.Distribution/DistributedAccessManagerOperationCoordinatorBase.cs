@@ -33,10 +33,6 @@ namespace ApplicationAccess.Distribution
     {
         /// <summary>Manages the clients used to connect to shards managing the subsets of elements in the distributed access manager implementation.</summary>
         protected IShardClientManager<TClientConfiguration> shardClientManager;
-        /// <summary>The hash code generator for users.</summary>
-        protected IHashCodeGenerator<String> userHashCodeGenerator;
-        /// <summary>The hash code generator for groups.</summary>
-        protected IHashCodeGenerator<String> groupHashCodeGenerator;
         /// <summary>The logger for metrics.</summary>
         protected IMetricLogger metricLogger;
 
@@ -44,20 +40,14 @@ namespace ApplicationAccess.Distribution
         /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManagerOperationCoordinatorBase class.
         /// </summary>
         /// <param name="shardClientManager">Manages the clients used to connect to shards managing the subsets of elements in the distributed access manager implementation.</param>
-        /// <param name="userHashCodeGenerator">Hash code generator for users.</param>
-        /// <param name="groupHashCodeGenerator">Hash code generator for groups.</param>
         /// <param name="metricLogger">Logger for metrics.</param>
         public DistributedAccessManagerOperationCoordinatorBase
         (
             IShardClientManager<TClientConfiguration> shardClientManager,
-            IHashCodeGenerator<String> userHashCodeGenerator,
-            IHashCodeGenerator<String> groupHashCodeGenerator,
             IMetricLogger metricLogger
         )
         {
             this.shardClientManager = shardClientManager;
-            this.userHashCodeGenerator = userHashCodeGenerator;
-            this.groupHashCodeGenerator = groupHashCodeGenerator;
             this.metricLogger = metricLogger;
         }
 
