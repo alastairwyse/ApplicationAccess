@@ -1575,36 +1575,6 @@ namespace ApplicationAccess.Metrics
     }
 
     /// <summary>
-    /// Count metric which records a call to the GetGroupToEntityMappings() method overload with 'groups' and 'entityType' parameters.
-    /// </summary>
-    public class GetGroupToEntityMappingsForGroupsAndEntityTypeQuery : QueryCountMetric
-    {
-        protected static String staticName = "GetGroupToEntityMappingsForGroupsAndEntityTypeQuery";
-        protected static String staticDescription = "A call to the GetGroupToEntityMappings() method overload with 'groups' and 'entityType' parameters";
-
-        public GetGroupToEntityMappingsForGroupsAndEntityTypeQuery()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
-    /// Interval metric which records the time taken to execute the GetGroupToEntityMappings() method overload with 'groups' and 'entityType' parameters.
-    /// </summary>
-    public class GetGroupToEntityMappingsForGroupsAndEntityTypeQueryTime : QueryIntervalMetric
-    {
-        protected static String staticName = "GetGroupToEntityMappingsForGroupsAndEntityTypeQueryTime";
-        protected static String staticDescription = "The time taken to execute the GetGroupToEntityMappings() method overload with 'groups' and 'entityType' parameters";
-
-        public GetGroupToEntityMappingsForGroupsAndEntityTypeQueryTime()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
     /// Count metric which records a call to the GetEntityToGroupMappings() method.
     /// </summary>
     public class GetEntityToGroupMappingsQuery : QueryCountMetric

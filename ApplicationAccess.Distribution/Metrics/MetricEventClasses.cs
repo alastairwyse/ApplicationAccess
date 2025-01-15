@@ -94,21 +94,6 @@ namespace ApplicationAccess.Distribution.Metrics
     }
 
     /// <summary>
-    /// Amount metric which records the number of group shards queried as part of a distributed HasAccessToApplicationComponent() method call overload with 'groups' parameter.
-    /// </summary>
-    public class HasAccessToApplicationComponentForGroupsGroupShardsQueried : AmountMetric
-    {
-        protected static String staticName = "HasAccessToApplicationComponentForGroupsGroupShardsQueried";
-        protected static String staticDescription = "The number of group shards queried as part of a distributed HasAccessToApplicationComponent() method call overload with 'groups' parameter";
-
-        public HasAccessToApplicationComponentForGroupsGroupShardsQueried()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
     /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed HasAccessToEntity() method call.
     /// </summary>
     public class HasAccessToEntityGroupsMappedToUser : AmountMetric
@@ -132,21 +117,6 @@ namespace ApplicationAccess.Distribution.Metrics
         protected static String staticDescription = "The number of group shards queried as part of a distributed HasAccessToEntity() method call";
 
         public HasAccessToEntityGroupShardsQueried()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
-    /// Amount metric which records the number of group shards queried as part of a distributed HasAccessToEntity() method call overload with 'groups' parameter.
-    /// </summary>
-    public class HasAccessToEntityForGroupsGroupShardsQueried : AmountMetric
-    {
-        protected static String staticName = "HasAccessToEntityForGroupsGroupShardsQueried";
-        protected static String staticDescription = "The number of group shards queried as part of a distributed HasAccessToEntity() method call overload with 'groups' parameter";
-
-        public HasAccessToEntityForGroupsGroupShardsQueried()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -214,21 +184,6 @@ namespace ApplicationAccess.Distribution.Metrics
     }
 
     /// <summary>
-    /// Amount metric which records the number of group shards queried as part of a distributed GetApplicationComponentsAccessibleByGroups() method call.
-    /// </summary>
-    public class GetApplicationComponentsAccessibleByGroupsGroupShardsQueried : AmountMetric
-    {
-        protected static String staticName = "GetApplicationComponentsAccessibleByGroupsGroupShardsQueried";
-        protected static String staticDescription = "The number of group shards queried as part of a routed GetApplicationComponentsAccessibleByGroups() method call";
-
-        public GetApplicationComponentsAccessibleByGroupsGroupShardsQueried()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
     /// Amount metric which records the total number of groups directly and indirectly mapped to a user, found as part of a distributed GetEntitiesAccessibleByUser() method call.
     /// </summary>
     public class GetEntitiesAccessibleByUserGroupsMappedToUser : AmountMetric
@@ -282,21 +237,6 @@ namespace ApplicationAccess.Distribution.Metrics
         protected static String staticDescription = "The number of group shards queried as part of a distributed GetEntitiesAccessibleByGroup() method call";
 
         public GetEntitiesAccessibleByGroupGroupShardsQueried()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
-    /// Amount metric which records the number of group shards queried as part of a distributed GetEntitiesAccessibleByGroups() method call.
-    /// </summary>
-    public class GetEntitiesAccessibleByGroupsGroupShardsQueried : AmountMetric
-    {
-        protected static String staticName = "GetEntitiesAccessibleByGroupsGroupShardsQueried";
-        protected static String staticDescription = "The number of group shards queried as part of a distributed GetEntitiesAccessibleByGroups() method call";
-
-        public GetEntitiesAccessibleByGroupsGroupShardsQueried()
         {
             base.name = staticName;
             base.description = staticDescription;
