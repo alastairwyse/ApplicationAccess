@@ -36,6 +36,16 @@ namespace ApplicationAccess.Distribution
         IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
+        // This class inherits from DistributedAccessManagerOperationCoordinator<TClientConfiguration> but then ends up overriding many of its methods with a NotImplementedException
+        //   which is bad practice from an OO design perspective.  Problem is that it needs to implement many of the methods that DistributedAccessManagerOperationCoordinator does
+        //   but these implementations don't adhere cleanly to the underlying interfaces being implemented.  E.g. on IAccessManagerAsyncQueryProcessor, some methods are implemented,
+        //   and some are not.  Might have been possible to derive this and DistributedAccessManagerOperationCoordinator from a base class containing the common methods, BUT I was
+        //   reluctant to go making DistributedAccessManagerOperationCoordinator more complex, and it's a really key class in the distributed setup, whereas this class whilst
+        //   important, only has a very short lifetime in the overall running of a distributed AccessManager instance... i.e. for a period of likely <30 seconds while the final batch
+        //   of a shard split is being performed.  Hence decided to leave DistributedAccessManagerOperationCoordinator as it, and derive from it in this class so I can still reuse 
+        //   DistributedAccessManagerOperationCoordinator's method where required.
+        // Might want to improve this in the future.
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.DistributedAccessManagerOperationRouter class.
         /// </summary>
@@ -53,9 +63,9 @@ namespace ApplicationAccess.Distribution
         public override async Task<List<String>> GetUsersAsync()
         {
             var shardDataElementTypes = new List<DataElement>() { DataElement.User };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<List<String>, Guid>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
             {
-                return Tuple.Create(await client.GetUsersAsync(), Guid.NewGuid());
+                return await client.GetUsersAsync();
             };
 
             return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve users from");
@@ -65,9 +75,9 @@ namespace ApplicationAccess.Distribution
         public override async Task<List<String>> GetGroupsAsync()
         {
             var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<List<String>, Guid>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
             {
-                return Tuple.Create(await client.GetGroupsAsync(), Guid.NewGuid());
+                return await client.GetGroupsAsync();
             };
 
             return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve groups from");
@@ -77,9 +87,9 @@ namespace ApplicationAccess.Distribution
         public override async Task<List<String>> GetEntityTypesAsync()
         {
             var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<List<String>, Guid>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
             {
-                return Tuple.Create(await client.GetEntityTypesAsync(), Guid.NewGuid());
+                return await client.GetEntityTypesAsync();
             };
 
             return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve entity types from");
@@ -154,9 +164,9 @@ namespace ApplicationAccess.Distribution
                 throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
 
             var shardDataElementTypes = new List<DataElement>() { DataElement.User };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<List<String>, Guid>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
             {
-                return Tuple.Create(await client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings), Guid.NewGuid());
+                return await client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
             };
 
             return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve application component and access level to user mappings from");
@@ -169,9 +179,9 @@ namespace ApplicationAccess.Distribution
                 throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
 
             var shardDataElementTypes = new List<DataElement>() { DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<List<String>, Guid>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
             {
-                return Tuple.Create(await client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings), Guid.NewGuid());
+                return await client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
             };
 
             return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve application component and access level to group mappings from");
@@ -205,9 +215,9 @@ namespace ApplicationAccess.Distribution
         public override async Task<List<String>> GetEntitiesAsync(String entityType)
         {
             var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<List<String>, Guid>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
             {
-                return Tuple.Create(await client.GetEntitiesAsync(entityType), Guid.NewGuid());
+                return await client.GetEntitiesAsync(entityType);
             };
 
             return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, $"retrieve entities of type '{entityType}' from");
@@ -400,21 +410,20 @@ namespace ApplicationAccess.Distribution
         {
             var result = new HashSet<String>();
             ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
-            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<List<String>, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
+            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<List<String>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
             {
-                List<String> groupShardresult = await clientAndDescription.Client.GetEntitiesAccessibleByGroupsAsync(funcGroups, entityType);
-                return Tuple.Create(groupShardresult, Guid.NewGuid());
+                return await clientAndDescription.Client.GetEntitiesAccessibleByGroupsAsync(funcGroups, entityType);
             };
-            Action<Tuple<List<String>, Guid>> resultAction = (Tuple<List<String>, Guid> groupShardResult) =>
+            Action<List<String>> resultAction = (List<String> groupShardResult) =>
             {
-                result.UnionWith(groupShardResult.Item1);
+                result.UnionWith(groupShardResult);
             };
-            Func<Tuple<List<String>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
+            Func<List<String>, Boolean> continuePredicate = (groupShardResult) => { return true; };
             queryMetricData = await ExecuteQueryAgainstGroupShards
             (
                 groups,
                 createQueryTaskFunc,
-                Enumerable.Empty<Tuple<Task<Tuple<List<String>, Guid>>, String>>(),
+                Enumerable.Empty<Tuple<Task<List<String>>, String>>(),
                 resultAction,
                 continuePredicate,
                 new HashSet<Type>(),
@@ -672,7 +681,7 @@ namespace ApplicationAccess.Distribution
         protected async Task<List<TReturn>> GetAndMergeElementsAsync<TReturn>
         (
             IEnumerable<DataElement> shardDataElementTypes, 
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<List<TReturn>, Guid>>> shardReadFunc, 
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<TReturn>>> shardReadFunc, 
             String exceptionEventDescription
         )
         {
@@ -690,19 +699,19 @@ namespace ApplicationAccess.Distribution
                     //   E.g. if this method is used to get all entity types, 'shardDataElementTypes' would contain users and groups, but if routing in front of user nodes, no group clients will be returned.
                 }
             }
-            var shardReadTasks = new HashSet<Task<Tuple<List<TReturn>, Guid>>>();
-            var taskToShardDescriptionMap = new Dictionary<Task<Tuple<List<TReturn>, Guid>>, String>();
+            var shardReadTasks = new HashSet<Task<List<TReturn>>>();
+            var taskToShardDescriptionMap = new Dictionary<Task<List<TReturn>>, String>();
             foreach (DistributedClientAndShardDescription currentClient in clients)
             {
-                Task<Tuple<List<TReturn>, Guid>> currentTask = shardReadFunc(currentClient.Client);
+                Task<List<TReturn>> currentTask = shardReadFunc(currentClient.Client);
                 taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
                 shardReadTasks.Add(currentTask);
             }
-            Action<Tuple<List<TReturn>, Guid>> resultAction = (Tuple<List<TReturn>, Guid> currentShardElements) =>
+            Action<List<TReturn>> resultAction = (List<TReturn> currentShardElements) =>
             {
-                returnElements.UnionWith(currentShardElements.Item1);
+                returnElements.UnionWith(currentShardElements);
             };
-            Func<Tuple<List<TReturn>, Guid>, Boolean> continuePredicate = (Tuple<List<TReturn>, Guid> currentShardElements) => { return true; };
+            Func<List<TReturn>, Boolean> continuePredicate = (List<TReturn> currentShardElements) => { return true; };
             var rethrowExceptions = new HashSet<Type>();
             var ignoreExceptions = new HashSet<Type>();
             await AwaitTaskCompletionAsync
