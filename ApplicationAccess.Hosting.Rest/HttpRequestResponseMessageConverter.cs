@@ -25,19 +25,11 @@ using Microsoft.Net.Http.Headers;
 namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
-    /// Converts a <see cref="HttpRequest">Microsoft.AspNetCore.Http.HttpRequest</see> (i.e. received in an ASP.NET Core Web API application) to a <see cref="HttpRequestMessage">System.Net.Http.HttpRequestMessage</see> with a different host destination, so the <see cref="HttpRequestMessage"/> can be sent via an <see cref="HttpClient"/>.  Similarly converts the resulting <see cref="HttpResponseMessage">System.Net.Http.HttpResponseMessage</see> from the client into a <see cref="HttpResponse">Microsoft.AspNetCore.Http.HttpResponse</see> which can be returned as an ASP.NET Core Web API application response.
+    /// Default implementation of <see cref="IHttpRequestResponseMessageConverter"/>.
     /// </summary>
-    /// <remarks>Used to proxy ASP.NET Core Web API application requests to a different host.</remarks>
-    public class HttpRequestResponseMessageConverter
+    public class HttpRequestResponseMessageConverter : IHttpRequestResponseMessageConverter
     {
-        /// <summary>
-        /// Converts an <see cref="HttpRequest"/> to an <see cref="HttpRequestMessage"/>, updating the target host using the specified parameters.
-        /// </summary>
-        /// <param name="sourceRequest">The <see cref="HttpRequest"/> to convert.</param>
-        /// <param name="targetRequest">The <see cref="HttpRequestMessage"/> to convert to.</param>
-        /// <param name="targetScheme">The updated target scheme.</param>
-        /// <param name="targetHost">The updated target host.</param>
-        /// <param name="targetPort">The updated yarget port.</param>
+        /// <inheritdoc/>
         public void ConvertRequest(HttpRequest sourceRequest, HttpRequestMessage targetRequest, String targetScheme, String targetHost, UInt16 targetPort)
         {
             // Copy the request headers (based on https://github.com/twitchax/AspNetCore.Proxy/blob/master/src/Core/Extensions/Http.cs)
@@ -63,11 +55,7 @@ namespace ApplicationAccess.Hosting.Rest
             targetRequest.RequestUri = targetUriBuilder.Uri;
         }
 
-        /// <summary>
-        /// Converts an <see cref="HttpResponseMessage"/> to an <see cref="HttpResponse"/>.
-        /// </summary>
-        /// <param name="targetResponse">The <see cref="HttpResponseMessage"/> to convert (returned from an <see cref="HttpClient"/> call).</param>
-        /// <param name="sourceHttpResponse">>The <see cref="HttpResponse"/> to convert to.</param>
+        /// <inheritdoc/>
         public async Task ConvertResponseAsync(HttpResponseMessage targetResponse, HttpResponse sourceHttpResponse)
         {
             sourceHttpResponse.StatusCode = ((Int32)targetResponse.StatusCode);
