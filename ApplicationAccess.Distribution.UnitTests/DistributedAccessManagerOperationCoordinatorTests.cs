@@ -20,6 +20,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution.Metrics;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Utilities;

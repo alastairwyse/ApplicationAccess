@@ -34,6 +34,9 @@ namespace ApplicationAccess.Hosting
         //   and IDistributedAccessManagerAsyncQueryProcessor instances.  However, will maintain this class in any case to preserve consistency
         //   with the hierarchy pattern of other *Node classes.
 
+        /// <summary>Exception message for overridden methods which aren't implemented.</summary>
+        protected const String groupToGroupMappingMethodNotImplementedExceptionMessage = "Group to group mapping methods are not implemented.";
+
         /// <summary>The <see cref="IDistributedAccessManagerOperationCoordinator{TClientConfiguration}"/> instance which processes relevant operations received by the node.</summary>
         protected IDistributedAccessManagerOperationCoordinator<TClientConfiguration> distributedOperationCoordinator;
         /// <summary>The <see cref="IDistributedAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> instance which processes relevant operations received by the node.</summary>
@@ -139,39 +142,39 @@ namespace ApplicationAccess.Hosting
         }
 
         /// <inheritdoc/>
-        public async Task AddGroupToGroupMappingAsync(String fromGroup, String toGroup)
+        public Task AddGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
-            await distributedOperationCoordinator.AddGroupToGroupMappingAsync(fromGroup, toGroup);
+            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
         }
 
         /// <inheritdoc/>
-        public async Task<List<String>> GetGroupToGroupMappingsAsync(String group, Boolean includeIndirectMappings)
+        public Task<List<String>> GetGroupToGroupMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            return await distributedOperationCoordinator.GetGroupToGroupMappingsAsync(group, includeIndirectMappings);
+            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
         }
 
         /// <inheritdoc/>
-        public async Task<List<String>> GetGroupToGroupMappingsAsync(IEnumerable<String> groups)
+        public Task<List<String>> GetGroupToGroupMappingsAsync(IEnumerable<String> groups)
         {
-            return await distributedAsyncQueryProcessor.GetGroupToGroupMappingsAsync(groups);
+            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
         }
 
         /// <inheritdoc/>
-        public async Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
+        public Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            return await distributedOperationCoordinator.GetGroupToGroupReverseMappingsAsync(group, includeIndirectMappings);
+            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
         }
 
         /// <inheritdoc/>
-        public async Task<List<String>> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
+        public Task<List<String>> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
         {
-            return await distributedAsyncQueryProcessor.GetGroupToGroupReverseMappingsAsync(groups);
+            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
         }
 
         /// <inheritdoc/>
-        public async Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
+        public Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
-            await distributedOperationCoordinator.RemoveGroupToGroupMappingAsync(fromGroup, toGroup);
+            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
         }
 
         /// <inheritdoc/>

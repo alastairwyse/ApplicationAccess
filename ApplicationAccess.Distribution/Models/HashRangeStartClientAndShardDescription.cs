@@ -17,7 +17,7 @@
 using System;
 using MoreComplexDataStructures;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Distribution.Models
 {
     /// <summary>
     /// Model/container class holding the first (inclusive) value in a range of hash codes, an <see cref="IDistributedAccessManagerAsyncClient{TUser, TGroup, TComponent, TAccess}"/> used to connect to a shard which manages data elements in that range, and a description of the configuration of that shard.  Implements <see cref="IComparable{T}"/> on the range start value, so the class can be used as the type parameter in a <see cref="WeightBalancedTree{T}"/>.
@@ -27,7 +27,7 @@ namespace ApplicationAccess.Distribution
         /// <summary>
         /// The hash range start value.
         /// </summary>
-        public Int32 HashRangeStart { get; protected set; }
+        public int HashRangeStart { get; protected set; }
 
         /// <summary>
         /// The AccessManager client and description of the configuration of the shard it connects to.
@@ -39,26 +39,26 @@ namespace ApplicationAccess.Distribution
         /// </summary>
         /// <param name="hashRangeStart">The hash range start value.</param>
         /// <param name="clientAndDescription">The AccessManager client and description of the configuration of the shard it connects to.</param>
-        public HashRangeStartClientAndShardDescription(Int32 hashRangeStart, DistributedClientAndShardDescription clientAndDescription)
+        public HashRangeStartClientAndShardDescription(int hashRangeStart, DistributedClientAndShardDescription clientAndDescription)
         {
-            this.HashRangeStart = hashRangeStart;
-            this.ClientAndDescription = clientAndDescription;
+            HashRangeStart = hashRangeStart;
+            ClientAndDescription = clientAndDescription;
         }
 
         /// <inheritdoc/>
-        public Int32 CompareTo(HashRangeStartClientAndShardDescription other)
+        public int CompareTo(HashRangeStartClientAndShardDescription other)
         {
             return HashRangeStart.CompareTo(other.HashRangeStart);
         }
 
         /// <inheritdoc/>
-        public Boolean Equals(HashRangeStartClientAndShardDescription other)
+        public bool Equals(HashRangeStartClientAndShardDescription other)
         {
             return HashRangeStart == other.HashRangeStart;
         }
 
         /// <inheritdoc/>
-        public override Int32 GetHashCode()
+        public override int GetHashCode()
         {
             return HashRangeStart.GetHashCode();
         }

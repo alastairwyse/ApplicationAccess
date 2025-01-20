@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Distribution.Models
 {
     /// <summary>
     /// Model/container class holding a set of <see cref="ShardConfiguration{TClientConfiguration}"/> objects.
@@ -32,7 +32,7 @@ namespace ApplicationAccess.Distribution
         /// <summary>
         /// The <see cref="ShardConfiguration{TClientConfiguration}"/> objects in the set.
         /// </summary>
-        public IEnumerable<ShardConfiguration<TClientConfiguration>> Items 
+        public IEnumerable<ShardConfiguration<TClientConfiguration>> Items
         {
             get
             {
@@ -60,7 +60,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public Boolean Equals(ShardConfigurationSet<TClientConfiguration> other)
+        public bool Equals(ShardConfigurationSet<TClientConfiguration> other)
         {
             if (configurationItems.Count != other.configurationItems.Count)
             {
@@ -81,7 +81,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override Int32 GetHashCode()
+        public override int GetHashCode()
         {
             // TODO: Iterating the whole set of items is not efficient, but need to implement this (strictly speaking) as part of IEquatable<T> implementation, even though
             //   I don't expect this method to be called (although Equals() will be called regularly as part of refresh checking).
@@ -89,7 +89,7 @@ namespace ApplicationAccess.Distribution
 
             unchecked
             {
-                Int32 hashCode = 1;
+                int hashCode = 1;
                 foreach (ShardConfiguration<TClientConfiguration> currentConfigurationItem in configurationItems)
                 {
                     hashCode *= currentConfigurationItem.GetHashCode();
@@ -107,30 +107,30 @@ namespace ApplicationAccess.Distribution
         protected class ShardConfigurationKeyEqualityComparer : IEqualityComparer<ShardConfiguration<TClientConfiguration>>
         {
             /// <summary>Prime number used in calculating hash code.</summary>
-            protected const Int32 prime1 = 7;
+            protected const int prime1 = 7;
             /// <summary>Prime number used in calculating hash code.</summary>
-            protected const Int32 prime2 = 11;
+            protected const int prime2 = 11;
 
             /// <inheritdoc/>
-            public Boolean Equals(ShardConfiguration<TClientConfiguration> x, ShardConfiguration<TClientConfiguration> y)
+            public bool Equals(ShardConfiguration<TClientConfiguration> x, ShardConfiguration<TClientConfiguration> y)
             {
                 return
-                (
+                
                     x.DataElementType == y.DataElementType &&
                     x.OperationType == y.OperationType &&
                     x.HashRangeStart == y.HashRangeStart
-                );
+                ;
             }
 
             /// <inheritdoc/>
-            public Int32 GetHashCode(ShardConfiguration<TClientConfiguration> obj)
+            public int GetHashCode(ShardConfiguration<TClientConfiguration> obj)
             {
                 return
-                (
+                
                     prime1 * obj.DataElementType.GetHashCode() +
                     prime2 * obj.OperationType.GetHashCode() +
                     obj.HashRangeStart.GetHashCode()
-                );
+                ;
             }
         }
 

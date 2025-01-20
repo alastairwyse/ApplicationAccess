@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Distribution.Models
 {
     /// <summary>
     /// Types of high level operations that can be performed by an AccessManager implementation.
@@ -25,7 +25,7 @@ namespace ApplicationAccess.Distribution
     public enum Operation
     {
         /// <summary>A read operation.</summary>
-        Query, 
+        Query,
         /// <summary>A write operation.</summary>
         Event
     }

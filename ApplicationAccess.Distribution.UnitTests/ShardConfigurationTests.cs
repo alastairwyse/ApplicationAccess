@@ -15,6 +15,7 @@
  */
 
 using System;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using NUnit.Framework;
 

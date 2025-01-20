@@ -431,6 +431,202 @@
             </summary>
             <param name="disposing">Whether the method is being called as part of an explicit Dispose routine, and hence whether managed resources should also be freed.</param>
         </member>
+        <member name="T:ApplicationAccess.Hosting.DistributedOperationRouterNode`1">
+            <summary>
+            A node which distributes operations to multiple shards in a distributed AccessManager implementation, and aggregates and returns their results.
+            </summary>
+            <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.groupToGroupMappingMethodNotImplementedExceptionMessage">
+            <summary>Exception message for overridden methods which aren't implemented.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.distributedOperationCoordinator">
+            <summary>The <see cref="T:ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator`1"/> instance which processes relevant operations received by the node.</summary>
+        </member>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.distributedAsyncQueryProcessor">
+            <summary>The <see cref="T:ApplicationAccess.IDistributedAccessManagerAsyncQueryProcessor`4"/> instance which processes relevant operations received by the node.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.#ctor(ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator{`0},ApplicationAccess.IDistributedAccessManagerAsyncQueryProcessor{System.String,System.String,System.String,System.String})">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Hosting.DistributedOperationRouterNode class.
+            </summary>
+            <param name="distributedOperationCoordinator">The <see cref="T:ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator`1"/> instance which processes relevant operations received by the node.</param>
+            <param name="distributedAsyncQueryProcessor">The <see cref="T:ApplicationAccess.IDistributedAccessManagerAsyncQueryProcessor`4"/> instance which processes relevant operations received by the node.</param>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetUsersAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupsAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntityTypesAsync">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.ContainsUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.ContainsGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddUserToGroupMappingAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetUserToGroupMappingsAsync(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToUserMappingsAsync(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToUserMappingsAsync(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveUserToGroupMappingAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddGroupToGroupMappingAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToGroupMappingsAsync(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToGroupMappingsAsync(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToGroupReverseMappingsAsync(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToGroupReverseMappingsAsync(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveGroupToGroupMappingAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddUserToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetUserToApplicationComponentAndAccessLevelMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetApplicationComponentAndAccessLevelToUserMappingsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddGroupToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddEntityTypeAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.ContainsEntityTypeAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveEntityTypeAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddEntityAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntitiesAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.ContainsEntityAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveEntityAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddUserToEntityMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetUserToEntityMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetUserToEntityMappingsAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntityToUserMappingsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveUserToEntityMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.AddGroupToEntityMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToEntityMappingsAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetGroupToEntityMappingsAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntityToGroupMappingsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RemoveGroupToEntityMappingAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.HasAccessToApplicationComponentAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.HasAccessToApplicationComponentAsync(System.Collections.Generic.IEnumerable{System.String},System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.HasAccessToEntityAsync(System.String,System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.HasAccessToEntityAsync(System.Collections.Generic.IEnumerable{System.String},System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetApplicationComponentsAccessibleByUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetApplicationComponentsAccessibleByGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetApplicationComponentsAccessibleByGroupsAsync(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntitiesAccessibleByUserAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntitiesAccessibleByUserAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntitiesAccessibleByGroupAsync(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntitiesAccessibleByGroupsAsync(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntitiesAccessibleByGroupAsync(System.String,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntitiesAccessibleByGroupsAsync(System.Collections.Generic.IEnumerable{System.String},System.String)">
+            <inheritdoc/>
+        </member>
         <member name="T:ApplicationAccess.Hosting.DistributedReaderNode`4">
             <summary>
             A node in a distributed ApplicationAccess hosting environment which allows reading permissions and authorizations for an application.

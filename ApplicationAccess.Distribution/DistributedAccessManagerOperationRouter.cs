@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution.Metrics;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;

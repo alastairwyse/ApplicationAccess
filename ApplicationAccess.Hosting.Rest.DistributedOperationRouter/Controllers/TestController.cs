@@ -32,6 +32,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
     [Route("api/v{version:apiVersion}")]
     public class TestController : ControllerBase
     {
+        protected RoutingSwitch routingSwitch;
         protected IAccessManagerAsyncQueryProcessor<String, String, String, String> queryProcessor;
         protected IAccessManagerAsyncEventProcessor<String, String, String, String> eventProcessor;
         protected IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String> distributedQueryProcessor;
@@ -42,12 +43,14 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
         /// </summary>
         public TestController
         (
+            RoutingSwitch routingSwitch, 
             IAccessManagerAsyncQueryProcessor<String, String, String, String> queryProcessor,
             IAccessManagerAsyncEventProcessor<String, String, String, String> eventProcessor,
             IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String> distributedQueryProcessor,
             ILogger<TestController> logger
         )
         {
+            this.routingSwitch = routingSwitch;
             this.queryProcessor = queryProcessor;
             this.eventProcessor = eventProcessor;
             this.distributedQueryProcessor = distributedQueryProcessor;
@@ -74,12 +77,15 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
             // need config of both nodes
             //   can I reuse any existing model classes for this?
             // hosted service wrapper needs to read config and set on some classes
+
+
+
+            throw new NotImplementedException();
         }
 
         // TODO: Implement these as first step...
         // Task<Boolean> ContainsUserAsync(String user)
         // Task<List<String>> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
-
 
 
     }

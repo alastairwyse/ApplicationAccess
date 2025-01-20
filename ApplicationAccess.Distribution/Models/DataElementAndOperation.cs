@@ -16,49 +16,49 @@
 
 using System;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Distribution.Models
 {
     /// <summary>
-    /// Model/container class holding a <see cref="ApplicationAccess.Distribution.DataElement"/> and an <see cref="ApplicationAccess.Distribution.Operation"/> so together they can be used as the key in a Dictionary.
+    /// Model/container class holding a <see cref="Models.DataElement"/> and an <see cref="Models.Operation"/> so together they can be used as the key in a Dictionary.
     /// </summary>
     public class DataElementAndOperation : IEquatable<DataElementAndOperation>
     {
-        #pragma warning disable 1591
+#pragma warning disable 1591
 
-        protected const Int32 prime1 = 7;
-        protected const Int32 prime2 = 11;
+        protected const int prime1 = 7;
+        protected const int prime2 = 11;
 
-        #pragma warning restore 1591
+#pragma warning restore 1591
 
         /// <summary>
-        /// The <see cref="ApplicationAccess.Distribution.DataElement"/>.
+        /// The <see cref="Models.DataElement"/>.
         /// </summary>
         public DataElement DataElement { get; protected set; }
 
         /// <summary>
-        /// The <see cref="ApplicationAccess.Distribution.Operation"/>.
+        /// The <see cref="Models.Operation"/>.
         /// </summary>
         public Operation Operation { get; protected set; }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.DataElementAndOperation class.
         /// </summary>
-        /// <param name="dataElement">The <see cref="ApplicationAccess.Distribution.DataElement"/>.</param>
-        /// <param name="operation">The <see cref="ApplicationAccess.Distribution.Operation"/>.</param>
+        /// <param name="dataElement">The <see cref="Models.DataElement"/>.</param>
+        /// <param name="operation">The <see cref="Models.Operation"/>.</param>
         public DataElementAndOperation(DataElement dataElement, Operation operation)
         {
-            this.DataElement = dataElement;
-            this.Operation = operation;
+            DataElement = dataElement;
+            Operation = operation;
         }
 
         /// <inheritdoc/>
-        public Boolean Equals(DataElementAndOperation other)
+        public bool Equals(DataElementAndOperation other)
         {
-            return (this.DataElement == other.DataElement && this.Operation == other.Operation);
+            return DataElement == other.DataElement && Operation == other.Operation;
         }
 
         /// <inheritdoc/>
-        public override Int32 GetHashCode()
+        public override int GetHashCode()
         {
             return DataElement.GetHashCode() * prime1 + Operation.GetHashCode() * prime2;
         }

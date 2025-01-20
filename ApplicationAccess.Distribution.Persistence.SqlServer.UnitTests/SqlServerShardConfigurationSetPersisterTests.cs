@@ -16,17 +16,18 @@
 
 using System;
 using System.Collections.Generic;
-using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
+using System.Data;
+using System.Linq;
+using Microsoft.Data.SqlClient;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Distribution.Persistence.SqlServer;
 using ApplicationAccess.Distribution.Serialization;
+using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationLogging;
 using NSubstitute;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using System.Data;
-using Microsoft.Data.SqlClient;
-using System.Linq;
 
 namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
 {

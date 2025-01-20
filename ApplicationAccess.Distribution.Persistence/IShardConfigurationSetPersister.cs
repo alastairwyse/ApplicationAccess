@@ -15,6 +15,7 @@
  */
 
 using System;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Distribution.Serialization;
 
 namespace ApplicationAccess.Distribution.Persistence

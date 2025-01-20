@@ -23,6 +23,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Data.SqlClient;
 using ApplicationAccess.Distribution;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Distribution.Serialization;
 using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Hosting.Metrics;

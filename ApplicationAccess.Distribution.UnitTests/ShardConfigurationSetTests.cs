@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using NUnit.Framework;
 

@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Distribution.Models
 {
     /// <summary>
     /// Types of data elements managed by an AccessManager.

@@ -16,7 +16,7 @@
 
 using System;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Distribution.Models
 {
     /// <summary>
     /// Model/container class holding configuration information for a single shard in a distributed AccessManager implemenetation.
@@ -26,11 +26,11 @@ namespace ApplicationAccess.Distribution
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration
     {
         /// <summary>Prime number used in calculating hash code.</summary>
-        protected const Int32 prime1 = 7;
+        protected const int prime1 = 7;
         /// <summary>Prime number used in calculating hash code.</summary>
-        protected const Int32 prime2 = 11;
+        protected const int prime2 = 11;
         /// <summary>Prime number used in calculating hash code.</summary>
-        protected const Int32 prime3 = 13;
+        protected const int prime3 = 13;
 
         /// <summary>The type of data element managed by the shard.</summary>
         public DataElement DataElementType { get; protected set; }
@@ -39,7 +39,7 @@ namespace ApplicationAccess.Distribution
         public Operation OperationType { get; protected set; }
 
         /// <summary>The first (inclusive) in the range of hash codes of data elements the shard manages.</summary>
-        public Int32 HashRangeStart { get; protected set; }
+        public int HashRangeStart { get; protected set; }
 
         /// <summary>Configuration which can be used to instantiate a client to connect to the shard.</summary>
         public TClientConfiguration ClientConfiguration { get; protected set; }
@@ -51,12 +51,12 @@ namespace ApplicationAccess.Distribution
         /// <param name="operationType">The type of operation supported by the shard.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of data elements the shard manages.</param>
         /// <param name="clientConfiguration">Configuration which can be used to instantiate a client to connect to the shard.</param>
-        public ShardConfiguration(DataElement dataElementType, Operation operationType, Int32 hashRangeStart, TClientConfiguration clientConfiguration)
+        public ShardConfiguration(DataElement dataElementType, Operation operationType, int hashRangeStart, TClientConfiguration clientConfiguration)
         {
-            this.DataElementType = dataElementType;
-            this.OperationType = operationType;
-            this.HashRangeStart = hashRangeStart;
-            this.ClientConfiguration = clientConfiguration;
+            DataElementType = dataElementType;
+            OperationType = operationType;
+            HashRangeStart = hashRangeStart;
+            ClientConfiguration = clientConfiguration;
         }
 
         /// <summary>
@@ -64,12 +64,12 @@ namespace ApplicationAccess.Distribution
         /// </summary>
         /// <param name="includeHashRangeStart">Whether to include details of the <see cref="HashRangeStart">HashRangeStart</see> property in the description.</param>
         /// <returns>The description.</returns>
-        public String Describe(Boolean includeHashRangeStart)
+        public string Describe(bool includeHashRangeStart)
         {
             if (includeHashRangeStart == true)
             {
                 return $"{nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(HashRangeStart)} = {HashRangeStart}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
-            }    
+            }
             else
             {
                 return $"{nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
@@ -77,27 +77,27 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public Boolean Equals(ShardConfiguration<TClientConfiguration> other)
+        public bool Equals(ShardConfiguration<TClientConfiguration> other)
         {
             return
-            (
-                DataElementType == other.DataElementType && 
-                OperationType == other.OperationType && 
-                HashRangeStart == other.HashRangeStart && 
-                ClientConfiguration.Equals((TClientConfiguration)other.ClientConfiguration)
-            );
+            
+                DataElementType == other.DataElementType &&
+                OperationType == other.OperationType &&
+                HashRangeStart == other.HashRangeStart &&
+                ClientConfiguration.Equals(other.ClientConfiguration)
+            ;
         }
 
         /// <inheritdoc/>
-        public override Int32 GetHashCode()
+        public override int GetHashCode()
         {
-            return 
-            (
-                prime1 * DataElementType.GetHashCode() + 
-                prime2 * OperationType.GetHashCode() + 
-                HashRangeStart.GetHashCode() + 
+            return
+            
+                prime1 * DataElementType.GetHashCode() +
+                prime2 * OperationType.GetHashCode() +
+                HashRangeStart.GetHashCode() +
                 prime3 * ClientConfiguration.GetHashCode()
-            );
+            ;
         }
     }
 }

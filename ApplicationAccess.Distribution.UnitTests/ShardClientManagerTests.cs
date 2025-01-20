@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using ApplicationAccess.Distribution.Metrics;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Utilities;

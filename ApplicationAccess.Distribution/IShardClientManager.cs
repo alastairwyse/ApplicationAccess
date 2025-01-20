@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using ApplicationAccess.Distribution.Models;
 
 namespace ApplicationAccess.Distribution
 {

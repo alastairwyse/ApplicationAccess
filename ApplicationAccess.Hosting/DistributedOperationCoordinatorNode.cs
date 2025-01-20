@@ -21,6 +21,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Distribution.Serialization;
 

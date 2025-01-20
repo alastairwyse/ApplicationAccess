@@ -18,10 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Distribution;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Distribution.Serialization;
 using ApplicationAccess.Distribution.Persistence;
+using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using NUnit.Framework;
 using NSubstitute;
 
