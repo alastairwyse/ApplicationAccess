@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,7 +8,7 @@
     <GenerateProgramFile>false</GenerateProgramFile>
     <Authors>Alastair Wyse</Authors>
     <Company></Company>
-    <Description>Integration tests for the ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator namespace... i.e. tests which instantiate the web host using the WebApplicationFactory class.</Description>
+    <Description>Integration tests for the ApplicationAccess.Hosting.Rest.DistributedOperationRouter namespace... i.e. tests which instantiate the web host using the WebApplicationFactory class.</Description>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
@@ -22,9 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.csproj" />
-    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedOperationRouter\ApplicationAccess.Hosting.Rest.DistributedOperationRouter.csproj" />
   </ItemGroup>
 
 </Project>

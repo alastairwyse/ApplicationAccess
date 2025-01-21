@@ -19,18 +19,18 @@ using System;
 namespace ApplicationAccess.Distribution.Models
 {
     /// <summary>
-    /// Model/container class holding configuration information for a single shard in a distributed AccessManager implemenetation.
+    /// Model/container class holding configuration information for a single shard in a distributed AccessManager implementation.
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration stored in the shard configuration.</typeparam>
     public class ShardConfiguration<TClientConfiguration> : IEquatable<ShardConfiguration<TClientConfiguration>>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration
     {
         /// <summary>Prime number used in calculating hash code.</summary>
-        protected const int prime1 = 7;
+        protected const Int32 prime1 = 7;
         /// <summary>Prime number used in calculating hash code.</summary>
-        protected const int prime2 = 11;
+        protected const Int32 prime2 = 11;
         /// <summary>Prime number used in calculating hash code.</summary>
-        protected const int prime3 = 13;
+        protected const Int32 prime3 = 13;
 
         /// <summary>The type of data element managed by the shard.</summary>
         public DataElement DataElementType { get; protected set; }
@@ -39,7 +39,7 @@ namespace ApplicationAccess.Distribution.Models
         public Operation OperationType { get; protected set; }
 
         /// <summary>The first (inclusive) in the range of hash codes of data elements the shard manages.</summary>
-        public int HashRangeStart { get; protected set; }
+        public Int32 HashRangeStart { get; protected set; }
 
         /// <summary>Configuration which can be used to instantiate a client to connect to the shard.</summary>
         public TClientConfiguration ClientConfiguration { get; protected set; }
@@ -77,7 +77,7 @@ namespace ApplicationAccess.Distribution.Models
         }
 
         /// <inheritdoc/>
-        public bool Equals(ShardConfiguration<TClientConfiguration> other)
+        public Boolean Equals(ShardConfiguration<TClientConfiguration> other)
         {
             return
             
@@ -89,7 +89,7 @@ namespace ApplicationAccess.Distribution.Models
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode()
+        public override Int32 GetHashCode()
         {
             return
             

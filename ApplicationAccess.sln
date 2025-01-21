@@ -137,6 +137,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.DistributedOperationRouter", "ApplicationAccess.Hosting.Rest.DistributedOperationRouter\ApplicationAccess.Hosting.Rest.DistributedOperationRouter.csproj", "{DA56F1D8-3BE6-494F-9C10-35A9DDFC5D40}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationTests", "ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationTests\ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationTests.csproj", "{FEA5E962-4B97-4052-841F-56DCA32C9BEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -411,6 +413,10 @@ Global
 		{DA56F1D8-3BE6-494F-9C10-35A9DDFC5D40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA56F1D8-3BE6-494F-9C10-35A9DDFC5D40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA56F1D8-3BE6-494F-9C10-35A9DDFC5D40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEA5E962-4B97-4052-841F-56DCA32C9BEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEA5E962-4B97-4052-841F-56DCA32C9BEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEA5E962-4B97-4052-841F-56DCA32C9BEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEA5E962-4B97-4052-841F-56DCA32C9BEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
