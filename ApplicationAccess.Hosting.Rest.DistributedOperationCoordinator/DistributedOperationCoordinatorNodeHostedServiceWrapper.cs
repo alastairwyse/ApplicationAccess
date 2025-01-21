@@ -18,6 +18,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Net.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -55,6 +56,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         protected ILoggerFactory loggerFactory;
         protected ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger;
 
+        /// <summary>The <see cref="HttpClient"/> used by the shard clients.</summary>
+        protected HttpClient httpClient;
         /// <summary>Manages the clients which connect to shards in the distributed AccessManager implementation.</summary>
         protected ShardClientManager<AccessManagerRestClientConfiguration> shardClientManager;
         /// <summary>>Defines how often the shard configuration will be refreshed.</summary>
@@ -165,6 +168,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 ((IDisposable)shardConfigurationSetPersister).Dispose();
             }
             shardClientManager.Dispose();
+            httpClient.Dispose();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 metricLoggerBufferProcessingStrategy.Dispose();
@@ -241,12 +245,14 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
 
                 // Setup the DistributedAccessManagerAsyncClientFactory (required constructor parameter for ShardClientManager)
+                httpClient = new HttpClient();
                 IApplicationLogger clientFactoryLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
                     loggerFactory.CreateLogger<DistributedAccessManagerAsyncClientFactory<String, String, String, String>>()
                 );
                 var clientFactory = new DistributedAccessManagerAsyncClientFactory<String, String, String, String>
                 (
+                    httpClient, 
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),

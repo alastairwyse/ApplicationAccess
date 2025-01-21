@@ -57,50 +57,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedAsyncClient.DistributedAccessManagerAsyncClientFactory class.
         /// </summary>
-        /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
-        /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</param>
-        /// <param name="applicationComponentStringifier">A string converter for application components.  Used to convert strings sent to and received from the web API from/to TComponent instances.</param>
-        /// <param name="accessLevelStringifier">A string converter for access levels.  Used to convert strings sent to and received from the web API from/to TAccess instances.</param>
-        /// <param name="retryCount">The number of times an operation should be retried in the case of a transient error (e.g. network error).</param>
-        /// <param name="retryInterval">The time in seconds between retries.</param>
-        /// <param name="logger">The logger for general logging.</param>
-        /// <param name="metricLogger">The logger for metrics.</param>
-        public DistributedAccessManagerAsyncClientFactory
-        (
-            IUniqueStringifier<TUser> userStringifier,
-            IUniqueStringifier<TGroup> groupStringifier,
-            IUniqueStringifier<TComponent> applicationComponentStringifier,
-            IUniqueStringifier<TAccess> accessLevelStringifier,
-            Int32 retryCount,
-            Int32 retryInterval,
-            IApplicationLogger logger,
-            IMetricLogger metricLogger
-        )
-        {
-            if (retryCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be less than 0.");
-            if (retryCount > 59)
-                throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be greater than 59.");
-            if (retryInterval < 0)
-                throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be less than 0.");
-            if (retryInterval > 120)
-                throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be greater than 120.");
-
-            httpClient = null;
-            this.userStringifier = userStringifier;
-            this.groupStringifier = groupStringifier;
-            this.applicationComponentStringifier= applicationComponentStringifier;
-            this.accessLevelStringifier = accessLevelStringifier;
-            this.retryCount = retryCount;
-            this.retryInterval = retryInterval;
-            exceptionHandingPolicy = null;
-            this.logger = logger;
-            this.metricLogger = metricLogger;
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedAsyncClient.DistributedAccessManagerAsyncClientFactory class.
-        /// </summary>
         /// <param name="httpClient">The client to use to connect.</param>
         /// <param name="userStringifier">A string converter for users.  Used to convert strings sent to and received from the web API from/to TUser instances.</param>
         /// <param name="groupStringifier">A string converter for groups.  Used to convert strings sent to and received from the web API from/to TGroup instances.</param>
@@ -121,19 +77,27 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
             Int32 retryInterval,
             IApplicationLogger logger,
             IMetricLogger metricLogger
-        ) : this
-        (
-            userStringifier,
-            groupStringifier,
-            applicationComponentStringifier,
-            accessLevelStringifier,
-            retryCount,
-            retryInterval,
-            logger,
-            metricLogger
         )
         {
+            if (retryCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be less than 0.");
+            if (retryCount > 59)
+                throw new ArgumentOutOfRangeException(nameof(retryCount), $"Parameter '{nameof(retryCount)}' with value {retryCount} cannot be greater than 59.");
+            if (retryInterval < 0)
+                throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be less than 0.");
+            if (retryInterval > 120)
+                throw new ArgumentOutOfRangeException(nameof(retryInterval), $"Parameter '{nameof(retryInterval)}' with value {retryInterval} cannot be greater than 120.");
+
             this.httpClient = httpClient;
+            this.userStringifier = userStringifier;
+            this.groupStringifier = groupStringifier;
+            this.applicationComponentStringifier = applicationComponentStringifier;
+            this.accessLevelStringifier = accessLevelStringifier;
+            this.retryCount = retryCount;
+            this.retryInterval = retryInterval;
+            exceptionHandingPolicy = null;
+            this.logger = logger;
+            this.metricLogger = metricLogger;
         }
 
         /// <summary>
@@ -176,45 +140,27 @@ namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
         /// <inheritdoc/>
         public IDistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess> GetClient(AccessManagerRestClientConfiguration configuration)
         {
-            if (httpClient != null)
+            if (exceptionHandingPolicy != null)
             {
-                if (exceptionHandingPolicy != null)
-                {
-                    return new DistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>
-                    (
-                        configuration.BaseUrl,
-                        httpClient, 
-                        userStringifier, 
-                        groupStringifier,
-                        applicationComponentStringifier,
-                        accessLevelStringifier,
-                        exceptionHandingPolicy, 
-                        logger, 
-                        metricLogger
-                    );
-                }
-                else
-                {
-                    return new DistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>
-                    (
-                        configuration.BaseUrl,
-                        httpClient,
-                        userStringifier,
-                        groupStringifier,
-                        applicationComponentStringifier,
-                        accessLevelStringifier,
-                        retryCount,
-                        retryInterval,
-                        logger,
-                        metricLogger
-                    );
-                }
+                return new DistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>
+                (
+                    configuration.BaseUrl,
+                    httpClient, 
+                    userStringifier, 
+                    groupStringifier,
+                    applicationComponentStringifier,
+                    accessLevelStringifier,
+                    exceptionHandingPolicy, 
+                    logger, 
+                    metricLogger
+                );
             }
             else
             {
                 return new DistributedAccessManagerAsyncClient<TUser, TGroup, TComponent, TAccess>
                 (
                     configuration.BaseUrl,
+                    httpClient,
                     userStringifier,
                     groupStringifier,
                     applicationComponentStringifier,
