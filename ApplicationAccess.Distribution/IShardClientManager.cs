@@ -39,10 +39,19 @@ namespace ApplicationAccess.Distribution
         /// Returns a client which connects to the shard managing the specified element and operation type.
         /// </summary>
         /// <param name="dataElement">The type of the element.</param>
-        /// <param name="operation">The type of operation to retrieve the clients for.</param>
+        /// <param name="operation">The type of operation to retrieve the client for.</param>
         /// <param name="dataElementValue">The value of the element.</param>
         /// <returns>The client and a description of the configuration of the shard the client connects to (e.g. to identify the client in exception messages).</returns>
         DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, String dataElementValue);
+
+        /// <summary>
+        /// Returns a client which connects to the shard managing the specified element and operation type.
+        /// </summary>
+        /// <param name="dataElement">The type of the element.</param>
+        /// <param name="operation">The type of operation to retrieve the client for.</param>
+        /// <param name="hashCode">The hash code of the element.</param>
+        /// <returns>The client and a description of the configuration of the shard the client connects to (e.g. to identify the client in exception messages).</returns>
+        DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, Int32 hashCode);
 
         /// <summary>
         /// Returns a collection of clients which connect to shards managing the specified elements.

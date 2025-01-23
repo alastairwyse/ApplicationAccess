@@ -27,6 +27,7 @@ using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 using NUnit.Framework;
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 
 namespace ApplicationAccess.Distribution.UnitTests
 {
@@ -35,16 +36,386 @@ namespace ApplicationAccess.Distribution.UnitTests
     /// </summary>
     public class DistributedAccessManagerOperationRouterTests
     {
+        private Int32 sourceShardHashRangeStart;
+        private Int32 sourceShardHashRangeEnd;
+        private Int32 targetShardHashRangeStart;
+        private Int32 targetShardHashRangeEnd;
+        private IDistributedAccessManagerAsyncClient<String, String, String, String> mockSourceQueryShardClient;
+        private IDistributedAccessManagerAsyncClient<String, String, String, String> mockSourceEventShardClient;
+        private IDistributedAccessManagerAsyncClient<String, String, String, String> mockTargetQueryShardClient;
+        private IDistributedAccessManagerAsyncClient<String, String, String, String> mockTargetEventShardClient;
         private IShardClientManager<AccessManagerRestClientConfiguration> mockShardClientManager;
+        private IHashCodeGenerator<String> mockUserHashCodeGenerator;
+        private IHashCodeGenerator<String> mockGroupHashCodeGenerator;
         private IMetricLogger mockMetricLogger;
-        private DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> testOperationRouter;
+        private DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> testUserOperationRouter;
+        private DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> testGroupOperationRouter;
 
         [SetUp]
         protected void SetUp()
         {
+            sourceShardHashRangeStart = -100;
+            sourceShardHashRangeEnd = -5;
+            targetShardHashRangeStart = -4;
+            targetShardHashRangeEnd = 96;
+            mockSourceQueryShardClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
+            mockSourceEventShardClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
+            mockTargetQueryShardClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
+            mockTargetEventShardClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             mockShardClientManager = Substitute.For<IShardClientManager<AccessManagerRestClientConfiguration>>();
+            mockUserHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
+            mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>(mockShardClientManager, mockMetricLogger);
+
+            // Mock constructor method calls which setup shard client fields within the router
+            var sourceQueryShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                mockSourceQueryShardClient,
+                "SourceQueryShardClientAndDescription"
+            );
+            var sourceEventShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                mockSourceEventShardClient,
+                "SourceEventShardClientAndDescription"
+            );
+            var targetQueryShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                mockTargetQueryShardClient,
+                "TargetQueryShardClientAndDescription"
+            );
+            var TargetEventShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                mockTargetEventShardClient,
+                "TargetEventShardClientAndDescription"
+            );
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, sourceShardHashRangeStart).Returns(sourceQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, sourceShardHashRangeStart).Returns(sourceEventShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, targetShardHashRangeStart).Returns(targetQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, targetShardHashRangeStart).Returns(TargetEventShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, sourceShardHashRangeStart).Returns(sourceQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, sourceShardHashRangeStart).Returns(sourceEventShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, targetShardHashRangeStart).Returns(targetQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, targetShardHashRangeStart).Returns(TargetEventShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, sourceShardHashRangeEnd).Returns(sourceQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, sourceShardHashRangeEnd).Returns(sourceEventShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, targetShardHashRangeEnd).Returns(targetQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, targetShardHashRangeEnd).Returns(TargetEventShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, sourceShardHashRangeEnd).Returns(sourceQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, sourceShardHashRangeEnd).Returns(sourceEventShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Query, targetShardHashRangeEnd).Returns(targetQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.Group, Operation.Event, targetShardHashRangeEnd).Returns(TargetEventShardClientAndDescription);
+
+            testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+            (
+                sourceShardHashRangeStart,
+                sourceShardHashRangeEnd,
+                targetShardHashRangeStart,
+                targetShardHashRangeEnd, 
+                DataElement.User,
+                mockShardClientManager,
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator, 
+                true,
+                mockMetricLogger
+            );
+            testGroupOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+            (
+                sourceShardHashRangeStart,
+                sourceShardHashRangeEnd,
+                targetShardHashRangeStart,
+                targetShardHashRangeEnd,
+                DataElement.Group,
+                mockShardClientManager,
+                mockUserHashCodeGenerator,
+                mockGroupHashCodeGenerator,
+                true,
+                mockMetricLogger
+            );
+            mockShardClientManager.ClearReceivedCalls();
+        }
+
+        [Test] 
+        public void Constructor_SourceShardHashRangeEndParameterLessThanSourceShardHashRangeStart()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    sourceShardHashRangeStart,
+                    sourceShardHashRangeEnd,
+                    4,
+                    3,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'targetShardHashRangeEnd' with value 3 must be greater than or equal to the value 4 of parameter 'targetShardHashRangeStart'."));
+            Assert.AreEqual("targetShardHashRangeEnd", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_ShardDataElementParameterInvalid()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    sourceShardHashRangeStart,
+                    sourceShardHashRangeEnd,
+                    targetShardHashRangeStart,
+                    targetShardHashRangeEnd,
+                    DataElement.GroupToGroupMapping,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Value 'GroupToGroupMapping' in parameter 'shardDataElement' is not valid."));
+            Assert.AreEqual("shardDataElement", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_ShardHashRangesNotContiguous()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    0,
+                    100,
+                    102,
+                    200,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'targetShardHashRangeStart' with value 102 must be contiguous with parameter 'sourceShardHashRangeEnd' with value 100."));
+            Assert.AreEqual("targetShardHashRangeStart", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_TargetShardHashRangeEndParameterLessThanTargetShardHashRangeStart()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    2,
+                    1,
+                    targetShardHashRangeStart,
+                    targetShardHashRangeEnd,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardHashRangeEnd' with value 1 must be greater than or equal to the value 2 of parameter 'sourceShardHashRangeStart'."));
+            Assert.AreEqual("sourceShardHashRangeEnd", e.ParamName);
+        }
+
+        [Test]
+        public void Constructor_ParameterShardClientManagerDoesntContainRequiredClients()
+        {
+            var mockException = new Exception("Mock exception");
+            var sourceQueryShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                mockSourceQueryShardClient,
+                "SourceQueryShardClientAndDescription"
+            );
+            var sourceEventShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                mockSourceEventShardClient,
+                "SourceEventShardClientAndDescription"
+            );
+            var targetQueryShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                mockTargetQueryShardClient,
+                "RargetQueryShardClientAndDescription"
+            );
+            var TargetEventShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                mockTargetEventShardClient,
+                "TargetEventShardClientAndDescription"
+            );
+            mockShardClientManager.When((shardClientManager) => shardClientManager.GetClient(DataElement.User, Operation.Query, sourceShardHashRangeStart)).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    sourceShardHashRangeStart,
+                    sourceShardHashRangeEnd,
+                    targetShardHashRangeStart,
+                    targetShardHashRangeEnd,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve shard client for DataElement 'User', Operation 'Query', and hash code {sourceShardHashRangeStart} from parameter 'shardClientManager'."));
+            Assert.AreEqual("shardClientManager", e.ParamName);
+            Assert.AreSame(mockException, e.InnerException);
+
+
+            mockShardClientManager.ClearSubstitute();
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, sourceShardHashRangeStart).Returns(sourceQueryShardClientAndDescription);
+            mockShardClientManager.When((shardClientManager) => shardClientManager.GetClient(DataElement.User, Operation.Event, sourceShardHashRangeStart)).Do((callInfo) => throw mockException);
+
+            e = Assert.Throws<ArgumentException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    sourceShardHashRangeStart,
+                    sourceShardHashRangeEnd,
+                    targetShardHashRangeStart,
+                    targetShardHashRangeEnd,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve shard client for DataElement 'User', Operation 'Event', and hash code {sourceShardHashRangeStart} from parameter 'shardClientManager'."));
+            Assert.AreEqual("shardClientManager", e.ParamName);
+            Assert.AreSame(mockException, e.InnerException);
+
+
+            mockShardClientManager.ClearSubstitute();
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, sourceShardHashRangeStart).Returns(sourceQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, sourceShardHashRangeStart).Returns(sourceEventShardClientAndDescription);
+            mockShardClientManager.When((shardClientManager) => shardClientManager.GetClient(DataElement.User, Operation.Query, targetShardHashRangeStart)).Do((callInfo) => throw mockException);
+
+            e = Assert.Throws<ArgumentException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    sourceShardHashRangeStart,
+                    sourceShardHashRangeEnd,
+                    targetShardHashRangeStart,
+                    targetShardHashRangeEnd,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve shard client for DataElement 'User', Operation 'Query', and hash code {targetShardHashRangeStart} from parameter 'shardClientManager'."));
+            Assert.AreEqual("shardClientManager", e.ParamName);
+            Assert.AreSame(mockException, e.InnerException);
+
+
+            mockShardClientManager.ClearSubstitute();
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, sourceShardHashRangeStart).Returns(sourceQueryShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, sourceShardHashRangeStart).Returns(sourceEventShardClientAndDescription);
+            mockShardClientManager.GetClient(DataElement.User, Operation.Event, targetShardHashRangeStart).Returns(TargetEventShardClientAndDescription);
+            mockShardClientManager.When((shardClientManager) => shardClientManager.GetClient(DataElement.User, Operation.Event, targetShardHashRangeStart)).Do((callInfo) => throw mockException);
+
+            e = Assert.Throws<ArgumentException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    sourceShardHashRangeStart,
+                    sourceShardHashRangeEnd,
+                    targetShardHashRangeStart,
+                    targetShardHashRangeEnd,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve shard client for DataElement 'User', Operation 'Event', and hash code {targetShardHashRangeStart} from parameter 'shardClientManager'."));
+            Assert.AreEqual("shardClientManager", e.ParamName);
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void Constructor_ShardClientNotFoundForShardHashRangeEndParameter()
+        {
+            var mockException = new Exception("Mock exception");
+            mockShardClientManager.When((shardClientManager) => shardClientManager.GetClient(DataElement.User, Operation.Query, sourceShardHashRangeEnd)).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    sourceShardHashRangeStart,
+                    sourceShardHashRangeEnd,
+                    targetShardHashRangeStart,
+                    targetShardHashRangeEnd,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve shard client for DataElement 'User', Operation 'Query', and hash code {sourceShardHashRangeEnd} from parameter 'sourceShardHashRangeEnd'."));
+            Assert.AreEqual("sourceShardHashRangeEnd", e.ParamName);
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void Constructor_ShardClientsForHashRangeStartAndEndDiffer()
+        {
+            var hashRangeEndShardClientAndDescription = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "HashRangeEndShardClientAndDescription"
+            );
+            mockShardClientManager.GetClient(DataElement.User, Operation.Query, sourceShardHashRangeEnd).Returns(hashRangeEndShardClientAndDescription);
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testUserOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
+                (
+                    sourceShardHashRangeStart,
+                    sourceShardHashRangeEnd,
+                    targetShardHashRangeStart,
+                    targetShardHashRangeEnd,
+                    DataElement.User,
+                    mockShardClientManager,
+                    mockUserHashCodeGenerator,
+                    mockGroupHashCodeGenerator,
+                    true,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardHashRangeEnd' with value {sourceShardHashRangeEnd} returns shard client with description 'HashRangeEndShardClientAndDescription' for DataElement 'User' and Operation 'Query', but shard client returned for the equivalent hash range start in parameter 'sourceShardHashRangeStart' has differing description 'SourceQueryShardClientAndDescription'."));
+            Assert.AreEqual("sourceShardHashRangeEnd", e.ParamName);
         }
 
         [Test]
@@ -87,7 +458,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.GetUsersAsync().Returns(Task.FromResult<List<String>>(userClient2ReturnUsers));
             userShardClientAndDescription3.Client.GetUsersAsync().Returns(Task.FromResult<List<String>>(userClient3ReturnUsers));
 
-            List<String> result = await testOperationRouter.GetUsersAsync();
+            List<String> result = await testUserOperationRouter.GetUsersAsync();
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("user1"));
@@ -134,7 +505,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetUsersAsync();
+                await testUserOperationRouter.GetUsersAsync();
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -188,7 +559,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.GetGroupsAsync().Returns(Task.FromResult<List<String>>(userClient2ReturnGroups));
             userShardClientAndDescription3.Client.GetGroupsAsync().Returns(Task.FromResult<List<String>>(userClient3ReturnGroups));
 
-            List<String> result = await testOperationRouter.GetGroupsAsync();
+            List<String> result = await testUserOperationRouter.GetGroupsAsync();
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("group1"));
@@ -248,7 +619,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.GetGroupsAsync().Returns(Task.FromResult<List<String>>(groupClient2ReturnGroups));
             groupShardClientAndDescription3.Client.GetGroupsAsync().Returns(Task.FromResult<List<String>>(groupClient3ReturnGroups));
 
-            List<String> result = await testOperationRouter.GetGroupsAsync();
+            List<String> result = await testGroupOperationRouter.GetGroupsAsync();
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("group1"));
@@ -298,7 +669,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetGroupsAsync();
+                await testUserOperationRouter.GetGroupsAsync();
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -352,7 +723,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.GetEntityTypesAsync().Returns(Task.FromResult<List<String>>(userClient2ReturnEntityTypes));
             userShardClientAndDescription3.Client.GetEntityTypesAsync().Returns(Task.FromResult<List<String>>(userClient3ReturnEntityTypes));
 
-            List<String> result = await testOperationRouter.GetEntityTypesAsync();
+            List<String> result = await testUserOperationRouter.GetEntityTypesAsync();
 
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains("ClientAccount"));
@@ -409,7 +780,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.GetEntityTypesAsync().Returns(Task.FromResult<List<String>>(groupClient2ReturnEntityTypes));
             groupShardClientAndDescription3.Client.GetEntityTypesAsync().Returns(Task.FromResult<List<String>>(groupClient3ReturnEntityTypes));
 
-            List<String> result = await testOperationRouter.GetEntityTypesAsync();
+            List<String> result = await testGroupOperationRouter.GetEntityTypesAsync();
 
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.Contains("ClientAccount"));
@@ -458,7 +829,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetEntityTypesAsync();
+                await testUserOperationRouter.GetEntityTypesAsync();
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -503,7 +874,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(true));
             userShardClientAndDescription3.Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(false));
 
-            Boolean result = await testOperationRouter.ContainsGroupAsync(testGroup);
+            Boolean result = await testUserOperationRouter.ContainsGroupAsync(testGroup);
 
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -546,7 +917,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(false));
             userShardClientAndDescription3.Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(false));
 
-            Boolean result = await testOperationRouter.ContainsGroupAsync(testGroup);
+            Boolean result = await testUserOperationRouter.ContainsGroupAsync(testGroup);
 
             Assert.IsFalse(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -593,7 +964,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(true));
             groupShardClientAndDescription3.Client.ContainsGroupAsync(testGroup).Returns(Task.FromResult<Boolean>(true));
 
-            Boolean result = await testOperationRouter.ContainsGroupAsync(testGroup);
+            Boolean result = await testGroupOperationRouter.ContainsGroupAsync(testGroup);
 
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -637,7 +1008,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.ContainsGroupAsync(testGroup);
+                await testUserOperationRouter.ContainsGroupAsync(testGroup);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -683,7 +1054,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
             mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
 
-            await testOperationRouter.RemoveGroupAsync(testGroup);
+            await testUserOperationRouter.RemoveGroupAsync(testGroup);
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
@@ -726,7 +1097,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Query)).Do((callInfo) => throw userShardGetClientsException);
             mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupClients);
 
-            await testOperationRouter.RemoveGroupAsync(testGroup);
+            await testGroupOperationRouter.RemoveGroupAsync(testGroup);
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
@@ -773,7 +1144,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.RemoveGroupAsync(testGroup);
+                await testUserOperationRouter.RemoveGroupAsync(testGroup);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -827,7 +1198,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(Task.FromResult<List<String>>(userClient2ReturnUsers));
             userShardClientAndDescription3.Client.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(Task.FromResult<List<String>>(userClient3ReturnUsers));
 
-            List<String> result = await testOperationRouter.GetGroupToUserMappingsAsync(testGroups);
+            List<String> result = await testUserOperationRouter.GetGroupToUserMappingsAsync(testGroups);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("user1"));
@@ -887,7 +1258,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetGroupToUserMappingsAsync(testGroups);
+                await testUserOperationRouter.GetGroupToUserMappingsAsync(testGroups);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -941,7 +1312,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(userClient2ReturnUsers));
             userShardClientAndDescription3.Client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(userClient3ReturnUsers));
 
-            List<String> result = await testOperationRouter.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            List<String> result = await testUserOperationRouter.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("user1"));
@@ -966,7 +1337,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<ArgumentException>(async delegate
             {
-                await testOperationRouter.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, true);
+                await testUserOperationRouter.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, true);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'includeIndirectMappings' with a value of 'True' is not supported."));
@@ -1017,7 +1388,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
+                await testUserOperationRouter.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1071,7 +1442,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(groupClient2ReturnGroups));
             groupShardClientAndDescription3.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(Task.FromResult<List<String>>(groupClient3ReturnGroups));
 
-            List<String> result = await testOperationRouter.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            List<String> result = await testGroupOperationRouter.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("group1"));
@@ -1096,7 +1467,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<ArgumentException>(async delegate
             {
-                await testOperationRouter.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, true);
+                await testGroupOperationRouter.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, true);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'includeIndirectMappings' with a value of 'True' is not supported."));
@@ -1147,7 +1518,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+                await testGroupOperationRouter.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
@@ -1192,7 +1563,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.ContainsEntityTypeAsync(testEntityType).Returns(Task.FromResult<Boolean>(true));
             userShardClientAndDescription3.Client.ContainsEntityTypeAsync(testEntityType).Returns(Task.FromResult<Boolean>(false));
 
-            Boolean result = await testOperationRouter.ContainsEntityTypeAsync(testEntityType);
+            Boolean result = await testUserOperationRouter.ContainsEntityTypeAsync(testEntityType);
 
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1235,7 +1606,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.ContainsEntityTypeAsync(testEntityType).Returns(Task.FromResult<Boolean>(false));
             userShardClientAndDescription3.Client.ContainsEntityTypeAsync(testEntityType).Returns(Task.FromResult<Boolean>(false));
 
-            Boolean result = await testOperationRouter.ContainsEntityTypeAsync(testEntityType);
+            Boolean result = await testUserOperationRouter.ContainsEntityTypeAsync(testEntityType);
 
             Assert.IsFalse(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1282,7 +1653,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.ContainsEntityTypeAsync(testEntityType).Returns(Task.FromResult<Boolean>(true));
             groupShardClientAndDescription3.Client.ContainsEntityTypeAsync(testEntityType).Returns(Task.FromResult<Boolean>(true));
 
-            Boolean result = await testOperationRouter.ContainsEntityTypeAsync(testEntityType);
+            Boolean result = await testGroupOperationRouter.ContainsEntityTypeAsync(testEntityType);
 
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1326,7 +1697,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.ContainsEntityTypeAsync(testEntityType);
+                await testUserOperationRouter.ContainsEntityTypeAsync(testEntityType);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1372,7 +1743,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
             mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
 
-            await testOperationRouter.RemoveEntityTypeAsync(testEntityType);
+            await testUserOperationRouter.RemoveEntityTypeAsync(testEntityType);
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
@@ -1415,7 +1786,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Query)).Do((callInfo) => throw userShardGetClientsException);
             mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupClients);
 
-            await testOperationRouter.RemoveEntityTypeAsync(testEntityType);
+            await testGroupOperationRouter.RemoveEntityTypeAsync(testEntityType);
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
@@ -1462,7 +1833,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.RemoveEntityTypeAsync(testEntityType);
+                await testUserOperationRouter.RemoveEntityTypeAsync(testEntityType);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1518,7 +1889,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.GetEntitiesAsync(testEntityType).Returns(Task.FromResult<List<String>>(userClient2ReturnEntities));
             userShardClientAndDescription3.Client.GetEntitiesAsync(testEntityType).Returns(Task.FromResult<List<String>>(userClient3ReturnEntities));
 
-            List<String> result = await testOperationRouter.GetEntitiesAsync(testEntityType);
+            List<String> result = await testUserOperationRouter.GetEntitiesAsync(testEntityType);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("CompanyA"));
@@ -1579,7 +1950,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.GetEntitiesAsync(testEntityType).Returns(Task.FromResult<List<String>>(groupClient2ReturnEntities));
             groupShardClientAndDescription3.Client.GetEntitiesAsync(testEntityType).Returns(Task.FromResult<List<String>>(groupClient3ReturnEntities));
 
-            List<String> result = await testOperationRouter.GetEntitiesAsync(testEntityType);
+            List<String> result = await testGroupOperationRouter.GetEntitiesAsync(testEntityType);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("CompanyA"));
@@ -1630,7 +2001,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetEntitiesAsync(testEntityType);
+                await testUserOperationRouter.GetEntitiesAsync(testEntityType);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1676,7 +2047,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.ContainsEntityAsync(testEntityType, testEntity).Returns(Task.FromResult<Boolean>(true));
             userShardClientAndDescription3.Client.ContainsEntityAsync(testEntityType, testEntity).Returns(Task.FromResult<Boolean>(false));
 
-            Boolean result = await testOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
+            Boolean result = await testUserOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
 
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1720,7 +2091,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.ContainsEntityAsync(testEntityType, testEntity).Returns(Task.FromResult<Boolean>(false));
             userShardClientAndDescription3.Client.ContainsEntityAsync(testEntityType, testEntity).Returns(Task.FromResult<Boolean>(false));
 
-            Boolean result = await testOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
+            Boolean result = await testUserOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
 
             Assert.IsFalse(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1768,7 +2139,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.ContainsEntityAsync(testEntityType, testEntity).Returns(Task.FromResult<Boolean>(true));
             groupShardClientAndDescription3.Client.ContainsEntityAsync(testEntityType, testEntity).Returns(Task.FromResult<Boolean>(true));
 
-            Boolean result = await testOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
+            Boolean result = await testGroupOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
 
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1813,7 +2184,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
+                await testUserOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -1860,7 +2231,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
             mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
 
-            await testOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
+            await testUserOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
@@ -1904,7 +2275,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Query)).Do((callInfo) => throw userShardGetClientsException);
             mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupClients);
 
-            await testOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
+            await testUserOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
@@ -1952,7 +2323,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
+                await testUserOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -2007,7 +2378,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             userShardClientAndDescription2.Client.GetEntityToUserMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(userClient2ReturnUsers));
             userShardClientAndDescription3.Client.GetEntityToUserMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(userClient3ReturnUsers));
 
-            List<String> result = await testOperationRouter.GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
+            List<String> result = await testUserOperationRouter.GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("user1"));
@@ -2032,7 +2403,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<ArgumentException>(async delegate
             {
-                await testOperationRouter.GetEntityToUserMappingsAsync(testEntityType, testEntity, true);
+                await testUserOperationRouter.GetEntityToUserMappingsAsync(testEntityType, testEntity, true);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'includeIndirectMappings' with a value of 'True' is not supported."));
@@ -2071,7 +2442,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
+                await testUserOperationRouter.GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
@@ -2124,7 +2495,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(groupClient2ReturnGroups));
             groupShardClientAndDescription3.Client.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(Task.FromResult<List<String>>(groupClient3ReturnGroups));
 
-            List<String> result = await testOperationRouter.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+            List<String> result = await testGroupOperationRouter.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("group1"));
@@ -2149,7 +2520,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<ArgumentException>(async delegate
             {
-                await testOperationRouter.GetEntityToGroupMappingsAsync(testEntityType, testEntity, true);
+                await testGroupOperationRouter.GetEntityToGroupMappingsAsync(testEntityType, testEntity, true);
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'includeIndirectMappings' with a value of 'True' is not supported."));
@@ -2188,7 +2559,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+                await testGroupOperationRouter.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
             });
 
             mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
@@ -2236,7 +2607,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription1.Client.HasAccessToApplicationComponentAsync(groupClient1Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(groupShard1Result));
             groupShardClientAndDescription2.Client.HasAccessToApplicationComponentAsync(groupClient2Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(groupShard2Result));
 
-            Boolean result = await testOperationRouter.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
+            Boolean result = await testGroupOperationRouter.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
 
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2279,7 +2650,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription1.Client.HasAccessToApplicationComponentAsync(groupClient1Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(false));
             groupShardClientAndDescription2.Client.HasAccessToApplicationComponentAsync(groupClient2Groups, testApplicationComponent, testAccessLevel).Returns(Task.FromResult<Boolean>(false));
 
-            Boolean result = await testOperationRouter.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
+            Boolean result = await testGroupOperationRouter.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
 
             Assert.IsFalse(result);
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2329,7 +2700,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
+                await testGroupOperationRouter.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
             });
 
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2379,7 +2750,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription1.Client.HasAccessToEntityAsync(groupClient1Groups, testEntityType, testEntity).Returns(Task.FromResult<Boolean>(groupShard1Result));
             groupShardClientAndDescription2.Client.HasAccessToEntityAsync(groupClient2Groups, testEntityType, testEntity).Returns(Task.FromResult<Boolean>(groupShard2Result));
 
-            Boolean result = await testOperationRouter.HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
+            Boolean result = await testGroupOperationRouter.HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
 
             Assert.IsTrue(result);
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2422,7 +2793,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription1.Client.HasAccessToEntityAsync(groupClient1Groups, testEntityType, testEntity).Returns(Task.FromResult<Boolean>(false));
             groupShardClientAndDescription2.Client.HasAccessToEntityAsync(groupClient2Groups, testEntityType, testEntity).Returns(Task.FromResult<Boolean>(false));
 
-            Boolean result = await testOperationRouter.HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
+            Boolean result = await testGroupOperationRouter.HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
 
             Assert.IsFalse(result);
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2472,7 +2843,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
+                await testGroupOperationRouter.HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
             });
 
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2540,7 +2911,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.GetApplicationComponentsAccessibleByGroupsAsync(groupClient2Groups).Returns(Task.FromResult<List<Tuple<String, String>>>(groupClient2ApplicationComponents));
             groupShardClientAndDescription3.Client.GetApplicationComponentsAccessibleByGroupsAsync(groupClient3Groups).Returns(Task.FromResult<List<Tuple<String, String>>>(groupClient3ApplicationComponents));
 
-            List<Tuple<String, String>> result = await testOperationRouter.GetApplicationComponentsAccessibleByGroupsAsync(testGroups);
+            List<Tuple<String, String>> result = await testGroupOperationRouter.GetApplicationComponentsAccessibleByGroupsAsync(testGroups);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains(Tuple.Create("Order", "View")));
@@ -2615,7 +2986,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetApplicationComponentsAccessibleByGroupsAsync(testGroups);
+                await testGroupOperationRouter.GetApplicationComponentsAccessibleByGroupsAsync(testGroups);
             });
 
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2683,7 +3054,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.GetEntitiesAccessibleByGroupsAsync(groupClient2Groups).Returns(Task.FromResult<List<Tuple<String, String>>>(groupClient2Entities));
             groupShardClientAndDescription3.Client.GetEntitiesAccessibleByGroupsAsync(groupClient3Groups).Returns(Task.FromResult<List<Tuple<String, String>>>(groupClient3Entities));
 
-            List<Tuple<String, String>> result = await testOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups);
+            List<Tuple<String, String>> result = await testGroupOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains(Tuple.Create("ClientAccount", "CompanyA")));
@@ -2759,7 +3130,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups);
+                await testGroupOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups);
             });
 
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2828,7 +3199,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             groupShardClientAndDescription2.Client.GetEntitiesAccessibleByGroupsAsync(groupClient2Groups, "ClientAccount").Returns(Task.FromResult<List<String>>(groupClient2Entities));
             groupShardClientAndDescription3.Client.GetEntitiesAccessibleByGroupsAsync(groupClient3Groups, "ClientAccount").Returns(Task.FromResult<List<String>>(groupClient3Entities));
 
-            List<String> result = await testOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups, "ClientAccount");
+            List<String> result = await testGroupOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups, "ClientAccount");
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.Contains("CompanyA"));
@@ -2905,7 +3276,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups, "ClientAccount");
+                await testGroupOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups, "ClientAccount");
             });
 
             mockShardClientManager.Received(1).GetClients(DataElement.Group, Operation.Query, Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
@@ -2915,6 +3286,58 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to retrieve entity mappings for multiple groups and entity type 'ClientAccount' from shard with configuration 'GroupShardDescription3'."));
             Assert.AreSame(mockException, e.InnerException);
+        }
+
+        // The following tests for method ImplementRoutingAsync() are tested via public method RemoveUserAsync(), since ImplementRoutingAsync() is protected
+        //   Not testing with parameter shardOperationType = Operation.Query, since no query methods have a void return type.
+
+        [Test]
+        public async Task ImplementRoutingAsync()
+        {
+            String testUser = "user1";
+            testUserOperationRouter.RoutingOn = true;
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(targetShardHashRangeStart);
+            mockTargetEventShardClient.ClearReceivedCalls();
+
+            await testUserOperationRouter.RemoveUserAsync(testUser);
+
+            await mockTargetEventShardClient.Received(1).RemoveUserAsync(testUser);
+
+
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+            mockSourceEventShardClient.ClearReceivedCalls();
+
+            await testUserOperationRouter.RemoveUserAsync(testUser);
+
+            await mockSourceEventShardClient.Received(1).RemoveUserAsync(testUser);
+
+
+            testUserOperationRouter.RoutingOn = false;
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(targetShardHashRangeStart);
+            mockSourceEventShardClient.ClearReceivedCalls();
+
+            await testUserOperationRouter.RemoveUserAsync(testUser);
+
+            await mockSourceEventShardClient.Received(1).RemoveUserAsync(testUser);
+
+
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+            mockSourceEventShardClient.ClearReceivedCalls();
+
+            await testUserOperationRouter.RemoveUserAsync(testUser);
+
+            await mockSourceEventShardClient.Received(1).RemoveUserAsync(testUser);
+        }
+
+        [Test]
+        public void ImplementRoutingAsyncReturnTypeParameterOverload()
+        {
+            // TODO: IMPORTANT!! ******************************************
+            //   Actually don't need to pass 'shardOperationType' to ImplementRoutingAsync() method...
+            //   If it just returns a Task, can assume Event
+            //   If it returns Task<T> can assume query!!
+
+            Assert.Fail("Need to implement this!");
         }
 
         #region Private/Protected Methods

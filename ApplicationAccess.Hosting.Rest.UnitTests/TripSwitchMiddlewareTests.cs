@@ -57,6 +57,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'shutdownTimeout' with value -1 must be greater than or equal to 0."));
+            Assert.AreEqual("shutdownTimeout", e.ParamName);
 
 
             e = Assert.Throws<ArgumentOutOfRangeException>(delegate
@@ -65,6 +66,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             });
 
             Assert.That(e.Message, Does.StartWith("Parameter 'shutdownTimeout' with value -1 must be greater than or equal to 0."));
+            Assert.AreEqual("shutdownTimeout", e.ParamName);
         }
     }
 }

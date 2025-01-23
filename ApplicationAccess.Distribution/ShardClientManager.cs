@@ -125,6 +125,29 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
+        public DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, Int32 hashCode)
+        {
+            var dataElementAndOperation = new DataElementAndOperation(dataElement, operation);
+            configurationLock.EnterReadLock();
+            try
+            {
+                ThrowExceptionIfHashRangeToClientMapDoesntContainDataElementAndOperation(dataElementAndOperation);
+                if (dataElement == DataElement.User)
+                {
+                    return GetClientForHashCode(hashRangeToClientMap[dataElementAndOperation], hashCode);
+                }
+                else
+                {
+                    return GetClientForHashCode(hashRangeToClientMap[dataElementAndOperation], hashCode);
+                }
+            }
+            finally
+            {
+                configurationLock.ExitReadLock();
+            }
+        }
+
+        /// <inheritdoc/>
         public IEnumerable<Tuple<DistributedClientAndShardDescription, IEnumerable<String>>> GetClients(DataElement dataElement, Operation operation, IEnumerable<String> dataElementValues)
         {
             var clientToDataElementMap = new Dictionary<DistributedClientAndShardDescription, HashSet<String>>();
@@ -240,7 +263,7 @@ namespace ApplicationAccess.Distribution
         /// <param name="dataElementValue">The value of the element.</param>
         /// <param name="acquireLock">Whether a mutual-exclusion read lock should be acquired.</param>
         /// <returns>The client and a description of the configuration of the shard the client connects to (e.g. to identify the client in exception messages).</returns>
-        public DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, String dataElementValue, Boolean acquireLock)
+        protected DistributedClientAndShardDescription GetClient(DataElement dataElement, Operation operation, String dataElementValue, Boolean acquireLock)
         {
             var dataElementAndOperation = new DataElementAndOperation(dataElement, operation);
             if (acquireLock == true)
@@ -249,8 +272,7 @@ namespace ApplicationAccess.Distribution
             }
             try
             {
-                if (hashRangeToClientMap.ContainsKey(dataElementAndOperation) == false)
-                    throw new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{dataElement}' and {typeof(Operation).Name} '{operation}'.");
+                ThrowExceptionIfHashRangeToClientMapDoesntContainDataElementAndOperation(dataElementAndOperation);
 
                 if (dataElement == DataElement.User)
                 {
@@ -302,6 +324,16 @@ namespace ApplicationAccess.Distribution
                 }
             }
         }
+
+        #pragma warning disable 1591
+
+        protected void ThrowExceptionIfHashRangeToClientMapDoesntContainDataElementAndOperation(DataElementAndOperation dataElementAndOperation)
+        {
+            if (dataElementAndOperationToClientMap.ContainsKey(dataElementAndOperation) == false)
+                throw new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{dataElementAndOperation.DataElement}' and {typeof(Operation).Name} '{dataElementAndOperation.Operation}'.");
+        }
+
+        #pragma warning restore 1591
 
         #endregion
 
