@@ -44,6 +44,11 @@ namespace ApplicationAccess.Distribution
         //     AND REMOVE VIRTUAL FORM METHODS
         //   Could consider in constructor, also retrieving the clients at the end of the range and ensuring it's the same client
         //     Just to ensure the shardclientmanager actually matches the shard range setup
+        //   Add comments about call to ThrowExceptionIfMethodNotValidForDataType()
+        //     Can be removed after integration testing
+        //   Add comment in tests (at top) to explain test approach for methods like AddUserToGroupMappingAsync() and GetUserToGroupMappingsAsync()
+        //     These all just proxy to ImplementRoutingAsync()... it already has its own detailed tests... so just need to check that correct params (hascodegenerator etc) are passed to those methods
+        //     Only single test is require... not all paths
 
         // This class inherits from DistributedAccessManagerOperationCoordinator<TClientConfiguration> but then ends up overriding many of its methods with a NotImplementedException
         //   which is bad practice from an OO design perspective.  Problem is that it needs to implement many of the methods that DistributedAccessManagerOperationCoordinator does
@@ -158,13 +163,20 @@ namespace ApplicationAccess.Distribution
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetUsersAsync));
 
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            if (routingOn == false)
             {
-                return await client.GetUsersAsync();
-            };
+                return await sourceQueryShardClientAndDescription.Client.GetUsersAsync();
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return await client.GetUsersAsync();
+                };
 
-            return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve users from");
+                return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve users from");
+            }
         }
 
         /// <inheritdoc/>
@@ -172,13 +184,20 @@ namespace ApplicationAccess.Distribution
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetGroupsAsync));
 
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            if (routingOn == false)
             {
-                return await client.GetGroupsAsync();
-            };
+                return await sourceQueryShardClientAndDescription.Client.GetGroupsAsync();
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return await client.GetGroupsAsync();
+                };
 
-            return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve groups from");
+                return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve groups from");
+            }
         }
 
         /// <inheritdoc/>
@@ -186,388 +205,21 @@ namespace ApplicationAccess.Distribution
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntityTypesAsync));
 
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+            if (routingOn == false)
             {
-                return await client.GetEntityTypesAsync();
-            };
-
-            return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve entity types from");
-        }
-
-        /// <inheritdoc/>
-        public override async Task<Boolean> ContainsGroupAsync(String group)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsGroupAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<Boolean, Guid>>> shardCheckFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                return Tuple.Create(await client.ContainsGroupAsync(group), Guid.NewGuid());
-            };
-
-            return await ContainsElementAsync(shardDataElementTypes, shardCheckFunc, $"check for group '{group}' in");
-        }
-
-        /// <inheritdoc/>
-        public override async Task RemoveGroupAsync(String group)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveGroupAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> shardRemoveFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                await client.RemoveGroupAsync(group);
-            };
-
-            await RemoveElementAsync(shardDataElementTypes, shardRemoveFunc, $"remove group '{group}' from");
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<String>> GetGroupToUserMappingsAsync(IEnumerable<String> groups)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetGroupToUserMappingsAsync));
-
-            var returnUsers = new HashSet<String>();
-            IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.User, Operation.Query);
-            // Create the tasks to retrieve the mapped users
-            var shardReadTasks = new HashSet<Task<List<String>>>();
-            var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
-            foreach (DistributedClientAndShardDescription currentClient in clients)
-            {
-                Task<List<String>> currentTask = currentClient.Client.GetGroupToUserMappingsAsync(groups);
-                taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
-                shardReadTasks.Add(currentTask);
+                return await sourceQueryShardClientAndDescription.Client.GetEntityTypesAsync();
             }
-            // Wait for the tasks to complete
-            Action<List<String>> resultAction = (List<String> currentShardUsers) =>
+            else
             {
-                returnUsers.UnionWith(currentShardUsers);
-            };
-            Func<List<String>, Boolean> continuePredicate = (List<String> currentShardUsers) => { return true; };
-            var rethrowExceptions = new HashSet<Type>();
-            var ignoreExceptions = new HashSet<Type>();
-            await AwaitTaskCompletionAsync
-            (
-                shardReadTasks,
-                taskToShardDescriptionMap,
-                resultAction,
-                continuePredicate,
-                rethrowExceptions,
-                ignoreExceptions,
-                "retrieve group to user mappings for multiple groups from",
-                null,
-                null
-            );
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return await client.GetEntityTypesAsync();
+                };
 
-            return new List<String>(returnUsers);
-        }
-
-        /// <inheritdoc/>
-        public override async Task<List<String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
-        {
-            if (includeIndirectMappings == true)
-                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetApplicationComponentAndAccessLevelToUserMappingsAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                return await client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
-            };
-
-            return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve application component and access level to user mappings from");
-        }
-
-        /// <inheritdoc/>
-        public override async Task<List<String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
-        {
-            if (includeIndirectMappings == true)
-                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetApplicationComponentAndAccessLevelToGroupMappingsAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                return await client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
-            };
-
-            return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve application component and access level to group mappings from");
-        }
-
-        /// <inheritdoc/>
-        public override async Task<Boolean> ContainsEntityTypeAsync(String entityType)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsEntityTypeAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<Boolean, Guid>>> shardCheckFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                return Tuple.Create(await client.ContainsEntityTypeAsync(entityType), Guid.NewGuid());
-            };
-
-            return await ContainsElementAsync(shardDataElementTypes, shardCheckFunc, $"check for entity type '{entityType}' in");
-        }
-
-        /// <inheritdoc/>
-        public override async Task RemoveEntityTypeAsync(String entityType)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveEntityTypeAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> shardRemoveFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                await client.RemoveEntityTypeAsync(entityType);
-            };
-
-            await RemoveElementAsync(shardDataElementTypes, shardRemoveFunc, $"remove entity type '{entityType}' from");
-        }
-
-        /// <inheritdoc/>
-        public override async Task<List<String>> GetEntitiesAsync(String entityType)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntitiesAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                return await client.GetEntitiesAsync(entityType);
-            };
-
-            return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, $"retrieve entities of type '{entityType}' from");
-        }
-
-        /// <inheritdoc/>
-        public override async Task<Boolean> ContainsEntityAsync(String entityType, String entity)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsEntityAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<Boolean, Guid>>> shardCheckFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                return Tuple.Create(await client.ContainsEntityAsync(entityType, entity), Guid.NewGuid());
-            };
-
-            return await ContainsElementAsync(shardDataElementTypes, shardCheckFunc, $"check for entity '{entity}' with type '{entityType}' in");
-        }
-
-        /// <inheritdoc/>
-        public override async Task RemoveEntityAsync(String entityType, String entity)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveEntityAsync));
-
-            var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
-            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> shardRemoveFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
-            {
-                await client.RemoveEntityAsync(entityType, entity);
-            };
-
-            await RemoveElementAsync(shardDataElementTypes, shardRemoveFunc, $"remove entity '{entity}' with type '{entityType}' from");
-        }
-
-        /// <inheritdoc/>
-        public override async Task<List<String>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntityToUserMappingsAsync));
-
-            if (includeIndirectMappings == true)
-                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
-
-            return new List<String>(await GetEntityToUserDirectMappingsAsync(entityType, entity));
-        }
-
-        /// <inheritdoc/>
-        public override async Task<List<String>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
-        {
-            if (includeIndirectMappings == true)
-                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntityToGroupMappingsAsync));
-
-            var returnList = new List<String>();
-            foreach (String currentGroup in (await GetEntityToGroupDirectMappingsAsync(entityType, entity)).Item1)
-            {
-                returnList.Add(currentGroup);
+                return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve entity types from");
             }
-
-            return returnList;
         }
-
-        /// <inheritdoc/>
-        public async Task<Boolean> HasAccessToApplicationComponentAsync(IEnumerable<String> groups, String applicationComponent, String accessLevel)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.HasAccessToApplicationComponentAsync));
-
-            Boolean result = false;
-            ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
-            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<Boolean, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
-            {
-                Boolean groupShardresult = await clientAndDescription.Client.HasAccessToApplicationComponentAsync(funcGroups, applicationComponent, accessLevel);
-                return Tuple.Create(groupShardresult, Guid.NewGuid());
-            };
-            Action<Tuple<Boolean, Guid>> resultAction = (Tuple<Boolean, Guid> hasAccess) =>
-            {
-                if (hasAccess.Item1 == true)
-                {
-                    result = true;
-                }
-            };
-            Func<Tuple<Boolean, Guid>, Boolean> continuePredicate = (Tuple<Boolean, Guid> hasAccess) => { return !hasAccess.Item1; };
-            queryMetricData = await ExecuteQueryAgainstGroupShards
-            (
-                groups,
-                createQueryTaskFunc,
-                Enumerable.Empty<Tuple<Task<Tuple<Boolean, Guid>>, String>>(),
-                resultAction,
-                continuePredicate,
-                new HashSet<Type>(),
-                new HashSet<Type>(),
-                false,
-                $"check access to application component '{applicationComponent}' at access level '{accessLevel}' for multiple groups in",
-                false
-            );
-
-            return result;
-        }
-
-        /// <inheritdoc/>
-        public async Task<Boolean> HasAccessToEntityAsync(IEnumerable<String> groups, String entityType, String entity)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.HasAccessToEntityAsync));
-
-            Boolean result = false;
-            ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
-            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<Boolean, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
-            {
-                Boolean groupShardresult = await clientAndDescription.Client.HasAccessToEntityAsync(funcGroups, entityType, entity);
-                return Tuple.Create(groupShardresult, Guid.NewGuid());
-            };
-            Action<Tuple<Boolean, Guid>> resultAction = (Tuple<Boolean, Guid> hasAccess) =>
-            {
-                if (hasAccess.Item1 == true)
-                {
-                    result = true;
-                }
-            };
-            Func<Tuple<Boolean, Guid>, Boolean> continuePredicate = (Tuple<Boolean, Guid> hasAccess) => { return !hasAccess.Item1; };
-            queryMetricData = await ExecuteQueryAgainstGroupShards
-            (
-                groups,
-                createQueryTaskFunc,
-                Enumerable.Empty<Tuple<Task<Tuple<Boolean, Guid>>, String>>(),
-                resultAction,
-                continuePredicate,
-                new HashSet<Type>(),
-                new HashSet<Type>(),
-                false,
-                $"check access to entity '{entity}' with type '{entityType}' for multiple groups in",
-                false
-            );
-
-            return result;
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupsAsync(IEnumerable<String> groups)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetApplicationComponentsAccessibleByGroupsAsync));
-
-            var result = new HashSet<Tuple<String, String>>();
-            ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
-            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<List<Tuple<String, String>>, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
-            {
-                List<Tuple<String, String>> groupShardresult = await clientAndDescription.Client.GetApplicationComponentsAccessibleByGroupsAsync(funcGroups);
-                return Tuple.Create(groupShardresult, Guid.NewGuid());
-            };
-            Action<Tuple<List<Tuple<String, String>>, Guid>> resultAction = (Tuple<List<Tuple<String, String>>, Guid> groupShardResult) =>
-            {
-                result.UnionWith(groupShardResult.Item1);
-            };
-            Func<Tuple<List<Tuple<String, String>>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
-            queryMetricData = await ExecuteQueryAgainstGroupShards
-            (
-                groups,
-                createQueryTaskFunc,
-                Enumerable.Empty<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>(),
-                resultAction,
-                continuePredicate,
-                new HashSet<Type>(),
-                new HashSet<Type>(),
-                false,
-                $"retrieve application component and access level mappings for multiple groups from",
-                false
-            );
-
-            return new List<Tuple<String, String>>(result);
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<String> groups)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntitiesAccessibleByGroupsAsync));
-
-            var result = new HashSet<Tuple<String, String>>();
-            ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
-            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<List<Tuple<String, String>>, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
-            {
-                List<Tuple<String, String>> groupShardresult = await clientAndDescription.Client.GetEntitiesAccessibleByGroupsAsync(funcGroups);
-                return Tuple.Create(groupShardresult, Guid.NewGuid());
-            };
-            Action<Tuple<List<Tuple<String, String>>, Guid>> resultAction = (Tuple<List<Tuple<String, String>>, Guid> groupShardResult) =>
-            {
-                result.UnionWith(groupShardResult.Item1);
-            };
-            Func<Tuple<List<Tuple<String, String>>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
-            queryMetricData = await ExecuteQueryAgainstGroupShards
-            (
-                groups,
-                createQueryTaskFunc,
-                Enumerable.Empty<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>(),
-                resultAction,
-                continuePredicate,
-                new HashSet<Type>(),
-                new HashSet<Type>(),
-                false,
-                $"retrieve entity mappings for multiple groups from",
-                false
-            );
-
-            return new List<Tuple<String, String>>(result);
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<String>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<String> groups, String entityType)
-        {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntitiesAccessibleByGroupsAsync));
-
-            var result = new HashSet<String>();
-            ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
-            Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<List<String>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
-            {
-                return await clientAndDescription.Client.GetEntitiesAccessibleByGroupsAsync(funcGroups, entityType);
-            };
-            Action<List<String>> resultAction = (List<String> groupShardResult) =>
-            {
-                result.UnionWith(groupShardResult);
-            };
-            Func<List<String>, Boolean> continuePredicate = (groupShardResult) => { return true; };
-            queryMetricData = await ExecuteQueryAgainstGroupShards
-            (
-                groups,
-                createQueryTaskFunc,
-                Enumerable.Empty<Tuple<Task<List<String>>, String>>(),
-                resultAction,
-                continuePredicate,
-                new HashSet<Type>(),
-                new HashSet<Type>(),
-                false,
-                $"retrieve entity mappings for multiple groups and entity type '{entityType}' from",
-                false
-            );
-
-            return new List<String>(result);
-        }
-
-        #region Non-implemented Public Methods
 
         /// <inheritdoc/>
         public override Task AddUserAsync(String user)
@@ -576,9 +228,13 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public async Task<Boolean> ContainsUserAsync(String user)
+        public async override Task<Boolean> ContainsUserAsync(String user)
         {
-            throw new NotImplementedException();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Boolean>> clientAction = async (client) =>
+            {
+                return await client.ContainsUserAsync(user);
+            };
+            return await ImplementRoutingAsync(nameof(this.ContainsUserAsync), user, userHashCodeGenerator, clientAction);
         }
 
         /// <inheritdoc/>
@@ -588,7 +244,7 @@ namespace ApplicationAccess.Distribution
             {
                 await client.RemoveUserAsync(user);
             };
-            await ImplementRoutingAsync(nameof(this.RemoveUserAsync), user, Operation.Event, userHashCodeGenerator, clientAction);
+            await ImplementRoutingAsync(nameof(this.RemoveUserAsync), user, userHashCodeGenerator, clientAction);
         }
 
         /// <inheritdoc/>
@@ -598,10 +254,512 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override Task AddUserToGroupMappingAsync(String user, String group)
+        public override async Task<Boolean> ContainsGroupAsync(String group)
         {
-            throw new NotImplementedException();
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsGroupAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.ContainsGroupAsync(group);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<Boolean, Guid>>> shardCheckFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return Tuple.Create(await client.ContainsGroupAsync(group), Guid.NewGuid());
+                };
+
+                return await ContainsElementAsync(shardDataElementTypes, shardCheckFunc, $"check for group '{group}' in");
+            }
         }
+
+        /// <inheritdoc/>
+        public override async Task RemoveGroupAsync(String group)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveGroupAsync));
+
+            if (routingOn == false)
+            {
+                await sourceEventShardClientAndDescription.Client.RemoveGroupAsync(group);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> shardRemoveFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    await client.RemoveGroupAsync(group);
+                };
+
+                await RemoveElementAsync(shardDataElementTypes, shardRemoveFunc, $"remove group '{group}' from");
+            }
+        }
+
+        /// <inheritdoc/>
+        public async override Task AddUserToGroupMappingAsync(String user, String group)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.AddUserToGroupMappingAsync(user, group);
+            };
+            await ImplementRoutingAsync(nameof(this.AddUserToGroupMappingAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+
+
+
+
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetGroupToUserMappingsAsync(IEnumerable<String> groups)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetGroupToUserMappingsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetGroupToUserMappingsAsync(groups);
+            }
+            else
+            {
+                var returnUsers = new HashSet<String>();
+                IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.User, Operation.Query);
+                // Create the tasks to retrieve the mapped users
+                var shardReadTasks = new HashSet<Task<List<String>>>();
+                var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
+                foreach (DistributedClientAndShardDescription currentClient in clients)
+                {
+                    Task<List<String>> currentTask = currentClient.Client.GetGroupToUserMappingsAsync(groups);
+                    taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
+                    shardReadTasks.Add(currentTask);
+                }
+                // Wait for the tasks to complete
+                Action<List<String>> resultAction = (List<String> currentShardUsers) =>
+                {
+                    returnUsers.UnionWith(currentShardUsers);
+                };
+                Func<List<String>, Boolean> continuePredicate = (List<String> currentShardUsers) => { return true; };
+                var rethrowExceptions = new HashSet<Type>();
+                var ignoreExceptions = new HashSet<Type>();
+                await AwaitTaskCompletionAsync
+                (
+                    shardReadTasks,
+                    taskToShardDescriptionMap,
+                    resultAction,
+                    continuePredicate,
+                    rethrowExceptions,
+                    ignoreExceptions,
+                    "retrieve group to user mappings for multiple groups from",
+                    null,
+                    null
+                );
+
+                return new List<String>(returnUsers);
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task<List<String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
+        {
+            if (includeIndirectMappings == true)
+                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetApplicationComponentAndAccessLevelToUserMappingsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return await client.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
+                };
+
+                return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve application component and access level to user mappings from");
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task<List<String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
+        {
+            if (includeIndirectMappings == true)
+                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetApplicationComponentAndAccessLevelToGroupMappingsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return await client.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
+                };
+
+                return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, "retrieve application component and access level to group mappings from");
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task<Boolean> ContainsEntityTypeAsync(String entityType)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsEntityTypeAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.ContainsEntityTypeAsync(entityType);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<Boolean, Guid>>> shardCheckFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return Tuple.Create(await client.ContainsEntityTypeAsync(entityType), Guid.NewGuid());
+                };
+
+                return await ContainsElementAsync(shardDataElementTypes, shardCheckFunc, $"check for entity type '{entityType}' in");
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task RemoveEntityTypeAsync(String entityType)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveEntityTypeAsync));
+
+            if (routingOn == false)
+            {
+                await sourceEventShardClientAndDescription.Client.RemoveEntityTypeAsync(entityType);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> shardRemoveFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    await client.RemoveEntityTypeAsync(entityType);
+                };
+
+                await RemoveElementAsync(shardDataElementTypes, shardRemoveFunc, $"remove entity type '{entityType}' from");
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task<List<String>> GetEntitiesAsync(String entityType)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntitiesAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetEntitiesAsync(entityType);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> shardReadFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return await client.GetEntitiesAsync(entityType);
+                };
+
+                return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, $"retrieve entities of type '{entityType}' from");
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task<Boolean> ContainsEntityAsync(String entityType, String entity)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsEntityAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.ContainsEntityAsync(entityType, entity);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Tuple<Boolean, Guid>>> shardCheckFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    return Tuple.Create(await client.ContainsEntityAsync(entityType, entity), Guid.NewGuid());
+                };
+
+                return await ContainsElementAsync(shardDataElementTypes, shardCheckFunc, $"check for entity '{entity}' with type '{entityType}' in");
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task RemoveEntityAsync(String entityType, String entity)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveEntityAsync));
+
+            if (routingOn == false)
+            {
+                await sourceEventShardClientAndDescription.Client.RemoveEntityAsync(entityType, entity);
+            }
+            else
+            {
+                var shardDataElementTypes = new List<DataElement>() { DataElement.User, DataElement.Group };
+                Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> shardRemoveFunc = async (IDistributedAccessManagerAsyncClient<String, String, String, String> client) =>
+                {
+                    await client.RemoveEntityAsync(entityType, entity);
+                };
+
+                await RemoveElementAsync(shardDataElementTypes, shardRemoveFunc, $"remove entity '{entity}' with type '{entityType}' from");
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task<List<String>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntityToUserMappingsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetEntityToUserMappingsAsync(entityType, entity, includeIndirectMappings);
+            }
+            else
+            {
+                if (includeIndirectMappings == true)
+                    throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
+
+                return new List<String>(await GetEntityToUserDirectMappingsAsync(entityType, entity));
+            }
+        }
+
+        /// <inheritdoc/>
+        public override async Task<List<String>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        {
+            if (includeIndirectMappings == true)
+                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntityToGroupMappingsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetEntityToGroupMappingsAsync(entityType, entity, includeIndirectMappings);
+            }
+            else
+            {
+                var returnList = new List<String>();
+                foreach (String currentGroup in (await GetEntityToGroupDirectMappingsAsync(entityType, entity)).Item1)
+                {
+                    returnList.Add(currentGroup);
+                }
+
+                return returnList;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<Boolean> HasAccessToApplicationComponentAsync(IEnumerable<String> groups, String applicationComponent, String accessLevel)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.HasAccessToApplicationComponentAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.HasAccessToApplicationComponentAsync(groups, applicationComponent, accessLevel);
+            }
+            else
+            {
+                Boolean result = false;
+                ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<Boolean, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
+                {
+                    Boolean groupShardresult = await clientAndDescription.Client.HasAccessToApplicationComponentAsync(funcGroups, applicationComponent, accessLevel);
+                    return Tuple.Create(groupShardresult, Guid.NewGuid());
+                };
+                Action<Tuple<Boolean, Guid>> resultAction = (Tuple<Boolean, Guid> hasAccess) =>
+                {
+                    if (hasAccess.Item1 == true)
+                    {
+                        result = true;
+                    }
+                };
+                Func<Tuple<Boolean, Guid>, Boolean> continuePredicate = (Tuple<Boolean, Guid> hasAccess) => { return !hasAccess.Item1; };
+                queryMetricData = await ExecuteQueryAgainstGroupShards
+                (
+                    groups,
+                    createQueryTaskFunc,
+                    Enumerable.Empty<Tuple<Task<Tuple<Boolean, Guid>>, String>>(),
+                    resultAction,
+                    continuePredicate,
+                    new HashSet<Type>(),
+                    new HashSet<Type>(),
+                    false,
+                    $"check access to application component '{applicationComponent}' at access level '{accessLevel}' for multiple groups in",
+                    false
+                );
+
+                return result;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<Boolean> HasAccessToEntityAsync(IEnumerable<String> groups, String entityType, String entity)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.HasAccessToEntityAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.HasAccessToEntityAsync(groups, entityType, entity);
+            }
+            else
+            {
+                Boolean result = false;
+                ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<Boolean, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
+                {
+                    Boolean groupShardresult = await clientAndDescription.Client.HasAccessToEntityAsync(funcGroups, entityType, entity);
+                    return Tuple.Create(groupShardresult, Guid.NewGuid());
+                };
+                Action<Tuple<Boolean, Guid>> resultAction = (Tuple<Boolean, Guid> hasAccess) =>
+                {
+                    if (hasAccess.Item1 == true)
+                    {
+                        result = true;
+                    }
+                };
+                Func<Tuple<Boolean, Guid>, Boolean> continuePredicate = (Tuple<Boolean, Guid> hasAccess) => { return !hasAccess.Item1; };
+                queryMetricData = await ExecuteQueryAgainstGroupShards
+                (
+                    groups,
+                    createQueryTaskFunc,
+                    Enumerable.Empty<Tuple<Task<Tuple<Boolean, Guid>>, String>>(),
+                    resultAction,
+                    continuePredicate,
+                    new HashSet<Type>(),
+                    new HashSet<Type>(),
+                    false,
+                    $"check access to entity '{entity}' with type '{entityType}' for multiple groups in",
+                    false
+                );
+
+                return result;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupsAsync(IEnumerable<String> groups)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetApplicationComponentsAccessibleByGroupsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetApplicationComponentsAccessibleByGroupsAsync(groups);
+            }
+            else
+            {
+                var result = new HashSet<Tuple<String, String>>();
+                ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<List<Tuple<String, String>>, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
+                {
+                    List<Tuple<String, String>> groupShardresult = await clientAndDescription.Client.GetApplicationComponentsAccessibleByGroupsAsync(funcGroups);
+                    return Tuple.Create(groupShardresult, Guid.NewGuid());
+                };
+                Action<Tuple<List<Tuple<String, String>>, Guid>> resultAction = (Tuple<List<Tuple<String, String>>, Guid> groupShardResult) =>
+                {
+                    result.UnionWith(groupShardResult.Item1);
+                };
+                Func<Tuple<List<Tuple<String, String>>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
+                queryMetricData = await ExecuteQueryAgainstGroupShards
+                (
+                    groups,
+                    createQueryTaskFunc,
+                    Enumerable.Empty<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>(),
+                    resultAction,
+                    continuePredicate,
+                    new HashSet<Type>(),
+                    new HashSet<Type>(),
+                    false,
+                    $"retrieve application component and access level mappings for multiple groups from",
+                    false
+                );
+
+                return new List<Tuple<String, String>>(result);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<String> groups)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntitiesAccessibleByGroupsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetEntitiesAccessibleByGroupsAsync(groups);
+            }
+            else
+            {
+                var result = new HashSet<Tuple<String, String>>();
+                ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<Tuple<List<Tuple<String, String>>, Guid>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
+                {
+                    List<Tuple<String, String>> groupShardresult = await clientAndDescription.Client.GetEntitiesAccessibleByGroupsAsync(funcGroups);
+                    return Tuple.Create(groupShardresult, Guid.NewGuid());
+                };
+                Action<Tuple<List<Tuple<String, String>>, Guid>> resultAction = (Tuple<List<Tuple<String, String>>, Guid> groupShardResult) =>
+                {
+                    result.UnionWith(groupShardResult.Item1);
+                };
+                Func<Tuple<List<Tuple<String, String>>, Guid>, Boolean> continuePredicate = (groupShardResult) => { return true; };
+                queryMetricData = await ExecuteQueryAgainstGroupShards
+                (
+                    groups,
+                    createQueryTaskFunc,
+                    Enumerable.Empty<Tuple<Task<Tuple<List<Tuple<String, String>>, Guid>>, String>>(),
+                    resultAction,
+                    continuePredicate,
+                    new HashSet<Type>(),
+                    new HashSet<Type>(),
+                    false,
+                    $"retrieve entity mappings for multiple groups from",
+                    false
+                );
+
+                return new List<Tuple<String, String>>(result);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<String> groups, String entityType)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntitiesAccessibleByGroupsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetEntitiesAccessibleByGroupsAsync(groups, entityType);
+            }
+            else
+            {
+                var result = new HashSet<String>();
+                ExecuteQueryAgainstGroupShardsMetricData queryMetricData = null;
+                Func<DistributedClientAndShardDescription, IEnumerable<String>, Task<List<String>>> createQueryTaskFunc = async (DistributedClientAndShardDescription clientAndDescription, IEnumerable<String> funcGroups) =>
+                {
+                    return await clientAndDescription.Client.GetEntitiesAccessibleByGroupsAsync(funcGroups, entityType);
+                };
+                Action<List<String>> resultAction = (List<String> groupShardResult) =>
+                {
+                    result.UnionWith(groupShardResult);
+                };
+                Func<List<String>, Boolean> continuePredicate = (groupShardResult) => { return true; };
+                queryMetricData = await ExecuteQueryAgainstGroupShards
+                (
+                    groups,
+                    createQueryTaskFunc,
+                    Enumerable.Empty<Tuple<Task<List<String>>, String>>(),
+                    resultAction,
+                    continuePredicate,
+                    new HashSet<Type>(),
+                    new HashSet<Type>(),
+                    false,
+                    $"retrieve entity mappings for multiple groups and entity type '{entityType}' from",
+                    false
+                );
+
+                return new List<String>(result);
+            }
+        }
+
+        #region Non-implemented Public Methods
 
         /// <inheritdoc/>
         public override Task<List<String>> GetUserToGroupMappingsAsync(String user, Boolean includeIndirectMappings)
@@ -931,46 +1089,26 @@ namespace ApplicationAccess.Distribution
         /// </summary>
         /// <param name="callingMethodName">The name of the client method (used to check whether that method is valid to be called in the context of the router's current configuration).</param>
         /// <param name="keyElementValue">The key element value of the client method's parameters (indicating the shard that the operation should be routed to).</param>
-        /// <param name="shardOperationType">The type of operation managed by the shard that the operation should be routed to.</param>
         /// <param name="hashCodeGenerator">The hash code generator for the <paramref name="keyElementValue"/> parameter.</param>
         /// <param name="clientAction">The action to invoke against the client to route to.  Accepts a single parameter which is the client to route to.</param>
-        /// <exception cref="Exception">If <paramref name="shardOperationType"/> contains an unsupported value.</exception>
         protected async Task ImplementRoutingAsync
         (
             String callingMethodName, 
             String keyElementValue, 
-            Operation shardOperationType, 
             IHashCodeGenerator<String> hashCodeGenerator, 
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction
         )
         {
             ThrowExceptionIfMethodNotValidForDataType(callingMethodName);
             Int32 hashCode = GetAndValidateHashCode(keyElementValue, hashCodeGenerator);
-            if (shardOperationType == Operation.Query)
+            // void methods will always be routed to the event shards, hence no need to support query shards
+            if (routingOn == true && hashCode >= targetShardHashRangeStart)
             {
-                if (routingOn == true && hashCode >= targetShardHashRangeStart)
-                {
-                    await clientAction(targetQueryShardClientAndDescription.Client);
-                }
-                else
-                {
-                    await clientAction(sourceQueryShardClientAndDescription.Client);
-                }
-            }
-            else if (shardOperationType == Operation.Event)
-            {
-                if (routingOn == true && hashCode >= targetShardHashRangeStart)
-                {
-                    await clientAction(targetEventShardClientAndDescription.Client);
-                }
-                else
-                {
-                    await clientAction(sourceEventShardClientAndDescription.Client);
-                }
+                await clientAction(targetEventShardClientAndDescription.Client);
             }
             else
             {
-                throw new Exception($"Encountered unsupported {typeof(Operation).Name} '{shardOperationType}'.");
+                await clientAction(sourceEventShardClientAndDescription.Client);
             }
         }
 
@@ -980,46 +1118,26 @@ namespace ApplicationAccess.Distribution
         /// <typeparam name="T">The type of the result of the method.</typeparam>
         /// <param name="callingMethodName">The name of the client method (used to check whether that method is valid to be called in the context of the router's current configuration).</param>
         /// <param name="keyElementValue">The key element value of the client method's parameters (indicating the shard that the operation should be routed to).</param>
-        /// <param name="shardOperationType">The type of operation managed by the shard that the operation should be routed to.</param>
         /// <param name="hashCodeGenerator">The hash code generator for the <paramref name="keyElementValue"/> parameter.</param>
         /// <param name="clientAction">The function to invoke against the client to route to.  Accepts a single parameter which is the client to route to, and returns a task which resolves to the result of the method called against the client.</param>
-        /// <exception cref="Exception">If <paramref name="shardOperationType"/> contains an unsupported value.</exception>
         protected async Task<T> ImplementRoutingAsync<T>
         (
             String callingMethodName,
             String keyElementValue,
-            Operation shardOperationType,
             IHashCodeGenerator<String> hashCodeGenerator,
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<T>> clientAction
         )
         {
             ThrowExceptionIfMethodNotValidForDataType(callingMethodName);
             Int32 hashCode = GetAndValidateHashCode(keyElementValue, hashCodeGenerator);
-            if (shardOperationType == Operation.Query)
+            // Methods with a return valuewill always be routed to the query shards, hence no need to support event shards
+            if (routingOn == true && hashCode >= targetShardHashRangeStart)
             {
-                if (routingOn == true && hashCode >= targetShardHashRangeStart)
-                {
-                    return await clientAction(targetQueryShardClientAndDescription.Client);
-                }
-                else
-                {
-                    return await clientAction(sourceQueryShardClientAndDescription.Client);
-                }
-            }
-            else if (shardOperationType == Operation.Event)
-            {
-                if (routingOn == true && hashCode >= targetShardHashRangeStart)
-                {
-                    return await clientAction(targetEventShardClientAndDescription.Client);
-                }
-                else
-                {
-                    return await clientAction(sourceEventShardClientAndDescription.Client);
-                }
+                return await clientAction(targetQueryShardClientAndDescription.Client);
             }
             else
             {
-                throw new Exception($"Encountered unsupported {typeof(Operation).Name} '{shardOperationType}'.");
+                return await clientAction(sourceQueryShardClientAndDescription.Client);
             }
         }
 

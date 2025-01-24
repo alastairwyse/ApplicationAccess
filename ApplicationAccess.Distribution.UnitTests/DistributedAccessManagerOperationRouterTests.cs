@@ -419,7 +419,28 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetUsersAsync()
+        public async Task GetUsersAsync_RoutingOff()
+        {
+            var returnUsers = new List<String>()
+            {
+                "user1",
+                "user2",
+                "user3"
+            };
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetUsersAsync().Returns(returnUsers);
+
+            List<String> result = await testUserOperationRouter.GetUsersAsync();
+
+            Assert.AreSame(returnUsers, result);
+            await mockSourceQueryShardClient.Received(1).GetUsersAsync();
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetUsersAsync_RoutingOn()
         {
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -476,7 +497,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetUsersAsync_ExceptionWhenReadingUserShard()
+        public async Task GetUsersAsync_RoutingOnExceptionWhenReadingUserShard()
         {
             var mockException = new Exception("Mock exception");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -518,7 +539,28 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetGroupssAsync_ReadingUserShards()
+        public async Task GetGroupsAsync_RoutingOff()
+        {
+            var returnGroups = new List<String>()
+            {
+                "group1",
+                "group2",
+                "group3"
+            };
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetGroupsAsync().Returns(returnGroups);
+
+            List<String> result = await testUserOperationRouter.GetGroupsAsync();
+
+            Assert.AreSame(returnGroups, result);
+            await mockSourceQueryShardClient.Received(1).GetGroupsAsync();
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetGroupssAsync_RoutingOnReadingUserShards()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -578,7 +620,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetGroupssAsync_ReadingGroupShards()
+        public async Task GetGroupssAsync_RoutingOnReadingGroupShards()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -638,7 +680,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetGroupsAsync_ExceptionWhenReadingUserShard()
+        public async Task GetGroupsAsync_RoutingOnExceptionWhenReadingUserShard()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var mockException = new Exception("Mock exception");
@@ -683,7 +725,27 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntityTypessAsync_ReadingUserShards()
+        public async Task GetEntityTypesAsync_RoutingOff()
+        {
+            var returnEntityTypes = new List<String>()
+            {
+                "ClientAccount",
+                "BusinessUnit"
+            };
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetEntityTypesAsync().Returns(returnEntityTypes);
+
+            List<String> result = await testUserOperationRouter.GetEntityTypesAsync();
+
+            Assert.AreSame(returnEntityTypes, result);
+            await mockSourceQueryShardClient.Received(1).GetEntityTypesAsync();
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetEntityTypessAsync_RoutingOnReadingUserShards()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -741,7 +803,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntityTypessAsync_ReadingGroupShards()
+        public async Task GetEntityTypessAsync_RoutingOnReadingGroupShards()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -798,7 +860,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntityTypesAsync_ExceptionWhenReadingUserShard()
+        public async Task GetEntityTypesAsync_RoutingOnExceptionWhenReadingUserShard()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var mockException = new Exception("Mock exception");
@@ -843,7 +905,23 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsGroupAsync_ReadingUserShardsResultTrue()
+        public async Task ContainsGroupAsync_RoutingOff()
+        {
+            String testGroup = "group1";
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.ContainsGroupAsync(testGroup).Returns(true);
+
+            Boolean result = await testUserOperationRouter.ContainsGroupAsync(testGroup);
+
+            Assert.IsTrue(result);
+            await mockSourceQueryShardClient.Received(1).ContainsGroupAsync(testGroup);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task ContainsGroupAsync_RoutingOnReadingUserShardsResultTrue()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -886,7 +964,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsGroupAsync_ReadingUserShardsResultFalse()
+        public async Task ContainsGroupAsync_RoutingOnReadingUserShardsResultFalse()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -933,7 +1011,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsGroupAsync_ReadingGroupShardsResultTrue()
+        public async Task ContainsGroupAsync_RoutingOnReadingGroupShardsResultTrue()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -974,7 +1052,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsGroupAsync_ExceptionWhenChecking()
+        public async Task ContainsGroupAsync_RoutingOnExceptionWhenChecking()
         {
             var mockException = new Exception("Mock exception");
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
@@ -1026,7 +1104,21 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveGroupAsync_ExecutingAgainstUserShards()
+        public async Task RemoveGroupAsync_RoutingOff()
+        {
+            String testGroup = "group1";
+            testUserOperationRouter.RoutingOn = false;
+
+            await testUserOperationRouter.RemoveGroupAsync(testGroup);
+
+            await mockSourceEventShardClient.Received(1).RemoveGroupAsync(testGroup);
+            Assert.AreEqual(0, mockSourceQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task RemoveGroupAsync_RoutingOnExecutingAgainstUserShards()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1069,7 +1161,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveGroupAsync_ExecutingAgainstGroupShards()
+        public async Task RemoveGroupAsync_RoutingOnExecutingAgainstGroupShards()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1112,7 +1204,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveGroupAsync_ExceptionWhenExecuting()
+        public async Task RemoveGroupAsync_RoutingOnExceptionWhenExecuting()
         {
             var mockException = new Exception("Mock exception");
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
@@ -1158,7 +1250,49 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetGroupToUserMappingsAsyncGroupsOverload()
+        public async Task AddUserToGroupMappingAsync()
+        {
+            String testUser = "user1";
+            String testGroup = "group1";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.AddUserToGroupMappingAsync(testUser, testGroup);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceEventShardClient.Received(1).AddUserToGroupMappingAsync(testUser, testGroup);
+        }
+
+
+
+
+        [Test]
+        public async Task GetGroupToUserMappingsAsyncGroupsOverload_RoutingOff()
+        {
+            var testGroups = new List<String>()
+            {
+                "group1",
+                "group2",
+                "group3"
+            };
+            var returnUsers = new List<String>()
+            {
+                "user1",
+                "user2"
+            };
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetGroupToUserMappingsAsync(testGroups).Returns(returnUsers);
+
+            List<String> result = await testUserOperationRouter.GetGroupToUserMappingsAsync(testGroups);
+
+            Assert.AreSame(returnUsers, result);
+            await mockSourceQueryShardClient.Received(1).GetGroupToUserMappingsAsync(testGroups);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetGroupToUserMappingsAsyncGroupsOverload_RoutingOn()
         {
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -1216,7 +1350,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetGroupToUserMappingsAsyncGroupsOverload_ExceptionWhenReadingUserShard()
+        public async Task GetGroupToUserMappingsAsyncGroupsOverload_RoutingOnExceptionWhenReadingUserShard()
         {
             var mockException = new Exception("Mock exception");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1271,7 +1405,29 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync()
+        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync_RoutingOff()
+        {
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            var returnUsers = new List<String>()
+            {
+                "user1",
+                "user2"
+            };
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(returnUsers);
+
+            List<String> result = await testUserOperationRouter.GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
+
+            Assert.AreSame(returnUsers, result);
+            await mockSourceQueryShardClient.Received(1).GetApplicationComponentAndAccessLevelToUserMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync_RoutingOn()
         {
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -1330,7 +1486,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public void GetApplicationComponentAndAccessLevelToUserMappingsAsync_IncludeIndirectMappingsTrue()
+        public void GetApplicationComponentAndAccessLevelToUserMappingsAsync_RoutingOnIncludeIndirectMappingsTrue()
         {
             String testApplicationComponent = "Summary";
             String testAccessLevel = "View";
@@ -1345,7 +1501,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync_ExceptionWhenReadingUserShard()
+        public async Task GetApplicationComponentAndAccessLevelToUserMappingsAsync_RoutingOnExceptionWhenReadingUserShard()
         {
             var mockException = new Exception("Mock exception");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1401,7 +1557,29 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync()
+        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync_RoutingOff()
+        {
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            var returnGroups = new List<String>()
+            {
+                "group1",
+                "group2"
+            };
+            testGroupOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false).Returns(returnGroups);
+
+            List<String> result = await testGroupOperationRouter.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+
+            Assert.AreSame(returnGroups, result);
+            await mockSourceQueryShardClient.Received(1).GetApplicationComponentAndAccessLevelToGroupMappingsAsync(testApplicationComponent, testAccessLevel, false);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync_RoutingOn()
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -1460,7 +1638,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public void GetApplicationComponentAndAccessLevelToGroupMappingsAsync_IncludeIndirectMappingsTrue()
+        public void GetApplicationComponentAndAccessLevelToGroupMappingsAsync_RoutingOnIncludeIndirectMappingsTrue()
         {
             String testApplicationComponent = "Summary";
             String testAccessLevel = "View";
@@ -1475,7 +1653,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync_ExceptionWhenReadingGroupShard()
+        public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync_RoutingOnExceptionWhenReadingGroupShard()
         {
             var mockException = new Exception("Mock exception");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1532,7 +1710,23 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsEntityTypeAsync_ReadingUserShardsResultTrue()
+        public async Task ContainsEntityTypeAsync_RoutingOff()
+        {
+            String testEntityType = "ClientAccount";
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.ContainsEntityTypeAsync(testEntityType).Returns(true);
+
+            Boolean result = await testUserOperationRouter.ContainsEntityTypeAsync(testEntityType);
+
+            Assert.IsTrue(result);
+            await mockSourceQueryShardClient.Received(1).ContainsEntityTypeAsync(testEntityType);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task ContainsEntityTypeAsync_RoutingOnReadingUserShardsResultTrue()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1575,7 +1769,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsEntityTypeAsync_ReadingUserShardsResultFalse()
+        public async Task ContainsEntityTypeAsync_RoutingOnReadingUserShardsResultFalse()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1622,7 +1816,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsEntityTypeAsync_ReadingGroupShardsResultTrue()
+        public async Task ContainsEntityTypeAsync_RoutingOnReadingGroupShardsResultTrue()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1663,7 +1857,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsEntityTypeAsync_ExceptionWhenChecking()
+        public async Task ContainsEntityTypeAsync_RoutingOnExceptionWhenChecking()
         {
             var mockException = new Exception("Mock exception");
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
@@ -1715,7 +1909,21 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveEntityTypeAsync_ExecutingAgainstUserShards()
+        public async Task RemoveEntityTypeAsync_RoutingOff()
+        {
+            String testEntityType = "ClientAccount";
+            testUserOperationRouter.RoutingOn = false;
+
+            await testUserOperationRouter.RemoveEntityTypeAsync(testEntityType);
+
+            await mockSourceEventShardClient.Received(1).RemoveEntityTypeAsync(testEntityType);
+            Assert.AreEqual(0, mockSourceQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task RemoveEntityTypeAsync_RoutingOnExecutingAgainstUserShards()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1758,7 +1966,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveEntityTypeAsync_ExecutingAgainstGroupShards()
+        public async Task RemoveEntityTypeAsync_RoutingOnExecutingAgainstGroupShards()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1801,7 +2009,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveEntityTypeAsync_ExceptionWhenExecuting()
+        public async Task RemoveEntityTypeAsync_RoutingOnExceptionWhenExecuting()
         {
             var mockException = new Exception("Mock exception");
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
@@ -1847,7 +2055,28 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntitiesAsync_ReadingUserShards()
+        public async Task GetEntitiesAsync_RoutingOff()
+        {
+            String testEntityType = "Clients";
+            var returnEntities = new List<String>()
+            {
+                "CompanyA",
+                "CompanyB"
+            };
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetEntitiesAsync(testEntityType).Returns(returnEntities);
+
+            List<String> result = await testUserOperationRouter.GetEntitiesAsync(testEntityType);
+
+            Assert.AreSame(returnEntities, result);
+            await mockSourceQueryShardClient.Received(1).GetEntitiesAsync(testEntityType);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetEntitiesAsync_RoutingOnReadingUserShards()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1908,7 +2137,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntitiesAsync_ReadingGroupShards()
+        public async Task GetEntitiesAsync_RoutingOnReadingGroupShards()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -1969,7 +2198,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntitiesAsync_ExceptionWhenReadingUserShard()
+        public async Task GetEntitiesAsync_RoutingOnExceptionWhenReadingUserShard()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var mockException = new Exception("Mock exception");
@@ -2015,7 +2244,24 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsEntityAsync_ReadingUserShardsResultTrue()
+        public async Task ContainsEntityAsync_RoutingOff()
+        {
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.ContainsEntityAsync(testEntityType, testEntity).Returns(true);
+
+            Boolean result = await testUserOperationRouter.ContainsEntityAsync(testEntityType, testEntity);
+
+            Assert.IsTrue(result);
+            await mockSourceQueryShardClient.Received(1).ContainsEntityAsync(testEntityType, testEntity);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task ContainsEntityAsync_RoutingOnReadingUserShardsResultTrue()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2059,7 +2305,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsEntityAsync_ReadingUserShardsResultFalse()
+        public async Task ContainsEntityAsync_RoutingOnReadingUserShardsResultFalse()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2107,7 +2353,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsEntityAsync_ReadingGroupShardsResultTrue()
+        public async Task ContainsEntityAsync_RoutingOnReadingGroupShardsResultTrue()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2149,7 +2395,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task ContainsEntityAsync_ExceptionWhenChecking()
+        public async Task ContainsEntityAsync_RoutingOnExceptionWhenChecking()
         {
             var mockException = new Exception("Mock exception");
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
@@ -2202,7 +2448,22 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveEntityAsync_ExecutingAgainstUserShards()
+        public async Task RemoveEntityAsync_RoutingOff()
+        {
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testUserOperationRouter.RoutingOn = false;
+
+            await testUserOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
+
+            await mockSourceEventShardClient.Received(1).RemoveEntityAsync(testEntityType, testEntity);
+            Assert.AreEqual(0, mockSourceQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task RemoveEntityAsync_RoutingOnExecutingAgainstUserShards()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2246,7 +2507,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveEntityAsync_ExecutingAgainstGroupShards()
+        public async Task RemoveEntityAsync_RoutingOnExecutingAgainstGroupShards()
         {
             var userShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.User}' and {typeof(Operation).Name} '{Operation.Query}'.");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2290,7 +2551,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task RemoveEntityAsync_ExceptionWhenExecuting()
+        public async Task RemoveEntityAsync_RoutingOnExceptionWhenExecuting()
         {
             var mockException = new Exception("Mock exception");
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
@@ -2337,7 +2598,29 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntityToUserMappingsAsync()
+        public async Task GetEntityToUserMappingsAsync_RoutingOff()
+        {
+            String testEntityType = "Clients";
+            String testEntity = "CompanyA";
+            var returnUsers = new List<String>()
+            {
+                "user1",
+                "user2"
+            };
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetEntityToUserMappingsAsync(testEntityType, testEntity, false).Returns(returnUsers);
+
+            List<String> result = await testUserOperationRouter.GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
+
+            Assert.AreSame(returnUsers, result);
+            await mockSourceQueryShardClient.Received(1).GetEntityToUserMappingsAsync(testEntityType, testEntity, false);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetEntityToUserMappingsAsync_RoutingOn()
         {
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -2396,7 +2679,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public void GetEntityToUserMappingsAsync_IncludeIndirectMappingsTrue()
+        public void GetEntityToUserMappingsAsync_RoutingOnIncludeIndirectMappingsTrue()
         {
             String testEntityType = "Clients";
             String testEntity = "CompanyA";
@@ -2411,7 +2694,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntityToUserMappingsAsync_ExceptionWhenReadingUserShard()
+        public async Task GetEntityToUserMappingsAsync_RoutingOnExceptionWhenReadingUserShard()
         {
             var mockException = new Exception("Mock exception");
             var userShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2454,7 +2737,29 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntityToGroupMappingsAsync()
+        public async Task GetEntityToGroupMappingsAsync_RoutingOff()
+        {
+            String testEntityType = "Clients";
+            String testEntity = "CompanyA";
+            var returnGroups = new List<String>()
+            {
+                "group1",
+                "group2"
+            };
+            testGroupOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false).Returns(returnGroups);
+
+            List<String> result = await testGroupOperationRouter.GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+
+            Assert.AreSame(returnGroups, result);
+            await mockSourceQueryShardClient.Received(1).GetEntityToGroupMappingsAsync(testEntityType, testEntity, false);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetEntityToGroupMappingsAsync_RoutingOn()
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -2513,7 +2818,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public void GetEntityToGroupMappingsAsync_IncludeIndirectMappingsTrue()
+        public void GetEntityToGroupMappingsAsync_RoutingOnIncludeIndirectMappingsTrue()
         {
             String testEntityType = "Clients";
             String testEntity = "CompanyA";
@@ -2528,7 +2833,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntityToGroupMappingsAsync_ExceptionWhenReadingGroupShard()
+        public async Task GetEntityToGroupMappingsAsync_RoutingOnExceptionWhenReadingGroupShard()
         {
             var mockException = new Exception("Mock exception");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2570,10 +2875,33 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreSame(mockException, e.InnerException);
         }
 
+        [Test]
+        public async Task HasAccessToApplicationComponentAsyncGroupsOverload_RoutingOff()
+        {
+            var testGroups = new List<String>()
+            {
+                "group1",
+                "group2",
+                "group3"
+            }; 
+            String testApplicationComponent = "Order";
+            String testAccessLevel = "Create";
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel).Returns(true);
+
+            Boolean result = await testUserOperationRouter.HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
+
+            Assert.IsTrue(result);
+            await mockSourceQueryShardClient.Received(1).HasAccessToApplicationComponentAsync(testGroups, testApplicationComponent, testAccessLevel);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
         [TestCase(true, false)]
         [TestCase(false, true)]
         [TestCase(true, true)]
-        public async Task HasAccessToApplicationComponentAsyncGroupsOverload_ResultTrue(Boolean groupShard1Result, Boolean groupShard2Result)
+        public async Task HasAccessToApplicationComponentAsyncGroupsOverload_RoutingOnResultTrue(Boolean groupShard1Result, Boolean groupShard2Result)
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -2616,7 +2944,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task HasAccessToApplicationComponentAsyncGroupsOverload_ResultFalse()
+        public async Task HasAccessToApplicationComponentAsyncGroupsOverload_RoutingOnResultFalse()
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -2663,7 +2991,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task HasAccessToApplicationComponentAsyncGroupsOverload_ExceptionWhenReadingGroupShard()
+        public async Task HasAccessToApplicationComponentAsyncGroupsOverload_RoutingOnExceptionWhenReadingGroupShard()
         {
             var mockException = new Exception("Mock exception");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2716,7 +3044,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         [TestCase(false, true)]
         [TestCase(true, true)]
         [Test]
-        public async Task HasAccessToEntityAsyncGroupsOverload_ResultTrue(Boolean groupShard1Result, Boolean groupShard2Result)
+        public async Task HasAccessToEntityAsyncGroupsOverload_RoutingOnResultTrue(Boolean groupShard1Result, Boolean groupShard2Result)
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -2759,7 +3087,30 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task HasAccessToEntityAsyncGroupsOverload_ResultFalse()
+        public async Task HasAccessToEntityAsyncGroupsOverload_RoutingOff()
+        {
+            var testGroups = new List<String>()
+            {
+                "group1",
+                "group2",
+                "group3"
+            };
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.HasAccessToEntityAsync(testGroups, testEntityType, testEntity).Returns(true);
+
+            Boolean result = await testUserOperationRouter.HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
+
+            Assert.IsTrue(result);
+            await mockSourceQueryShardClient.Received(1).HasAccessToEntityAsync(testGroups, testEntityType, testEntity);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task HasAccessToEntityAsyncGroupsOverload_RoutingOnResultFalse()
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -2806,7 +3157,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task HasAccessToEntityAsyncGroupsOverload_ExceptionWhenReadingGroupShard()
+        public async Task HasAccessToEntityAsyncGroupsOverload_RoutingOnExceptionWhenReadingGroupShard()
         {
             var mockException = new Exception("Mock exception");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2856,7 +3207,33 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetApplicationComponentsAccessibleByGroupsAsync()
+        public async Task GetApplicationComponentsAccessibleByGroupsAsync_RoutingOff()
+        {
+            var testGroups = new List<String>()
+            {
+                "group1",
+                "group2",
+                "group3"
+            };
+            var returnApplicationComponents = new List<Tuple<String, String>>()
+            {
+                Tuple.Create("Order", "View"),
+                Tuple.Create("Order", "Create")
+            };
+            testGroupOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetApplicationComponentsAccessibleByGroupsAsync(testGroups).Returns(returnApplicationComponents);
+
+            List<Tuple<String, String>> result = await testGroupOperationRouter.GetApplicationComponentsAccessibleByGroupsAsync(testGroups);
+
+            Assert.AreSame(returnApplicationComponents, result);
+            await mockSourceQueryShardClient.Received(1).GetApplicationComponentsAccessibleByGroupsAsync(testGroups);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetApplicationComponentsAccessibleByGroupsAsync_RoutingOn()
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -2929,7 +3306,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetApplicationComponentsAccessibleByGroupsAsync_ExceptionWhenReadingGroupShard()
+        public async Task GetApplicationComponentsAccessibleByGroupsAsync_RoutingOnExceptionWhenReadingGroupShard()
         {
             var mockException = new Exception("Mock exception");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -2999,7 +3376,33 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntitiesAccessibleByGroupsAsync()
+        public async Task GetEntitiesAccessibleByGroupsAsync_RoutingOff()
+        {
+            var testGroups = new List<String>()
+            {
+                "group1",
+                "group2",
+                "group3"
+            };
+            var returnEntities = new List<Tuple<String, String>>()
+            {
+                Tuple.Create("ClientAccount", "CompanyA"),
+                Tuple.Create("ClientAccount", "CompanyB")
+            };
+            testGroupOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetEntitiesAccessibleByGroupsAsync(testGroups).Returns(returnEntities);
+
+            List<Tuple<String, String>> result = await testGroupOperationRouter.GetEntitiesAccessibleByGroupsAsync(testGroups);
+
+            Assert.AreSame(returnEntities, result);
+            await mockSourceQueryShardClient.Received(1).GetEntitiesAccessibleByGroupsAsync(testGroups);
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByGroupsAsync_RoutingOn()
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -3072,7 +3475,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntitiesAccessibleByGroupsAsync_ExceptionWhenReadingGroupShard()
+        public async Task GetEntitiesAccessibleByGroupsAsync_RoutingOnExceptionWhenReadingGroupShard()
         {
             var mockException = new Exception("Mock exception");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -3143,7 +3546,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntitiesAccessibleByGroupsAsyncEntityTypeOverload()
+        public async Task GetEntitiesAccessibleByGroupsAsyncEntityTypeOverload_RoutingOn()
         {
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
             (
@@ -3217,7 +3620,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
-        public async Task GetEntitiesAccessibleByGroupsAsyncEntityTypeOverload_ExceptionWhenReadingGroupShard()
+        public async Task GetEntitiesAccessibleByGroupsAsyncEntityTypeOverload_RoutingOnExceptionWhenReadingGroupShard()
         {
             var mockException = new Exception("Mock exception");
             var groupShardClientAndDescription1 = new DistributedClientAndShardDescription
@@ -3290,13 +3693,13 @@ namespace ApplicationAccess.Distribution.UnitTests
 
         // The following tests for method ImplementRoutingAsync() are tested via public method RemoveUserAsync(), since ImplementRoutingAsync() is protected
         //   Not testing with parameter shardOperationType = Operation.Query, since no query methods have a void return type.
-
         [Test]
         public async Task ImplementRoutingAsync()
         {
             String testUser = "user1";
             testUserOperationRouter.RoutingOn = true;
             mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(targetShardHashRangeStart);
+            mockSourceEventShardClient.ClearReceivedCalls();
             mockTargetEventShardClient.ClearReceivedCalls();
 
             await testUserOperationRouter.RemoveUserAsync(testUser);
@@ -3306,6 +3709,7 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
             mockSourceEventShardClient.ClearReceivedCalls();
+            mockTargetEventShardClient.ClearReceivedCalls();
 
             await testUserOperationRouter.RemoveUserAsync(testUser);
 
@@ -3315,6 +3719,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             testUserOperationRouter.RoutingOn = false;
             mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(targetShardHashRangeStart);
             mockSourceEventShardClient.ClearReceivedCalls();
+            mockTargetEventShardClient.ClearReceivedCalls();
 
             await testUserOperationRouter.RemoveUserAsync(testUser);
 
@@ -3323,21 +3728,63 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
             mockSourceEventShardClient.ClearReceivedCalls();
+            mockTargetEventShardClient.ClearReceivedCalls();
 
             await testUserOperationRouter.RemoveUserAsync(testUser);
 
             await mockSourceEventShardClient.Received(1).RemoveUserAsync(testUser);
         }
 
+        // The following tests for method ImplementRoutingAsync<T>() are tested via public method ContainsUserAsync(), since ImplementRoutingAsync<T>() is protected
+        //   Not testing with parameter shardOperationType = Operation.Event, since no event methods have a non-void return type.
         [Test]
-        public void ImplementRoutingAsyncReturnTypeParameterOverload()
+        public async Task ImplementRoutingAsyncReturnTypeParameterOverload()
         {
-            // TODO: IMPORTANT!! ******************************************
-            //   Actually don't need to pass 'shardOperationType' to ImplementRoutingAsync() method...
-            //   If it just returns a Task, can assume Event
-            //   If it returns Task<T> can assume query!!
+            String testUser = "user1";
+            testUserOperationRouter.RoutingOn = true;
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(targetShardHashRangeStart);
+            mockSourceQueryShardClient.ClearReceivedCalls();
+            mockTargetQueryShardClient.ClearReceivedCalls();
+            mockTargetQueryShardClient.ContainsUserAsync(testUser).Returns<Boolean>(true);
 
-            Assert.Fail("Need to implement this!");
+            Boolean result = await testUserOperationRouter.ContainsUserAsync(testUser);
+
+            Assert.IsTrue(result);
+            await mockTargetQueryShardClient.Received(1).ContainsUserAsync(testUser);
+
+
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+            mockSourceQueryShardClient.ClearReceivedCalls();
+            mockTargetQueryShardClient.ClearReceivedCalls();
+            mockSourceQueryShardClient.ContainsUserAsync(testUser).Returns<Boolean>(true);
+
+            result = await testUserOperationRouter.ContainsUserAsync(testUser);
+
+            Assert.IsTrue(result);
+            await mockSourceQueryShardClient.Received(1).ContainsUserAsync(testUser);
+
+
+            testUserOperationRouter.RoutingOn = false;
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(targetShardHashRangeStart);
+            mockSourceQueryShardClient.ClearReceivedCalls();
+            mockTargetQueryShardClient.ClearReceivedCalls();
+            mockSourceQueryShardClient.ContainsUserAsync(testUser).Returns<Boolean>(true);
+
+            result = await testUserOperationRouter.ContainsUserAsync(testUser);
+
+            Assert.IsTrue(result);
+            await mockSourceQueryShardClient.Received(1).ContainsUserAsync(testUser);
+
+
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+            mockSourceQueryShardClient.ClearReceivedCalls();
+            mockTargetQueryShardClient.ClearReceivedCalls();
+            mockSourceQueryShardClient.ContainsUserAsync(testUser).Returns<Boolean>(true);
+
+            result = await testUserOperationRouter.ContainsUserAsync(testUser);
+
+            Assert.IsTrue(result);
+            await mockSourceQueryShardClient.Received(1).ContainsUserAsync(testUser);
         }
 
         #region Private/Protected Methods
