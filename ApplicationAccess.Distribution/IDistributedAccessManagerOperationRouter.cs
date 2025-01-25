@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,18 @@ using System;
 namespace ApplicationAccess.Distribution
 {
     /// <summary>
-    /// Defines methods which coordinate operations in an AccessManager implementation where responsibility for subsets of elements is distributed across multiple computers in shards.
+    /// Defines methods which distribute operations to two shards in a distributed AccessManager implementation.
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
-    public interface IDistributedAccessManagerOperationCoordinator<TClientConfiguration> :
+    public interface IDistributedAccessManagerOperationRouter<TClientConfiguration> :
         IAccessManagerAsyncQueryProcessor<String, String, String, String>,
-        IAccessManagerAsyncEventProcessor<String, String, String, String>
+        IAccessManagerAsyncEventProcessor<String, String, String, String>,
+        IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
+        /// <summary>
+        /// Whether or not the routing functionality is switched on.
+        /// </summary>
+        Boolean RoutingOn { get; set; }
     }
 }

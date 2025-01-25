@@ -243,5 +243,35 @@ namespace ApplicationAccess.Distribution.Metrics
         }
     }
 
+    /// <summary>
+    /// Count metric which records that routing functionality was switched on.
+    /// </summary>
+    public class RoutingSwitchedOn : CountMetric
+    {
+        protected static String staticName = "RoutingSwitchedOn";
+        protected static String staticDescription = "Routing functionality was switched on.";
+
+        public RoutingSwitchedOn()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that routing functionality was switched off.
+    /// </summary>
+    public class RoutingSwitchedOff : CountMetric
+    {
+        protected static String staticName = "RoutingSwitchedOff";
+        protected static String staticDescription = "Routing functionality was switched off.";
+
+        public RoutingSwitchedOff()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
     #pragma warning restore 1591
 }

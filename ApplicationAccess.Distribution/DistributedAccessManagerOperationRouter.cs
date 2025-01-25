@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution.Metrics;
 using ApplicationAccess.Distribution.Models;
@@ -33,32 +34,17 @@ namespace ApplicationAccess.Distribution
     /// <remarks>Unlike <see cref="DistributedAccessManagerOperationCoordinator{TClientConfiguration}"/>, this class does not coordinate responses to operations across all shards in a distributed AccessManager implementation.  Instead, it's designed to be used 'downstream' of a <see cref="DistributedAccessManagerOperationCoordinator{TClientConfiguration}"/>, and front multiple shards of a single type (i.e. user or group shards).  The class simply distributes operations only to the shards of the type defined by the query method, acting as a 'router'.  I.e. in the <see cref="DistributedAccessManagerOperationCoordinator{TClientConfiguration}"/>, queries which should be distributed to indirectly mapped groups first call to the group to group mapping shards to get the indirectly mapped groups, before retrieving mappings from those groups in the individual group shards.  A similar method implemented in this class would not call to the group to group mapping shards.</remarks>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
     public class DistributedAccessManagerOperationRouter<TClientConfiguration> :
-        DistributedAccessManagerOperationCoordinator<TClientConfiguration>,
-        IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String>
+        DistributedAccessManagerOperationProcessorBase<TClientConfiguration>,
+        IDistributedAccessManagerOperationRouter<TClientConfiguration>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
-        // TODO:
-        //   Adjust below comment to reflect final state of class
-        //   Unit tests for constructor exceptions
-        //   Don't derive from DistOpCoord... make a common base class
-        //     AND REMOVE VIRTUAL FORM METHODS
-        //   Could consider in constructor, also retrieving the clients at the end of the range and ensuring it's the same client
-        //     Just to ensure the shardclientmanager actually matches the shard range setup
-        //   Add comments about call to ThrowExceptionIfMethodNotValidForDataType()
-        //     Can be removed after integration testing
-        //   Add comment in tests (at top) to explain test approach for methods like AddUserToGroupMappingAsync() and GetUserToGroupMappingsAsync()
-        //     These all just proxy to ImplementRoutingAsync()... it already has its own detailed tests... so just need to check that correct params (hascodegenerator etc) are passed to those methods
-        //     Only single test is require... not all paths
+        // TODO: Exceptions checks in method ThrowExceptionIfMethodNotValidForDataType() are included to help ensure that methods are being called on the class as expected,
+        //   in terms of the 'shardDataElement' field value.  I.e. the class can act as a router in front of user shards or gropus shards, but in either mode there are some
+        //   methods which should not be being called.  These exception checks help to confirm the allowed method assumptions are correct, and that the calling component is
+        //   behaving as expected.  However, calls to ThrowExceptionIfMethodNotValidForDataType() could be removed once integration testing is complete.
 
-        // This class inherits from DistributedAccessManagerOperationCoordinator<TClientConfiguration> but then ends up overriding many of its methods with a NotImplementedException
-        //   which is bad practice from an OO design perspective.  Problem is that it needs to implement many of the methods that DistributedAccessManagerOperationCoordinator does
-        //   but these implementations don't adhere cleanly to the underlying interfaces being implemented.  E.g. on IAccessManagerAsyncQueryProcessor, some methods are implemented,
-        //   and some are not.  Might have been possible to derive this and DistributedAccessManagerOperationCoordinator from a base class containing the common methods, BUT I was
-        //   reluctant to go making DistributedAccessManagerOperationCoordinator more complex, and it's a really key class in the distributed setup, whereas this class whilst
-        //   important, only has a very short lifetime in the overall running of a distributed AccessManager instance... i.e. for a period of likely <30 seconds while the final batch
-        //   of a shard split is being performed.  Hence decided to leave DistributedAccessManagerOperationCoordinator as it, and derive from it in this class so I can still reuse 
-        //   DistributedAccessManagerOperationCoordinator's method where required.
-        // Might want to improve this in the future.
+        /// <summary>Message to use in <see cref="NotImplementedException"/> messages if group to group mapping methods are called.</summary>
+        protected const String groupToGroupMethodsNotImplementedExceptionMessage = "Group to group mapping methods are not support by the DistributedAccessManagerOperationRouter.";
 
         /// <summary>The first (inclusive) in the range of hash codes of data elements managed by the source shard.</summary>
         protected Int32 sourceShardHashRangeStart;
@@ -88,7 +74,7 @@ namespace ApplicationAccess.Distribution
         protected Dictionary<String, HashSet<DataElement>> methodNameToSupportedDataTypeMap;
 
         /// <summary>
-        /// Whether or not the routing functionality is swicthed on.  If false (off) all operations are routed to the source shard.
+        /// Whether or not the routing functionality is switched on.  If false (off) all operations are routed to the source shard.
         /// </summary>
         public Boolean RoutingOn
         {
@@ -98,6 +84,15 @@ namespace ApplicationAccess.Distribution
             }
             set
             {
+                if (value == true)
+                {
+                    metricLogger.Increment(new RoutingSwitchedOn());
+                }
+                else
+                {
+                    metricLogger.Increment(new RoutingSwitchedOff());
+                }
+
                 routingOn = value;
             }
         }
@@ -159,7 +154,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<List<String>> GetUsersAsync()
+        public async Task<List<String>> GetUsersAsync()
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetUsersAsync));
 
@@ -180,7 +175,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<List<String>> GetGroupsAsync()
+        public async Task<List<String>> GetGroupsAsync()
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetGroupsAsync));
 
@@ -201,7 +196,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<List<String>> GetEntityTypesAsync()
+        public async Task<List<String>> GetEntityTypesAsync()
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntityTypesAsync));
 
@@ -222,39 +217,41 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override Task AddUserAsync(String user)
+        public Task AddUserAsync(String user)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public async override Task<Boolean> ContainsUserAsync(String user)
+        public async Task<Boolean> ContainsUserAsync(String user)
         {
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Boolean>> clientAction = async (client) =>
             {
                 return await client.ContainsUserAsync(user);
             };
+
             return await ImplementRoutingAsync(nameof(this.ContainsUserAsync), user, userHashCodeGenerator, clientAction);
         }
 
         /// <inheritdoc/>
-        public async override Task RemoveUserAsync(String user)
+        public async Task RemoveUserAsync(String user)
         {
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
             {
                 await client.RemoveUserAsync(user);
             };
+
             await ImplementRoutingAsync(nameof(this.RemoveUserAsync), user, userHashCodeGenerator, clientAction);
         }
 
         /// <inheritdoc/>
-        public override Task AddGroupAsync(String group)
+        public Task AddGroupAsync(String group)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public override async Task<Boolean> ContainsGroupAsync(String group)
+        public async Task<Boolean> ContainsGroupAsync(String group)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsGroupAsync));
 
@@ -275,7 +272,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task RemoveGroupAsync(String group)
+        public async Task RemoveGroupAsync(String group)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveGroupAsync));
 
@@ -296,69 +293,144 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public async override Task AddUserToGroupMappingAsync(String user, String group)
+        public async Task AddUserToGroupMappingAsync(String user, String group)
         {
             Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
             {
                 await client.AddUserToGroupMappingAsync(user, group);
             };
+
             await ImplementRoutingAsync(nameof(this.AddUserToGroupMappingAsync), user, userHashCodeGenerator, clientAction);
         }
 
+        /// <inheritdoc/>
+        public async Task<List<String>> GetUserToGroupMappingsAsync(String user, Boolean includeIndirectMappings)
+        {
+            if (includeIndirectMappings == true)
+                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
 
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> clientAction = async (client) =>
+            {
+                return await client.GetUserToGroupMappingsAsync(user, includeIndirectMappings);
+            };
 
+            return await ImplementRoutingAsync(nameof(this.GetUserToGroupMappingsAsync), user, userHashCodeGenerator, clientAction);
+        }
 
+        /// <inheritdoc/>
+        public async Task<List<String>> GetGroupToUserMappingsAsync(String group, Boolean includeIndirectMappings)
+        {
+            if (includeIndirectMappings == true)
+                throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
 
+            return await GetGroupToUserMappingsImplementationAsync(new List<String> { group } , "retrieve group to user mappings from");
+        }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToUserMappingsAsync(IEnumerable<String> groups)
         {
-            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetGroupToUserMappingsAsync));
-
-            if (routingOn == false)
-            {
-                return await sourceQueryShardClientAndDescription.Client.GetGroupToUserMappingsAsync(groups);
-            }
-            else
-            {
-                var returnUsers = new HashSet<String>();
-                IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.User, Operation.Query);
-                // Create the tasks to retrieve the mapped users
-                var shardReadTasks = new HashSet<Task<List<String>>>();
-                var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
-                foreach (DistributedClientAndShardDescription currentClient in clients)
-                {
-                    Task<List<String>> currentTask = currentClient.Client.GetGroupToUserMappingsAsync(groups);
-                    taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
-                    shardReadTasks.Add(currentTask);
-                }
-                // Wait for the tasks to complete
-                Action<List<String>> resultAction = (List<String> currentShardUsers) =>
-                {
-                    returnUsers.UnionWith(currentShardUsers);
-                };
-                Func<List<String>, Boolean> continuePredicate = (List<String> currentShardUsers) => { return true; };
-                var rethrowExceptions = new HashSet<Type>();
-                var ignoreExceptions = new HashSet<Type>();
-                await AwaitTaskCompletionAsync
-                (
-                    shardReadTasks,
-                    taskToShardDescriptionMap,
-                    resultAction,
-                    continuePredicate,
-                    rethrowExceptions,
-                    ignoreExceptions,
-                    "retrieve group to user mappings for multiple groups from",
-                    null,
-                    null
-                );
-
-                return new List<String>(returnUsers);
-            }
+            return await GetGroupToUserMappingsImplementationAsync(groups, "retrieve group to user mappings for multiple groups from");
         }
 
         /// <inheritdoc/>
-        public override async Task<List<String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
+        public Task RemoveUserToGroupMappingAsync(String user, String group)
+        {
+            throw new NotImplementedException(groupToGroupMethodsNotImplementedExceptionMessage);
+        }
+
+        /// <inheritdoc/>
+        public Task AddGroupToGroupMappingAsync(String fromGroup, String toGroup)
+        {
+            throw new NotImplementedException(groupToGroupMethodsNotImplementedExceptionMessage);
+        }
+
+        /// <inheritdoc/>
+        public Task<List<String>> GetGroupToGroupMappingsAsync(String group, Boolean includeIndirectMappings)
+        {
+            throw new NotImplementedException(groupToGroupMethodsNotImplementedExceptionMessage);
+        }
+
+        /// <inheritdoc/>
+        public Task<List<String>> GetGroupToGroupMappingsAsync(IEnumerable<String> groups)
+        {
+            throw new NotImplementedException(groupToGroupMethodsNotImplementedExceptionMessage);
+        }
+
+        /// <inheritdoc/>
+        public Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
+        {
+            throw new NotImplementedException(groupToGroupMethodsNotImplementedExceptionMessage);
+        }
+
+        /// <inheritdoc/>
+        public Task<List<String>> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
+        {
+            throw new NotImplementedException(groupToGroupMethodsNotImplementedExceptionMessage);
+        }
+
+        /// <inheritdoc/>
+        public Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
+        {
+            throw new NotImplementedException(groupToGroupMethodsNotImplementedExceptionMessage);
+        }
+
+        /// <inheritdoc/>
+        public async Task AddUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
+            };
+
+            await ImplementRoutingAsync(nameof(this.AddUserToApplicationComponentAndAccessLevelMappingAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetUserToApplicationComponentAndAccessLevelMappingsAsync(String user)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<Tuple<String, String>>>> clientAction = async (client) =>
+            {
+                return await client.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetUserToApplicationComponentAndAccessLevelMappingsAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
+            };
+
+            await ImplementRoutingAsync(nameof(this.RemoveUserToApplicationComponentAndAccessLevelMappingAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task AddGroupToApplicationComponentAndAccessLevelMappingAsync(String group, String applicationComponent, String accessLevel)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
+            };
+
+            await ImplementRoutingAsync(nameof(this.AddGroupToApplicationComponentAndAccessLevelMappingAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync(String group)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<Tuple<String, String>>>> clientAction = async (client) =>
+            {
+                return await client.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetGroupToApplicationComponentAndAccessLevelMappingsAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
         {
             if (includeIndirectMappings == true)
                 throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
@@ -381,7 +453,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<List<String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
+        public async Task<List<String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
         {
             if (includeIndirectMappings == true)
                 throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
@@ -404,7 +476,24 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<Boolean> ContainsEntityTypeAsync(String entityType)
+        public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(String group, String applicationComponent, String accessLevel)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
+            };
+
+            await ImplementRoutingAsync(nameof(this.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public Task AddEntityTypeAsync(String entityType)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public async Task<Boolean> ContainsEntityTypeAsync(String entityType)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsEntityTypeAsync));
 
@@ -425,7 +514,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task RemoveEntityTypeAsync(String entityType)
+        public async Task RemoveEntityTypeAsync(String entityType)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveEntityTypeAsync));
 
@@ -446,7 +535,13 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<List<String>> GetEntitiesAsync(String entityType)
+        public Task AddEntityAsync(String entityType, String entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntitiesAsync(String entityType)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntitiesAsync));
 
@@ -467,7 +562,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<Boolean> ContainsEntityAsync(String entityType, String entity)
+        public async Task<Boolean> ContainsEntityAsync(String entityType, String entity)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.ContainsEntityAsync));
 
@@ -488,7 +583,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task RemoveEntityAsync(String entityType, String entity)
+        public async Task RemoveEntityAsync(String entityType, String entity)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.RemoveEntityAsync));
 
@@ -509,7 +604,40 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<List<String>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        public async Task AddUserToEntityMappingAsync(String user, String entityType, String entity)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.AddUserToEntityMappingAsync(user, entityType, entity);
+            };
+
+            await ImplementRoutingAsync(nameof(this.AddUserToEntityMappingAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetUserToEntityMappingsAsync(String user)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<Tuple<String, String>>>> clientAction = async (client) =>
+            {
+                return await client.GetUserToEntityMappingsAsync(user);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetUserToEntityMappingsAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetUserToEntityMappingsAsync(String user, String entityType)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> clientAction = async (client) =>
+            {
+                return await client.GetUserToEntityMappingsAsync(user, entityType);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetUserToEntityMappingsAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetEntityToUserMappingsAsync));
 
@@ -527,7 +655,51 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public override async Task<List<String>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
+        public async Task RemoveUserToEntityMappingAsync(String user, String entityType, String entity)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.RemoveUserToEntityMappingAsync(user, entityType, entity);
+            };
+
+            await ImplementRoutingAsync(nameof(this.RemoveUserToEntityMappingAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task AddGroupToEntityMappingAsync(String group, String entityType, String entity)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.AddGroupToEntityMappingAsync(group, entityType, entity);
+            };
+
+            await ImplementRoutingAsync(nameof(this.AddGroupToEntityMappingAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetGroupToEntityMappingsAsync(String group)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<Tuple<String, String>>>> clientAction = async (client) =>
+            {
+                return await client.GetGroupToEntityMappingsAsync(group);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetGroupToEntityMappingsAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetGroupToEntityMappingsAsync(String group, String entityType)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> clientAction = async (client) =>
+            {
+                return await client.GetGroupToEntityMappingsAsync(group, entityType);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetGroupToEntityMappingsAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
         {
             if (includeIndirectMappings == true)
                 throw new ArgumentException($"Parameter '{nameof(includeIndirectMappings)}' with a value of '{includeIndirectMappings}' is not supported.", nameof(includeIndirectMappings));
@@ -547,6 +719,28 @@ namespace ApplicationAccess.Distribution
 
                 return returnList;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveGroupToEntityMappingAsync(String group, String entityType, String entity)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.RemoveGroupToEntityMappingAsync(group, entityType, entity);
+            };
+
+            await ImplementRoutingAsync(nameof(this.RemoveGroupToEntityMappingAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<Boolean> HasAccessToApplicationComponentAsync(String user, String applicationComponent, String accessLevel)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Boolean>> clientAction = async (client) =>
+            {
+                return await client.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.HasAccessToApplicationComponentAsync), user, userHashCodeGenerator, clientAction);
         }
 
         /// <inheritdoc/>
@@ -594,6 +788,17 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
+        public async Task<Boolean> HasAccessToEntityAsync(String user, String entityType, String entity)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<Boolean>> clientAction = async (client) =>
+            {
+                return await client.HasAccessToEntityAsync(user, entityType, entity);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.HasAccessToEntityAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
         public async Task<Boolean> HasAccessToEntityAsync(IEnumerable<String> groups, String entityType, String entity)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.HasAccessToEntityAsync));
@@ -638,6 +843,28 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByUserAsync(String user)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<Tuple<String, String>>>> clientAction = async (client) =>
+            {
+                return await client.GetApplicationComponentsAccessibleByUserAsync(user);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetApplicationComponentsAccessibleByUserAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupAsync(String group)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<Tuple<String, String>>>> clientAction = async (client) =>
+            {
+                return await client.GetApplicationComponentsAccessibleByGroupAsync(group);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetApplicationComponentsAccessibleByGroupAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupsAsync(IEnumerable<String> groups)
         {
             ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetApplicationComponentsAccessibleByGroupsAsync));
@@ -676,6 +903,50 @@ namespace ApplicationAccess.Distribution
 
                 return new List<Tuple<String, String>>(result);
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByUserAsync(String user)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<Tuple<String, String>>>> clientAction = async (client) =>
+            {
+                return await client.GetEntitiesAccessibleByUserAsync(user);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetEntitiesAccessibleByUserAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntitiesAccessibleByUserAsync(String user, String entityType)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> clientAction = async (client) =>
+            {
+                return await client.GetEntitiesAccessibleByUserAsync(user, entityType);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetEntitiesAccessibleByUserAsync), user, userHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupAsync(String group)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<Tuple<String, String>>>> clientAction = async (client) =>
+            {
+                return await client.GetEntitiesAccessibleByGroupAsync(group);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetEntitiesAccessibleByGroupAsync), group, groupHashCodeGenerator, clientAction);
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<String>> GetEntitiesAccessibleByGroupAsync(String group, String entityType)
+        {
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<String>>> clientAction = async (client) =>
+            {
+                return await client.GetEntitiesAccessibleByGroupAsync(group, entityType);
+            };
+
+            return await ImplementRoutingAsync(nameof(this.GetEntitiesAccessibleByGroupAsync), group, groupHashCodeGenerator, clientAction);
         }
 
         /// <inheritdoc/>
@@ -758,208 +1029,6 @@ namespace ApplicationAccess.Distribution
                 return new List<String>(result);
             }
         }
-
-        #region Non-implemented Public Methods
-
-        /// <inheritdoc/>
-        public override Task<List<String>> GetUserToGroupMappingsAsync(String user, Boolean includeIndirectMappings)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<String>> GetGroupToUserMappingsAsync(String group, Boolean includeIndirectMappings)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task RemoveUserToGroupMappingAsync(String user, String group)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task AddGroupToGroupMappingAsync(String fromGroup, String toGroup)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<String>> GetGroupToGroupMappingsAsync(String group, Boolean includeIndirectMappings)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public Task<List<String>> GetGroupToGroupMappingsAsync(IEnumerable<String> groups)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public Task<List<String>> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task AddUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<Tuple<String, String>>> GetUserToApplicationComponentAndAccessLevelMappingsAsync(String user)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task AddGroupToApplicationComponentAndAccessLevelMappingAsync(String group, String applicationComponent, String accessLevel)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(String group, String applicationComponent, String accessLevel)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task AddEntityTypeAsync(String entityType)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<Tuple<String, String>>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync(String group)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task AddEntityAsync(String entityType, String entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task AddUserToEntityMappingAsync(String user, String entityType, String entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<Tuple<String, String>>> GetUserToEntityMappingsAsync(String user)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<String>> GetUserToEntityMappingsAsync(String user, String entityType)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task RemoveUserToEntityMappingAsync(String user, String entityType, String entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task AddGroupToEntityMappingAsync(String group, String entityType, String entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<Tuple<String, String>>> GetGroupToEntityMappingsAsync(String group)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<String>> GetGroupToEntityMappingsAsync(String group, String entityType)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task RemoveGroupToEntityMappingAsync(String group, String entityType, String entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<Boolean> HasAccessToApplicationComponentAsync(String user, String applicationComponent, String accessLevel)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<Boolean> HasAccessToEntityAsync(String user, String entityType, String entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByUserAsync(String user)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupAsync(String group)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<Tuple<String, String>>> GetEntitiesAccessibleByUserAsync(String user)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<String>> GetEntitiesAccessibleByUserAsync(String user, String entityType)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupAsync(String group)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public override Task<List<String>> GetEntitiesAccessibleByGroupAsync(String group, String entityType)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
 
         #region Private/Protected Methods
 
@@ -1313,6 +1382,58 @@ namespace ApplicationAccess.Distribution
                 null,
                 null
             );
+        }
+
+        /// <summary>
+        /// Common implementation of overloads of method GetGroupToUserMappingsAsync().
+        /// </summary>
+        /// <param name="groups">The group to retrieve the users for.</param>
+        /// <param name="exceptionEventDescription">A description of the event to use in an exception message in the case of error.  E.g. "retrieve group to user mappings for multiple groups from".</param>
+        /// <returns>A collection of users that are mapped to the specified groups.</returns>
+        protected async Task<List<String>> GetGroupToUserMappingsImplementationAsync(IEnumerable<String> groups, String exceptionEventDescription)
+        {
+            ThrowExceptionIfMethodNotValidForDataType(nameof(this.GetGroupToUserMappingsAsync));
+
+            if (routingOn == false)
+            {
+                return await sourceQueryShardClientAndDescription.Client.GetGroupToUserMappingsAsync(groups);
+            }
+            else
+            {
+                var returnUsers = new HashSet<String>();
+                IEnumerable<DistributedClientAndShardDescription> clients = shardClientManager.GetAllClients(DataElement.User, Operation.Query);
+                // Create the tasks to retrieve the mapped users
+                var shardReadTasks = new HashSet<Task<List<String>>>();
+                var taskToShardDescriptionMap = new Dictionary<Task<List<String>>, String>();
+                foreach (DistributedClientAndShardDescription currentClient in clients)
+                {
+                    Task<List<String>> currentTask = currentClient.Client.GetGroupToUserMappingsAsync(groups);
+                    taskToShardDescriptionMap.Add(currentTask, currentClient.ShardConfigurationDescription);
+                    shardReadTasks.Add(currentTask);
+                }
+                // Wait for the tasks to complete
+                Action<List<String>> resultAction = (List<String> currentShardUsers) =>
+                {
+                    returnUsers.UnionWith(currentShardUsers);
+                };
+                Func<List<String>, Boolean> continuePredicate = (List<String> currentShardUsers) => { return true; };
+                var rethrowExceptions = new HashSet<Type>();
+                var ignoreExceptions = new HashSet<Type>();
+                await AwaitTaskCompletionAsync
+                (
+                    shardReadTasks,
+                    taskToShardDescriptionMap,
+                    resultAction,
+                    continuePredicate,
+                    rethrowExceptions,
+                    ignoreExceptions,
+                    exceptionEventDescription,
+                    null,
+                    null
+                );
+
+                return new List<String>(returnUsers);
+            }
         }
 
         /// <summary>

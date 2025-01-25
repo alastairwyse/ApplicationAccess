@@ -36,6 +36,12 @@ namespace ApplicationAccess.Distribution.UnitTests
     /// </summary>
     public class DistributedAccessManagerOperationRouterTests
     {
+        // Many methods in DistributedAccessManagerOperationRouter are implemented using overloads of common method ImplementRoutingAsync().  All paths of
+        //   ImplementRoutingAsync() overloads are tested explicitly in this test class.  For methods that call these overloads (like ContainsUserAsync())
+        //   since most/all of the functionality is handled within ImplementRoutingAsync(), all permutations of state and parameters (routing on/off, differing
+        //   hash code values, etc...) are NOT explicitly tested.  Methods with bespoke implementations (e.g. GetUsersAsync()) do have multiple tests covering
+        //   all paths in the bespoke code.
+
         private Int32 sourceShardHashRangeStart;
         private Int32 sourceShardHashRangeEnd;
         private Int32 targetShardHashRangeStart;
@@ -416,6 +422,25 @@ namespace ApplicationAccess.Distribution.UnitTests
 
             Assert.That(e.Message, Does.StartWith($"Parameter 'sourceShardHashRangeEnd' with value {sourceShardHashRangeEnd} returns shard client with description 'HashRangeEndShardClientAndDescription' for DataElement 'User' and Operation 'Query', but shard client returned for the equivalent hash range start in parameter 'sourceShardHashRangeStart' has differing description 'SourceQueryShardClientAndDescription'."));
             Assert.AreEqual("sourceShardHashRangeEnd", e.ParamName);
+        }
+
+        [Test]
+        public void RoutingOnProperty()
+        {
+            testUserOperationRouter.RoutingOn = true;
+
+            Assert.IsTrue(testUserOperationRouter.RoutingOn);
+            mockMetricLogger.Received(1).Increment(Arg.Any<RoutingSwitchedOn>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
+
+
+            mockMetricLogger.ClearReceivedCalls();
+
+            testUserOperationRouter.RoutingOn = false;
+
+            Assert.IsFalse(testUserOperationRouter.RoutingOn);
+            mockMetricLogger.Received(1).Increment(Arg.Any<RoutingSwitchedOff>());
+            Assert.AreEqual(1, mockMetricLogger.ReceivedCalls().Count());
         }
 
         [Test]
@@ -1262,7 +1287,179 @@ namespace ApplicationAccess.Distribution.UnitTests
             await mockSourceEventShardClient.Received(1).AddUserToGroupMappingAsync(testUser, testGroup);
         }
 
+        [Test]
+        public async Task GetUserToGroupMappingsAsync()
+        {
+            String testUser = "user1";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
 
+            await testUserOperationRouter.GetUserToGroupMappingsAsync(testUser, false);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).GetUserToGroupMappingsAsync(testUser, false);
+        }
+
+        [Test]
+        public void GetUserToGroupMappingsAsync_RoutingOnIncludeIndirectMappingsTrue()
+        {
+            String testUser = "user1";
+
+            var e = Assert.ThrowsAsync<ArgumentException>(async delegate
+            {
+                await testUserOperationRouter.GetUserToGroupMappingsAsync(testUser, true);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Parameter 'includeIndirectMappings' with a value of 'True' is not supported."));
+            Assert.AreEqual("includeIndirectMappings", e.ParamName);
+        }
+
+        [Test]
+        public async Task GetGroupToUserMappingsAsync_RoutingOff()
+        {
+            var testGroups = new List<String> { "group1" };
+            var returnUsers = new List<String>()
+            {
+                "user1",
+                "user2"
+            };
+            testUserOperationRouter.RoutingOn = false;
+            mockSourceQueryShardClient.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(returnUsers);
+
+            List<String> result = await testUserOperationRouter.GetGroupToUserMappingsAsync(testGroups[0], false);
+
+            Assert.AreSame(returnUsers, result);
+            await mockSourceQueryShardClient.Received(1).GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(0, mockSourceEventShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetQueryShardClient.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockTargetEventShardClient.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public async Task GetGroupToUserMappingsAsync_RoutingOn()
+        {
+            var userShardClientAndDescription1 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription1"
+            );
+            var userShardClientAndDescription2 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription2"
+            );
+            var userShardClientAndDescription3 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription3"
+            );
+            var testGroups = new List<String> { "group1" };
+            var userClients = new List<DistributedClientAndShardDescription>()
+            {
+                userShardClientAndDescription1,
+                userShardClientAndDescription2,
+                userShardClientAndDescription3
+            };
+            var userClient1ReturnUsers = new List<String>()
+            {
+                "user1",
+                "user2"
+            };
+            var userClient2ReturnUsers = new List<String>()
+            {
+                "user2",
+                "user3"
+            };
+            var userClient3ReturnUsers = new List<String>();
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
+            userShardClientAndDescription1.Client.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(Task.FromResult<List<String>>(userClient1ReturnUsers));
+            userShardClientAndDescription2.Client.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(Task.FromResult<List<String>>(userClient2ReturnUsers));
+            userShardClientAndDescription3.Client.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(Task.FromResult<List<String>>(userClient3ReturnUsers));
+
+            List<String> result = await testUserOperationRouter.GetGroupToUserMappingsAsync(testGroups[0], false);
+
+            Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.Contains("user1"));
+            Assert.IsTrue(result.Contains("user2"));
+            Assert.IsTrue(result.Contains("user3"));
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
+            await userShardClientAndDescription1.Client.Received(1).GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            await userShardClientAndDescription2.Client.Received(1).GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            await userShardClientAndDescription3.Client.Received(1).GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(1, userShardClientAndDescription1.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShardClientAndDescription2.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShardClientAndDescription3.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
+        public void GetGroupToUserMappingsAsync_RoutingOnIncludeIndirectMappingsTrue()
+        {
+            String testGroup = "group1";
+
+            var e = Assert.ThrowsAsync<ArgumentException>(async delegate
+            {
+                await testUserOperationRouter.GetGroupToUserMappingsAsync(testGroup, true);
+            });
+
+            Assert.That(e.Message, Does.StartWith("Parameter 'includeIndirectMappings' with a value of 'True' is not supported."));
+            Assert.AreEqual("includeIndirectMappings", e.ParamName);
+        }
+
+        [Test]
+        public async Task GetGroupToUserMappingsAsync_RoutingOnExceptionWhenReadingUserShard()
+        {
+            var mockException = new Exception("Mock exception");
+            var userShardClientAndDescription1 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription1"
+            );
+            var userShardClientAndDescription2 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription2"
+            );
+            var userShardClientAndDescription3 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription3"
+            );
+            var testGroups = new List<String> { "group1" };
+            var userClients = new List<DistributedClientAndShardDescription>()
+            {
+                userShardClientAndDescription1,
+                userShardClientAndDescription2,
+                userShardClientAndDescription3
+            };
+            var userClient1ReturnUsers = new List<String>()
+            {
+                "user1",
+                "user2"
+            };
+            var userClient2ReturnUsers = new List<String>()
+            {
+                "user2",
+                "user3"
+            };
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
+            userShardClientAndDescription1.Client.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(Task.FromResult<List<String>>(userClient1ReturnUsers));
+            userShardClientAndDescription2.Client.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(Task.FromResult<List<String>>(userClient2ReturnUsers));
+            userShardClientAndDescription3.Client.GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups))).Returns(Task.FromException<List<String>>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testUserOperationRouter.GetGroupToUserMappingsAsync(testGroups[0], false);
+            });
+
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
+            await userShardClientAndDescription3.Client.Received(1).GetGroupToUserMappingsAsync(Arg.Is<IEnumerable<String>>(EqualIgnoringOrder(testGroups)));
+            Assert.AreEqual(1, userShardClientAndDescription3.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve group to user mappings from shard with configuration 'UserShardDescription3"));
+            Assert.AreSame(mockException, e.InnerException);
+        }
 
 
         [Test]
@@ -1402,6 +1599,32 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to retrieve group to user mappings for multiple groups from shard with configuration 'UserShardDescription3"));
             Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task AddUserToApplicationComponentAndAccessLevelMappingAsync()
+        {
+            String testUser = "user1";
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.AddUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceEventShardClient.Received(1).AddUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel);
+        }
+
+        [Test]
+        public async Task GetUserToApplicationComponentAndAccessLevelMappingsAsync()
+        {
+            String testUser = "user1";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.GetUserToApplicationComponentAndAccessLevelMappingsAsync(testUser);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).GetUserToApplicationComponentAndAccessLevelMappingsAsync(testUser);
         }
 
         [Test]
@@ -1557,6 +1780,46 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync()
+        {
+            String testUser = "user1";
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceEventShardClient.Received(1).RemoveUserToApplicationComponentAndAccessLevelMappingAsync(testUser, testApplicationComponent, testAccessLevel);
+        }
+
+        [Test]
+        public async Task AddGroupToApplicationComponentAndAccessLevelMappingAsync()
+        {
+            String testGroup = "group1";
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.AddGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceEventShardClient.Received(1).AddGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel);
+        }
+
+        [Test]
+        public async Task GetGroupToApplicationComponentAndAccessLevelMappingsAsync()
+        {
+            String testGroup = "group1";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(testGroup);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceQueryShardClient.Received(1).GetGroupToApplicationComponentAndAccessLevelMappingsAsync(testGroup);
+        }
+
+        [Test]
         public async Task GetApplicationComponentAndAccessLevelToGroupMappingsAsync_RoutingOff()
         {
             String testApplicationComponent = "Summary";
@@ -1707,6 +1970,20 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to retrieve application component and access level to group mappings from shard with configuration 'GroupShardDescription3"));
             Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync()
+        {
+            String testGroup = "group1";
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceEventShardClient.Received(1).RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(testGroup, testApplicationComponent, testAccessLevel);
         }
 
         [Test]
@@ -2598,6 +2875,45 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task AddUserToEntityMappingAsync()
+        {
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.AddUserToEntityMappingAsync(testUser, testEntityType, testEntity);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceEventShardClient.Received(1).AddUserToEntityMappingAsync(testUser, testEntityType, testEntity);
+        }
+
+        [Test]
+        public async Task GetUserToEntityMappingsAsync()
+        {
+            String testUser = "user1";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.GetUserToEntityMappingsAsync(testUser);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).GetUserToEntityMappingsAsync(testUser);
+        }
+
+        [Test]
+        public async Task GetUserToEntityMappingsAsyncUserAndEntityTypeOverload()
+        {
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.GetUserToEntityMappingsAsync(testUser, testEntityType);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).GetUserToEntityMappingsAsync(testUser, testEntityType);
+        }
+
+        [Test]
         public async Task GetEntityToUserMappingsAsync_RoutingOff()
         {
             String testEntityType = "Clients";
@@ -2737,6 +3053,59 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task RemoveUserToEntityMappingAsync()
+        {
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceEventShardClient.Received(1).RemoveUserToEntityMappingAsync(testUser, testEntityType, testEntity);
+        }
+
+        [Test]
+        public async Task AddGroupToEntityMappingAsync()
+        {
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceEventShardClient.Received(1).AddGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+        }
+
+        [Test]
+        public async Task GetGroupToEntityMappingsAsync()
+        {
+            String testGroup = "group1";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.GetGroupToEntityMappingsAsync(testGroup);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceQueryShardClient.Received(1).GetGroupToEntityMappingsAsync(testGroup);
+        }
+
+        [Test]
+        public async Task GetGroupToEntityMappingsAsyncGroupAndEntityTypeOverload()
+        {
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.GetGroupToEntityMappingsAsync(testGroup, testEntityType);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceQueryShardClient.Received(1).GetGroupToEntityMappingsAsync(testGroup, testEntityType);
+        }
+
+        [Test]
         public async Task GetEntityToGroupMappingsAsync_RoutingOff()
         {
             String testEntityType = "Clients";
@@ -2873,6 +3242,34 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to retrieve entity to group mappings from shard with configuration 'GroupShardDescription2"));
             Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task RemoveGroupToEntityMappingAsync()
+        {
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceEventShardClient.Received(1).RemoveGroupToEntityMappingAsync(testGroup, testEntityType, testEntity);
+        }
+
+        [Test]
+        public async Task HasAccessToApplicationComponentAsync()
+        {
+            String testUser = "user1";
+            String testApplicationComponent = "Summary";
+            String testAccessLevel = "View";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.HasAccessToApplicationComponentAsync(testUser, testApplicationComponent, testAccessLevel);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).HasAccessToApplicationComponentAsync(testUser, testApplicationComponent, testAccessLevel);
         }
 
         [Test]
@@ -3038,6 +3435,20 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to check access to application component 'Order' at access level 'Create' for multiple groups in shard with configuration 'GroupShardDescription2"));
             Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task HasAccessToEntityAsync()
+        {
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.HasAccessToEntityAsync(testUser, testEntityType, testEntity);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).HasAccessToEntityAsync(testUser, testEntityType, testEntity);
         }
 
         [TestCase(true, false)]
@@ -3207,6 +3618,30 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetApplicationComponentsAccessibleByUserAsync()
+        {
+            String testUser = "user1";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.GetApplicationComponentsAccessibleByUserAsync(testUser);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).GetApplicationComponentsAccessibleByUserAsync(testUser);
+        }
+
+        [Test]
+        public async Task GetApplicationComponentsAccessibleByGroupAsync()
+        {
+            String testGroup = "group1";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.GetApplicationComponentsAccessibleByGroupAsync(testGroup);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceQueryShardClient.Received(1).GetApplicationComponentsAccessibleByGroupAsync(testGroup);
+        }
+
+        [Test]
         public async Task GetApplicationComponentsAccessibleByGroupsAsync_RoutingOff()
         {
             var testGroups = new List<String>()
@@ -3373,6 +3808,56 @@ namespace ApplicationAccess.Distribution.UnitTests
             Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
             Assert.That(e.Message, Does.StartWith($"Failed to retrieve application component and access level mappings for multiple groups from shard with configuration 'GroupShardDescription3'."));
             Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByUserAsync()
+        {
+            String testUser = "user1";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.GetEntitiesAccessibleByUserAsync(testUser);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).GetEntitiesAccessibleByUserAsync(testUser);
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByUserAsyncUserAndEntityTypeOverload()
+        {
+            String testUser = "user1";
+            String testEntityType = "ClientAccount";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.GetEntitiesAccessibleByUserAsync(testUser, testEntityType);
+
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceQueryShardClient.Received(1).GetEntitiesAccessibleByUserAsync(testUser, testEntityType);
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByGroupAsync()
+        {
+            String testGroup = "group1";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.GetEntitiesAccessibleByGroupAsync(testGroup);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceQueryShardClient.Received(1).GetEntitiesAccessibleByGroupAsync(testGroup);
+        }
+
+        [Test]
+        public async Task GetEntitiesAccessibleByGroupAsyncGroupAndEntityTypeOverload()
+        {
+            String testGroup = "group1";
+            String testEntityType = "ClientAccount";
+            mockGroupHashCodeGenerator.GetHashCode(testGroup).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testGroupOperationRouter.GetEntitiesAccessibleByGroupAsync(testGroup, testEntityType);
+
+            mockGroupHashCodeGenerator.Received(1).GetHashCode(testGroup);
+            await mockSourceQueryShardClient.Received(1).GetEntitiesAccessibleByGroupAsync(testGroup, testEntityType);
         }
 
         [Test]
