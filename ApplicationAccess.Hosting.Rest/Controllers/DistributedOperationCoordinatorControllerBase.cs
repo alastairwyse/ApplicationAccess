@@ -38,7 +38,9 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
     [Route("api/v{version:apiVersion}")]
     public abstract class DistributedOperationCoordinatorControllerBase : ControllerBase
     {
-        protected IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration> distributedAccessManagerOperationCoordinator;
+        //protected IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration> distributedAccessManagerOperationCoordinator;
+        protected IAccessManagerAsyncQueryProcessor<String, String, String, String> accessManagerAsyncQueryProcessor;
+        protected IAccessManagerAsyncEventProcessor<String, String, String, String> accessManagerAsyncEventProcessor;
         protected ILogger<DistributedOperationCoordinatorControllerBase> logger;
 
         /// <summary>
@@ -48,7 +50,8 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <param name="logger"></param>
         public DistributedOperationCoordinatorControllerBase(DistributedOperationCoordinatorHolder distributedOperationCoordinatorHolder, ILogger<DistributedOperationCoordinatorControllerBase> logger)
         {
-            distributedAccessManagerOperationCoordinator = distributedOperationCoordinatorHolder.DistributedOperationCoordinator;
+            accessManagerAsyncQueryProcessor = distributedOperationCoordinatorHolder.DistributedOperationCoordinator;
+            accessManagerAsyncEventProcessor = distributedOperationCoordinatorHolder.DistributedOperationCoordinator;
             this.logger = logger;
         }
 
@@ -62,7 +65,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<IEnumerable<String>> GetUsersAsync()
         {
-            return await distributedAccessManagerOperationCoordinator.GetUsersAsync();
+            return await accessManagerAsyncQueryProcessor.GetUsersAsync();
         }
 
         /// <summary>
@@ -75,7 +78,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<IEnumerable<String>> GetGroupsAsync()
         {
-            return await distributedAccessManagerOperationCoordinator.GetGroupsAsync();
+            return await accessManagerAsyncQueryProcessor.GetGroupsAsync();
         }
 
         /// <summary>
@@ -88,7 +91,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         [Produces(MediaTypeNames.Application.Json)]
         public async Task<IEnumerable<String>> GetEntityTypesAsync()
         {
-            return await distributedAccessManagerOperationCoordinator.GetEntityTypesAsync();
+            return await accessManagerAsyncQueryProcessor.GetEntityTypesAsync();
         }
 
         /// <summary>
@@ -105,7 +108,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<ActionResult<String>> ContainsUserAsync([FromRoute] String user)
         {
             UnescapeParameterValue(ref user);
-            if (await distributedAccessManagerOperationCoordinator.ContainsUserAsync(user) == true)
+            if (await accessManagerAsyncQueryProcessor.ContainsUserAsync(user) == true)
             {
                 return user;
             }
@@ -126,7 +129,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveUserAsync([FromRoute] String user)
         {
             UnescapeParameterValue(ref user);
-            await distributedAccessManagerOperationCoordinator.RemoveUserAsync(user);
+            await accessManagerAsyncEventProcessor.RemoveUserAsync(user);
         }
 
         /// <summary>
@@ -143,7 +146,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<ActionResult<String>> ContainsGroupAsync([FromRoute] String group)
         {
             UnescapeParameterValue(ref group);
-            if (await distributedAccessManagerOperationCoordinator.ContainsGroupAsync(group) == true)
+            if (await accessManagerAsyncQueryProcessor.ContainsGroupAsync(group) == true)
             {
                 return group;
             }
@@ -164,7 +167,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveGroupAsync([FromRoute] String group)
         {
             UnescapeParameterValue(ref group);
-            await distributedAccessManagerOperationCoordinator.RemoveGroupAsync(group);
+            await accessManagerAsyncEventProcessor.RemoveGroupAsync(group);
         }
 
         /// <summary>
@@ -180,7 +183,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<StatusCodeResult> AddUserToGroupMappingAsync([FromRoute] String user, [FromRoute] String group)
         {
             UnescapeParameterValues(ref user, ref group);
-            await distributedAccessManagerOperationCoordinator.AddUserToGroupMappingAsync(user, group);
+            await accessManagerAsyncEventProcessor.AddUserToGroupMappingAsync(user, group);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -198,7 +201,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<UserAndGroup<String, String>> GetUserToGroupMappingsAsync([FromRoute] String user, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             UnescapeParameterValue(ref user);
-            foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetUserToGroupMappingsAsync(user, includeIndirectMappings))
+            foreach (String currentGroup in await accessManagerAsyncQueryProcessor.GetUserToGroupMappingsAsync(user, includeIndirectMappings))
             {
                 yield return new UserAndGroup<String, String>(user, currentGroup);
             }
@@ -217,7 +220,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<UserAndGroup<String, String>> GetGroupToUserMappingsAsync([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             UnescapeParameterValue(ref group);
-            foreach (String currentUser in await distributedAccessManagerOperationCoordinator.GetGroupToUserMappingsAsync(group, includeIndirectMappings))
+            foreach (String currentUser in await accessManagerAsyncQueryProcessor.GetGroupToUserMappingsAsync(group, includeIndirectMappings))
             {
                 yield return new UserAndGroup<String, String>(currentUser, group);
             }
@@ -235,7 +238,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveUserToGroupMappingAsync([FromRoute] String user, [FromRoute] String group)
         {
             UnescapeParameterValues(ref user, ref group);
-            await distributedAccessManagerOperationCoordinator.RemoveUserToGroupMappingAsync(user, group);
+            await accessManagerAsyncEventProcessor.RemoveUserToGroupMappingAsync(user, group);
         }
 
         /// <summary>
@@ -251,7 +254,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<StatusCodeResult> AddGroupToGroupMappingAsync([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
             UnescapeParameterValues(ref fromGroup, ref toGroup);
-            await distributedAccessManagerOperationCoordinator.AddGroupToGroupMappingAsync(fromGroup, toGroup);
+            await accessManagerAsyncEventProcessor.AddGroupToGroupMappingAsync(fromGroup, toGroup);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -269,7 +272,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupMappingsAsync([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             UnescapeParameterValue(ref group);
-            foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetGroupToGroupMappingsAsync(group, includeIndirectMappings))
+            foreach (String currentGroup in await accessManagerAsyncQueryProcessor.GetGroupToGroupMappingsAsync(group, includeIndirectMappings))
             {
                 yield return new FromGroupAndToGroup<String>(group, currentGroup);
             }
@@ -288,7 +291,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<FromGroupAndToGroup<String>> GetGroupToGroupReverseMappingsAsync([FromRoute] String group, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             UnescapeParameterValue(ref group);
-            foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetGroupToGroupReverseMappingsAsync(group, includeIndirectMappings))
+            foreach (String currentGroup in await accessManagerAsyncQueryProcessor.GetGroupToGroupReverseMappingsAsync(group, includeIndirectMappings))
             {
                 yield return new FromGroupAndToGroup<String>(currentGroup, group);
             }
@@ -306,7 +309,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveGroupToGroupMappingAsync([FromRoute] String fromGroup, [FromRoute] String toGroup)
         {
             UnescapeParameterValues(ref fromGroup, ref toGroup);
-            await distributedAccessManagerOperationCoordinator.RemoveGroupToGroupMappingAsync(fromGroup, toGroup);
+            await accessManagerAsyncEventProcessor.RemoveGroupToGroupMappingAsync(fromGroup, toGroup);
         }
 
         /// <summary>
@@ -323,7 +326,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<StatusCodeResult> AddUserToApplicationComponentAndAccessLevelMappingAsync([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             UnescapeParameterValues(ref user, ref applicationComponent, ref accessLevel);
-            await distributedAccessManagerOperationCoordinator.AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
+            await accessManagerAsyncEventProcessor.AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -344,11 +347,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             UnescapeParameterValue(ref user);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
             }
             else
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetApplicationComponentsAccessibleByUserAsync(user);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetApplicationComponentsAccessibleByUserAsync(user);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
@@ -370,7 +373,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<UserAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             UnescapeParameterValues(ref applicationComponent, ref accessLevel);
-            foreach (String currentUser in await distributedAccessManagerOperationCoordinator.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings))
+            foreach (String currentUser in await accessManagerAsyncQueryProcessor.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings))
             {
                 yield return new UserAndApplicationComponentAndAccessLevel<String, String, String>(currentUser, applicationComponent, accessLevel);
             }
@@ -389,7 +392,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             UnescapeParameterValues(ref user, ref applicationComponent, ref accessLevel);
-            await distributedAccessManagerOperationCoordinator.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
+            await accessManagerAsyncEventProcessor.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
         }
 
         /// <summary>
@@ -406,7 +409,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<StatusCodeResult> AddGroupToApplicationComponentAndAccessLevelMappingAsync([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             UnescapeParameterValues(ref group, ref applicationComponent, ref accessLevel);
-            await distributedAccessManagerOperationCoordinator.AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
+            await accessManagerAsyncEventProcessor.AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -427,11 +430,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
             }
             else
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetApplicationComponentsAccessibleByGroupAsync(group);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetApplicationComponentsAccessibleByGroupAsync(group);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
@@ -453,7 +456,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<GroupAndApplicationComponentAndAccessLevel<String, String, String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync([FromRoute] String applicationComponent, [FromRoute] String accessLevel, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             UnescapeParameterValues(ref applicationComponent, ref accessLevel);
-            foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings))
+            foreach (String currentGroup in await accessManagerAsyncQueryProcessor.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings))
             {
                 yield return new GroupAndApplicationComponentAndAccessLevel<String, String, String>(currentGroup, applicationComponent, accessLevel);
             }
@@ -472,7 +475,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync([FromRoute] String group, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             UnescapeParameterValues(ref group, ref applicationComponent, ref accessLevel);
-            await distributedAccessManagerOperationCoordinator.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
+            await accessManagerAsyncEventProcessor.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
         }
 
         /// <summary>
@@ -489,7 +492,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<ActionResult<String>> ContainsEntityTypeAsync([FromRoute] String entityType)
         {
             UnescapeParameterValue(ref entityType);
-            if (await distributedAccessManagerOperationCoordinator.ContainsEntityTypeAsync(entityType) == true)
+            if (await accessManagerAsyncQueryProcessor.ContainsEntityTypeAsync(entityType) == true)
             {
                 return entityType;
             }
@@ -510,7 +513,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveEntityTypeAsync([FromRoute] String entityType)
         {
             UnescapeParameterValue(ref entityType);
-            await distributedAccessManagerOperationCoordinator.RemoveEntityTypeAsync(entityType);
+            await accessManagerAsyncEventProcessor.RemoveEntityTypeAsync(entityType);
         }
 
         /// <summary>
@@ -525,7 +528,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<EntityTypeAndEntity> GetEntitiesAsync([FromRoute] String entityType)
         {
             UnescapeParameterValue(ref entityType);
-            foreach (String currentEntity in await distributedAccessManagerOperationCoordinator.GetEntitiesAsync(entityType))
+            foreach (String currentEntity in await accessManagerAsyncQueryProcessor.GetEntitiesAsync(entityType))
             {
                 yield return new EntityTypeAndEntity(entityType, currentEntity);
             }
@@ -546,7 +549,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<ActionResult<EntityTypeAndEntity>> ContainsEntityAsync([FromRoute] String entityType, [FromRoute] String entity)
         {
             UnescapeParameterValues(ref entityType, ref entity);
-            if (await distributedAccessManagerOperationCoordinator.ContainsEntityAsync(entityType, entity) == true)
+            if (await accessManagerAsyncQueryProcessor.ContainsEntityAsync(entityType, entity) == true)
             {
                 return new EntityTypeAndEntity(entityType, entity);
             }
@@ -568,7 +571,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveEntityAsync([FromRoute] String entityType, [FromRoute] String entity)
         {
             UnescapeParameterValues(ref entityType, ref entity);
-            await distributedAccessManagerOperationCoordinator.RemoveEntityAsync(entityType, entity);
+            await accessManagerAsyncEventProcessor.RemoveEntityAsync(entityType, entity);
         }
 
         /// <summary>
@@ -585,7 +588,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<StatusCodeResult> AddUserToEntityMappingAsync([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             UnescapeParameterValues(ref user, ref entityType, ref entity);
-            await distributedAccessManagerOperationCoordinator.AddUserToEntityMappingAsync(user, entityType, entity);
+            await accessManagerAsyncEventProcessor.AddUserToEntityMappingAsync(user, entityType, entity);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -606,11 +609,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<Tuple<String, String>> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetUserToEntityMappingsAsync(user);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetUserToEntityMappingsAsync(user);
             }
             else
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetEntitiesAccessibleByUserAsync(user);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetEntitiesAccessibleByUserAsync(user);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
@@ -635,11 +638,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             IEnumerable<String> methodReturnValue = null;
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetUserToEntityMappingsAsync(user, entityType);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetUserToEntityMappingsAsync(user, entityType);
             }
             else
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetEntitiesAccessibleByUserAsync(user, entityType);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetEntitiesAccessibleByUserAsync(user, entityType);
             }
             foreach (String currentEntity in methodReturnValue)
             {
@@ -661,7 +664,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<UserAndEntity<String>> GetEntityToUserMappingsAsync([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             UnescapeParameterValues(ref entityType, ref entity);
-            foreach (String currentUser in await distributedAccessManagerOperationCoordinator.GetEntityToUserMappingsAsync(entityType, entity, includeIndirectMappings))
+            foreach (String currentUser in await accessManagerAsyncQueryProcessor.GetEntityToUserMappingsAsync(entityType, entity, includeIndirectMappings))
             {
                 yield return new UserAndEntity<String>(currentUser, entityType, entity);
             }
@@ -680,7 +683,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveUserToEntityMappingAsync([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             UnescapeParameterValues(ref user, ref entityType, ref entity);
-            await distributedAccessManagerOperationCoordinator.RemoveUserToEntityMappingAsync(user, entityType, entity);
+            await accessManagerAsyncEventProcessor.RemoveUserToEntityMappingAsync(user, entityType, entity);
         }
 
         /// <summary>
@@ -697,7 +700,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<StatusCodeResult> AddGroupToEntityMappingAsync([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
             UnescapeParameterValues(ref group, ref entityType, ref entity);
-            await distributedAccessManagerOperationCoordinator.AddGroupToEntityMappingAsync(group, entityType, entity);
+            await accessManagerAsyncEventProcessor.AddGroupToEntityMappingAsync(group, entityType, entity);
 
             return new StatusCodeResult(StatusCodes.Status201Created);
         }
@@ -718,11 +721,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             UnescapeParameterValue(ref group);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetGroupToEntityMappingsAsync(group);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetGroupToEntityMappingsAsync(group);
             }
             else
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetEntitiesAccessibleByGroupAsync(group);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetEntitiesAccessibleByGroupAsync(group);
             }
             foreach (Tuple<String, String> currentTuple in methodReturnValue)
             {
@@ -747,11 +750,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             UnescapeParameterValues(ref group, ref entityType);
             if (includeIndirectMappings == false)
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetGroupToEntityMappingsAsync(group, entityType);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetGroupToEntityMappingsAsync(group, entityType);
             }
             else
             {
-                methodReturnValue = await distributedAccessManagerOperationCoordinator.GetEntitiesAccessibleByGroupAsync(group, entityType);
+                methodReturnValue = await accessManagerAsyncQueryProcessor.GetEntitiesAccessibleByGroupAsync(group, entityType);
             }
             foreach (String currentEntity in methodReturnValue)
             {
@@ -773,7 +776,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async IAsyncEnumerable<GroupAndEntity<String>> GetEntityToGroupMappingsAsync([FromRoute] String entityType, [FromRoute] String entity, [FromQuery, BindRequired] Boolean includeIndirectMappings)
         {
             UnescapeParameterValues(ref entityType, ref entity);
-            foreach (String currentGroup in await distributedAccessManagerOperationCoordinator.GetEntityToGroupMappingsAsync(entityType, entity, includeIndirectMappings))
+            foreach (String currentGroup in await accessManagerAsyncQueryProcessor.GetEntityToGroupMappingsAsync(entityType, entity, includeIndirectMappings))
             {
                 yield return new GroupAndEntity<String>(currentGroup, entityType, entity);
             }
@@ -792,7 +795,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task RemoveGroupToEntityMappingAsync([FromRoute] String group, [FromRoute] String entityType, [FromRoute] String entity)
         {
             UnescapeParameterValues(ref group, ref entityType, ref entity);
-            await distributedAccessManagerOperationCoordinator.RemoveGroupToEntityMappingAsync(group, entityType, entity);
+            await accessManagerAsyncEventProcessor.RemoveGroupToEntityMappingAsync(group, entityType, entity);
         }
 
         /// <summary>
@@ -809,7 +812,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<ActionResult<Boolean>> HasAccessToApplicationComponentAsync([FromRoute] String user, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             UnescapeParameterValues(ref user, ref applicationComponent, ref accessLevel);
-            return await distributedAccessManagerOperationCoordinator.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
+            return await accessManagerAsyncQueryProcessor.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
         }
 
         /// <summary>
@@ -826,7 +829,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         public async Task<ActionResult<Boolean>> HasAccessToEntityAsync([FromRoute] String user, [FromRoute] String entityType, [FromRoute] String entity)
         {
             UnescapeParameterValues(ref user, ref entityType, ref entity);
-            return await distributedAccessManagerOperationCoordinator.HasAccessToEntityAsync(user, entityType, entity);
+            return await accessManagerAsyncQueryProcessor.HasAccessToEntityAsync(user, entityType, entity);
         }
 
         #region Private/Protected Methods

@@ -64,14 +64,14 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         protected LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy shardConfigurationRefreshStrategy;
         /// <summary>Performs the underlying processing of operations.</summary>
         protected DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration> distributedOperationCoordinator;
+        /// <summary>The <see cref="DistributedOperationCoordinatorNode{TClientConfiguration, TClientConfigurationJsonSerializer}"/></summary>
+        protected DistributedOperationCoordinatorNode<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> distributedOperationCoordinatorNode;
         /// <summary>Used to read shard configuration from a SQL database.</summary>
         protected IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister;
         /// <summary>The buffer processing for the logger for metrics.</summary>
         protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
         /// <summary>The logger for metrics.</summary>
         protected MetricLoggerBuffer metricLogger;
-        /// <summary>The <see cref="DistributedOperationCoordinatorNode{TClientConfiguration, TClientConfigurationJsonSerializer}"/></summary>
-        protected DistributedOperationCoordinatorNode<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> distributedOperationCoordinatorNode;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.DistributedOperationCoordinatorNodeHostedServiceWrapper class.

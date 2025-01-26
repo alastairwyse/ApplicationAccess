@@ -15,20 +15,19 @@
  */
 
 using System;
-using ApplicationAccess.Utilities;
+using ApplicationAccess.Distribution;
+using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 
-namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
+namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
-    /// Holds instances of <see cref="IHashCodeGenerator{T}"/>.
+    /// Holds an instance of <see cref="IDistributedAccessManagerOperationRouter{TClientConfiguration}"/>.
     /// </summary>
-    public class HashCodeGeneratorHolder
+    public class DistributedOperationRouterHolder
     {
         #pragma warning disable 0649
 
-        public IHashCodeGenerator<String> UserHashCodeGenerator { get; set; }
-
-        public IHashCodeGenerator<String> GroupHashCodeGenerator { get; set; }
+        public IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> DistributedOperationRouter { get; set; }
 
         #pragma warning restore 0649
     }

@@ -16,393 +16,395 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution;
 
 namespace ApplicationAccess.Hosting
 {
     /// <summary>
-    /// A node which distributes operations to multiple shards in a distributed AccessManager implementation, and aggregates and returns their results.
+    /// A node which operations to two shards in a distributed AccessManager implementation, and aggregates and returns their results.
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
     public class DistributedOperationRouterNode<TClientConfiguration> 
-        : IDistributedAccessManagerOperationCoordinator<TClientConfiguration>, IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String>
+        : IDistributedAccessManagerOperationRouter<TClientConfiguration>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
         // Unlike other *Node classes, this doesn't have any background thread/worker classes like shard config refresh or event persistence.
-        //   Hence this class really doesn't do anything except proxy method calls to the underlying IDistributedAccessManagerOperationCoordinator
-        //   and IDistributedAccessManagerAsyncQueryProcessor instances.  However, will maintain this class in any case to preserve consistency
-        //   with the hierarchy pattern of other *Node classes.
+        //   Hence this class really doesn't do anything except proxy method calls to the underlying IDistributedAccessManagerOperationRouter
+        //   instance.  However, will maintain this class in any case to preserve consistency with the hierarchy pattern of other *Node classes.
 
-        /// <summary>Exception message for overridden methods which aren't implemented.</summary>
-        protected const String groupToGroupMappingMethodNotImplementedExceptionMessage = "Group to group mapping methods are not implemented.";
+        /// <summary>The <see cref="IDistributedAccessManagerOperationRouter{TClientConfiguration}"/> instance which processes relevant operations received by the node.</summary>
+        protected IDistributedAccessManagerOperationRouter<TClientConfiguration> distributedOperationRouter;
 
-        /// <summary>The <see cref="IDistributedAccessManagerOperationCoordinator{TClientConfiguration}"/> instance which processes relevant operations received by the node.</summary>
-        protected IDistributedAccessManagerOperationCoordinator<TClientConfiguration> distributedOperationCoordinator;
-        /// <summary>The <see cref="IDistributedAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> instance which processes relevant operations received by the node.</summary>
-        protected IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String> distributedAsyncQueryProcessor;
+        /// <inheritdoc/>
+        public Boolean RoutingOn
+        {
+            get
+            {
+                return distributedOperationRouter.RoutingOn;
+            }
+            set
+            {
+                distributedOperationRouter.RoutingOn = value;
+            }
+        }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.DistributedOperationRouterNode class.
         /// </summary>
-        /// <param name="distributedOperationCoordinator">The <see cref="IDistributedAccessManagerOperationCoordinator{TClientConfiguration}"/> instance which processes relevant operations received by the node.</param>
-        /// <param name="distributedAsyncQueryProcessor">The <see cref="IDistributedAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> instance which processes relevant operations received by the node.</param>
-        public DistributedOperationRouterNode
-        (
-            IDistributedAccessManagerOperationCoordinator<TClientConfiguration> distributedOperationCoordinator,
-            IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String> distributedAsyncQueryProcessor
-        )
+        /// <param name="distributedOperationRouter">The <see cref="IDistributedAccessManagerOperationRouter{TClientConfiguration}"/> instance which processes relevant operations received by the node.</param>
+        public DistributedOperationRouterNode(IDistributedAccessManagerOperationRouter<TClientConfiguration> distributedOperationRouter)
         {
-            this.distributedOperationCoordinator = distributedOperationCoordinator;
-            this.distributedAsyncQueryProcessor = distributedAsyncQueryProcessor;
+            this.distributedOperationRouter = distributedOperationRouter;
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetUsersAsync()
         {
-            return await distributedOperationCoordinator.GetUsersAsync();
+            return await distributedOperationRouter.GetUsersAsync();
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupsAsync()
         {
-            return await distributedOperationCoordinator.GetGroupsAsync();
+            return await distributedOperationRouter.GetGroupsAsync();
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntityTypesAsync()
         {
-            return await distributedOperationCoordinator.GetEntityTypesAsync();
+            return await distributedOperationRouter.GetEntityTypesAsync();
         }
 
         /// <inheritdoc/>
         public async Task AddUserAsync(String user)
         {
-            await distributedOperationCoordinator.AddUserAsync(user);
+            await distributedOperationRouter.AddUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> ContainsUserAsync(String user)
         {
-            return await distributedOperationCoordinator.ContainsUserAsync(user);
+            return await distributedOperationRouter.ContainsUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserAsync(String user)
         {
-            await distributedOperationCoordinator.RemoveUserAsync(user);
+            await distributedOperationRouter.RemoveUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task AddGroupAsync(String group)
         {
-            await distributedOperationCoordinator.AddGroupAsync(group);
+            await distributedOperationRouter.AddGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> ContainsGroupAsync(String group)
         {
-            return await distributedOperationCoordinator.ContainsGroupAsync(group);
+            return await distributedOperationRouter.ContainsGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task RemoveGroupAsync(String group)
         {
-            await distributedOperationCoordinator.RemoveGroupAsync(group);
+            await distributedOperationRouter.RemoveGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task AddUserToGroupMappingAsync(String user, String group)
         {
-            await distributedOperationCoordinator.AddUserToGroupMappingAsync(user, group);
+            await distributedOperationRouter.AddUserToGroupMappingAsync(user, group);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetUserToGroupMappingsAsync(String user, Boolean includeIndirectMappings)
         {
-            return await distributedOperationCoordinator.GetUserToGroupMappingsAsync(user, includeIndirectMappings);
+            return await distributedOperationRouter.GetUserToGroupMappingsAsync(user, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToUserMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            return await distributedOperationCoordinator.GetGroupToUserMappingsAsync(group, includeIndirectMappings);
+            return await distributedOperationRouter.GetGroupToUserMappingsAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToUserMappingsAsync(IEnumerable<String> groups)
         {
-            return await distributedAsyncQueryProcessor.GetGroupToUserMappingsAsync(groups);
+            return await distributedOperationRouter.GetGroupToUserMappingsAsync(groups);
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserToGroupMappingAsync(String user, String group)
         {
-            await distributedOperationCoordinator.RemoveUserToGroupMappingAsync(user, group);
+            await distributedOperationRouter.RemoveUserToGroupMappingAsync(user, group);
         }
 
         /// <inheritdoc/>
-        public Task AddGroupToGroupMappingAsync(String fromGroup, String toGroup)
+        public async Task AddGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
-            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
+            await distributedOperationRouter.AddGroupToGroupMappingAsync(fromGroup, toGroup);
         }
 
         /// <inheritdoc/>
-        public Task<List<String>> GetGroupToGroupMappingsAsync(String group, Boolean includeIndirectMappings)
+        public async Task<List<String>> GetGroupToGroupMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
+            return await distributedOperationRouter.GetGroupToGroupMappingsAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
-        public Task<List<String>> GetGroupToGroupMappingsAsync(IEnumerable<String> groups)
+        public async Task<List<String>> GetGroupToGroupMappingsAsync(IEnumerable<String> groups)
         {
-            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
+            return await distributedOperationRouter.GetGroupToGroupMappingsAsync(groups);
         }
 
         /// <inheritdoc/>
-        public Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
+        public async Task<List<String>> GetGroupToGroupReverseMappingsAsync(String group, Boolean includeIndirectMappings)
         {
-            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
+            return await distributedOperationRouter.GetGroupToGroupReverseMappingsAsync(group, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
-        public Task<List<String>> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
+        public async Task<List<String>> GetGroupToGroupReverseMappingsAsync(IEnumerable<String> groups)
         {
-            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
+            return await distributedOperationRouter.GetGroupToGroupReverseMappingsAsync(groups);
         }
 
         /// <inheritdoc/>
-        public Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
+        public async Task RemoveGroupToGroupMappingAsync(String fromGroup, String toGroup)
         {
-            throw new NotImplementedException(groupToGroupMappingMethodNotImplementedExceptionMessage);
+            await distributedOperationRouter.RemoveGroupToGroupMappingAsync(fromGroup, toGroup);
         }
 
         /// <inheritdoc/>
         public async Task AddUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
         {
-            await distributedOperationCoordinator.AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
+            await distributedOperationRouter.AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetUserToApplicationComponentAndAccessLevelMappingsAsync(String user)
         {
-            return await distributedOperationCoordinator.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
+            return await distributedOperationRouter.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetApplicationComponentAndAccessLevelToUserMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
         {
-            return await distributedOperationCoordinator.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
+            return await distributedOperationRouter.GetApplicationComponentAndAccessLevelToUserMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserToApplicationComponentAndAccessLevelMappingAsync(String user, String applicationComponent, String accessLevel)
         {
-            await distributedOperationCoordinator.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
+            await distributedOperationRouter.RemoveUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task AddGroupToApplicationComponentAndAccessLevelMappingAsync(String group, String applicationComponent, String accessLevel)
         {
-            await distributedOperationCoordinator.AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
+            await distributedOperationRouter.AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetGroupToApplicationComponentAndAccessLevelMappingsAsync(String group)
         {
-            return await distributedOperationCoordinator.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
+            return await distributedOperationRouter.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetApplicationComponentAndAccessLevelToGroupMappingsAsync(String applicationComponent, String accessLevel, Boolean includeIndirectMappings)
         {
-            return await distributedOperationCoordinator.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
+            return await distributedOperationRouter.GetApplicationComponentAndAccessLevelToGroupMappingsAsync(applicationComponent, accessLevel, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(String group, String applicationComponent, String accessLevel)
         {
-            await distributedOperationCoordinator.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
+            await distributedOperationRouter.RemoveGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task AddEntityTypeAsync(String entityType)
         {
-            await distributedOperationCoordinator.AddEntityTypeAsync(entityType);
+            await distributedOperationRouter.AddEntityTypeAsync(entityType);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> ContainsEntityTypeAsync(String entityType)
         {
-            return await distributedOperationCoordinator.ContainsEntityTypeAsync(entityType);
+            return await distributedOperationRouter.ContainsEntityTypeAsync(entityType);
         }
 
         /// <inheritdoc/>
         public async Task RemoveEntityTypeAsync(String entityType)
         {
-            await distributedOperationCoordinator.RemoveEntityTypeAsync(entityType);
+            await distributedOperationRouter.RemoveEntityTypeAsync(entityType);
         }
 
         /// <inheritdoc/>
         public async Task AddEntityAsync(String entityType, String entity)
         {
-            await distributedOperationCoordinator.AddEntityAsync(entityType, entity);
+            await distributedOperationRouter.AddEntityAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntitiesAsync(String entityType)
         {
-            return await distributedOperationCoordinator.GetEntitiesAsync(entityType);
+            return await distributedOperationRouter.GetEntitiesAsync(entityType);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> ContainsEntityAsync(String entityType, String entity)
         {
-            return await distributedOperationCoordinator.ContainsEntityAsync(entityType, entity);
+            return await distributedOperationRouter.ContainsEntityAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task RemoveEntityAsync(String entityType, String entity)
         {
-            await distributedOperationCoordinator.RemoveEntityAsync(entityType, entity);
+            await distributedOperationRouter.RemoveEntityAsync(entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task AddUserToEntityMappingAsync(String user, String entityType, String entity)
         {
-            await distributedOperationCoordinator.AddUserToEntityMappingAsync(user, entityType, entity);
+            await distributedOperationRouter.AddUserToEntityMappingAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetUserToEntityMappingsAsync(String user)
         {
-            return await distributedOperationCoordinator.GetUserToEntityMappingsAsync(user);
+            return await distributedOperationRouter.GetUserToEntityMappingsAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetUserToEntityMappingsAsync(String user, String entityType)
         {
-            return await distributedOperationCoordinator.GetUserToEntityMappingsAsync(user, entityType);
+            return await distributedOperationRouter.GetUserToEntityMappingsAsync(user, entityType);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntityToUserMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            return await distributedOperationCoordinator.GetEntityToUserMappingsAsync(entityType, entity, includeIndirectMappings);
+            return await distributedOperationRouter.GetEntityToUserMappingsAsync(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveUserToEntityMappingAsync(String user, String entityType, String entity)
         {
-            await distributedOperationCoordinator.RemoveUserToEntityMappingAsync(user, entityType, entity);
+            await distributedOperationRouter.RemoveUserToEntityMappingAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task AddGroupToEntityMappingAsync(String group, String entityType, String entity)
         {
-            await distributedOperationCoordinator.AddGroupToEntityMappingAsync(group, entityType, entity);
+            await distributedOperationRouter.AddGroupToEntityMappingAsync(group, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetGroupToEntityMappingsAsync(String group)
         {
-            return await distributedOperationCoordinator.GetGroupToEntityMappingsAsync(group);
+            return await distributedOperationRouter.GetGroupToEntityMappingsAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetGroupToEntityMappingsAsync(String group, String entityType)
         {
-            return await distributedOperationCoordinator.GetGroupToEntityMappingsAsync(group, entityType);
+            return await distributedOperationRouter.GetGroupToEntityMappingsAsync(group, entityType);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntityToGroupMappingsAsync(String entityType, String entity, Boolean includeIndirectMappings)
         {
-            return await distributedOperationCoordinator.GetEntityToGroupMappingsAsync(entityType, entity, includeIndirectMappings);
+            return await distributedOperationRouter.GetEntityToGroupMappingsAsync(entityType, entity, includeIndirectMappings);
         }
 
         /// <inheritdoc/>
         public async Task RemoveGroupToEntityMappingAsync(String group, String entityType, String entity)
         {
-            await distributedOperationCoordinator.RemoveGroupToEntityMappingAsync(group, entityType, entity);
+            await distributedOperationRouter.RemoveGroupToEntityMappingAsync(group, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToApplicationComponentAsync(String user, String applicationComponent, String accessLevel)
         {
-            return await distributedOperationCoordinator.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
+            return await distributedOperationRouter.HasAccessToApplicationComponentAsync(user, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToApplicationComponentAsync(IEnumerable<String> groups, String applicationComponent, String accessLevel)
         {
-            return await distributedAsyncQueryProcessor.HasAccessToApplicationComponentAsync(groups, applicationComponent, accessLevel);
+            return await distributedOperationRouter.HasAccessToApplicationComponentAsync(groups, applicationComponent, accessLevel);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToEntityAsync(String user, String entityType, String entity)
         {
-            return await distributedOperationCoordinator.HasAccessToEntityAsync(user, entityType, entity);
+            return await distributedOperationRouter.HasAccessToEntityAsync(user, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<Boolean> HasAccessToEntityAsync(IEnumerable<String> groups, String entityType, String entity)
         {
-            return await distributedAsyncQueryProcessor.HasAccessToEntityAsync(groups, entityType, entity);
+            return await distributedOperationRouter.HasAccessToEntityAsync(groups, entityType, entity);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByUserAsync(String user)
         {
-            return await distributedOperationCoordinator.GetApplicationComponentsAccessibleByUserAsync(user);
+            return await distributedOperationRouter.GetApplicationComponentsAccessibleByUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupAsync(String group)
         {
-            return await distributedOperationCoordinator.GetApplicationComponentsAccessibleByGroupAsync(group);
+            return await distributedOperationRouter.GetApplicationComponentsAccessibleByGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetApplicationComponentsAccessibleByGroupsAsync(IEnumerable<String> groups)
         {
-            return await distributedAsyncQueryProcessor.GetApplicationComponentsAccessibleByGroupsAsync(groups);
+            return await distributedOperationRouter.GetApplicationComponentsAccessibleByGroupsAsync(groups);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByUserAsync(String user)
         {
-            return await distributedOperationCoordinator.GetEntitiesAccessibleByUserAsync(user);
+            return await distributedOperationRouter.GetEntitiesAccessibleByUserAsync(user);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntitiesAccessibleByUserAsync(String user, String entityType)
         {
-            return await distributedOperationCoordinator.GetEntitiesAccessibleByUserAsync(user, entityType);
+            return await distributedOperationRouter.GetEntitiesAccessibleByUserAsync(user, entityType);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupAsync(String group)
         {
-            return await distributedOperationCoordinator.GetEntitiesAccessibleByGroupAsync(group);
+            return await distributedOperationRouter.GetEntitiesAccessibleByGroupAsync(group);
         }
 
         /// <inheritdoc/>
         public async Task<List<Tuple<String, String>>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<String> groups)
         {
-            return await distributedAsyncQueryProcessor.GetEntitiesAccessibleByGroupsAsync(groups);
+            return await distributedOperationRouter.GetEntitiesAccessibleByGroupsAsync(groups);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntitiesAccessibleByGroupAsync(String group, String entityType)
         {
-            return await distributedOperationCoordinator.GetEntitiesAccessibleByGroupAsync(group, entityType);
+            return await distributedOperationRouter.GetEntitiesAccessibleByGroupAsync(group, entityType);
         }
 
         /// <inheritdoc/>
         public async Task<List<String>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<String> groups, String entityType)
         {
-            return await distributedAsyncQueryProcessor.GetEntitiesAccessibleByGroupsAsync(groups, entityType);
+            return await distributedOperationRouter.GetEntitiesAccessibleByGroupsAsync(groups, entityType);
         }
     }
 }

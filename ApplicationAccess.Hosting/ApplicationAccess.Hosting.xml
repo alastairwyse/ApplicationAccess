@@ -433,25 +433,21 @@
         </member>
         <member name="T:ApplicationAccess.Hosting.DistributedOperationRouterNode`1">
             <summary>
-            A node which distributes operations to multiple shards in a distributed AccessManager implementation, and aggregates and returns their results.
+            A node which operations to two shards in a distributed AccessManager implementation, and aggregates and returns their results.
             </summary>
             <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
         </member>
-        <member name="F:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.groupToGroupMappingMethodNotImplementedExceptionMessage">
-            <summary>Exception message for overridden methods which aren't implemented.</summary>
+        <member name="F:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.distributedOperationRouter">
+            <summary>The <see cref="T:ApplicationAccess.Distribution.IDistributedAccessManagerOperationRouter`1"/> instance which processes relevant operations received by the node.</summary>
         </member>
-        <member name="F:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.distributedOperationCoordinator">
-            <summary>The <see cref="T:ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator`1"/> instance which processes relevant operations received by the node.</summary>
+        <member name="P:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.RoutingOn">
+            <inheritdoc/>
         </member>
-        <member name="F:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.distributedAsyncQueryProcessor">
-            <summary>The <see cref="T:ApplicationAccess.IDistributedAccessManagerAsyncQueryProcessor`4"/> instance which processes relevant operations received by the node.</summary>
-        </member>
-        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.#ctor(ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator{`0},ApplicationAccess.IDistributedAccessManagerAsyncQueryProcessor{System.String,System.String,System.String,System.String})">
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.#ctor(ApplicationAccess.Distribution.IDistributedAccessManagerOperationRouter{`0})">
             <summary>
             Initialises a new instance of the ApplicationAccess.Hosting.DistributedOperationRouterNode class.
             </summary>
-            <param name="distributedOperationCoordinator">The <see cref="T:ApplicationAccess.Distribution.IDistributedAccessManagerOperationCoordinator`1"/> instance which processes relevant operations received by the node.</param>
-            <param name="distributedAsyncQueryProcessor">The <see cref="T:ApplicationAccess.IDistributedAccessManagerAsyncQueryProcessor`4"/> instance which processes relevant operations received by the node.</param>
+            <param name="distributedOperationRouter">The <see cref="T:ApplicationAccess.Distribution.IDistributedAccessManagerOperationRouter`1"/> instance which processes relevant operations received by the node.</param>
         </member>
         <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetUsersAsync">
             <inheritdoc/>
