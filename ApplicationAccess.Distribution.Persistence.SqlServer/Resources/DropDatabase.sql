@@ -4,7 +4,11 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccessConfiguration;
+-- NOTE: If executing through SQL Server Management Studio, set 'SQKCMD Mode' via the 'Query' menu
+
+:Setvar DatabaseName ApplicationAccessConfiguration
+
+USE $(DatabaseName);
 GO 
 
 DROP PROCEDURE dbo.UpdateShardConfiguration;
@@ -27,4 +31,4 @@ DROP TYPE dbo.ShardConfigurationStagingTableType;
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-DROP TABLE ApplicationAccessConfiguration.dbo.ShardConfiguration;
+DROP TABLE $(DatabaseName).dbo.ShardConfiguration;

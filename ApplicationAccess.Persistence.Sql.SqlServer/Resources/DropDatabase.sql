@@ -4,7 +4,11 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccess;
+-- NOTE: If executing through SQL Server Management Studio, set 'SQKCMD Mode' via the 'Query' menu
+
+:Setvar DatabaseName ApplicationAccess
+
+USE $(DatabaseName);
 GO 
 
 DROP PROCEDURE dbo.ProcessEvents;
@@ -48,17 +52,17 @@ DROP TYPE dbo.EventTableType;
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-DROP TABLE ApplicationAccess.dbo.SchemaVersions;
-DROP TABLE ApplicationAccess.dbo.GroupToEntityMappings;
-DROP TABLE ApplicationAccess.dbo.UserToEntityMappings;
-DROP TABLE ApplicationAccess.dbo.Entities;
-DROP TABLE ApplicationAccess.dbo.EntityTypes;
-DROP TABLE ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings;
-DROP TABLE ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings;
-DROP TABLE ApplicationAccess.dbo.AccessLevels;
-DROP TABLE ApplicationAccess.dbo.ApplicationComponents;
-DROP TABLE ApplicationAccess.dbo.GroupToGroupMappings;
-DROP TABLE ApplicationAccess.dbo.UserToGroupMappings;
-DROP TABLE ApplicationAccess.dbo.Groups;
-DROP TABLE ApplicationAccess.dbo.Users;
-DROP TABLE ApplicationAccess.dbo.EventIdToTransactionTimeMap;
+DROP TABLE $(DatabaseName).dbo.SchemaVersions;
+DROP TABLE $(DatabaseName).dbo.GroupToEntityMappings;
+DROP TABLE $(DatabaseName).dbo.UserToEntityMappings;
+DROP TABLE $(DatabaseName).dbo.Entities;
+DROP TABLE $(DatabaseName).dbo.EntityTypes;
+DROP TABLE $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings;
+DROP TABLE $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings;
+DROP TABLE $(DatabaseName).dbo.AccessLevels;
+DROP TABLE $(DatabaseName).dbo.ApplicationComponents;
+DROP TABLE $(DatabaseName).dbo.GroupToGroupMappings;
+DROP TABLE $(DatabaseName).dbo.UserToGroupMappings;
+DROP TABLE $(DatabaseName).dbo.Groups;
+DROP TABLE $(DatabaseName).dbo.Users;
+DROP TABLE $(DatabaseName).dbo.EventIdToTransactionTimeMap;

@@ -4,10 +4,14 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-CREATE DATABASE ApplicationAccess;
+-- NOTE: If executing through SQL Server Management Studio, set 'SQKCMD Mode' via the 'Query' menu
+
+:Setvar DatabaseName ApplicationAccess
+
+CREATE DATABASE $(DatabaseName);
 GO
 
-USE ApplicationAccess;
+USE $(DatabaseName);
 GO 
 
 
@@ -17,17 +21,17 @@ GO
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-CREATE TABLE ApplicationAccess.dbo.EventIdToTransactionTimeMap
+CREATE TABLE $(DatabaseName).dbo.EventIdToTransactionTimeMap
 (
     EventId              uniqueidentifier  NOT NULL PRIMARY KEY, 
     TransactionTime      datetime2         NOT NULL, 
     TransactionSequence  int               NOT NULL, 
 );
 
-CREATE INDEX EventIdToTransactionTimeMapEventIdIndex ON ApplicationAccess.dbo.EventIdToTransactionTimeMap (EventId);
-CREATE INDEX EventIdToTransactionTimeMapTransactionTimeIndex ON ApplicationAccess.dbo.EventIdToTransactionTimeMap (TransactionTime, TransactionSequence);
+CREATE INDEX EventIdToTransactionTimeMapEventIdIndex ON $(DatabaseName).dbo.EventIdToTransactionTimeMap (EventId);
+CREATE INDEX EventIdToTransactionTimeMapTransactionTimeIndex ON $(DatabaseName).dbo.EventIdToTransactionTimeMap (TransactionTime, TransactionSequence);
 
-CREATE TABLE ApplicationAccess.dbo.Users
+CREATE TABLE $(DatabaseName).dbo.Users
 (
     Id               bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     [User]           nvarchar(450)  NOT NULL, 
@@ -35,10 +39,10 @@ CREATE TABLE ApplicationAccess.dbo.Users
     TransactionTo    datetime2      NOT NULL
 );
 
-CREATE INDEX UsersUserIndex ON ApplicationAccess.dbo.Users ([User], TransactionTo);
-CREATE INDEX UsersTransactionIndex ON ApplicationAccess.dbo.Users (TransactionFrom, TransactionTo);
+CREATE INDEX UsersUserIndex ON $(DatabaseName).dbo.Users ([User], TransactionTo);
+CREATE INDEX UsersTransactionIndex ON $(DatabaseName).dbo.Users (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.Groups
+CREATE TABLE $(DatabaseName).dbo.Groups
 (
     Id               bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     [Group]          nvarchar(450)  NOT NULL, 
@@ -46,10 +50,10 @@ CREATE TABLE ApplicationAccess.dbo.Groups
     TransactionTo    datetime2      NOT NULL
 );
 
-CREATE INDEX GroupsGroupIndex ON ApplicationAccess.dbo.Groups ([Group], TransactionTo);
-CREATE INDEX GroupsTransactionIndex ON ApplicationAccess.dbo.Groups (TransactionFrom, TransactionTo);
+CREATE INDEX GroupsGroupIndex ON $(DatabaseName).dbo.Groups ([Group], TransactionTo);
+CREATE INDEX GroupsTransactionIndex ON $(DatabaseName).dbo.Groups (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.UserToGroupMappings
+CREATE TABLE $(DatabaseName).dbo.UserToGroupMappings
 (
     Id               bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     UserId           bigint     NOT NULL, 
@@ -62,7 +66,7 @@ CREATE INDEX UserToGroupMappingsUserIndex ON UserToGroupMappings (UserId, Transa
 CREATE INDEX UserToGroupMappingsGroupIndex ON UserToGroupMappings (GroupId, TransactionTo);
 CREATE INDEX UserToGroupMappingsTransactionIndex ON UserToGroupMappings (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.GroupToGroupMappings
+CREATE TABLE $(DatabaseName).dbo.GroupToGroupMappings
 (
     Id               bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     FromGroupId      bigint     NOT NULL, 
@@ -75,7 +79,7 @@ CREATE INDEX GroupToGroupMappingsFromGroupIndex ON GroupToGroupMappings (FromGro
 CREATE INDEX GroupToGroupMappingsToGroupIndex ON GroupToGroupMappings (ToGroupId, TransactionTo);
 CREATE INDEX GroupToGroupMappingsTransactionIndex ON GroupToGroupMappings (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.ApplicationComponents
+CREATE TABLE $(DatabaseName).dbo.ApplicationComponents
 (
     Id                    bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     ApplicationComponent  nvarchar(450)  NOT NULL, 
@@ -83,10 +87,10 @@ CREATE TABLE ApplicationAccess.dbo.ApplicationComponents
     TransactionTo         datetime2      NOT NULL
 );
 
-CREATE INDEX ApplicationComponentsApplicationComponentIndex ON ApplicationAccess.dbo.ApplicationComponents (ApplicationComponent, TransactionTo);
-CREATE INDEX ApplicationComponentsTransactionIndex ON ApplicationAccess.dbo.ApplicationComponents (TransactionFrom, TransactionTo);
+CREATE INDEX ApplicationComponentsApplicationComponentIndex ON $(DatabaseName).dbo.ApplicationComponents (ApplicationComponent, TransactionTo);
+CREATE INDEX ApplicationComponentsTransactionIndex ON $(DatabaseName).dbo.ApplicationComponents (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.AccessLevels
+CREATE TABLE $(DatabaseName).dbo.AccessLevels
 (
     Id               bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     AccessLevel      nvarchar(450)  NOT NULL, 
@@ -94,10 +98,10 @@ CREATE TABLE ApplicationAccess.dbo.AccessLevels
     TransactionTo    datetime2      NOT NULL
 );
 
-CREATE INDEX AccessLevelsAccessLevelIndex ON ApplicationAccess.dbo.AccessLevels (AccessLevel, TransactionTo);
-CREATE INDEX AccessLevelsTransactionIndex ON ApplicationAccess.dbo.AccessLevels (TransactionFrom, TransactionTo);
+CREATE INDEX AccessLevelsAccessLevelIndex ON $(DatabaseName).dbo.AccessLevels (AccessLevel, TransactionTo);
+CREATE INDEX AccessLevelsTransactionIndex ON $(DatabaseName).dbo.AccessLevels (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings
+CREATE TABLE $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings
 (
     Id                      bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     UserId                  bigint     NOT NULL, 
@@ -107,11 +111,11 @@ CREATE TABLE ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappi
     TransactionTo           datetime2  NOT NULL
 );
 
-CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsUserIndex ON ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings (UserId, ApplicationComponentId, AccessLevelId, TransactionTo);
-CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsApplicationComponentIndex ON ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings (ApplicationComponentId, AccessLevelId, TransactionTo);
-CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsTransactionIndex ON ApplicationAccess.dbo.UserToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
+CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsUserIndex ON $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings (UserId, ApplicationComponentId, AccessLevelId, TransactionTo);
+CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsApplicationComponentIndex ON $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings (ApplicationComponentId, AccessLevelId, TransactionTo);
+CREATE INDEX UserToApplicationComponentAndAccessLevelMappingsTransactionIndex ON $(DatabaseName).dbo.UserToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings
+CREATE TABLE $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings
 (
     Id                      bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     GroupId                 bigint     NOT NULL, 
@@ -121,11 +125,11 @@ CREATE TABLE ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMapp
     TransactionTo           datetime2  NOT NULL
 );
 
-CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsGroupIndex ON ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings (GroupId, ApplicationComponentId, AccessLevelId, TransactionTo);
-CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsApplicationComponentIndex ON ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings (ApplicationComponentId, AccessLevelId, TransactionTo);
-CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsTransactionIndex ON ApplicationAccess.dbo.GroupToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
+CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsGroupIndex ON $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings (GroupId, ApplicationComponentId, AccessLevelId, TransactionTo);
+CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsApplicationComponentIndex ON $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings (ApplicationComponentId, AccessLevelId, TransactionTo);
+CREATE INDEX GroupToApplicationComponentAndAccessLevelMappingsTransactionIndex ON $(DatabaseName).dbo.GroupToApplicationComponentAndAccessLevelMappings (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.EntityTypes
+CREATE TABLE $(DatabaseName).dbo.EntityTypes
 (
     Id               bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     EntityType       nvarchar(450)  NOT NULL, 
@@ -133,10 +137,10 @@ CREATE TABLE ApplicationAccess.dbo.EntityTypes
     TransactionTo    datetime2      NOT NULL
 );
 
-CREATE INDEX EntityTypesEntityTypeIndex ON ApplicationAccess.dbo.EntityTypes (EntityType, TransactionTo);
-CREATE INDEX EntityTypesTransactionIndex ON ApplicationAccess.dbo.EntityTypes (TransactionFrom, TransactionTo);
+CREATE INDEX EntityTypesEntityTypeIndex ON $(DatabaseName).dbo.EntityTypes (EntityType, TransactionTo);
+CREATE INDEX EntityTypesTransactionIndex ON $(DatabaseName).dbo.EntityTypes (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.Entities
+CREATE TABLE $(DatabaseName).dbo.Entities
 (
     Id               bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     EntityTypeId     bigint         NOT NULL, 
@@ -145,10 +149,10 @@ CREATE TABLE ApplicationAccess.dbo.Entities
     TransactionTo    datetime2      NOT NULL
 );
 
-CREATE INDEX EntitiesEntityIndex ON ApplicationAccess.dbo.Entities (EntityTypeId, Entity, TransactionTo);
-CREATE INDEX EntitiesTransactionIndex ON ApplicationAccess.dbo.Entities (TransactionFrom, TransactionTo);
+CREATE INDEX EntitiesEntityIndex ON $(DatabaseName).dbo.Entities (EntityTypeId, Entity, TransactionTo);
+CREATE INDEX EntitiesTransactionIndex ON $(DatabaseName).dbo.Entities (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.UserToEntityMappings
+CREATE TABLE $(DatabaseName).dbo.UserToEntityMappings
 (
     Id               bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     UserId           bigint     NOT NULL, 
@@ -158,11 +162,11 @@ CREATE TABLE ApplicationAccess.dbo.UserToEntityMappings
     TransactionTo    datetime2  NOT NULL
 );
 
-CREATE INDEX UserToEntityMappingsUserIndex ON ApplicationAccess.dbo.UserToEntityMappings (UserId, EntityTypeId, EntityId, TransactionTo);
-CREATE INDEX UserToEntityMappingsEntityIndex ON ApplicationAccess.dbo.UserToEntityMappings (EntityTypeId, EntityId, TransactionTo);
-CREATE INDEX UserToEntityMappingsTransactionIndex ON ApplicationAccess.dbo.UserToEntityMappings (TransactionFrom, TransactionTo);
+CREATE INDEX UserToEntityMappingsUserIndex ON $(DatabaseName).dbo.UserToEntityMappings (UserId, EntityTypeId, EntityId, TransactionTo);
+CREATE INDEX UserToEntityMappingsEntityIndex ON $(DatabaseName).dbo.UserToEntityMappings (EntityTypeId, EntityId, TransactionTo);
+CREATE INDEX UserToEntityMappingsTransactionIndex ON $(DatabaseName).dbo.UserToEntityMappings (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.GroupToEntityMappings
+CREATE TABLE $(DatabaseName).dbo.GroupToEntityMappings
 (
     Id               bigint     NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     GroupId          bigint     NOT NULL, 
@@ -172,11 +176,11 @@ CREATE TABLE ApplicationAccess.dbo.GroupToEntityMappings
     TransactionTo    datetime2  NOT NULL
 );
 
-CREATE INDEX GroupToEntityMappingsGroupIndex ON ApplicationAccess.dbo.GroupToEntityMappings (GroupId, EntityTypeId, EntityId, TransactionTo);
-CREATE INDEX GroupToEntityMappingsEntityIndex ON ApplicationAccess.dbo.GroupToEntityMappings (EntityTypeId, EntityId, TransactionTo);
-CREATE INDEX GroupToEntityMappingsTransactionIndex ON ApplicationAccess.dbo.GroupToEntityMappings (TransactionFrom, TransactionTo);
+CREATE INDEX GroupToEntityMappingsGroupIndex ON $(DatabaseName).dbo.GroupToEntityMappings (GroupId, EntityTypeId, EntityId, TransactionTo);
+CREATE INDEX GroupToEntityMappingsEntityIndex ON $(DatabaseName).dbo.GroupToEntityMappings (EntityTypeId, EntityId, TransactionTo);
+CREATE INDEX GroupToEntityMappingsTransactionIndex ON $(DatabaseName).dbo.GroupToEntityMappings (TransactionFrom, TransactionTo);
 
-CREATE TABLE ApplicationAccess.dbo.SchemaVersions
+CREATE TABLE $(DatabaseName).dbo.SchemaVersions
 (
     Id         bigint        NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     [Version]  nvarchar(20)  NOT NULL, 
@@ -189,7 +193,7 @@ CREATE TABLE ApplicationAccess.dbo.SchemaVersions
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccess;
+USE $(DatabaseName);
 GO 
 
 CREATE TYPE dbo.EventTableType 
@@ -213,7 +217,7 @@ GO
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccess;
+USE $(DatabaseName);
 GO 
 
 --------------------------------------------------------------------------------

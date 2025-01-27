@@ -1,4 +1,8 @@
-USE ApplicationAccessConfiguration;
+-- NOTE: If executing through SQL Server Management Studio, set 'SQKCMD Mode' via the 'Query' menu
+
+:Setvar DatabaseName ApplicationAccessConfiguration
+
+USE $(DatabaseName);
 GO 
 
 --------------------------------------------------------------------------------
@@ -7,7 +11,7 @@ GO
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-CREATE TABLE ApplicationAccessConfiguration.dbo.ShardConfiguration
+CREATE TABLE $(DatabaseName).dbo.ShardConfiguration
 (
     Id                   bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
     DataElementType      nvarchar(450)  NOT NULL, 
@@ -27,7 +31,7 @@ CREATE INDEX ShardConfigurationTransactionIndex ON ShardConfiguration (Transacti
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccessConfiguration;
+USE $(DatabaseName);
 GO 
 
 CREATE TYPE dbo.ShardConfigurationStagingTableType 
@@ -47,7 +51,7 @@ GO
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-USE ApplicationAccessConfiguration;
+USE $(DatabaseName);
 GO 
 
 --------------------------------------------------------------------------------
