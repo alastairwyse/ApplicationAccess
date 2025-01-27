@@ -24,6 +24,7 @@ using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Utilities;
+using ApplicationAccess.UnitTests;
 using ApplicationMetrics;
 using NUnit.Framework;
 using NSubstitute;
@@ -42,6 +43,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         //   hash code values, etc...) are NOT explicitly tested.  Methods with bespoke implementations (e.g. GetUsersAsync()) do have multiple tests covering
         //   all paths in the bespoke code.
 
+        private TestUtilities testUtilities;
         private Int32 sourceShardHashRangeStart;
         private Int32 sourceShardHashRangeEnd;
         private Int32 targetShardHashRangeStart;
@@ -60,6 +62,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            testUtilities = new TestUtilities();
             sourceShardHashRangeStart = -100;
             sourceShardHashRangeEnd = -5;
             targetShardHashRangeStart = -4;
@@ -4282,34 +4285,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         /// <remarks>Designed to be passed to the 'predicate' parameter of the <see cref="Arg.Any{T}"/> argument matcher.</remarks>
         protected Expression<Predicate<IEnumerable<String>>> EqualIgnoringOrder(IEnumerable<String> expected)
         {
-            return (IEnumerable<String> actual) => StringEnumerablesContainSameValues(expected, actual);
-        }
-
-        /// <summary>
-        /// Checks whether two collections of strings contain the same elements irrespective of their enumeration order.
-        /// </summary>
-        /// <param name="enumerable1">The first collection.</param>
-        /// <param name="enumerable2">The second collection.</param>
-        /// <returns>True if the collections contain the same string.  False otherwise.</returns>
-        protected Boolean StringEnumerablesContainSameValues(IEnumerable<String> enumerable1, IEnumerable<String> enumerable2)
-        {
-            if (enumerable1.Count() != enumerable2.Count())
-            {
-                return false;
-            }
-            var sortedExpected = new List<String>(enumerable1);
-            var sortedActual = new List<String>(enumerable2);
-            sortedExpected.Sort();
-            sortedActual.Sort();
-            for (Int32 i = 0; i < sortedExpected.Count; i++)
-            {
-                if (sortedExpected[i] != sortedExpected[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return testUtilities.EqualIgnoringOrder(expected);
         }
 
         #endregion

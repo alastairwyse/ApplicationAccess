@@ -51,7 +51,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         protected ShardConfigurationRefreshOptions shardConfigurationRefreshOptions;
         protected ShardConnectionOptions shardConnectionOptions;
         protected MetricLoggingOptions metricLoggingOptions;
-        protected DistributedOperationCoordinatorHolder distributedOperationCoordinatorHolder;
+        protected AsyncQueryProcessorHolder asyncQueryProcessorHolder;
+        protected AsyncEventProcessorHolder asyncEventProcessorHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
         protected ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger;
@@ -82,7 +83,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             IOptions<ShardConfigurationRefreshOptions> shardConfigurationRefreshOptions,
             IOptions<ShardConnectionOptions> shardConnectionOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
-            DistributedOperationCoordinatorHolder distributedOperationCoordinatorHolder,
+            AsyncQueryProcessorHolder asyncQueryProcessorHolder,
+            AsyncEventProcessorHolder asyncEventProcessorHolder,
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger
@@ -92,7 +94,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             this.shardConfigurationRefreshOptions = shardConfigurationRefreshOptions.Value;
             this.shardConnectionOptions = shardConnectionOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
-            this.distributedOperationCoordinatorHolder = distributedOperationCoordinatorHolder;
+            this.asyncQueryProcessorHolder = asyncQueryProcessorHolder;
+            this.asyncEventProcessorHolder = asyncEventProcessorHolder;
             this.tripSwitchActuator = tripSwitchActuator;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
@@ -334,11 +337,12 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         }
 
         /// <summary>
-        /// Sets the 'distributedOperationCoordinatorNode' member on the 'holder' class instance (e.g. <see cref="EntityEventProcessorHolder"/>).
+        /// Sets the 'distributedOperationCoordinatorNode' member the various 'holder' class instances (e.g. <see cref="AsyncQueryProcessorHolder"/>).
         /// </summary>
         protected virtual void SetupHolderClasses()
         {
-            distributedOperationCoordinatorHolder.DistributedOperationCoordinator = distributedOperationCoordinatorNode;
+            asyncQueryProcessorHolder.AsyncQueryProcessor = distributedOperationCoordinatorNode;
+            asyncEventProcessorHolder.AsyncEventProcessor = distributedOperationCoordinatorNode;
         }
 
         #endregion

@@ -36,17 +36,19 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
     public class DistributedOperationCoordinatorControllerBaseTests
     {
         private IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration> mockDistributedOperationCoordinator;
-        private ILogger<DistributedOperationCoordinatorControllerBase> mockLogger;
+        private ILogger<DistributedOperationProcessorControllerBase> mockLogger;
         private DistributedOperationCoordinatorController testDistributedOperationCoordinatorController;
 
         [SetUp]
         protected void SetUp()
         {
             mockDistributedOperationCoordinator = Substitute.For<IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>>();
-            mockLogger = Substitute.For<ILogger<DistributedOperationCoordinatorControllerBase>>();
-            var distributedOperationCoordinatorHolder = new DistributedOperationCoordinatorHolder();
-            distributedOperationCoordinatorHolder.DistributedOperationCoordinator = mockDistributedOperationCoordinator;
-            testDistributedOperationCoordinatorController = new DistributedOperationCoordinatorController(distributedOperationCoordinatorHolder, mockLogger);
+            mockLogger = Substitute.For<ILogger<DistributedOperationProcessorControllerBase>>();
+            var asyncQueryProcessorHolder = new AsyncQueryProcessorHolder();
+            var asyncEventProcessorHolder = new AsyncEventProcessorHolder();
+            asyncQueryProcessorHolder.AsyncQueryProcessor = mockDistributedOperationCoordinator;
+            asyncEventProcessorHolder.AsyncEventProcessor = mockDistributedOperationCoordinator;
+            testDistributedOperationCoordinatorController = new DistributedOperationCoordinatorController(asyncQueryProcessorHolder, asyncEventProcessorHolder, mockLogger);
         }
 
         [Test]
@@ -686,12 +688,17 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         #region Nested Classes
 
         /// <summary>
-        /// Derives from <see cref="DistributedOperationCoordinatorControllerBase"/> as it's abstract.
+        /// Derives from <see cref="DistributedOperationProcessorControllerBase"/> as it's abstract.
         /// </summary>
-        private class DistributedOperationCoordinatorController : DistributedOperationCoordinatorControllerBase
+        private class DistributedOperationCoordinatorController : DistributedOperationProcessorControllerBase
         {
-            public DistributedOperationCoordinatorController(DistributedOperationCoordinatorHolder distributedOperationCoordinatorHolder, ILogger<DistributedOperationCoordinatorControllerBase> logger)
-                : base(distributedOperationCoordinatorHolder, logger)
+            public DistributedOperationCoordinatorController
+            (
+                AsyncQueryProcessorHolder asyncQueryProcessorHolder,
+                AsyncEventProcessorHolder asyncEventProcessorHolder,
+                ILogger<DistributedOperationProcessorControllerBase> logger
+            )
+                : base(asyncQueryProcessorHolder, asyncEventProcessorHolder, logger)
             {
             }
         }

@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Models\ApplicationAccess.Hosting.Models.csproj" />
   </ItemGroup>
 

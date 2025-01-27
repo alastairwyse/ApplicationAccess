@@ -26,32 +26,33 @@ using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Models.DataTransferObjects;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Hosting.Rest.Utilities;
-using System.Text.RegularExpressions;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controllers which expose methods on the <see cref="IDistributedAccessManagerOperationCoordinator{TClientConfiguration}"/> interface as REST methods.
+    /// Base for controllers which expose methods on the <see cref="IAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> and <see cref="IAccessManagerAsyncEventProcessor{TUser, TGroup, TComponent, TAccess}"/> interfaces as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
-    public abstract class DistributedOperationCoordinatorControllerBase : ControllerBase
+    public abstract class DistributedOperationProcessorControllerBase : ControllerBase
     {
-        //protected IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration> distributedAccessManagerOperationCoordinator;
         protected IAccessManagerAsyncQueryProcessor<String, String, String, String> accessManagerAsyncQueryProcessor;
         protected IAccessManagerAsyncEventProcessor<String, String, String, String> accessManagerAsyncEventProcessor;
-        protected ILogger<DistributedOperationCoordinatorControllerBase> logger;
+        protected ILogger<DistributedOperationProcessorControllerBase> logger;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.DistributedOperationCoordinatorControllerBase class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.DistributedOperationProcessorControllerBase class.
         /// </summary>
-        /// <param name="distributedOperationCoordinatorHolder"></param>
-        /// <param name="logger"></param>
-        public DistributedOperationCoordinatorControllerBase(DistributedOperationCoordinatorHolder distributedOperationCoordinatorHolder, ILogger<DistributedOperationCoordinatorControllerBase> logger)
+        public DistributedOperationProcessorControllerBase
+        (
+            AsyncQueryProcessorHolder asyncQueryProcessorHolder,
+            AsyncEventProcessorHolder asyncEventProcessorHolder, 
+            ILogger<DistributedOperationProcessorControllerBase> logger
+        )
         {
-            accessManagerAsyncQueryProcessor = distributedOperationCoordinatorHolder.DistributedOperationCoordinator;
-            accessManagerAsyncEventProcessor = distributedOperationCoordinatorHolder.DistributedOperationCoordinator;
+            accessManagerAsyncQueryProcessor = asyncQueryProcessorHolder.AsyncQueryProcessor;
+            accessManagerAsyncEventProcessor = asyncEventProcessorHolder.AsyncEventProcessor;
             this.logger = logger;
         }
 

@@ -46,7 +46,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
         protected ShardRoutingOptions shardRoutingOptions;
         protected ShardConnectionOptions shardConnectionOptions;
         protected MetricLoggingOptions metricLoggingOptions;
-        protected DistributedOperationRouterHolder distributedOperationRouterHolder;
+        protected AsyncQueryProcessorHolder asyncQueryProcessorHolder;
+        protected AsyncEventProcessorHolder asyncEventProcessorHolder;
+        protected DistributedUserQueryProcessorHolder distributedUserQueryProcessorHolder;
+        protected DistributedGroupQueryProcessorHolder distributedGroupQueryProcessorHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
         protected ILogger<DistributedOperationRouterNodeHostedServiceWrapper> logger;
@@ -72,7 +75,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
             IOptions<ShardRoutingOptions> shardRoutingOptions,
             IOptions<ShardConnectionOptions> shardConnectionOptions,
             IOptions<MetricLoggingOptions> metricLoggingOptions,
-            DistributedOperationRouterHolder distributedOperationRouterHolder,
+            AsyncQueryProcessorHolder asyncQueryProcessorHolder,
+            AsyncEventProcessorHolder asyncEventProcessorHolder,
+            DistributedUserQueryProcessorHolder distributedUserQueryProcessorHolder, 
+            DistributedGroupQueryProcessorHolder distributedGroupQueryProcessorHolder, 
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DistributedOperationRouterNodeHostedServiceWrapper> logger
@@ -81,7 +87,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
             this.shardRoutingOptions = shardRoutingOptions.Value;
             this.shardConnectionOptions = shardConnectionOptions.Value;
             this.metricLoggingOptions = metricLoggingOptions.Value;
-            this.distributedOperationRouterHolder = distributedOperationRouterHolder;
+            this.asyncQueryProcessorHolder = asyncQueryProcessorHolder;
+            this.asyncEventProcessorHolder = asyncEventProcessorHolder;
+            this.distributedUserQueryProcessorHolder = distributedUserQueryProcessorHolder;
+            this.distributedGroupQueryProcessorHolder = distributedGroupQueryProcessorHolder;
             this.tripSwitchActuator = tripSwitchActuator;
             this.loggerFactory = loggerFactory;
             this.logger = logger;
@@ -275,11 +284,14 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
         }
 
         /// <summary>
-        /// Sets the 'distributedOperationRouterNode' member on the 'holder' class instance (e.g. <see cref="EntityEventProcessorHolder"/>).
+        /// Sets the 'distributedOperationRouterNode' member the various 'holder' class instances (e.g. <see cref="AsyncQueryProcessorHolder"/>).
         /// </summary>
         protected virtual void SetupHolderClasses()
         {
-            distributedOperationRouterHolder.DistributedOperationRouter = distributedOperationRouterNode;
+            asyncQueryProcessorHolder.AsyncQueryProcessor = distributedOperationRouterNode;
+            asyncEventProcessorHolder.AsyncEventProcessor = distributedOperationRouterNode;
+            //distributedUserQueryProcessorHolder.DistributedUserQueryProcessor = distributedOperationRouterNode;
+            //distributedGroupQueryProcessorHolder.DistributedGroupQueryProcessor = distributedOperationRouterNode;
         }
 
         /// <summary>

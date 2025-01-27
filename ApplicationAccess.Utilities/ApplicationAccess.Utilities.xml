@@ -420,5 +420,31 @@
         <member name="M:ApplicationAccess.Utilities.StopwatchDateTimeProvider.UtcNow">
             <inheritdoc/>
         </member>
+        <member name="T:ApplicationAccess.Utilities.TestUtilities">
+            <summary>
+            Contains utility methods for unit tests.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.TestUtilities.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Utilities.TestUtilities class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.TestUtilities.EqualIgnoringOrder(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Returns an <see cref="T:System.Linq.Expressions.Expression"/> which evaluates a <see cref="T:System.Predicate`1"/> which checks whether a collection of strings matches the collection in parameter <paramref name="expected"/> irrespective of their enumeration order.
+            </summary>
+            <param name="expected">The collection of strings the predicate compares to.</param>
+            <returns>The <see cref="T:System.Linq.Expressions.Expression"/> which evaluates a <see cref="T:System.Predicate`1"/>.</returns>
+            <remarks>Designed to be passed to the 'predicate' parameter of the <see cref="!:Arg.Any&lt;T&gt;"/> argument matcher.</remarks>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.TestUtilities.StringEnumerablesContainSameValues(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Checks whether two collections of strings contain the same elements irrespective of their enumeration order.
+            </summary>
+            <param name="enumerable1">The first collection.</param>
+            <param name="enumerable2">The second collection.</param>
+            <returns>True if the collections contain the same string.  False otherwise.</returns>
+        </member>
     </members>
 </doc>

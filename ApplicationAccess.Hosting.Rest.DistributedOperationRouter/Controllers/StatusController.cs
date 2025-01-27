@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-using System;
+using ApplicationAccess.Hosting.Rest.Controllers;
 
-namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
+namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
 {
     /// <summary>
-    /// Holds an instance of <see cref="IDistributedAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/>
+    /// Derives from abstract base controller class <see cref="StatusControllerBase"/> to expose it as a controller.
     /// </summary>
-    public class DistributedAsyncQueryProcessorHolder
+    public class StatusController : StatusControllerBase
     {
-        #pragma warning disable 0649
-
-        public IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String> AsyncQueryProcessor { get; set; }
-
-        #pragma warning restore 0649    
     }
 }

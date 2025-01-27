@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,34 +17,54 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Mime;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Models.DataTransferObjects;
-using ApplicationAccess.Distribution;
 
 namespace ApplicationAccess.Hosting.Rest.Controllers
 {
     /// <summary>
-    /// Base for controllers which expose methods on the <see cref="IDistributedAccessManagerGroupQueryProcessor{TGroup, TComponent, TAccess}"/> interface as REST methods.
+    /// Base for controllers which expose methods on the <see cref="IDistributedAccessManagerAsyncQueryProcessor{TUser, TGroup, TComponent, TAccess}"/> interface as REST methods.
     /// </summary>
     [ApiController]
     [ApiVersion("1")]
     [Route("api/v{version:apiVersion}")]
-    [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
-    public abstract class DistributedGroupQueryProcessorControllerBase : ControllerBase
+    public abstract class DistributedAsyncQueryProcessorControllerBase : ControllerBase
     {
-        protected IDistributedAccessManagerGroupQueryProcessor<String, String, String> distributedGroupQueryProcessor;
-        protected ILogger<DistributedGroupQueryProcessorControllerBase> logger;
+        // TODO: Could consider splitting this into separate *ControllerBases for users and groups
+        //   List for DistributedUserQueryProcessorControllerBase
 
-        /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Controllers.DistributedGroupQueryProcessorControllerBase class.
-        /// </summary>
-        public DistributedGroupQueryProcessorControllerBase(DistributedGroupQueryProcessorHolder distributedGroupQueryProcessorHolder, ILogger<DistributedGroupQueryProcessorControllerBase> logger)
+        protected IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String> distributedAccessManagerAsyncQueryProcessor;
+        protected ILogger<DistributedAsyncQueryProcessorControllerBase> logger;
+
+        public DistributedAsyncQueryProcessorControllerBase
+        (
+            DistributedAsyncQueryProcessorHolder distributedAsyncQueryProcessorHolder, 
+            ILogger<DistributedAsyncQueryProcessorControllerBase> logger
+        )
         {
-            distributedGroupQueryProcessor = distributedGroupQueryProcessorHolder.DistributedGroupQueryProcessor;
+            distributedAccessManagerAsyncQueryProcessor = distributedAsyncQueryProcessorHolder.AsyncQueryProcessor;
             this.logger = logger;
         }
+
+        /// <summary>
+        /// Gets the users that are directly mapped to any of the specified groups.
+        /// </summary>
+        /// <param name="groups">The groups to retrieve the users for.</param>
+        /// <returns>A collection of users that are mapped to the specified groups.</returns>
+        [HttpGet]
+        [Route("userToGroupMappings")]
+        [ApiExplorerSettings(GroupName = "UserQueryProcessor")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public async Task<List<String>> GetGroupToUserMappingsAsync([FromBody, BindRequired] IEnumerable<String> groups)
+        {
+            return await distributedAccessManagerAsyncQueryProcessor.GetGroupToUserMappingsAsync(groups);
+        }
+
+        // TODO: Not including methods GetGroupToGroupMappingsAsync() nor GetGroupToGroupReverseMappingsAsync() for now as they're not supported
+        //   by DistributedAccessManagerOperationRouter, but may need to add later.
 
         /// <summary>
         /// Checks whether any of the specified groups have access to an application component at the specified level of access.
@@ -55,13 +75,14 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>True if any of the groups have access the component.  False otherwise.</returns>
         [HttpGet]
         [Route("dataElementAccess/applicationComponent/applicationComponent/{applicationComponent}/accessLevel/{accessLevel}")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
-        public ActionResult<Boolean> HasAccessToApplicationComponent([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
+        public async Task<ActionResult<Boolean>> HasAccessToApplicationComponentAsync([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String applicationComponent, [FromRoute] String accessLevel)
         {
             String decodedApplicationComponent = Uri.UnescapeDataString(applicationComponent);
             String decodedAccessLevel = Uri.UnescapeDataString(accessLevel);
 
-            return distributedGroupQueryProcessor.HasAccessToApplicationComponent(groups, decodedApplicationComponent, decodedAccessLevel);
+            return await distributedAccessManagerAsyncQueryProcessor.HasAccessToApplicationComponentAsync(groups, decodedApplicationComponent, decodedAccessLevel);
         }
 
         /// <summary>
@@ -73,13 +94,14 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>True if any of the groups have access the entity.  False otherwise.</returns>
         [HttpGet]
         [Route("dataElementAccess/entity/entityType/{entityType}/entity/{entity}")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
-        public ActionResult<Boolean> HasAccessToEntity([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType, [FromRoute] String entity)
+        public async Task<ActionResult<Boolean>> HasAccessToEntityAsync([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType, [FromRoute] String entity)
         {
             String decodedEntityType = Uri.UnescapeDataString(entityType);
             String decodedEntity = Uri.UnescapeDataString(entity);
 
-            return distributedGroupQueryProcessor.HasAccessToEntity(groups, decodedEntityType, decodedEntity);
+            return await distributedAccessManagerAsyncQueryProcessor.HasAccessToEntityAsync(groups, decodedEntityType, decodedEntity);
         }
 
         /// <summary>
@@ -89,10 +111,11 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <returns>The application components and levels of access to those application components that the groups have.</returns>
         [HttpGet]
         [Route("groupToApplicationComponentAndAccessLevelMappings")]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<ApplicationComponentAndAccessLevel<String, String>> GetApplicationComponentsAccessibleByGroups([FromBody, BindRequired] IEnumerable<String> groups)
+        public async IAsyncEnumerable<ApplicationComponentAndAccessLevel<String, String>> GetApplicationComponentsAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups)
         {
-            foreach (Tuple<String, String> currentTuple in distributedGroupQueryProcessor.GetApplicationComponentsAccessibleByGroups(groups))
+            foreach (Tuple<String, String> currentTuple in await distributedAccessManagerAsyncQueryProcessor.GetApplicationComponentsAccessibleByGroupsAsync(groups))
             {
                 yield return new ApplicationComponentAndAccessLevel<String, String>(currentTuple.Item1, currentTuple.Item2);
             }
@@ -104,11 +127,12 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <param name="groups">The groups to retrieve the entities for.</param>
         /// <returns>A collection of Tuples containing the entity type and entity that the groups have access to.</returns>
         [HttpGet]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Route("groupToEntityMappings")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<EntityTypeAndEntity> GetEntitiesAccessibleByGroups([FromBody, BindRequired] IEnumerable<String> groups)
+        public async IAsyncEnumerable<EntityTypeAndEntity> GetEntitiesAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups)
         {
-            foreach (Tuple<String, String> currentTuple in distributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(groups))
+            foreach (Tuple<String, String> currentTuple in await distributedAccessManagerAsyncQueryProcessor.GetEntitiesAccessibleByGroupsAsync(groups))
             {
                 yield return new EntityTypeAndEntity(currentTuple.Item1, currentTuple.Item2);
             }
@@ -121,13 +145,14 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
         /// <param name="entityType">The type of entities to retrieve.</param>
         /// <returns>The entities the groups have access to.</returns>
         [HttpGet]
+        [ApiExplorerSettings(GroupName = "GroupQueryProcessor")]
         [Route("groupToEntityMappings/entityType/{entityType}")]
         [Produces(MediaTypeNames.Application.Json)]
-        public IEnumerable<String> GetEntitiesAccessibleByGroups([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType)
+        public async Task<IEnumerable<String>> GetEntitiesAccessibleByGroupsAsync([FromBody, BindRequired] IEnumerable<String> groups, [FromRoute] String entityType)
         {
             String decodedEntityType = Uri.UnescapeDataString(entityType);
 
-            return distributedGroupQueryProcessor.GetEntitiesAccessibleByGroups(groups, decodedEntityType);
+            return await distributedAccessManagerAsyncQueryProcessor.GetEntitiesAccessibleByGroupsAsync(groups, decodedEntityType);
         }
     }
 }

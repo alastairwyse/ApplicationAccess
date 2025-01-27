@@ -40,7 +40,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 SwaggerApplicationDescription = "Provides flexible and configurable user permission and authorization management for applications",
                 SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
                 {
-                    typeof(Rest.Controllers.DistributedOperationCoordinatorControllerBase).Assembly
+                    typeof(Rest.Controllers.DistributedOperationProcessorControllerBase).Assembly
                 },
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
@@ -59,7 +59,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 },
                 ProcessorHolderTypes = new List<Type>()
                 {
-                    typeof(DistributedOperationCoordinatorHolder)
+                    typeof(AsyncQueryProcessorHolder),
+                    typeof(AsyncEventProcessorHolder)
                 },
                 // Add a mapping from ServiceUnavailableException to HTTP 503 error status
                 ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()

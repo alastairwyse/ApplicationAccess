@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.Rest.Controllers;
+using Microsoft.Extensions.Logging;
 
-namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Controllers
+namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
 {
     /// <summary>
     /// Derives from abstract base controller class <see cref="DistributedOperationProcessorControllerBase"/> to expose it as a controller.
     /// </summary>
-    public class DistributedOperationCoordinatorController : DistributedOperationProcessorControllerBase
+    public class DistributedOperationRouterController : DistributedOperationProcessorControllerBase
     {
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Controllers.DistributedOperationCoordinatorController class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers.DistributedOperationRouterController class.
         /// </summary>
-        public DistributedOperationCoordinatorController
+        public DistributedOperationRouterController
         (
             AsyncQueryProcessorHolder asyncQueryProcessorHolder,
             AsyncEventProcessorHolder asyncEventProcessorHolder,
