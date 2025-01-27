@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-using ApplicationAccess.Hosting.Rest.Controllers;
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using ApplicationAccess.Distribution;
+using ApplicationAccess.Hosting.Rest.Controllers;
+using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
 {
@@ -24,6 +30,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
     /// </summary>
     public class DistributedOperationRouterController : DistributedOperationProcessorControllerBase
     {
+        protected IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> distributedOperationRouter;
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers.DistributedOperationRouterController class.
         /// </summary>
@@ -31,10 +39,33 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
         (
             AsyncQueryProcessorHolder asyncQueryProcessorHolder,
             AsyncEventProcessorHolder asyncEventProcessorHolder,
+            IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> distributedOperationRouter, 
             ILogger<DistributedOperationProcessorControllerBase> logger
         )
             : base(asyncQueryProcessorHolder, asyncEventProcessorHolder, logger)
         {
+            this.distributedOperationRouter = distributedOperationRouter;
         }
+
+        /// <summary>
+        /// Whether or not the routing functionality is switched on.  If false (off) all operations are routed to the source shard.
+        /// </summary>
+        /// <param name="value">Whether or not the routing functionality is switched on.</param>
+        [HttpPost]
+        [Route("routing/{value}")]
+        [ApiExplorerSettings(GroupName = "Routing")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public void SetRoutingOn([FromRoute] Boolean value)
+        {
+            distributedOperationRouter.RoutingOn = value;
+        }
+
+        // TODO: Need endpoints for switching pause/hold on and off
+        //   And hence also need to get Pauser AND register it in DI services
+        //     Unless the middleware is already registering it
+        //     Actually, I need to register that pauser middleware too
+        //     AND integration tests needs to include stuff around the pauser
+        //   AND... do I need to replcate tests in class DistributedOperationCoordinatorNodeTests ??
+        //     Basically just pass-through tests... are they really required??
     }
 }

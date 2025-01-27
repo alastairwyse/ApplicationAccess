@@ -21,6 +21,9 @@ using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Rest.Models;
+using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
 {
@@ -28,18 +31,50 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            var parameters = new ApplicationInitializerParameters()
+            {
+                Args = args,
+                SwaggerVersionString = "v1",
+                SwaggerApplicationName = "ApplicationAccessDistributedOperationRouter",
+                SwaggerApplicationDescription = "Distributes operations to two shards in a distributed AccessManager implementation",
+                SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
+                {
+                    typeof(Rest.Controllers.DistributedOperationProcessorControllerBase).Assembly
+                },
+                ConfigureOptionsAction = (WebApplicationBuilder builder) =>
+                {
+                    builder.Services.AddOptions<ShardRoutingOptions>()
+                        .Bind(builder.Configuration.GetSection(ShardRoutingOptions.ShardRoutingOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                    builder.Services.AddOptions<ShardConnectionOptions>()
+                        .Bind(builder.Configuration.GetSection(ShardConnectionOptions.ShardConnectionOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                    builder.Services.AddOptions<ErrorHandlingOptions>()
+                        .Bind(builder.Configuration.GetSection(ErrorHandlingOptions.ErrorHandlingOptionsName))
+                        .ValidateDataAnnotations().ValidateOnStart();
+                },
+                ProcessorHolderTypes = new List<Type>()
+                {
+                    typeof(AsyncQueryProcessorHolder),
+                    typeof(AsyncEventProcessorHolder), 
+                    typeof(DistributedAsyncQueryProcessorHolder), 
+                    typeof(DistributedOperationRouterHolder)
+                },
+                // Add a mapping from ServiceUnavailableException to HTTP 503 error status
+                ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
+                {
+                    new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
+                },
+                ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
+                {
+                    typeof(ServiceUnavailableException)
+                },
+                // Setup TripSwitchMiddleware
+                TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
+            };
 
-            // Add services to the container.
-
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            var app = builder.Build();
-
-            app.MapControllers();
+            var initializer = new ApplicationInitializer();
+            WebApplication app = initializer.Initialize<DistributedOperationRouterNodeHostedServiceWrapper>(parameters);
 
             app.Run();
         }

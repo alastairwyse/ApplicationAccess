@@ -47,7 +47,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             mockDistributedAccessManagerAsyncQueryProcessor = Substitute.For<IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String>>();
             mockLogger = Substitute.For<ILogger<DistributedAsyncQueryProcessorControllerBase>>();
             var distributedAsyncQueryProcessorHolder = new DistributedAsyncQueryProcessorHolder();
-            distributedAsyncQueryProcessorHolder.AsyncQueryProcessor = mockDistributedAccessManagerAsyncQueryProcessor;
+            distributedAsyncQueryProcessorHolder.DistributedAsyncQueryProcessor = mockDistributedAccessManagerAsyncQueryProcessor;
             testDistributedAsyncQueryProcessorController = new DistributedAsyncQueryProcessorController(distributedAsyncQueryProcessorHolder, mockLogger);
         }
 

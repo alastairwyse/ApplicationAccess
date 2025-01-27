@@ -25,7 +25,7 @@ namespace ApplicationAccess.Hosting.Rest
     {
         #pragma warning disable 0649
 
-        public IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String> AsyncQueryProcessor { get; set; }
+        public IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String> DistributedAsyncQueryProcessor { get; set; }
 
         #pragma warning restore 0649    
     }

@@ -58,7 +58,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
         #region Nested Classes
 
         /// <summary>
-        /// Subclass of <see cref="WebApplicationFactory<ReaderWriter.Program>"/> which instantiates a hosted version of the <see cref="DistributedOperationCoordinatorNode{TClientConfiguration, TClientConfigurationJsonSerializer}"/> class for testing.
+        /// Subclass of <see cref="WebApplicationFactory{TEntryPoint}"/> which instantiates a hosted version of the <see cref="DistributedOperationCoordinatorNode{TClientConfiguration, TClientConfigurationJsonSerializer}"/> class for testing.
         /// </summary>
         protected class TestDistributedOperationCoordinator : WebApplicationFactory<DistributedOperationCoordinator.Program>
         {

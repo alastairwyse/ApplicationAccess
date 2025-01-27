@@ -45,7 +45,7 @@ namespace ApplicationAccess.Hosting.Rest.Controllers
             ILogger<DistributedAsyncQueryProcessorControllerBase> logger
         )
         {
-            distributedAccessManagerAsyncQueryProcessor = distributedAsyncQueryProcessorHolder.AsyncQueryProcessor;
+            distributedAccessManagerAsyncQueryProcessor = distributedAsyncQueryProcessorHolder.DistributedAsyncQueryProcessor;
             this.logger = logger;
         }
 

@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2024 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,18 @@ using Microsoft.Extensions.Logging;
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
 {
     /// <summary>
-    /// Derives from abstract base controller class <see cref="DistributedGroupQueryProcessorControllerBase"/> to expose it as a controller.
+    /// Derives from abstract base controller class <see cref="DistributedAsyncQueryProcessorControllerBase"/> to expose it as a controller.
     /// </summary>
-    public class DistributedGroupQueryProcessorController : DistributedGroupQueryProcessorControllerBase
+    public class DistributedAsyncQueryProcessorController : DistributedAsyncQueryProcessorControllerBase
     {
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers.DistributedGroupQueryProcessorController class.
+        /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers.DistributedAsyncQueryProcessorController class.
         /// </summary>
-        public DistributedGroupQueryProcessorController(DistributedGroupQueryProcessorHolder distributedGroupQueryProcessorHolder, ILogger<DistributedGroupQueryProcessorController> logger)
-            : base(distributedGroupQueryProcessorHolder, logger)
+        public DistributedAsyncQueryProcessorController
+        (
+            DistributedAsyncQueryProcessorHolder distributedAsyncQueryProcessorHolder,
+            ILogger<DistributedAsyncQueryProcessorControllerBase> logger
+        ) : base(distributedAsyncQueryProcessorHolder, logger)
         {
         }
     }

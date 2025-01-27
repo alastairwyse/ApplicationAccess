@@ -22,7 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.DistributedOperationRouter\ApplicationAccess.Hosting.Rest.DistributedOperationRouter.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests\ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests.csproj" />
   </ItemGroup>
 
 </Project>
