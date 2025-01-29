@@ -249,7 +249,7 @@ namespace ApplicationAccess.Distribution.Metrics
     public class RoutingSwitchedOn : CountMetric
     {
         protected static String staticName = "RoutingSwitchedOn";
-        protected static String staticDescription = "Routing functionality was switched on.";
+        protected static String staticDescription = "Routing functionality was switched on";
 
         public RoutingSwitchedOn()
         {
@@ -264,9 +264,39 @@ namespace ApplicationAccess.Distribution.Metrics
     public class RoutingSwitchedOff : CountMetric
     {
         protected static String staticName = "RoutingSwitchedOff";
-        protected static String staticDescription = "Routing functionality was switched off.";
+        protected static String staticDescription = "Routing functionality was switched off";
 
         public RoutingSwitchedOff()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that operation processing in a router component was paused.
+    /// </summary>
+    public class RouterPaused : CountMetric
+    {
+        protected static String staticName = "RouterPaused";
+        protected static String staticDescription = "Operation processing in a router component was paused";
+
+        public RouterPaused()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that operation processing in a router component was resumed.
+    /// </summary>
+    public class RouterResumed : CountMetric
+    {
+        protected static String staticName = "RouterResumed";
+        protected static String staticDescription = "Operation processing in a router component was resumed";
+
+        public RouterResumed()
         {
             base.name = staticName;
             base.description = staticDescription;

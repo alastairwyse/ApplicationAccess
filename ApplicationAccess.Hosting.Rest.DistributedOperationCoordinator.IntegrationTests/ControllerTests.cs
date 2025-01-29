@@ -28,6 +28,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Integra
     /// <summary>
     /// Tests various patterns of controller method parameter sets and return types in the ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator namespace.
     /// </summary>
+    /// <remarks>Full testing of the DistributedOperationCoordinator controler methods are performed in other test classes... e.g. <see cref="ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationTests.ControllerTests"/>.  However will retain this test class as it provides a 'smoke' test that the hosted DistributedOperationCoordinator is operational (i.e. checks component startup, etc..).  N.b. these tests are basically copied from <see cref="ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests.ControllerTests"/>.</remarks>
     public class ControllerTests : DistributedOperationCoordinatorIntegrationTestsBase
     {
         private const String urlReservedCharcters = "! * ' ( ) ; : @ & = + $ , / ? % # [ ]";

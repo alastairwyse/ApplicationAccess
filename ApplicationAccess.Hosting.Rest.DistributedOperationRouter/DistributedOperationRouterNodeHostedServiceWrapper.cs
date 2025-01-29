@@ -130,6 +130,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
         {
             logger.LogInformation($"Stopping {this.GetType().Name}...");
 
+            logger.LogInformation($"Disposing objects...");
             shardClientManager.Dispose();
             httpClient.Dispose();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
@@ -137,6 +138,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                 metricLoggerBufferProcessingStrategy.Dispose();
                 metricLogger.Dispose();
             }
+            distributedOperationRouter.Dispose();
+            logger.LogInformation($"Completed disposing objects.");
 
             logger.LogInformation($"Completed stopping {this.GetType().Name}.");
 

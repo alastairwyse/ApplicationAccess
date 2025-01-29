@@ -19,7 +19,7 @@ using System;
 namespace ApplicationAccess.Distribution
 {
     /// <summary>
-    /// Defines methods which distribute operations to two shards in a distributed AccessManager implementation.
+    /// Defines methods which distribute operations to two sets of shards in a distributed AccessManager implementation.
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
     public interface IDistributedAccessManagerOperationRouter<TClientConfiguration> :
@@ -32,5 +32,15 @@ namespace ApplicationAccess.Distribution
         /// Whether or not the routing functionality is switched on.
         /// </summary>
         Boolean RoutingOn { get; set; }
+
+        /// <summary>
+        /// Pauses/holds the threads of any incoming operation requests.
+        /// </summary>
+        void PauseOperations();
+
+        /// <summary>
+        /// Resumes any incoming operation requests following a preceding pause.
+        /// </summary>
+        void ResumeOperations();
     }
 }

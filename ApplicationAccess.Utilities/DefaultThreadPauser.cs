@@ -51,7 +51,7 @@ namespace ApplicationAccess.Utilities
         }
 
         /// <inheritdoc/>
-        public void Unpause()
+        public void Resume()
         {
             resetEvent.Set();
         }

@@ -50,7 +50,7 @@
         <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.Pause">
             <inheritdoc/>
         </member>
-        <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.Unpause">
+        <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.Resume">
             <inheritdoc/>
         </member>
         <member name="M:ApplicationAccess.Utilities.DefaultThreadPauser.Dispose">
@@ -101,12 +101,12 @@
         </member>
         <member name="T:ApplicationAccess.Utilities.IThreadPauser">
             <summary>
-            Defines methods to pause/hold processing of a collection of threads, and then subsequently allow them to continue processing.
+            Defines methods to pause/hold the work of calling threads, and then subsequently allow them to continue processing.
             </summary>
         </member>
         <member name="M:ApplicationAccess.Utilities.IThreadPauser.TestPaused">
             <summary>
-            Should be called by the threads performing the processing to check whether the <see cref="T:ApplicationAccess.Utilities.IThreadPauser"/> is paused.  If paused, the thread will wait until the <see cref="M:ApplicationAccess.Utilities.IThreadPauser.Unpause"/> method is called.  If not paused, the method will return immediately.
+            Should be called by the threads performing the processing to check whether the <see cref="T:ApplicationAccess.Utilities.IThreadPauser"/> is paused.  If paused, the thread will wait until the <see cref="M:ApplicationAccess.Utilities.IThreadPauser.Resume"/> method is called.  If not paused, the method will return immediately.
             </summary>
         </member>
         <member name="M:ApplicationAccess.Utilities.IThreadPauser.Pause">
@@ -114,7 +114,7 @@
             Pauses/holds any threads which subsequently call the <see cref="M:ApplicationAccess.Utilities.IThreadPauser.TestPaused"/> method.
             </summary>
         </member>
-        <member name="M:ApplicationAccess.Utilities.IThreadPauser.Unpause">
+        <member name="M:ApplicationAccess.Utilities.IThreadPauser.Resume">
             <summary>
             Releases any threads which are currently paused/held, and allows subsequent calls to <see cref="M:ApplicationAccess.Utilities.IThreadPauser.TestPaused"/> to return immediately.
             </summary>

@@ -38,7 +38,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
             const String requestUrl = $"/api/v1/users/{user}";
             tripSwitchActuator.Actuate();
 
-            using (HttpResponseMessage response = client.GetAsync(requestUrl).Result)
+            using (HttpResponseMessage response = httpClient.GetAsync(requestUrl).Result)
             {
 
                 JObject jsonResponse = ConvertHttpContentToJson(response.Content);

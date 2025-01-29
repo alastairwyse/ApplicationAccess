@@ -39,33 +39,60 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
         (
             AsyncQueryProcessorHolder asyncQueryProcessorHolder,
             AsyncEventProcessorHolder asyncEventProcessorHolder,
-            IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> distributedOperationRouter, 
+            DistributedOperationRouterHolder distributedOperationRouterHolder, 
             ILogger<DistributedOperationProcessorControllerBase> logger
         )
             : base(asyncQueryProcessorHolder, asyncEventProcessorHolder, logger)
         {
-            this.distributedOperationRouter = distributedOperationRouter;
+            this.distributedOperationRouter = distributedOperationRouterHolder.DistributedOperationRouter;
         }
 
         /// <summary>
-        /// Whether or not the routing functionality is switched on.  If false (off) all operations are routed to the source shard.
+        /// Switches on routing functionality on.  If false (off) all operations are routed to the source shard.
         /// </summary>
-        /// <param name="value">Whether or not the routing functionality is switched on.</param>
         [HttpPost]
-        [Route("routing/{value}")]
-        [ApiExplorerSettings(GroupName = "Routing")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public void SetRoutingOn([FromRoute] Boolean value)
+        [Route("routing:switchOn")]
+        [ApiExplorerSettings(GroupName = "Administration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public void SetRoutingOn()
         {
-            distributedOperationRouter.RoutingOn = value;
+            distributedOperationRouter.RoutingOn = true;
         }
 
-        // TODO: Need endpoints for switching pause/hold on and off
-        //   And hence also need to get Pauser AND register it in DI services
-        //     Unless the middleware is already registering it
-        //     Actually, I need to register that pauser middleware too
-        //     AND integration tests needs to include stuff around the pauser
-        //   AND... do I need to replcate tests in class DistributedOperationCoordinatorNodeTests ??
-        //     Basically just pass-through tests... are they really required??
+        /// <summary>
+        /// Switches on routing functionality on.  All operations will be routed to the source shard.
+        /// </summary>
+        [HttpPost]
+        [Route("routing:switchOff")]
+        [ApiExplorerSettings(GroupName = "Administration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public void SetRoutingOff()
+        {
+            distributedOperationRouter.RoutingOn = false;
+        }
+
+        /// <summary>
+        /// Pauses/holds any incoming operation requests.
+        /// </summary>
+        [HttpPost]
+        [Route("operationProcessing:pause")]
+        [ApiExplorerSettings(GroupName = "Administration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public void PauseOperations()
+        {
+            distributedOperationRouter.PauseOperations();
+        }
+
+        /// <summary>
+        /// Resumes any incoming operation requests following a preceding pause.
+        /// </summary>
+        [HttpPost]
+        [Route("operationProcessing:resume")]
+        [ApiExplorerSettings(GroupName = "Administration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public void ResumeOperations()
+        {
+            distributedOperationRouter.ResumeOperations();
+        }
     }
 }

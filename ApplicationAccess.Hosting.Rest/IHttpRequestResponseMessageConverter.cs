@@ -28,6 +28,9 @@ namespace ApplicationAccess.Hosting.Rest
     /// <remarks>Used to proxy ASP.NET Core Web API application requests to a different host.</remarks>
     public interface IHttpRequestResponseMessageConverter
     {
+        // TODO: This interface and implementing class are not used after deciding to implement all routing within DistributedAccessManagerOperationRouter
+        //   Could remove these, but feel like they could be useful at some point
+
         /// <summary>
         /// Converts an <see cref="HttpRequest"/> to an <see cref="HttpRequestMessage"/>, updating the target host using the specified parameters.
         /// </summary>

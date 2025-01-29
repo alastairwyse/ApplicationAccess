@@ -60,7 +60,7 @@ namespace ApplicationAccess.Hosting.Rest.Client.IntegrationTests
         [SetUp]
         protected void SetUp()
         {
-            testBaseUrl = new Uri("http://localhost/");
+            testBaseUrl = client.BaseAddress;
             userStringifier = new StringUniqueStringifier();
             groupStringifier = new StringUniqueStringifier();
             applicationComponentStringifier = new StringUniqueStringifier();

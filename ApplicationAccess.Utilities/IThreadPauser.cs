@@ -17,12 +17,12 @@
 namespace ApplicationAccess.Utilities
 {
     /// <summary>
-    /// Defines methods to pause/hold processing of a collection of threads, and then subsequently allow them to continue processing.
+    /// Defines methods to pause/hold the work of calling threads, and then subsequently allow them to continue processing.
     /// </summary>
     public interface IThreadPauser
     {
         /// <summary>
-        /// Should be called by the threads performing the processing to check whether the <see cref="IThreadPauser"/> is paused.  If paused, the thread will wait until the <see cref="IThreadPauser.Unpause"/> method is called.  If not paused, the method will return immediately.
+        /// Should be called by the threads performing the processing to check whether the <see cref="IThreadPauser"/> is paused.  If paused, the thread will wait until the <see cref="IThreadPauser.Resume"/> method is called.  If not paused, the method will return immediately.
         /// </summary>
         void TestPaused();
 
@@ -34,6 +34,6 @@ namespace ApplicationAccess.Utilities
         /// <summary>
         /// Releases any threads which are currently paused/held, and allows subsequent calls to <see cref="IThreadPauser.TestPaused"/> to return immediately.
         /// </summary>
-        void Unpause();
+        void Resume();
     }
 }

@@ -31,13 +31,13 @@ using NSubstitute;
 namespace ApplicationAccess.Hosting.Rest.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Hosting.Rest.Controllers.DistributedOperationCoordinatorControllerBase class.
+    /// Unit tests for the ApplicationAccess.Hosting.Rest.Controllers.DistributedOperationProcessorControllerBase class.
     /// </summary>
-    public class DistributedOperationCoordinatorControllerBaseTests
+    public class DistributedOperationProcessorControllerBaseTests
     {
         private IDistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration> mockDistributedOperationCoordinator;
         private ILogger<DistributedOperationProcessorControllerBase> mockLogger;
-        private DistributedOperationCoordinatorController testDistributedOperationCoordinatorController;
+        private DistributedOperationProcessorController testDistributedOperationProcessorController;
 
         [SetUp]
         protected void SetUp()
@@ -48,7 +48,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             var asyncEventProcessorHolder = new AsyncEventProcessorHolder();
             asyncQueryProcessorHolder.AsyncQueryProcessor = mockDistributedOperationCoordinator;
             asyncEventProcessorHolder.AsyncEventProcessor = mockDistributedOperationCoordinator;
-            testDistributedOperationCoordinatorController = new DistributedOperationCoordinatorController(asyncQueryProcessorHolder, asyncEventProcessorHolder, mockLogger);
+            testDistributedOperationProcessorController = new DistributedOperationProcessorController(asyncQueryProcessorHolder, asyncEventProcessorHolder, mockLogger);
         }
 
         [Test]
@@ -57,7 +57,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String user = "user1";
             mockDistributedOperationCoordinator.ContainsUserAsync(user).Returns(Task.FromResult<Boolean>(true));
 
-            ActionResult<String> result = await testDistributedOperationCoordinatorController.ContainsUserAsync(user);
+            ActionResult<String> result = await testDistributedOperationProcessorController.ContainsUserAsync(user);
 
             await mockDistributedOperationCoordinator.Received(1).ContainsUserAsync(user);
             Assert.AreEqual(user, result.Value);
@@ -71,7 +71,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
 
             var e = Assert.ThrowsAsync<NotFoundException>(async delegate
             {
-                ActionResult<String> result = await testDistributedOperationCoordinatorController.ContainsUserAsync(user);
+                ActionResult<String> result = await testDistributedOperationProcessorController.ContainsUserAsync(user);
             });
 
             await mockDistributedOperationCoordinator.Received(1).ContainsUserAsync(user);
@@ -85,7 +85,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String group = "group1";
             mockDistributedOperationCoordinator.ContainsGroupAsync(group).Returns(Task.FromResult<Boolean>(true));
 
-            ActionResult<String> result = await testDistributedOperationCoordinatorController.ContainsGroupAsync(group);
+            ActionResult<String> result = await testDistributedOperationProcessorController.ContainsGroupAsync(group);
 
             await mockDistributedOperationCoordinator.Received(1).ContainsGroupAsync(group);
             Assert.AreEqual(group, result.Value);
@@ -99,7 +99,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
 
             var e = Assert.ThrowsAsync<NotFoundException>(async delegate
             {
-                ActionResult<String> result = await testDistributedOperationCoordinatorController.ContainsGroupAsync(group);
+                ActionResult<String> result = await testDistributedOperationProcessorController.ContainsGroupAsync(group);
             });
 
             await mockDistributedOperationCoordinator.Received(1).ContainsGroupAsync(group);
@@ -113,7 +113,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String user = "user1";
             const String group = "group1";
 
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddUserToGroupMappingAsync(user, group);
+            StatusCodeResult result = await testDistributedOperationProcessorController.AddUserToGroupMappingAsync(user, group);
 
             await mockDistributedOperationCoordinator.Received(1).AddUserToGroupMappingAsync(user, group);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
@@ -130,7 +130,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetUserToGroupMappingsAsync(user, false).Returns(Task.FromResult<List<String>>(groups));
 
-            var result = new List<UserAndGroup<String, String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetUserToGroupMappingsAsync(user, false)));
+            var result = new List<UserAndGroup<String, String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetUserToGroupMappingsAsync(user, false)));
 
             await mockDistributedOperationCoordinator.Received(1).GetUserToGroupMappingsAsync(user, false);
             Assert.AreEqual(2, result.Count);
@@ -152,7 +152,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetUserToGroupMappingsAsync(user, true).Returns(Task.FromResult<List<String>>(groups));
 
-            var result = new List<UserAndGroup<String, String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetUserToGroupMappingsAsync(user, true)));
+            var result = new List<UserAndGroup<String, String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetUserToGroupMappingsAsync(user, true)));
 
             await mockDistributedOperationCoordinator.Received(1).GetUserToGroupMappingsAsync(user, true);
             Assert.AreEqual(3, result.Count);
@@ -170,7 +170,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String fromGroup = "group1";
             const String toGroup = "group2";
 
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddGroupToGroupMappingAsync(fromGroup, toGroup);
+            StatusCodeResult result = await testDistributedOperationProcessorController.AddGroupToGroupMappingAsync(fromGroup, toGroup);
 
             await mockDistributedOperationCoordinator.Received(1).AddGroupToGroupMappingAsync(fromGroup, toGroup);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
@@ -187,7 +187,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetGroupToGroupMappingsAsync(fromGroup, false).Returns(Task.FromResult<List<String>>(toGroups));
 
-            var result = new List<FromGroupAndToGroup<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetGroupToGroupMappingsAsync(fromGroup, false)));
+            var result = new List<FromGroupAndToGroup<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetGroupToGroupMappingsAsync(fromGroup, false)));
 
             await mockDistributedOperationCoordinator.Received(1).GetGroupToGroupMappingsAsync(fromGroup, false);
             Assert.AreEqual(2, result.Count);
@@ -209,7 +209,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetGroupToGroupMappingsAsync(fromGroup, true).Returns(Task.FromResult<List<String>>(toGroups));
 
-            var result = new List<FromGroupAndToGroup<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetGroupToGroupMappingsAsync(fromGroup, true)));
+            var result = new List<FromGroupAndToGroup<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetGroupToGroupMappingsAsync(fromGroup, true)));
 
             await mockDistributedOperationCoordinator.Received(1).GetGroupToGroupMappingsAsync(fromGroup, true);
             Assert.AreEqual(3, result.Count);
@@ -228,7 +228,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String applicationComponent = "Order";
             const String accessLevel = "Create";
 
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
+            StatusCodeResult result = await testDistributedOperationProcessorController.AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
 
             await mockDistributedOperationCoordinator.Received(1).AddUserToApplicationComponentAndAccessLevelMappingAsync(user, applicationComponent, accessLevel);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
@@ -245,7 +245,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user).Returns(Task.FromResult<List<Tuple<String, String>>>(testMappings));
 
-            var result = new List<UserAndApplicationComponentAndAccessLevel<String, String, String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user, false)));
+            var result = new List<UserAndApplicationComponentAndAccessLevel<String, String, String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user, false)));
 
             await mockDistributedOperationCoordinator.Received(1).GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
             await mockDistributedOperationCoordinator.DidNotReceive().GetApplicationComponentsAccessibleByUserAsync(user);
@@ -270,7 +270,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetApplicationComponentsAccessibleByUserAsync(user).Returns(Task.FromResult<List<Tuple<String, String>>>(testMappings));
 
-            var result = new List<UserAndApplicationComponentAndAccessLevel<String, String, String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user, true)));
+            var result = new List<UserAndApplicationComponentAndAccessLevel<String, String, String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetUserToApplicationComponentAndAccessLevelMappingsAsync(user, true)));
 
             await mockDistributedOperationCoordinator.Received(1).GetApplicationComponentsAccessibleByUserAsync(user);
             await mockDistributedOperationCoordinator.DidNotReceive().GetUserToApplicationComponentAndAccessLevelMappingsAsync(user);
@@ -293,7 +293,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String applicationComponent = "Order";
             const String accessLevel = "Create";
 
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
+            StatusCodeResult result = await testDistributedOperationProcessorController.AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
 
             await mockDistributedOperationCoordinator.Received(1).AddGroupToApplicationComponentAndAccessLevelMappingAsync(group, applicationComponent, accessLevel);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
@@ -310,7 +310,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group).Returns(Task.FromResult<List<Tuple<String, String>>>(testMappings));
 
-            var result = new List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group, false)));
+            var result = new List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group, false)));
 
             await mockDistributedOperationCoordinator.Received(1).GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
             await mockDistributedOperationCoordinator.DidNotReceive().GetApplicationComponentsAccessibleByGroupAsync(group);
@@ -335,7 +335,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetApplicationComponentsAccessibleByGroupAsync(group).Returns(Task.FromResult<List<Tuple<String, String>>>(testMappings));
 
-            var result = new List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group, true)));
+            var result = new List<GroupAndApplicationComponentAndAccessLevel<String, String, String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group, true)));
 
             await mockDistributedOperationCoordinator.Received(1).GetApplicationComponentsAccessibleByGroupAsync(group);
             await mockDistributedOperationCoordinator.DidNotReceive().GetGroupToApplicationComponentAndAccessLevelMappingsAsync(group);
@@ -357,7 +357,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String entityType = "ClientAccount";
             mockDistributedOperationCoordinator.ContainsEntityTypeAsync(entityType).Returns(Task.FromResult<Boolean>(true));
 
-            ActionResult<String> result = await testDistributedOperationCoordinatorController.ContainsEntityTypeAsync(entityType);
+            ActionResult<String> result = await testDistributedOperationProcessorController.ContainsEntityTypeAsync(entityType);
 
             await mockDistributedOperationCoordinator.Received(1).ContainsEntityTypeAsync(entityType);
             Assert.AreEqual(entityType, result.Value);
@@ -371,7 +371,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
 
             var e = Assert.ThrowsAsync<NotFoundException>(async delegate
             {
-                ActionResult<String> result = await testDistributedOperationCoordinatorController.ContainsEntityTypeAsync(entityType);
+                ActionResult<String> result = await testDistributedOperationProcessorController.ContainsEntityTypeAsync(entityType);
             });
 
             await mockDistributedOperationCoordinator.Received(1).ContainsEntityTypeAsync(entityType);
@@ -386,7 +386,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             var entities = new List<String>() { "CompanyA", "CompanyB" };
             mockDistributedOperationCoordinator.GetEntitiesAsync(entityType).Returns(Task.FromResult<List<String>>(entities));
 
-            var result = new List<EntityTypeAndEntity>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetEntitiesAsync(entityType)));
+            var result = new List<EntityTypeAndEntity>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetEntitiesAsync(entityType)));
 
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual(entityType, result[0].EntityType);
@@ -402,7 +402,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String entity = "CompanyA";
             mockDistributedOperationCoordinator.ContainsEntityAsync(entityType, entity).Returns(Task.FromResult<Boolean>(true));
 
-            ActionResult<EntityTypeAndEntity> result = await testDistributedOperationCoordinatorController.ContainsEntityAsync(entityType, entity);
+            ActionResult<EntityTypeAndEntity> result = await testDistributedOperationProcessorController.ContainsEntityAsync(entityType, entity);
 
             await mockDistributedOperationCoordinator.Received(1).ContainsEntityAsync(entityType, entity);
             Assert.AreEqual(entityType, result.Value.EntityType);
@@ -418,7 +418,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
 
             var e = Assert.ThrowsAsync<NotFoundException>(async delegate
             {
-                ActionResult<EntityTypeAndEntity> result = await testDistributedOperationCoordinatorController.ContainsEntityAsync(entityType, entity);
+                ActionResult<EntityTypeAndEntity> result = await testDistributedOperationProcessorController.ContainsEntityAsync(entityType, entity);
             });
 
             await mockDistributedOperationCoordinator.Received(1).ContainsEntityAsync(entityType, entity);
@@ -433,7 +433,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
 
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddUserToEntityMappingAsync(user, entityType, entity);
+            StatusCodeResult result = await testDistributedOperationProcessorController.AddUserToEntityMappingAsync(user, entityType, entity);
 
             await mockDistributedOperationCoordinator.Received(1).AddUserToEntityMappingAsync(user, entityType, entity);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
@@ -450,7 +450,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetUserToEntityMappingsAsync(user).Returns(Task.FromResult<List<Tuple<String, String>>>(testMappings));
 
-            var result = new List<UserAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetUserToEntityMappingsAsync(user, false)));
+            var result = new List<UserAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetUserToEntityMappingsAsync(user, false)));
 
             await mockDistributedOperationCoordinator.Received(1).GetUserToEntityMappingsAsync(user);
             await mockDistributedOperationCoordinator.DidNotReceive().GetEntitiesAccessibleByUserAsync(user);
@@ -475,7 +475,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetEntitiesAccessibleByUserAsync(user).Returns(Task.FromResult<List<Tuple<String, String>>>(testMappings));
 
-            var result = new List<UserAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetUserToEntityMappingsAsync(user, true)));
+            var result = new List<UserAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetUserToEntityMappingsAsync(user, true)));
 
             await mockDistributedOperationCoordinator.Received(1).GetEntitiesAccessibleByUserAsync(user);
             await mockDistributedOperationCoordinator.DidNotReceive().GetUserToEntityMappingsAsync(user);
@@ -503,7 +503,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetUserToEntityMappingsAsync(user, entityType).Returns(Task.FromResult<List<String>>(testMappings));
 
-            var result = new List<UserAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetUserToEntityMappingsAsync(user, entityType, false)));
+            var result = new List<UserAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetUserToEntityMappingsAsync(user, entityType, false)));
 
             await mockDistributedOperationCoordinator.Received(1).GetUserToEntityMappingsAsync(user, entityType);
             await mockDistributedOperationCoordinator.DidNotReceive().GetEntitiesAccessibleByUserAsync(user, entityType);
@@ -529,7 +529,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetEntitiesAccessibleByUserAsync(user, entityType).Returns(Task.FromResult<List<String>>(testMappings));
 
-            var result = new List<UserAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetUserToEntityMappingsAsync(user, entityType, true)));
+            var result = new List<UserAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetUserToEntityMappingsAsync(user, entityType, true)));
 
             await mockDistributedOperationCoordinator.Received(1).GetEntitiesAccessibleByUserAsync(user, entityType);
             await mockDistributedOperationCoordinator.DidNotReceive().GetUserToEntityMappingsAsync(user, entityType);
@@ -552,7 +552,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             const String entityType = "ClientAccount";
             const String entity = "CompanyA";
 
-            StatusCodeResult result = await testDistributedOperationCoordinatorController.AddGroupToEntityMappingAsync(group, entityType, entity);
+            StatusCodeResult result = await testDistributedOperationProcessorController.AddGroupToEntityMappingAsync(group, entityType, entity);
 
             await mockDistributedOperationCoordinator.Received(1).AddGroupToEntityMappingAsync(group, entityType, entity);
             Assert.AreEqual(StatusCodes.Status201Created, result.StatusCode);
@@ -569,7 +569,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetGroupToEntityMappingsAsync(group).Returns(Task.FromResult<List<Tuple<String, String>>>(testMappings));
 
-            var result = new List<GroupAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetGroupToEntityMappingsAsync(group, false)));
+            var result = new List<GroupAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetGroupToEntityMappingsAsync(group, false)));
 
             await mockDistributedOperationCoordinator.Received(1).GetGroupToEntityMappingsAsync(group);
             await mockDistributedOperationCoordinator.DidNotReceive().GetEntitiesAccessibleByGroupAsync(group);
@@ -594,7 +594,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetEntitiesAccessibleByGroupAsync(group).Returns(Task.FromResult<List<Tuple<String, String>>>(testMappings));
 
-            var result = new List<GroupAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetGroupToEntityMappingsAsync(group, true)));
+            var result = new List<GroupAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetGroupToEntityMappingsAsync(group, true)));
 
             await mockDistributedOperationCoordinator.Received(1).GetEntitiesAccessibleByGroupAsync(group);
             await mockDistributedOperationCoordinator.DidNotReceive().GetGroupToEntityMappingsAsync(group);
@@ -622,7 +622,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetGroupToEntityMappingsAsync(group, entityType).Returns(Task.FromResult<List<String>>(testMappings));
 
-            var result = new List<GroupAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetGroupToEntityMappingsAsync(group, entityType, false)));
+            var result = new List<GroupAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetGroupToEntityMappingsAsync(group, entityType, false)));
 
             await mockDistributedOperationCoordinator.Received(1).GetGroupToEntityMappingsAsync(group, entityType);
             await mockDistributedOperationCoordinator.DidNotReceive().GetEntitiesAccessibleByGroupAsync(group, entityType);
@@ -648,7 +648,7 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             };
             mockDistributedOperationCoordinator.GetEntitiesAccessibleByGroupAsync(group, entityType).Returns(Task.FromResult<List<String>>(testMappings));
 
-            var result = new List<GroupAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationCoordinatorController.GetGroupToEntityMappingsAsync(group, entityType, true)));
+            var result = new List<GroupAndEntity<String>>(await ConvertToIEnumerable(testDistributedOperationProcessorController.GetGroupToEntityMappingsAsync(group, entityType, true)));
 
             await mockDistributedOperationCoordinator.Received(1).GetEntitiesAccessibleByGroupAsync(group, entityType);
             await mockDistributedOperationCoordinator.DidNotReceive().GetGroupToEntityMappingsAsync(group, entityType);
@@ -690,9 +690,9 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
         /// <summary>
         /// Derives from <see cref="DistributedOperationProcessorControllerBase"/> as it's abstract.
         /// </summary>
-        private class DistributedOperationCoordinatorController : DistributedOperationProcessorControllerBase
+        private class DistributedOperationProcessorController : DistributedOperationProcessorControllerBase
         {
-            public DistributedOperationCoordinatorController
+            public DistributedOperationProcessorController
             (
                 AsyncQueryProcessorHolder asyncQueryProcessorHolder,
                 AsyncEventProcessorHolder asyncEventProcessorHolder,

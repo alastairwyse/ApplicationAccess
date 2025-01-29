@@ -57,7 +57,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient.IntegrationTests
         [SetUp]
         protected void SetUp()
         {
-            testBaseUrl = new Uri("http://localhost/");
+            testBaseUrl = client.BaseAddress;
             userStringifier = new MethodCallCountingStringUniqueStringifier();
             groupStringifier = new MethodCallCountingStringUniqueStringifier();
             applicationComponentStringifier = new MethodCallCountingStringUniqueStringifier();

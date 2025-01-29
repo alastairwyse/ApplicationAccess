@@ -85,7 +85,7 @@ namespace ApplicationAccess.Utilities.UnitTests
 
                 Thread.Sleep(1000);
                 eventSequence.Add("Calling Unpause()");
-                testThreadPauser.Unpause();
+                testThreadPauser.Resume();
                 countdownEvent.Wait();
             }
 

@@ -23,7 +23,7 @@ using ApplicationAccess.Distribution;
 namespace ApplicationAccess.Hosting
 {
     /// <summary>
-    /// A node which operations to two shards in a distributed AccessManager implementation, and aggregates and returns their results.
+    /// A node which operations to two sets of shards in a distributed AccessManager implementation, and aggregates and returns their results.
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
     public class DistributedOperationRouterNode<TClientConfiguration> 
@@ -405,6 +405,18 @@ namespace ApplicationAccess.Hosting
         public async Task<List<String>> GetEntitiesAccessibleByGroupsAsync(IEnumerable<String> groups, String entityType)
         {
             return await distributedOperationRouter.GetEntitiesAccessibleByGroupsAsync(groups, entityType);
+        }
+
+        /// <inheritdoc/>
+        public void PauseOperations()
+        {
+            distributedOperationRouter.PauseOperations();
+        }
+
+        /// <inheritdoc/>
+        public void ResumeOperations()
+        {
+            distributedOperationRouter.ResumeOperations();
         }
     }
 }

@@ -36,7 +36,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                 Args = args,
                 SwaggerVersionString = "v1",
                 SwaggerApplicationName = "ApplicationAccessDistributedOperationRouter",
-                SwaggerApplicationDescription = "Distributes operations to two shards in a distributed AccessManager implementation",
+                SwaggerApplicationDescription = "Distributes operations to two sets of shards in a distributed AccessManager implementation",
                 SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
                 {
                     typeof(Rest.Controllers.DistributedOperationProcessorControllerBase).Assembly

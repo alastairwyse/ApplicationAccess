@@ -24,6 +24,10 @@ using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests;
 using NSubstitute;
 using NUnit.Framework;
+using ApplicationAccess.Utilities;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Linq;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationTests
 {
@@ -32,14 +36,17 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
     /// </summary>
     public class DistributedOperationRouterIntegrationTestsBase : IntegrationTestsBase
     {
+        protected TestUtilities testUtilities;
         protected IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> mockDistributedAccessManagerOperationRouter;
         protected TripSwitchActuator tripSwitchActuator;
         protected TestDistributedOperationRouter testDistributedOperationRouter;
-        protected HttpClient client;
+        protected HttpClient httpClient;
+        protected DistributedAccessManagerAsyncClient<String, String, String, String> client;
 
         [OneTimeSetUp]
         protected virtual void OneTimeSetUp()
         {
+            testUtilities = new TestUtilities();
             mockDistributedAccessManagerOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>>();
             testDistributedOperationRouter = new TestDistributedOperationRouter();
             testDistributedOperationRouter.Services.GetService<AsyncQueryProcessorHolder>().AsyncQueryProcessor = mockDistributedAccessManagerOperationRouter;
@@ -47,15 +54,53 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
             testDistributedOperationRouter.Services.GetService<DistributedAsyncQueryProcessorHolder>().DistributedAsyncQueryProcessor = mockDistributedAccessManagerOperationRouter;
             testDistributedOperationRouter.Services.GetService<DistributedOperationRouterHolder>().DistributedOperationRouter = mockDistributedAccessManagerOperationRouter;
             tripSwitchActuator = testDistributedOperationRouter.Services.GetService<TripSwitchActuator>();
-            client = testDistributedOperationRouter.CreateClient();
+            httpClient = testDistributedOperationRouter.CreateClient();
+            client = new DistributedAccessManagerAsyncClient<String, String, String, String>
+            (
+                httpClient.BaseAddress,
+                httpClient,
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                new StringUniqueStringifier(),
+                0, 
+                1
+            );
         }
 
         [OneTimeTearDown]
         protected virtual void OneTimeTearDown()
         {
             client.Dispose();
+            httpClient.Dispose();
             testDistributedOperationRouter.Dispose();
         }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Returns an <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/> which checks whether a collection of strings matches the collection in parameter <paramref name="expected"/> irrespective of their enumeration order.
+        /// </summary>
+        /// <param name="expected">The collection of strings the predicate compares to.</param>
+        /// <returns>The <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/>.</returns>
+        /// <remarks>Designed to be passed to the 'predicate' parameter of the <see cref="Arg.Any{T}"/> argument matcher.</remarks>
+        protected Expression<Predicate<IEnumerable<String>>> EqualIgnoringOrder(IEnumerable<String> expected)
+        {
+            return testUtilities.EqualIgnoringOrder(expected);
+        }
+
+        /// <summary>
+        /// Checks whether two collections of strings contain the same elements irrespective of their enumeration order.
+        /// </summary>
+        /// <param name="enumerable1">The first collection.</param>
+        /// <param name="enumerable2">The second collection.</param>
+        /// <returns>True if the collections contain the same string.  False otherwise.</returns>
+        protected Boolean StringEnumerablesContainSameValues(IEnumerable<String> enumerable1, IEnumerable<String> enumerable2)
+        {
+            return testUtilities.StringEnumerablesContainSameValues(enumerable1, enumerable2);
+        }
+
+        #endregion
 
         #region Nested Classes
 

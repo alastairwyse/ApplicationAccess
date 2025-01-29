@@ -623,6 +623,12 @@
         <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.GetEntitiesAccessibleByGroupsAsync(System.Collections.Generic.IEnumerable{System.String},System.String)">
             <inheritdoc/>
         </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.PauseOperations">
+            <inheritdoc/>
+        </member>
+        <member name="M:ApplicationAccess.Hosting.DistributedOperationRouterNode`1.ResumeOperations">
+            <inheritdoc/>
+        </member>
         <member name="T:ApplicationAccess.Hosting.DistributedReaderNode`4">
             <summary>
             A node in a distributed ApplicationAccess hosting environment which allows reading permissions and authorizations for an application.
