@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace ApplicationAccess.Hosting.LaunchPreparer
 {
@@ -77,6 +79,14 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
                     {
                         // Encode the contents of the specified file and write the result to the console
                         String fileContents = streamReader.ReadToEnd();
+                        try
+                        {
+                            JObject.Parse(fileContents);
+                        }
+                        catch (JsonReaderException)
+                        {
+                            throw new CommandLineArgumentInvalidException("Configuration file does not contain valid JSON", NameConstants.ConfigurationFilePathArgumentName);
+                        }
                         var encoder = new Base64StringEncoder();
                         var encodedString = encoder.Encode(fileContents);
                         Console.WriteLine(encodedString);

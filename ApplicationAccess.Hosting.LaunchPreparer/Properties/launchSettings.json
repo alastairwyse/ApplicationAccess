@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "ApplicationAccess.Hosting.LaunchPreparer": {
+      "commandName": "Project"
+    }
+  }
+}

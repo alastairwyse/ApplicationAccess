@@ -1139,15 +1139,15 @@ namespace ApplicationAccess.Distribution
         /// <inheritdoc/>
         public void PauseOperations()
         {
-            metricLogger.Increment(new RouterPaused());
             threadPauser.Pause();
+            metricLogger.Increment(new RouterPaused());
         }
 
         /// <inheritdoc/>
         public void ResumeOperations()
         {
-            metricLogger.Increment(new RouterResumed());
             threadPauser.Resume();
+            metricLogger.Increment(new RouterResumed());
         }
 
         #region Private/Protected Methods

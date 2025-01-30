@@ -20,11 +20,11 @@ using System.Text;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution;
+using ApplicationAccess.Hosting.Models.DataTransferObjects;
 using ApplicationAccess.Hosting.Rest.AsyncClient;
 using ApplicationLogging;
 using ApplicationMetrics;
 using Polly;
-using ApplicationAccess.Hosting.Models.DataTransferObjects;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedAsyncClient
 {
