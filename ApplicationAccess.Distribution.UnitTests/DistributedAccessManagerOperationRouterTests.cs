@@ -2570,6 +2570,63 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task GetEntitiesAsync_RoutingOnReadingUserShardsEntityTypeDoesntExist()
+        {
+            var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");
+            String testEntityType = "Clients";
+            var mockException = new EntityTypeNotFoundException($"Entity type '{testEntityType}' does not exist.", "entityType", testEntityType);
+            var userShardClientAndDescription1 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription1"
+            );
+            var userShardClientAndDescription2 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription2"
+            );
+            var userShardClientAndDescription3 = new DistributedClientAndShardDescription
+            (
+                Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>(),
+                "UserShardDescription3"
+            );
+            var userClients = new List<DistributedClientAndShardDescription>()
+            {
+                userShardClientAndDescription1,
+                userShardClientAndDescription2,
+                userShardClientAndDescription3
+            };
+            var userClient1ReturnEntities = new List<String>()
+            {
+                "CompanyA",
+                "CompanyB"
+            };
+            var userClient3ReturnEntities = new List<String>();
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
+            userShardClientAndDescription1.Client.GetEntitiesAsync(testEntityType).Returns(Task.FromResult<List<String>>(userClient1ReturnEntities));
+            userShardClientAndDescription2.Client.GetEntitiesAsync(testEntityType).Returns(Task.FromException<List<String>>(mockException));
+            userShardClientAndDescription3.Client.GetEntitiesAsync(testEntityType).Returns(Task.FromResult<List<String>>(userClient3ReturnEntities));
+
+            List<String> result = await testUserOperationRouter.GetEntitiesAsync(testEntityType);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.Contains("CompanyA"));
+            Assert.IsTrue(result.Contains("CompanyB"));
+            mockThreadPauser.Received(1).TestPaused();
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            await userShardClientAndDescription1.Client.Received(1).GetEntitiesAsync(testEntityType);
+            await userShardClientAndDescription2.Client.Received(1).GetEntitiesAsync(testEntityType);
+            await userShardClientAndDescription3.Client.Received(1).GetEntitiesAsync(testEntityType);
+            Assert.AreEqual(1, userShardClientAndDescription1.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShardClientAndDescription2.Client.ReceivedCalls().Count());
+            Assert.AreEqual(1, userShardClientAndDescription3.Client.ReceivedCalls().Count());
+            Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
+            Assert.AreEqual(0, mockMetricLogger.ReceivedCalls().Count());
+        }
+
+        [Test]
         public async Task GetEntitiesAsync_RoutingOnExceptionWhenReadingUserShard()
         {
             var groupShardGetClientsException = new ArgumentException($"No shard configuration exists for {typeof(DataElement).Name} '{DataElement.Group}' and {typeof(Operation).Name} '{Operation.Query}'.");

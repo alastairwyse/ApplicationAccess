@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using ApplicationAccess.Hosting.Rest.Controllers;
 using ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.Controllers;
 using ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers;
+using ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient;
 using NUnit.Framework;
 using NSubstitute;
 
@@ -33,7 +34,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
     ///   <para><see cref="DistributedOperationProcessorControllerBase"/></para>
     ///   <para><see cref="DistributedAsyncQueryProcessorControllerBase"/></para>
     ///   <para><see cref="DistributedOperationRouterController"/></para>
-    ///   <para>The *ControllerBase classes are (and will be used) in other hosted REST components (e.g. <see cref="DistributedOperationProcessorControllerBase"/> is used in DistributedOperationCoordinator), however complete tests are provided in this class.</para>
+    ///   <para>...and client class <see cref="DistributedAccessManagerOperationRouterClient"/>.</para>
+    ///   <para>The *ControllerBase classes are (and will be) used in other hosted REST components (e.g. <see cref="DistributedOperationProcessorControllerBase"/> is used in DistributedOperationCoordinator), however complete tests are provided in this class.</para>
     /// </remarks> 
     public class ControllerTests : DistributedOperationRouterIntegrationTestsBase
     {
@@ -1075,10 +1077,34 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
         #region DistributedOperationRouterController Methods
 
         [Test]
-        public void Todo2()
+        public void RoutingOnProperty()
         {
-            // TODO: Need support for 4x methods in client
-            Assert.Fail("Need to implement");
+            client.RoutingOn = true;
+
+            mockDistributedAccessManagerOperationRouter.Received(1).RoutingOn = true;
+
+
+            mockDistributedAccessManagerOperationRouter.ClearReceivedCalls();
+            client.RoutingOn = false;
+
+            mockDistributedAccessManagerOperationRouter.Received(1).RoutingOn = false;
+
+        }
+
+        [Test]
+        public void PauseOperations()
+        {
+            client.PauseOperations();
+
+            mockDistributedAccessManagerOperationRouter.Received(1).PauseOperations();
+        }
+
+        [Test]
+        public void ResumeOperations()
+        {
+            client.ResumeOperations();
+
+            mockDistributedAccessManagerOperationRouter.Received(1).ResumeOperations();
         }
 
         #endregion

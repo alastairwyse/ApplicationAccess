@@ -21,17 +21,15 @@ namespace ApplicationAccess.Distribution
     /// <summary>
     /// Defines methods which distribute operations to two sets of shards in a distributed AccessManager implementation.
     /// </summary>
-    /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
-    public interface IDistributedAccessManagerOperationRouter<TClientConfiguration> :
+    public interface IDistributedAccessManagerOperationRouter :
         IAccessManagerAsyncQueryProcessor<String, String, String, String>,
         IAccessManagerAsyncEventProcessor<String, String, String, String>,
         IDistributedAccessManagerAsyncQueryProcessor<String, String, String, String>
-        where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
         /// <summary>
-        /// Whether or not the routing functionality is switched on.
+        /// Switches the routing functionality on or off.
         /// </summary>
-        Boolean RoutingOn { get; set; }
+        Boolean RoutingOn { set; }
 
         /// <summary>
         /// Pauses/holds the threads of any incoming operation requests.

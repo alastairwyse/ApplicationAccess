@@ -27,23 +27,19 @@ namespace ApplicationAccess.Hosting
     /// </summary>
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
     public class DistributedOperationRouterNode<TClientConfiguration> 
-        : IDistributedAccessManagerOperationRouter<TClientConfiguration>
+        : IDistributedAccessManagerOperationRouter
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
         // Unlike other *Node classes, this doesn't have any background thread/worker classes like shard config refresh or event persistence.
         //   Hence this class really doesn't do anything except proxy method calls to the underlying IDistributedAccessManagerOperationRouter
         //   instance.  However, will maintain this class in any case to preserve consistency with the hierarchy pattern of other *Node classes.
 
-        /// <summary>The <see cref="IDistributedAccessManagerOperationRouter{TClientConfiguration}"/> instance which processes relevant operations received by the node.</summary>
-        protected IDistributedAccessManagerOperationRouter<TClientConfiguration> distributedOperationRouter;
+        /// <summary>The <see cref="IDistributedAccessManagerOperationRouter"/> instance which processes relevant operations received by the node.</summary>
+        protected IDistributedAccessManagerOperationRouter distributedOperationRouter;
 
         /// <inheritdoc/>
         public Boolean RoutingOn
         {
-            get
-            {
-                return distributedOperationRouter.RoutingOn;
-            }
             set
             {
                 distributedOperationRouter.RoutingOn = value;
@@ -53,8 +49,8 @@ namespace ApplicationAccess.Hosting
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.DistributedOperationRouterNode class.
         /// </summary>
-        /// <param name="distributedOperationRouter">The <see cref="IDistributedAccessManagerOperationRouter{TClientConfiguration}"/> instance which processes relevant operations received by the node.</param>
-        public DistributedOperationRouterNode(IDistributedAccessManagerOperationRouter<TClientConfiguration> distributedOperationRouter)
+        /// <param name="distributedOperationRouter">The <see cref="IDistributedAccessManagerOperationRouter"/> instance which processes relevant operations received by the node.</param>
+        public DistributedOperationRouterNode(IDistributedAccessManagerOperationRouter distributedOperationRouter)
         {
             this.distributedOperationRouter = distributedOperationRouter;
         }

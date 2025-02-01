@@ -21,7 +21,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Rest.Controllers;
-using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
 {
@@ -30,7 +29,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
     /// </summary>
     public class DistributedOperationRouterController : DistributedOperationProcessorControllerBase
     {
-        protected IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> distributedOperationRouter;
+        protected IDistributedAccessManagerOperationRouter distributedOperationRouter;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers.DistributedOperationRouterController class.
@@ -40,7 +39,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
             AsyncQueryProcessorHolder asyncQueryProcessorHolder,
             AsyncEventProcessorHolder asyncEventProcessorHolder,
             DistributedOperationRouterHolder distributedOperationRouterHolder, 
-            ILogger<DistributedOperationProcessorControllerBase> logger
+            ILogger<DistributedOperationRouterController> logger
         )
             : base(asyncQueryProcessorHolder, asyncEventProcessorHolder, logger)
         {

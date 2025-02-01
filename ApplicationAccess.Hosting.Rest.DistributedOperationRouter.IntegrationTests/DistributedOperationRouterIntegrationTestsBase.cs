@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ApplicationAccess.Distribution;
-using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
+using ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient;
 using ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests;
 using NSubstitute;
 using NUnit.Framework;
@@ -37,17 +37,17 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
     public class DistributedOperationRouterIntegrationTestsBase : IntegrationTestsBase
     {
         protected TestUtilities testUtilities;
-        protected IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> mockDistributedAccessManagerOperationRouter;
+        protected IDistributedAccessManagerOperationRouter mockDistributedAccessManagerOperationRouter;
         protected TripSwitchActuator tripSwitchActuator;
         protected TestDistributedOperationRouter testDistributedOperationRouter;
         protected HttpClient httpClient;
-        protected DistributedAccessManagerAsyncClient<String, String, String, String> client;
+        protected DistributedAccessManagerOperationRouterClient client;
 
         [OneTimeSetUp]
         protected virtual void OneTimeSetUp()
         {
             testUtilities = new TestUtilities();
-            mockDistributedAccessManagerOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>>();
+            mockDistributedAccessManagerOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
             testDistributedOperationRouter = new TestDistributedOperationRouter();
             testDistributedOperationRouter.Services.GetService<AsyncQueryProcessorHolder>().AsyncQueryProcessor = mockDistributedAccessManagerOperationRouter;
             testDistributedOperationRouter.Services.GetService<AsyncEventProcessorHolder>().AsyncEventProcessor = mockDistributedAccessManagerOperationRouter;
@@ -55,14 +55,10 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationT
             testDistributedOperationRouter.Services.GetService<DistributedOperationRouterHolder>().DistributedOperationRouter = mockDistributedAccessManagerOperationRouter;
             tripSwitchActuator = testDistributedOperationRouter.Services.GetService<TripSwitchActuator>();
             httpClient = testDistributedOperationRouter.CreateClient();
-            client = new DistributedAccessManagerAsyncClient<String, String, String, String>
+            client = new DistributedAccessManagerOperationRouterClient
             (
                 httpClient.BaseAddress,
                 httpClient,
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier(),
-                new StringUniqueStringifier(),
                 0, 
                 1
             );

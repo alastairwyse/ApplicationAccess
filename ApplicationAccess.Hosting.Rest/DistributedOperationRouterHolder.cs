@@ -16,18 +16,17 @@
 
 using System;
 using ApplicationAccess.Distribution;
-using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 
 namespace ApplicationAccess.Hosting.Rest
 {
     /// <summary>
-    /// Holds an instance of <see cref="IDistributedAccessManagerOperationRouter{TClientConfiguration}"/>.
+    /// Holds an instance of <see cref="IDistributedAccessManagerOperationRouter"/>.
     /// </summary>
     public class DistributedOperationRouterHolder
     {
         #pragma warning disable 0649
 
-        public IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> DistributedOperationRouter { get; set; }
+        public IDistributedAccessManagerOperationRouter DistributedOperationRouter { get; set; }
 
         #pragma warning restore 0649
     }

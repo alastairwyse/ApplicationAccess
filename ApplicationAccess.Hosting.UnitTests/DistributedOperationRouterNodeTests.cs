@@ -37,14 +37,14 @@ namespace ApplicationAccess.Hosting.UnitTests
     public class DistributedOperationRouterNodeTests
     {
         private TestUtilities testUtilities;
-        private IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> mockOperationRouter;
+        private IDistributedAccessManagerOperationRouter mockOperationRouter;
         private DistributedOperationRouterNode<AccessManagerRestClientConfiguration> testDistributedOperationRouterNode;
 
         [SetUp]
         protected void SetUp()
         {
             testUtilities = new TestUtilities();
-            mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>>();
+            mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
             testDistributedOperationRouterNode = new DistributedOperationRouterNode<AccessManagerRestClientConfiguration>
             (
                 mockOperationRouter

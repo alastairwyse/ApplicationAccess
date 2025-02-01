@@ -36,7 +36,7 @@ namespace ApplicationAccess.Distribution
     /// <typeparam name="TClientConfiguration">The type of AccessManager client configuration used to create clients to connect to the shards.</typeparam>
     public class DistributedAccessManagerOperationRouter<TClientConfiguration> :
         DistributedAccessManagerOperationProcessorBase<TClientConfiguration>,
-        IDistributedAccessManagerOperationRouter<TClientConfiguration>,
+        IDistributedAccessManagerOperationRouter,
         IDisposable
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration, IEquatable<TClientConfiguration>
     {
@@ -638,7 +638,13 @@ namespace ApplicationAccess.Distribution
                     return await client.GetEntitiesAsync(entityType);
                 };
 
-                return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, $"retrieve entities of type '{entityType}' from");
+                return await GetAndMergeElementsAsync
+                (
+                    shardDataElementTypes, 
+                    shardReadFunc, 
+                    new HashSet<Type> { typeof(EntityTypeNotFoundException) }, 
+                    $"retrieve entities of type '{entityType}' from"
+                );
             }
         }
 
@@ -1345,6 +1351,26 @@ namespace ApplicationAccess.Distribution
             String exceptionEventDescription
         )
         {
+            return await GetAndMergeElementsAsync(shardDataElementTypes, shardReadFunc, new HashSet<Type>(), exceptionEventDescription);
+        }
+
+        /// <summary>
+        /// Retrieves lists of elements returned from Get*() methods in all AccessManager instance shards of specified types, and merges and returns those lists.
+        /// </summary>
+        /// <typeparam name="TReturn">The type of element in the list to return.</typeparam>
+        /// <param name="shardDataElementTypes">The types of data elements managed by the shards to query.</param>
+        /// <param name="shardReadFunc">A function which is run against each shard to be queried.  Accepts the client instance, and returns a list of <typeparamref name="TReturn"/>.</param>
+        /// <param name="ignoreExceptions">A set of exceptions which should be ignored if caught when executing a task.</param>
+        /// <param name="exceptionEventDescription">A description of the query being performed, to use in an exception message in the case of error.  E.g. "retrieve groups from".</param>
+        /// <returns>The merged list of elements.</returns>
+        protected async Task<List<TReturn>> GetAndMergeElementsAsync<TReturn>
+        (
+            IEnumerable<DataElement> shardDataElementTypes,
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task<List<TReturn>>> shardReadFunc,
+            HashSet<Type> ignoreExceptions, 
+            String exceptionEventDescription
+        )
+        {
             var returnElements = new HashSet<TReturn>();
             var clients = new List<DistributedClientAndShardDescription>();
             foreach (DataElement currentDataElement in shardDataElementTypes)
@@ -1373,7 +1399,6 @@ namespace ApplicationAccess.Distribution
             };
             Func<List<TReturn>, Boolean> continuePredicate = (List<TReturn> currentShardElements) => { return true; };
             var rethrowExceptions = new HashSet<Type>();
-            var ignoreExceptions = new HashSet<Type>();
             await AwaitTaskCompletionAsync
             (
                 shardReadTasks,

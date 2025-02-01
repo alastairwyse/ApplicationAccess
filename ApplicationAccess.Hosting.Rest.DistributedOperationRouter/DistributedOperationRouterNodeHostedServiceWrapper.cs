@@ -120,6 +120,15 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
 
             logger.LogInformation($"Completed constructing DistributedOperationRouterNode instance.");
 
+            // Start buffer flushing/processing
+            //   Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            {
+                logger.LogInformation($"Starting {nameof(metricLogger)}...");
+                metricLogger.Start();
+                logger.LogInformation($"Completed starting {nameof(metricLogger)}.");
+            }
+
             logger.LogInformation($"Completed starting {this.GetType().Name}.");
 
             return Task.CompletedTask;
@@ -130,6 +139,12 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
         {
             logger.LogInformation($"Stopping {this.GetType().Name}...");
 
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            {
+                logger.LogInformation($"Stopping {nameof(metricLogger)}...");
+                metricLogger.Stop();
+                logger.LogInformation($"Completed stopping {nameof(metricLogger)}.");
+            }
             logger.LogInformation($"Disposing objects...");
             shardClientManager.Dispose();
             httpClient.Dispose();
