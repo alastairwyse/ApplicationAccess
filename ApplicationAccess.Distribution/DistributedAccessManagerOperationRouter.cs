@@ -403,9 +403,15 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <inheritdoc/>
-        public Task RemoveUserToGroupMappingAsync(String user, String group)
+        public async Task RemoveUserToGroupMappingAsync(String user, String group)
         {
-            throw new NotImplementedException(groupToGroupMethodsNotImplementedExceptionMessage);
+            threadPauser.TestPaused();
+            Func<IDistributedAccessManagerAsyncClient<String, String, String, String>, Task> clientAction = async (client) =>
+            {
+                await client.RemoveUserToGroupMappingAsync(user, group);
+            };
+
+            await ImplementRoutingAsync(nameof(this.RemoveUserToGroupMappingAsync), user, userHashCodeGenerator, clientAction);
         }
 
         /// <inheritdoc/>

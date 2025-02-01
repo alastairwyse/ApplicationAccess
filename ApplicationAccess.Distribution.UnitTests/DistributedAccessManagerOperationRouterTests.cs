@@ -1663,6 +1663,20 @@ namespace ApplicationAccess.Distribution.UnitTests
         }
 
         [Test]
+        public async Task RemoveUserToGroupMappingAsync()
+        {
+            String testUser = "user1";
+            String testGroup = "group1";
+            mockUserHashCodeGenerator.GetHashCode(testUser).Returns<Int32>(sourceShardHashRangeStart);
+
+            await testUserOperationRouter.RemoveUserToGroupMappingAsync(testUser, testGroup);
+
+            mockThreadPauser.Received(1).TestPaused();
+            mockUserHashCodeGenerator.Received(1).GetHashCode(testUser);
+            await mockSourceEventShardClient.Received(1).RemoveUserToGroupMappingAsync(testUser, testGroup);
+        }
+
+        [Test]
         public async Task AddUserToApplicationComponentAndAccessLevelMappingAsync()
         {
             String testUser = "user1";
