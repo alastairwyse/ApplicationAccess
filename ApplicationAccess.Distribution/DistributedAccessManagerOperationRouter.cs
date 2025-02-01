@@ -1495,7 +1495,7 @@ namespace ApplicationAccess.Distribution
             {
                 try
                 {
-                    clients.AddRange(shardClientManager.GetAllClients(currentDataElement, Operation.Query));
+                    clients.AddRange(shardClientManager.GetAllClients(currentDataElement, Operation.Event));
                 }
                 catch (ArgumentException)
                 {

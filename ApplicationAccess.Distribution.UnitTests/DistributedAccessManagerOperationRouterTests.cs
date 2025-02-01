@@ -1214,14 +1214,14 @@ namespace ApplicationAccess.Distribution.UnitTests
                 userShardClientAndDescription2,
                 userShardClientAndDescription3
             };
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(userClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Event)).Do((callInfo) => throw groupShardGetClientsException);
 
             await testUserOperationRouter.RemoveGroupAsync(testGroup);
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await userShardClientAndDescription1.Client.Received(1).RemoveGroupAsync(testGroup);
             await userShardClientAndDescription2.Client.Received(1).RemoveGroupAsync(testGroup);
             await userShardClientAndDescription3.Client.Received(1).RemoveGroupAsync(testGroup);
@@ -1258,14 +1258,14 @@ namespace ApplicationAccess.Distribution.UnitTests
                 groupShardClientAndDescription2,
                 groupShardClientAndDescription3
             };
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Query)).Do((callInfo) => throw userShardGetClientsException);
-            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Event)).Do((callInfo) => throw userShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(groupClients);
 
             await testGroupOperationRouter.RemoveGroupAsync(testGroup);
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await groupShardClientAndDescription1.Client.Received(1).RemoveGroupAsync(testGroup);
             await groupShardClientAndDescription2.Client.Received(1).RemoveGroupAsync(testGroup);
             await groupShardClientAndDescription3.Client.Received(1).RemoveGroupAsync(testGroup);
@@ -1303,8 +1303,8 @@ namespace ApplicationAccess.Distribution.UnitTests
                 userShardClientAndDescription2,
                 userShardClientAndDescription3
             };
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(userClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Event)).Do((callInfo) => throw groupShardGetClientsException);
             userShardClientAndDescription3.Client.RemoveGroupAsync(testGroup).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
@@ -1313,8 +1313,8 @@ namespace ApplicationAccess.Distribution.UnitTests
             });
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await userShardClientAndDescription3.Client.Received(1).RemoveGroupAsync(testGroup);
             Assert.AreEqual(1, userShardClientAndDescription3.Client.ReceivedCalls().Count());
             Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
@@ -2312,14 +2312,14 @@ namespace ApplicationAccess.Distribution.UnitTests
                 userShardClientAndDescription2,
                 userShardClientAndDescription3
             };
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(userClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Event)).Do((callInfo) => throw groupShardGetClientsException);
 
             await testUserOperationRouter.RemoveEntityTypeAsync(testEntityType);
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await userShardClientAndDescription1.Client.Received(1).RemoveEntityTypeAsync(testEntityType);
             await userShardClientAndDescription2.Client.Received(1).RemoveEntityTypeAsync(testEntityType);
             await userShardClientAndDescription3.Client.Received(1).RemoveEntityTypeAsync(testEntityType);
@@ -2356,14 +2356,14 @@ namespace ApplicationAccess.Distribution.UnitTests
                 groupShardClientAndDescription2,
                 groupShardClientAndDescription3
             };
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Query)).Do((callInfo) => throw userShardGetClientsException);
-            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Event)).Do((callInfo) => throw userShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(groupClients);
 
             await testGroupOperationRouter.RemoveEntityTypeAsync(testEntityType);
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await groupShardClientAndDescription1.Client.Received(1).RemoveEntityTypeAsync(testEntityType);
             await groupShardClientAndDescription2.Client.Received(1).RemoveEntityTypeAsync(testEntityType);
             await groupShardClientAndDescription3.Client.Received(1).RemoveEntityTypeAsync(testEntityType);
@@ -2401,8 +2401,8 @@ namespace ApplicationAccess.Distribution.UnitTests
                 userShardClientAndDescription2,
                 userShardClientAndDescription3
             };
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(userClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Event)).Do((callInfo) => throw groupShardGetClientsException);
             userShardClientAndDescription3.Client.RemoveEntityTypeAsync(testEntityType).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
@@ -2411,8 +2411,8 @@ namespace ApplicationAccess.Distribution.UnitTests
             });
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await userShardClientAndDescription3.Client.Received(1).RemoveEntityTypeAsync(testEntityType);
             Assert.AreEqual(1, userShardClientAndDescription3.Client.ReceivedCalls().Count());
             Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
@@ -2929,14 +2929,14 @@ namespace ApplicationAccess.Distribution.UnitTests
                 userShardClientAndDescription2,
                 userShardClientAndDescription3
             };
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(userClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Event)).Do((callInfo) => throw groupShardGetClientsException);
 
             await testUserOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await userShardClientAndDescription1.Client.Received(1).RemoveEntityAsync(testEntityType, testEntity);
             await userShardClientAndDescription2.Client.Received(1).RemoveEntityAsync(testEntityType, testEntity);
             await userShardClientAndDescription3.Client.Received(1).RemoveEntityAsync(testEntityType, testEntity);
@@ -2974,14 +2974,14 @@ namespace ApplicationAccess.Distribution.UnitTests
                 groupShardClientAndDescription2,
                 groupShardClientAndDescription3
             };
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Query)).Do((callInfo) => throw userShardGetClientsException);
-            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Query).Returns(groupClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.User, Operation.Event)).Do((callInfo) => throw userShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.Group, Operation.Event).Returns(groupClients);
 
             await testUserOperationRouter.RemoveEntityAsync(testEntityType, testEntity);
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await groupShardClientAndDescription1.Client.Received(1).RemoveEntityAsync(testEntityType, testEntity);
             await groupShardClientAndDescription2.Client.Received(1).RemoveEntityAsync(testEntityType, testEntity);
             await groupShardClientAndDescription3.Client.Received(1).RemoveEntityAsync(testEntityType, testEntity);
@@ -3020,8 +3020,8 @@ namespace ApplicationAccess.Distribution.UnitTests
                 userShardClientAndDescription2,
                 userShardClientAndDescription3
             };
-            mockShardClientManager.GetAllClients(DataElement.User, Operation.Query).Returns(userClients);
-            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Query)).Do((callInfo) => throw groupShardGetClientsException);
+            mockShardClientManager.GetAllClients(DataElement.User, Operation.Event).Returns(userClients);
+            mockShardClientManager.When((clientManager) => clientManager.GetAllClients(DataElement.Group, Operation.Event)).Do((callInfo) => throw groupShardGetClientsException);
             userShardClientAndDescription3.Client.RemoveEntityAsync(testEntityType, testEntity).Returns(Task.FromException(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
@@ -3030,8 +3030,8 @@ namespace ApplicationAccess.Distribution.UnitTests
             });
 
             mockThreadPauser.Received(1).TestPaused();
-            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Query);
-            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Query);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.User, Operation.Event);
+            mockShardClientManager.Received(1).GetAllClients(DataElement.Group, Operation.Event);
             await userShardClientAndDescription3.Client.Received(1).RemoveEntityAsync(testEntityType, testEntity);
             Assert.AreEqual(1, userShardClientAndDescription3.Client.ReceivedCalls().Count());
             Assert.AreEqual(2, mockShardClientManager.ReceivedCalls().Count());
