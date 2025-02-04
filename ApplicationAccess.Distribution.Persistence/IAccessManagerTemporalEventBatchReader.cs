@@ -21,7 +21,7 @@ using ApplicationAccess.Persistence.Models;
 namespace ApplicationAccess.Distribution.Persistence
 {
     /// <summary>
-    /// Defines methods to read events from an AccessManager instance persistent storage in batches.  
+    /// Defines methods to read events from an AccessManager instance persistent storage filtered by a shard range and read in batches.  
     /// </summary>
     /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
     /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
@@ -30,31 +30,35 @@ namespace ApplicationAccess.Distribution.Persistence
     public interface IAccessManagerTemporalEventBatchReader<TUser, TGroup, TComponent, TAccess>
     {
         /// <summary>
-        /// Retrieves an <see cref="AccessManagerState"/> representing the event creating the first/initial state of the AccessManager.
+        /// Retrieves the id of the first event in the AccessManager.
         /// </summary>
         /// <returns>The <see cref="AccessManagerState"/>.</returns>
-        AccessManagerState GetInitialState();
+        Guid GetInitialEvent();
 
         /// <summary>
-        /// Retrieves the <see cref="AccessManagerState"/> representing the event and state immediately after that specified. 
+        /// Retrieves the id of the next event after the specified event. 
         /// </summary>
-        /// <param name="inputState">The state to get the next event/state for.</param>
-        /// <returns>The next event/state, or null of the specified state is the latest.</returns>
-        AccessManagerState GetNextStateAfter(AccessManagerState inputState);
+        /// <param name="inputEventId">The id of the preceding event.</param>
+        /// <returns>The next event, or null of the specified event is the latest.</returns>
+        Nullable<Guid> GetNextStateAfter(Guid inputEventId);
 
         /// <summary>
-        /// Retrieves the sequence of events which follow (and include) the specified event/state.
+        /// Retrieves the sequence of events which follow (and include) the specified event.
         /// </summary>
-        /// <param name="initialState">The <see cref="AccessManagerState"/> representing the first event/state in the sequence.</param>
-        /// <param name="eventCount">The number of events to retrieve (including that specified in <paramref name="initialState"/>).</param>
-        /// <returns>A tuple containing: the sequence of events in order of ascending date/time and including that specified in <paramref name="initialState"/>, and the <see cref="AccessManagerState"/> representing the next event/state after the last one in the sequence (or null if the last one in the sequence is the latest).</returns>
-        Tuple<IList<TemporalEventBufferItemBase>, AccessManagerState> GetEvents(AccessManagerState initialState, Int32 eventCount);
+        /// <param name="initialEventId">The id of the first event in the sequence.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to retrieve.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to retrieve.</param>
+        /// <param name="eventCount">The number of events to retrieve (including that specified in <paramref name="initialEventId"/>).</param>
+        /// <returns>A tuple containing: the sequence of events in order of ascending date/time and including that specified in <paramref name="initialEventId"/>, and the id of the next event after the last one in the sequence (or null if the last one in the sequence is the latest).</returns>
+        Tuple<IList<TemporalEventBufferItemBase>, Nullable<Guid>> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Int32 eventCount);
 
         /// <summary>
-        /// Retrieves the sequence of all events which follow (and include) the specified event/state.
+        /// Retrieves the sequence of all events which follow (and include) the specified event.
         /// </summary>
-        /// <param name="initialState">The <see cref="AccessManagerState"/> representing the first event/state in the sequence.</param>
-        /// <returns>The sequence of events in order of ascending date/time, and including that specified in <paramref name="initialState"/>, or an empty list if the event/state represented by <paramref name="initialState"/> is the latest.</returns>
-        IList<TemporalEventBufferItemBase> GetEvents(AccessManagerState initialState);
+        /// <param name="initialEventId">The id of the first event in the sequence.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to retrieve.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to retrieve.</param>
+        /// <returns>The sequence of events in order of ascending date/time, and including that specified in <paramref name="initialEventId"/>, or an empty list if the event represented by <paramref name="initialEventId"/> is the latest.</returns>
+        IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd);
     }
 }
