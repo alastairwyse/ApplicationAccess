@@ -201,10 +201,243 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                 (String cellValue) => { return Guid.Parse(cellValue); }
             );
             foreach (Guid currentResult in queryResults)
-            {
+            { 
                 return currentResult;
             }
             throw eventNotFoundException;
+        }
+
+        /// <summary>
+        /// Generates a query which returns an ordered series of events.
+        /// </summary>
+        /// <param name="transactionTime">The transaction time of the first event to return.</param>
+        /// <param name="transactionSequence">The transaction sequence number of the first event to return.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to return.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to return.</param>
+        /// <param name="eventCount">The (optional) maximum number of events to return.  If not specified, all events in the database are returned.</param>
+        /// <returns>The query.</returns>
+        protected String GenerateGetEventsQuery(DateTime transactionTime, Int32 transactionSequence, Int32 hashRangeStart, Int32 hashRangeEnd, Int32 eventCount = -1)
+        {
+            String topStatement = "";
+            if (eventCount != -1)
+            {
+                topStatement =
+                $@"TOP({eventCount})
+                ";
+            }
+            String query =
+            $@"
+            SELECT  {topStatement}
+                    EventType, 
+                    EventId, 
+                    TransactionSequence AS EventSequence, 
+                    EventAction, 
+                    OccurredTime, 
+                    HashCode, 
+                    EventData1, 
+                    EventData2, 
+                    EventData3
+            FROM    (
+                        SELECT  'user' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                eu.HashCode AS HashCode, 
+                                u.[User] AS EventData1, 
+                                NULL AS EventData2, 
+                                NULL AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToUserMap eu
+                                    ON ettm.EventId = eu.EventId
+                                INNER JOIN Users u
+                                    ON eu.UserId = u.Id
+                                INNER JOIN Actions a
+                                    ON eu.ActionId = a.Id
+                        UNION ALL
+                        SELECT  'group' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                eg.HashCode AS HashCode, 
+                                g.[Group] AS EventData1, 
+                                NULL AS EventData2, 
+                                NULL AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToGroupMap eg
+                                    ON ettm.EventId = eg.EventId
+                                INNER JOIN Groups g
+                                    ON eg.GroupId = g.Id
+                                INNER JOIN Actions a
+                                    ON eg.ActionId = a.Id
+                        UNION ALL
+                        SELECT  'userToGroupMapping' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                eug.HashCode AS HashCode, 
+                                u.[User] AS EventData1, 
+                                g.[Group]  AS EventData2, 
+                                NULL AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToUserToGroupMap eug
+                                    ON ettm.EventId = eug.EventId
+                                INNER JOIN UserToGroupMappings ug
+                                    ON eug.UserToGroupMappingId = ug.Id
+                                INNER JOIN Users u
+                                    ON ug.UserId = u.Id
+                                INNER JOIN Groups g
+                                    ON ug.GroupId = g.Id
+                                INNER JOIN Actions a
+                                    ON eug.ActionId = a.Id
+                        UNION ALL
+                        SELECT  'userToApplicationComponentAndAccessLevelMapping' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                euaa.HashCode AS HashCode, 
+                                u.[User] AS EventData1, 
+                                ac.ApplicationComponent AS EventData2, 
+                                al.AccessLevel AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToUserToApplicationComponentAndAccessLevelMap euaa
+                                    ON ettm.EventId = euaa.EventId
+                                INNER JOIN UserToApplicationComponentAndAccessLevelMappings uaa
+                                    ON euaa.UserToApplicationComponentAndAccessLevelMappingId = uaa.Id
+                                INNER JOIN Users u
+                                    ON uaa.UserId = u.Id
+                                INNER JOIN ApplicationComponents ac
+                                    ON uaa.ApplicationComponentId = ac.Id
+                                INNER JOIN AccessLevels al
+                                    ON uaa.AccessLevelId = al.Id
+                                INNER JOIN Actions a
+                                    ON euaa.ActionId = a.Id
+                        UNION ALL
+                        SELECT  'groupToApplicationComponentAndAccessLevelMapping' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                egaa.HashCode AS HashCode, 
+                                g.[Group] AS EventData1, 
+                                ac.ApplicationComponent AS EventData2, 
+                                al.AccessLevel AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToGroupToApplicationComponentAndAccessLevelMap egaa
+                                    ON ettm.EventId = egaa.EventId
+                                INNER JOIN GroupToApplicationComponentAndAccessLevelMappings gaa
+                                    ON egaa.GroupToApplicationComponentAndAccessLevelMappingId = gaa.Id
+                                INNER JOIN Groups g
+                                    ON gaa.GroupId = g.Id
+                                INNER JOIN ApplicationComponents ac
+                                    ON gaa.ApplicationComponentId = ac.Id
+                                INNER JOIN AccessLevels al
+                                    ON gaa.AccessLevelId = al.Id
+                                INNER JOIN Actions a
+                                    ON egaa.ActionId = a.Id
+                        UNION ALL 
+                        SELECT  'entityType' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                eet.HashCode AS HashCode, 
+                                et.EntityType AS EventData1, 
+                                NULL AS EventData2, 
+                                NULL AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToEntityTypeMap eet
+                                    ON ettm.EventId = eet.EventId
+                                INNER JOIN EntityTypes et
+                                    ON eet.EntityTypeId = et.Id
+                                INNER JOIN Actions a
+                                    ON eet.ActionId = a.Id
+                        UNION ALL 
+                        SELECT  'entity' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ee.HashCode AS HashCode, 
+                                et.EntityType AS EventData1, 
+                                e.Entity AS EventData2, 
+                                NULL AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToEntityMap ee
+                                    ON ettm.EventId = ee.EventId
+                                INNER JOIN Entities e 
+                                    ON ee.EntityId = e.Id
+                                INNER JOIN EntityTypes et
+                                    ON e.EntityTypeId = et.Id
+                                INNER JOIN Actions a
+                                    ON ee.ActionId = a.Id
+                        UNION ALL
+                        SELECT  'userToEntityMapping' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                eue.HashCode AS HashCode, 
+                                u.[User] AS EventData1, 
+                                et.EntityType AS EventData2, 
+                                e.Entity AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToUserToEntityMap eue
+                                    ON ettm.EventId = eue.EventId
+                                INNER JOIN UserToEntityMappings ue
+                                    ON eue.UserToEntityMappingId = ue.Id
+                                INNER JOIN Users u
+                                    ON ue.UserId = u.Id
+                                INNER JOIN EntityTypes et
+                                    ON ue.EntityTypeId = et.Id
+                                INNER JOIN Entities e 
+                                    ON ue.EntityId = e.Id
+                                INNER JOIN Actions a
+                                    ON eue.ActionId = a.Id
+                        UNION ALL
+                        SELECT  'groupToEntityMapping' AS EventType, 
+                                ettm.EventId AS EventId, 
+                                a.[Action] AS EventAction, 
+                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ege.HashCode AS HashCode, 
+                                g.[Group] AS EventData1, 
+                                et.EntityType AS EventData2, 
+                                e.Entity AS EventData3, 
+                                ettm.TransactionTime AS TransactionTime, 
+                                ettm.TransactionSequence AS TransactionSequence
+                        FROM    EventIdToTransactionTimeMap ettm
+                                INNER JOIN EventIdToGroupToEntityMap ege
+                                    ON ettm.EventId = ege.EventId
+                                INNER JOIN GroupToEntityMappings ge
+                                    ON ege.GroupToEntityMappingId = ge.Id
+                                INNER JOIN Groups g
+                                    ON ge.GroupId = g.Id
+                                INNER JOIN EntityTypes et
+                                    ON ge.EntityTypeId = et.Id
+                                INNER JOIN Entities e 
+                                    ON ge.EntityId = e.Id
+                                INNER JOIN Actions a
+                                    ON ege.ActionId = a.Id
+                    ) AS AllEvents
+            WHERE   TransactionTime >= CONVERT(datetime2, '{transactionTime.ToString(transactionSql126DateStyle)}', 126) 
+              AND   NOT (TransactionTime = CONVERT(datetime2, '{transactionTime.ToString(transactionSql126DateStyle)}', 126) AND TransactionSequence < {transactionSequence})
+              AND   HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd}
+            ORDER   BY TransactionTime, 
+                       TransactionSequence
+            ";
+
+            return query;
         }
 
         #endregion

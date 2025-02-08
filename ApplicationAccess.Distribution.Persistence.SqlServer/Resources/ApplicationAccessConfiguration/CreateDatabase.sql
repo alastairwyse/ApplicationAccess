@@ -2,6 +2,9 @@
 
 :Setvar DatabaseName ApplicationAccessConfiguration
 
+CREATE DATABASE $(DatabaseName);
+GO
+
 USE $(DatabaseName);
 GO 
 
