@@ -48,9 +48,10 @@ namespace ApplicationAccess.Distribution.Persistence
         /// <param name="initialEventId">The id of the first event in the sequence.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to retrieve.</param>
         /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to retrieve.</param>
+        /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will return all group events if set to false.</param>
         /// <param name="eventCount">The number of events to retrieve (including that specified in <paramref name="initialEventId"/>).</param>
-        /// <returns>A tuple containing: the sequence of events in order of ascending date/time and including that specified in <paramref name="initialEventId"/>, and the id of the next event after the last one in the sequence (or null if the last one in the sequence is the latest).</returns>
-        Tuple<IList<TemporalEventBufferItemBase>, Nullable<Guid>> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Int32 eventCount);
+        /// <returns>The sequence of events in order of ascending date/time, and including that specified in <paramref name="initialEventId"/>, or an empty list if the event represented by <paramref name="initialEventId"/> is the latest.</returns>
+        IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Int32 eventCount);
 
         /// <summary>
         /// Retrieves the sequence of all events which follow (and include) the specified event.
@@ -58,7 +59,8 @@ namespace ApplicationAccess.Distribution.Persistence
         /// <param name="initialEventId">The id of the first event in the sequence.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to retrieve.</param>
         /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to retrieve.</param>
+        /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will return all group events if set to false.</param>
         /// <returns>The sequence of events in order of ascending date/time, and including that specified in <paramref name="initialEventId"/>, or an empty list if the event represented by <paramref name="initialEventId"/> is the latest.</returns>
-        IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd);
+        IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange);
     }
 }

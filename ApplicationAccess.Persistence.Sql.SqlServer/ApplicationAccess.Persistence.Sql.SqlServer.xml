@@ -37,7 +37,7 @@
         </member>
         <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalBulkPersister`4">
             <summary>
-            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> and <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> which persists access manager events in bulk to and allows reading of <see cref="T:ApplicationAccess.AccessManagerBase`4"/> objects from a Microsoft SQL Server database.
+            An implementation of <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalEventBulkPersister`4"/> and <see cref="T:ApplicationAccess.Persistence.IAccessManagerTemporalPersistentReader`4"/> which persists access manager events in bulk to, and allows reading of <see cref="T:ApplicationAccess.AccessManagerBase`4"/> objects from a Microsoft SQL Server database.
             </summary>
             <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
             <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
@@ -599,6 +599,15 @@
             <param name="applicationComponentStringifier">A string converter for application components.</param>
             <param name="accessLevelStringifier">A string converter for access levels.</param>
         </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnWithDeadlockRetry``1(System.String,System.Func{Microsoft.Data.SqlClient.SqlCommand,System.Collections.Generic.List{``0}})">
+            <summary>
+            Executes a function which queries from a SQL Server database, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying according to the specified retry logic.
+            </summary>
+            <typeparam name="T">The type of row data returned from the query function.</typeparam>
+            <param name="query">The query to execute.</param>
+            <param name="readAndConvertResultsFunction">The function which reads the results of the query and returns a list of results.  Accepts a single parameter which is the <see cref="T:Microsoft.Data.SqlClient.SqlCommand"/> to use to execute the query and read the results, and returns a list of <typeparamref name="T"/>.</param>   
+            <returns>An list of <typeparamref name="T"/> containing the results of the query.</returns>
+        </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumn``1(System.String,System.String,System.Func{System.String,``0})">
             <inheritdoc/>
         </member>
@@ -707,15 +716,6 @@
             </summary>
             <param name="connection">The connection.</param>
             <param name="command">The command.</param>
-        </member>
-        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ExecuteQueryAndConvertColumnWithDeadlockRetry``1(System.String,System.Func{Microsoft.Data.SqlClient.SqlCommand,System.Collections.Generic.List{``0}})">
-            <summary>
-            Executes a function which queries from a SQL Server database, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying according to the retry count specified in the 'sqlRetryLogicOption' member.
-            </summary>
-            <typeparam name="T">The type of row data returned from the query function.</typeparam>
-            <param name="query">The query to execute.</param>
-            <param name="readAndConvertResultsFunction">The function which reads the results of the query and returns a list of results.  Accepts a single parameter which is the <see cref="T:Microsoft.Data.SqlClient.SqlCommand"/> to use to execute the query and read the results, and returns a list of <typeparamref name="T"/>.</param>   
-            <returns>An list of <typeparamref name="T"/> containing the results of the query.</returns>
         </member>
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterUtilities`4.ThrowExceptionIfConnectionStringParameterNullOrWhitespace(System.String,System.String)">
             <summary>

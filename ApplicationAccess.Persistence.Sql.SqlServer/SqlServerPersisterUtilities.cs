@@ -104,6 +104,67 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
             this.ReadQueryGenerator = new SqlServerReadQueryGenerator();
         }
 
+        /// <summary>
+        /// Executes a function which queries from a SQL Server database, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying according to the specified retry logic.
+        /// </summary>
+        /// <typeparam name="T">The type of row data returned from the query function.</typeparam>
+        /// <param name="query">The query to execute.</param>
+        /// <param name="readAndConvertResultsFunction">The function which reads the results of the query and returns a list of results.  Accepts a single parameter which is the <see cref="SqlCommand"/> to use to execute the query and read the results, and returns a list of <typeparamref name="T"/>.</param>   
+        /// <returns>An list of <typeparamref name="T"/> containing the results of the query.</returns>
+        public List<T> ExecuteQueryAndConvertColumnWithDeadlockRetry<T>(String query, Func<SqlCommand, List<T>> readAndConvertResultsFunction)
+        {
+            const Int32 deadlockErrorNumber = 1205;
+
+            Int32 retryCount = sqlRetryLogicOption.NumberOfTries - 1;
+            var queryResults = new List<T>();
+            var exceptions = new List<Exception>();
+            while (true)
+            {
+                queryResults.Clear();
+                try
+                {
+                    using (var connection = new SqlConnection(connectionString))
+                    using (var command = new SqlCommand(query))
+                    {
+                        PrepareConnectionAndCommand(connection, command, SessionDeadlockPriority.Low);
+                        try
+                        {
+                            queryResults = readAndConvertResultsFunction.Invoke(command);
+                            break;
+                        }
+                        finally
+                        {
+                            TeardownConnectionAndCommand(connection, command);
+                        }
+                    }
+                }
+                catch (SqlException sqlException)
+                {
+                    if (sqlException.Errors.Count > 0 && sqlException.Errors[0].Number == deadlockErrorNumber)
+                    {
+                        exceptions.Add(sqlException);
+                        if (retryCount > 0)
+                        {
+                            var retryEventArgs = new SqlRetryingEventArgs(sqlRetryLogicOption.NumberOfTries - retryCount, new TimeSpan(0), exceptions);
+                            connectionRetryAction.Invoke(this, retryEventArgs);
+                            retryCount--;
+                        }
+                        else
+                        {
+                            String exceptionMessage = $"The number of deadlock retries has exceeded the maximum of {sqlRetryLogicOption.NumberOfTries} attempt(s).";
+                            throw new AggregateException(exceptionMessage, exceptions);
+                        }
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            return queryResults;
+        }
+
         #region Private/Protected Methods
 
         /// <inheritdoc/>
@@ -416,67 +477,6 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
         protected virtual void TeardownConnectionAndCommand(SqlConnection connection, SqlCommand command)
         {
             connection.RetryLogicProvider.Retrying -= connectionRetryAction;
-        }
-
-        /// <summary>
-        /// Executes a function which queries from a SQL Server database, catching any deadlock (<see href="https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/mssqlserver-1205-database-engine-error?view=sql-server-ver16">1205</see>) exceptions and retrying according to the retry count specified in the 'sqlRetryLogicOption' member.
-        /// </summary>
-        /// <typeparam name="T">The type of row data returned from the query function.</typeparam>
-        /// <param name="query">The query to execute.</param>
-        /// <param name="readAndConvertResultsFunction">The function which reads the results of the query and returns a list of results.  Accepts a single parameter which is the <see cref="SqlCommand"/> to use to execute the query and read the results, and returns a list of <typeparamref name="T"/>.</param>   
-        /// <returns>An list of <typeparamref name="T"/> containing the results of the query.</returns>
-        protected List<T> ExecuteQueryAndConvertColumnWithDeadlockRetry<T>(String query, Func<SqlCommand, List<T>> readAndConvertResultsFunction)
-        {
-            const Int32 deadlockErrorNumber = 1205;
-
-            Int32 retryCount = sqlRetryLogicOption.NumberOfTries - 1;
-            var queryResults = new List<T>();
-            var exceptions = new List<Exception>();
-            while (true)
-            {
-                queryResults.Clear();
-                try
-                {
-                    using (var connection = new SqlConnection(connectionString))
-                    using (var command = new SqlCommand(query))
-                    {
-                        PrepareConnectionAndCommand(connection, command, SessionDeadlockPriority.Low);
-                        try
-                        {
-                            queryResults = readAndConvertResultsFunction.Invoke(command);
-                            break;
-                        }
-                        finally
-                        {
-                            TeardownConnectionAndCommand(connection, command);
-                        }
-                    }
-                }
-                catch (SqlException sqlException)
-                {
-                    if (sqlException.Errors.Count > 0 && sqlException.Errors[0].Number == deadlockErrorNumber)
-                    {
-                        exceptions.Add(sqlException);
-                        if (retryCount > 0)
-                        {
-                            var retryEventArgs = new SqlRetryingEventArgs(sqlRetryLogicOption.NumberOfTries - retryCount, new TimeSpan(0), exceptions);
-                            connectionRetryAction.Invoke(this, retryEventArgs);
-                            retryCount--;
-                        }
-                        else
-                        {
-                            String exceptionMessage = $"The number of deadlock retries has exceeded the maximum of {sqlRetryLogicOption.NumberOfTries} attempt(s).";
-                            throw new AggregateException(exceptionMessage, exceptions);
-                        }
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            return queryResults;
         }
 
         #endregion

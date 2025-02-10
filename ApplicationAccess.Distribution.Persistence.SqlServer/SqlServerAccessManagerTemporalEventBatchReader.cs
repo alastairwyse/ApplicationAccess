@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright 2023 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
+ * Copyright 2025 Alastair Wyse (https://github.com/alastairwyse/ApplicationAccess/)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Microsoft.Data.SqlClient;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationLogging;
@@ -35,6 +36,15 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>,
         IAccessManagerTemporalEventBatchReader<TUser, TGroup, TComponent, TAccess>
     {
+        #pragma warning disable 1591
+
+        protected const String eventSequenceColumnName = "EventSequence";
+
+        #pragma warning restore 1591
+
+        /// <summary>Maps values from the 'EventType' column in a query returning a sequence of events, to a function which converts a row of that query to a <see cref="TemporalEventBufferItemBase"/>.</summary>
+        protected Dictionary<String, Func<SqlDataReader, TemporalEventBufferItemBase>> eventTypeToConversionFunctionMap;
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.Persistence.SqlServer.SqlServerAccessManagerTemporalEventBatchReader class.
         /// </summary>
@@ -49,7 +59,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         /// <param name="logger">The logger for general logging.</param>
         public SqlServerAccessManagerTemporalEventBatchReader
         (
-            string connectionString,
+            String connectionString,
             Int32 retryCount,
             Int32 retryInterval,
             Int32 operationTimeout,
@@ -61,6 +71,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         )
             : base(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger)
         {
+            eventTypeToConversionFunctionMap = CreateEventTypeToConversionFunctionMap();
         }
 
         /// <summary>
@@ -78,7 +89,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         /// <param name="metricLogger">The logger for metrics.</param>
         public SqlServerAccessManagerTemporalEventBatchReader
         (
-            string connectionString,
+            String connectionString,
             Int32 retryCount,
             Int32 retryInterval,
             Int32 operationTimeout,
@@ -91,6 +102,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         )
             : base(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger, metricLogger)
         {
+            eventTypeToConversionFunctionMap = CreateEventTypeToConversionFunctionMap();
         }
 
         /// <summary>
@@ -124,6 +136,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         )
             : base(connectionString, retryCount, retryInterval, operationTimeout, userStringifier, groupStringifier, applicationComponentStringifier, accessLevelStringifier, logger, metricLogger, storedProcedureExecutor)
         {
+            eventTypeToConversionFunctionMap = CreateEventTypeToConversionFunctionMap();
         }
 
         /// <inheritdoc/>
@@ -167,21 +180,17 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         }
 
         /// <inheritdoc/>
-        public Tuple<IList<TemporalEventBufferItemBase>, Nullable<Guid>> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Int32 eventCount)
+        /// <remarks>Parameter <paramref name="filterGroupEventsByHashRange"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to capture all the group which may be present in user to group mappings.  For group shards it should be set true, to properly filter the returned groups and group mappings.</remarks>
+        public IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Int32 eventCount)
         {
-            // For query where clause can specify something like
-            // TranSTime >= specufued trans time
-            // AND NOT ( TranSTime == specified transtime AND sequence num < specific seq number )
-            // Need to put some fake data in to test this
-            // Need to write a new custom version of ExecuteAccessManagerEventRetrievalQuery
-
-            throw new NotImplementedException();
+            return GetEvents(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, eventCount);
         }
 
         /// <inheritdoc/>
-        public IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd)
+        /// <remarks>Parameter <paramref name="filterGroupEventsByHashRange"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to capture all the group which may be present in user to group mappings.  For group shards it should be set true, to properly filter the returned groups and group mappings.</remarks>
+        public IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange)
         {
-            throw new NotImplementedException();
+            return GetEvents(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, null);
         }
 
         #region Private/Protected Methods
@@ -208,32 +217,101 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         }
 
         /// <summary>
+        /// Retrieves the sequence of events which follow (and include) the specified event.
+        /// </summary>
+        /// <param name="initialEventId">The id of the first event in the sequence.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to retrieve.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to retrieve.</param>
+        /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will return all group events if set to false.</param>
+        /// <param name="eventCount">The number of events to retrieve (including that specified in <paramref name="initialEventId"/>).  Set to null to retrieve all events.</param>
+        /// <returns>The sequence of events in order of ascending date/time, and including that specified in <paramref name="initialEventId"/>, or an empty list if the event represented by <paramref name="initialEventId"/> is the latest.</returns>
+        protected IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Nullable<Int32> eventCount)
+        {
+            // Get the AccessManagerState corresponding to 'initialEventId'
+            AccessManagerState initialEventState;
+            try
+            {
+                initialEventState = persisterUtilities.GetAccessManagerStateForEventId(initialEventId);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to get events for initial event with id '{initialEventId.ToString()}'.", e);
+            }
+            String query = GenerateGetEventsQuery(initialEventState.StateTime, initialEventState.StateSequence, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, eventCount);
+
+            // Query and create the sequence of events
+            Func<SqlCommand, List<TemporalEventBufferItemBase>> eventsConversionFunction = (SqlCommand command) =>
+            {
+                var results = new List<TemporalEventBufferItemBase>();
+                using (SqlDataReader dataReader = command.ExecuteReader())
+                {
+                    while (dataReader.Read())
+                    {
+                        String currentEventType = (String)dataReader[eventTypeColumnName];
+                        if (eventTypeToConversionFunctionMap.ContainsKey(currentEventType) == false)
+                        {
+                            throw new Exception($"Column '{eventTypeColumnName}' in event query results contained unhandled event type '{currentEventType}'.");
+                        }
+                        TemporalEventBufferItemBase currentEvent;
+                        try
+                        {
+                            currentEvent = eventTypeToConversionFunctionMap[currentEventType].Invoke(dataReader);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Exception($"Failed to convert row in event query results for event type '{currentEventType}' to a {typeof(TemporalEventBufferItemBase).Name}.", e);
+                        }
+                        results.Add(currentEvent);
+                    }
+                }
+
+                return results;
+            };
+            List<TemporalEventBufferItemBase> events;
+            try
+            {
+                events = persisterUtilities.ExecuteQueryAndConvertColumnWithDeadlockRetry(query, eventsConversionFunction);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to execute event read query and convert results to events.", e);
+            }
+
+            return events;
+        }
+
+        /// <summary>
         /// Generates a query which returns an ordered series of events.
         /// </summary>
         /// <param name="transactionTime">The transaction time of the first event to return.</param>
         /// <param name="transactionSequence">The transaction sequence number of the first event to return.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to return.</param>
         /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to return.</param>
+        /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will return all group events if set to false.</param>
         /// <param name="eventCount">The (optional) maximum number of events to return.  If not specified, all events in the database are returned.</param>
         /// <returns>The query.</returns>
-        protected String GenerateGetEventsQuery(DateTime transactionTime, Int32 transactionSequence, Int32 hashRangeStart, Int32 hashRangeEnd, Int32 eventCount = -1)
+        protected String GenerateGetEventsQuery(DateTime transactionTime, Int32 transactionSequence, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Nullable<Int32> eventCount = null)
         {
             String topStatement = "";
-            if (eventCount != -1)
+            if (eventCount.HasValue == true)
             {
-                topStatement =
-                $@"TOP({eventCount})
-                ";
+                topStatement = $"TOP({eventCount.Value})";
             }
+            String groupEventsWhereClause = "";
+            if (filterGroupEventsByHashRange == true)
+            {
+                groupEventsWhereClause = $"WHERE   eg.HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd} ";
+            }
+
             String query =
             $@"
-            SELECT  {topStatement}
+            SELECT  {topStatement} 
                     EventType, 
-                    EventId, 
-                    TransactionSequence AS EventSequence, 
+                    CONVERT(nvarchar(40), EventId) AS EventId, 
+                    CONVERT(nvarchar(30), TransactionSequence) AS EventSequence, 
                     EventAction, 
-                    OccurredTime, 
-                    HashCode, 
+                    CONVERT(nvarchar(30), TransactionTime , 126) AS OccurredTime, 
+                    CONVERT(nvarchar(30), HashCode , 126) AS HashCode,  
                     EventData1, 
                     EventData2, 
                     EventData3
@@ -241,12 +319,11 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                         SELECT  'user' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 eu.HashCode AS HashCode, 
                                 u.[User] AS EventData1, 
                                 NULL AS EventData2, 
                                 NULL AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToUserMap eu
@@ -255,16 +332,16 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                                     ON eu.UserId = u.Id
                                 INNER JOIN Actions a
                                     ON eu.ActionId = a.Id
+                        WHERE   eu.HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd} 
                         UNION ALL
                         SELECT  'group' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 eg.HashCode AS HashCode, 
                                 g.[Group] AS EventData1, 
                                 NULL AS EventData2, 
                                 NULL AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToGroupMap eg
@@ -273,16 +350,16 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                                     ON eg.GroupId = g.Id
                                 INNER JOIN Actions a
                                     ON eg.ActionId = a.Id
-                        UNION ALL
+                        {groupEventsWhereClause}
+                        UNION ALL 
                         SELECT  'userToGroupMapping' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 eug.HashCode AS HashCode, 
                                 u.[User] AS EventData1, 
                                 g.[Group]  AS EventData2, 
                                 NULL AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToUserToGroupMap eug
@@ -295,16 +372,16 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                                     ON ug.GroupId = g.Id
                                 INNER JOIN Actions a
                                     ON eug.ActionId = a.Id
+                        WHERE   eug.HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd} 
                         UNION ALL
                         SELECT  'userToApplicationComponentAndAccessLevelMapping' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 euaa.HashCode AS HashCode, 
                                 u.[User] AS EventData1, 
                                 ac.ApplicationComponent AS EventData2, 
                                 al.AccessLevel AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToUserToApplicationComponentAndAccessLevelMap euaa
@@ -319,16 +396,16 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                                     ON uaa.AccessLevelId = al.Id
                                 INNER JOIN Actions a
                                     ON euaa.ActionId = a.Id
+                        WHERE   euaa.HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd} 
                         UNION ALL
                         SELECT  'groupToApplicationComponentAndAccessLevelMapping' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 egaa.HashCode AS HashCode, 
                                 g.[Group] AS EventData1, 
                                 ac.ApplicationComponent AS EventData2, 
                                 al.AccessLevel AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToGroupToApplicationComponentAndAccessLevelMap egaa
@@ -343,16 +420,16 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                                     ON gaa.AccessLevelId = al.Id
                                 INNER JOIN Actions a
                                     ON egaa.ActionId = a.Id
+                        WHERE   egaa.HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd} 
                         UNION ALL 
                         SELECT  'entityType' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 eet.HashCode AS HashCode, 
                                 et.EntityType AS EventData1, 
                                 NULL AS EventData2, 
                                 NULL AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToEntityTypeMap eet
@@ -365,12 +442,11 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                         SELECT  'entity' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 ee.HashCode AS HashCode, 
                                 et.EntityType AS EventData1, 
                                 e.Entity AS EventData2, 
                                 NULL AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToEntityMap ee
@@ -385,12 +461,11 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                         SELECT  'userToEntityMapping' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 eue.HashCode AS HashCode, 
                                 u.[User] AS EventData1, 
                                 et.EntityType AS EventData2, 
                                 e.Entity AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToUserToEntityMap eue
@@ -405,16 +480,16 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                                     ON ue.EntityId = e.Id
                                 INNER JOIN Actions a
                                     ON eue.ActionId = a.Id
+                        WHERE   eue.HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd} 
                         UNION ALL
                         SELECT  'groupToEntityMapping' AS EventType, 
                                 ettm.EventId AS EventId, 
                                 a.[Action] AS EventAction, 
-                                CONVERT(nvarchar(30), ettm.TransactionTime , 126) AS OccurredTime, 
+                                ettm.TransactionTime AS TransactionTime, 
                                 ege.HashCode AS HashCode, 
                                 g.[Group] AS EventData1, 
                                 et.EntityType AS EventData2, 
                                 e.Entity AS EventData3, 
-                                ettm.TransactionTime AS TransactionTime, 
                                 ettm.TransactionSequence AS TransactionSequence
                         FROM    EventIdToTransactionTimeMap ettm
                                 INNER JOIN EventIdToGroupToEntityMap ege
@@ -429,15 +504,246 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                                     ON ge.EntityId = e.Id
                                 INNER JOIN Actions a
                                     ON ege.ActionId = a.Id
+                        WHERE   ege.HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd} 
                     ) AS AllEvents
             WHERE   TransactionTime >= CONVERT(datetime2, '{transactionTime.ToString(transactionSql126DateStyle)}', 126) 
-              AND   NOT (TransactionTime = CONVERT(datetime2, '{transactionTime.ToString(transactionSql126DateStyle)}', 126) AND TransactionSequence < {transactionSequence})
-              AND   HashCode BETWEEN {hashRangeStart} AND {hashRangeEnd}
+              AND   NOT (TransactionTime = CONVERT(datetime2, '{transactionTime.ToString(transactionSql126DateStyle)}', 126) AND TransactionSequence < {transactionSequence}) 
             ORDER   BY TransactionTime, 
                        TransactionSequence
             ";
 
             return query;
+        }
+
+        /// <summary>
+        /// Returns a dictionary mapping values from the 'EventType' column in a query returning a sequence of events, to a function which converts a row of that query to a <see cref="TemporalEventBufferItemBase"/>.
+        /// </summary>
+        /// <returns>The dictionary.</returns>
+        protected Dictionary<String, Func<SqlDataReader, TemporalEventBufferItemBase>> CreateEventTypeToConversionFunctionMap()
+        {
+            var returnDictionary = new Dictionary<String, Func<SqlDataReader, TemporalEventBufferItemBase>>();
+            returnDictionary.Add
+            (
+                userEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        TUser user = userStringifier.FromString((String)dataReader[eventData1ColumnName]);
+                        var userEvent = new UserEventBufferItem<TUser>(eventId, eventAction, user, occurredTime, hashCode);
+                        return userEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+            returnDictionary.Add
+            (
+                groupEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        TGroup group = groupStringifier.FromString((String)dataReader[eventData1ColumnName]);
+                        var groupEvent = new GroupEventBufferItem<TGroup>(eventId, eventAction, group, occurredTime, hashCode);
+                        return groupEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+            returnDictionary.Add
+            (
+                userToGroupMappingEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        TUser user = userStringifier.FromString((String)dataReader[eventData1ColumnName]);
+                        TGroup group = groupStringifier.FromString((String)dataReader[eventData2ColumnName]);
+                        var usertoGroupMappingEvent = new UserToGroupMappingEventBufferItem<TUser,TGroup>(eventId, eventAction, user, group, occurredTime, hashCode);
+                        return usertoGroupMappingEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+            returnDictionary.Add
+            (
+                userToApplicationComponentAndAccessLevelMappingEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        TUser user = userStringifier.FromString((String)dataReader[eventData1ColumnName]);
+                        TComponent applicationComponent = applicationComponentStringifier.FromString((String)dataReader[eventData2ColumnName]);
+                        TAccess accessLevel = accessLevelStringifier.FromString((String)dataReader[eventData3ColumnName]);
+                        var userToApplicationComponentAndAccessLevelMappingEvent = new UserToApplicationComponentAndAccessLevelMappingEventBufferItem<TUser, TComponent, TAccess>
+                        (
+                            eventId, 
+                            eventAction, 
+                            user, 
+                            applicationComponent, 
+                            accessLevel, 
+                            occurredTime, 
+                            hashCode
+                        );
+                        return userToApplicationComponentAndAccessLevelMappingEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+            returnDictionary.Add
+            (
+                groupToApplicationComponentAndAccessLevelMappingEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        TGroup group = groupStringifier.FromString((String)dataReader[eventData1ColumnName]);
+                        TComponent applicationComponent = applicationComponentStringifier.FromString((String)dataReader[eventData2ColumnName]);
+                        TAccess accessLevel = accessLevelStringifier.FromString((String)dataReader[eventData3ColumnName]);
+                        var groupToApplicationComponentAndAccessLevelMappingEvent = new GroupToApplicationComponentAndAccessLevelMappingEventBufferItem<TGroup, TComponent, TAccess>
+                        (
+                            eventId,
+                            eventAction,
+                            group,
+                            applicationComponent,
+                            accessLevel,
+                            occurredTime,
+                            hashCode
+                        );
+                        return groupToApplicationComponentAndAccessLevelMappingEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+            returnDictionary.Add
+            (
+                entityTypeEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        String entityType = (String)dataReader[eventData1ColumnName];
+                        var entityTypeEvent = new EntityTypeEventBufferItem(eventId, eventAction, entityType, occurredTime, hashCode);
+                        return entityTypeEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+            returnDictionary.Add
+            (
+                entityEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        String entityType = (String)dataReader[eventData1ColumnName];
+                        String entity = (String)dataReader[eventData2ColumnName];
+                        var entityEvent = new EntityEventBufferItem(eventId, eventAction, entityType, entity, occurredTime, hashCode);
+                        return entityEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+            returnDictionary.Add
+            (
+                userToEntityMappingEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        TUser user = userStringifier.FromString((String)dataReader[eventData1ColumnName]);
+                        String entityType = (String)dataReader[eventData2ColumnName];
+                        String entity = (String)dataReader[eventData3ColumnName];
+                        var userToEntityMappingEvent = new UserToEntityMappingEventBufferItem<TUser>
+                        (
+                            eventId,
+                            eventAction,
+                            user,
+                            entityType,
+                            entity,
+                            occurredTime,
+                            hashCode
+                        );
+                        return userToEntityMappingEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+            returnDictionary.Add
+            (
+                groupToEntityMappingEventTypeValue,
+                (SqlDataReader dataReader) =>
+                {
+                    Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction =
+                    (
+                        eventId, eventAction, occurredTime, hashCode, dataReader
+                    ) =>
+                    {
+                        TGroup group = groupStringifier.FromString((String)dataReader[eventData1ColumnName]);
+                        String entityType = (String)dataReader[eventData2ColumnName];
+                        String entity = (String)dataReader[eventData3ColumnName];
+                        var groupToEntityMappingEvent = new GroupToEntityMappingEventBufferItem<TGroup>
+                        (
+                            eventId,
+                            eventAction,
+                            group,
+                            entityType,
+                            entity,
+                            occurredTime,
+                            hashCode
+                        );
+                        return groupToEntityMappingEvent;
+                    };
+                    return ReadCommonEventProperties(dataReader, readSpecificPropertiesFunction);
+                }
+            );
+
+            return returnDictionary;
+        }
+
+        /// <summary>
+        /// Reads common <see cref="TemporalEventBufferItemBase"/> properties from the specified data reader, before passing these properties to a function which reads specific properties of the derived event type.
+        /// </summary>
+        /// <param name="dataReader">The <see cref="SqlDataReader"/> to read the event properties from.</param>
+        /// <param name="readSpecificPropertiesFunction">A function which reads specific properties of a type derived from <see cref="TemporalEventBufferItemBase"/>, and returns an instance of that event.  Accepts 5 parameters: The event id, the event action, the event occured time, the hash code of the event's key element, and the data reader to read the specific properties from, and returns the event.</param>
+        /// <returns>The event.</returns>
+        protected TemporalEventBufferItemBase ReadCommonEventProperties(SqlDataReader dataReader, Func<Guid, EventAction, DateTime, Int32, SqlDataReader, TemporalEventBufferItemBase> readSpecificPropertiesFunction)
+        {
+            String eventIdAsString = (String)dataReader[eventIdColumnName];
+            String eventActionAsString = (String)dataReader[eventActionColumnName];
+            String occurredTimeAsString = (String)dataReader[occurredTimeColumnName];
+            String hashCodeAsString = (String)dataReader[hashCodeColumnName];
+            Guid eventId = Guid.Parse(eventIdAsString);
+            EventAction eventAction = Enum.Parse<EventAction>(eventActionAsString);
+            DateTime occurredTime = DateTime.ParseExact(occurredTimeAsString, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
+            occurredTime = DateTime.SpecifyKind(occurredTime, DateTimeKind.Utc);
+            Int32 hashCode = Int32.Parse(hashCodeAsString);
+
+            return readSpecificPropertiesFunction(eventId, eventAction, occurredTime, hashCode, dataReader);
         }
 
         #endregion

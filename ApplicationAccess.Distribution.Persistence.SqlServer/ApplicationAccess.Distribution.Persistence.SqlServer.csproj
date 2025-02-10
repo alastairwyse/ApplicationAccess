@@ -21,8 +21,4 @@
     <ProjectReference Include="..\ApplicationAccess.Serialization\ApplicationAccess.Serialization.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
-
 </Project>

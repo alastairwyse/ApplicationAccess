@@ -62,12 +62,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer
                     CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime', 
                     CONVERT(nvarchar(30), TransactionSequence) AS 'TransactionSequence' 
             FROM    EventIdToTransactionTimeMap 
-            WHERE   TransactionTime = 
-                    (
-                        SELECT  TransactionTime 
-                        FROM    EventIdToTransactionTimeMap 
-                        WHERE   EventId = '{eventId.ToString()}'
-                    );";
+            WHERE   EventId = '{eventId.ToString()}';";
 
             return query;
         }

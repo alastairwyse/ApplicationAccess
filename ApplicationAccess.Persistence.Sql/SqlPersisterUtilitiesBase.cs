@@ -96,44 +96,11 @@ namespace ApplicationAccess.Persistence.Sql
         public AccessManagerState Load(Guid eventId, AccessManagerBase<TUser, TGroup, TComponent, TAccess> accessManagerToLoadTo)
         {
             // Get the transaction time corresponding to specified event id
-            String query = ReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(eventId);
+            AccessManagerState returnAccessManagerState = GetAccessManagerStateForEventId(eventId);
 
-            IEnumerable<Tuple<DateTime, Int32>> queryResults = ExecuteMultiResultQueryAndHandleException
-            (
-                query,
-                "TransactionTime",
-                "TransactionSequence",
-                (String cellValue) =>
-                {
-                    var stateTime = DateTime.ParseExact(cellValue, TimestampColumnFormatString, DateTimeFormatInfo.InvariantInfo);
-                    stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
+            LoadToAccessManager(returnAccessManagerState.StateTime, accessManagerToLoadTo);
 
-                    return stateTime;
-                },
-                (String cellValue) => { return Int32.Parse(cellValue); }
-            );
-            DateTime transactionTime = DateTime.MinValue;
-            Int32 transactionSequence = Int32.MinValue;
-            foreach (Tuple<DateTime, Int32> currentResult in queryResults)
-            {
-                if (transactionTime == DateTime.MinValue)
-                {
-                    transactionTime = currentResult.Item1;
-                    transactionSequence = currentResult.Item2;
-                }
-                else
-                {
-                    throw new Exception($"Multiple EventIdToTransactionTimeMap rows were returned with EventId '{eventId.ToString()}' and/or TransactionTime '{transactionTime.ToString(TimestampColumnFormatString)}'.");
-                }
-            }
-            if (transactionTime == DateTime.MinValue)
-            {
-                throw new ArgumentException($"No EventIdToTransactionTimeMap rows were returned for EventId '{eventId.ToString()}'.", nameof(eventId));
-            }
-
-            LoadToAccessManager(transactionTime, accessManagerToLoadTo);
-
-            return new AccessManagerState(eventId, transactionTime, transactionSequence);
+            return returnAccessManagerState;
         }
 
         /// <summary>
@@ -199,6 +166,51 @@ namespace ApplicationAccess.Persistence.Sql
                 throw eventIdToTransactionTimeMapRowDoesntExistException;
 
             LoadToAccessManager(transactionTime, accessManagerToLoadTo);
+
+            return new AccessManagerState(eventId, transactionTime, transactionSequence);
+        }
+
+        /// <summary>
+        /// Retrieves the <see cref="AccessManagerState"/> corresponding to the specified event id.
+        /// </summary>
+        /// <param name="eventId">The event id to retrieve the state for.</param>
+        /// <returns>The <see cref="AccessManagerState"/>.</returns>
+        public AccessManagerState GetAccessManagerStateForEventId(Guid eventId)
+        {
+            String query = ReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(eventId);
+
+            IEnumerable<Tuple<DateTime, Int32>> queryResults = ExecuteMultiResultQueryAndHandleException
+            (
+                query,
+                "TransactionTime",
+                "TransactionSequence",
+                (String cellValue) =>
+                {
+                    var stateTime = DateTime.ParseExact(cellValue, TimestampColumnFormatString, DateTimeFormatInfo.InvariantInfo);
+                    stateTime = DateTime.SpecifyKind(stateTime, DateTimeKind.Utc);
+
+                    return stateTime;
+                },
+                (String cellValue) => { return Int32.Parse(cellValue); }
+            );
+            DateTime transactionTime = DateTime.MinValue;
+            Int32 transactionSequence = Int32.MinValue;
+            foreach (Tuple<DateTime, Int32> currentResult in queryResults)
+            {
+                if (transactionTime == DateTime.MinValue)
+                {
+                    transactionTime = currentResult.Item1;
+                    transactionSequence = currentResult.Item2;
+                }
+                else
+                {
+                    throw new Exception($"Multiple EventIdToTransactionTimeMap rows were returned with EventId '{eventId.ToString()}' and/or TransactionTime '{transactionTime.ToString(TimestampColumnFormatString)}'.");
+                }
+            }
+            if (transactionTime == DateTime.MinValue)
+            {
+                throw new ArgumentException($"No EventIdToTransactionTimeMap rows were returned for EventId '{eventId.ToString()}'.", nameof(eventId));
+            }
 
             return new AccessManagerState(eventId, transactionTime, transactionSequence);
         }
