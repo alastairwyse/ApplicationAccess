@@ -444,7 +444,7 @@
             </summary>
             <param name="enumerable1">The first collection.</param>
             <param name="enumerable2">The second collection.</param>
-            <returns>True if the collections contain the same string.  False otherwise.</returns>
+            <returns>True if the collections contain the same strings.  False otherwise.</returns>
         </member>
     </members>
 </doc>

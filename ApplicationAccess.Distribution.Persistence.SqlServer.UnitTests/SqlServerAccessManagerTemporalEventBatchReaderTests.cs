@@ -16,6 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Data;
 using System.Globalization;
 using ApplicationAccess.Distribution.Serialization;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
@@ -23,6 +26,7 @@ using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationLogging;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
+using Microsoft.Data.SqlClient;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -33,6 +37,20 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
     /// </summary>
     public class SqlServerAccessManagerTemporalEventBatchReaderTests
     {
+        #pragma warning disable 1591
+
+        protected const String deleteUserEventsStoredProcedureName = "DeleteUserEvents";
+        protected const String deleteGroupEventsStoredProcedureName = "DeleteGroupEvents";
+        protected const String deleteUserToGroupMappingEventsStoredProcedureName = "DeleteUserToGroupMappingEvents";
+        protected const String deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName = "DeleteUserToApplicationComponentAndAccessLevelMappingEvents";
+        protected const String deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName = "DeleteGroupToApplicationComponentAndAccessLevelMappingEvents";
+        protected const String deleteUserToEntityMappingEventsStoredProcedureName = "DeleteUserToEntityMappingEvents";
+        protected const String deleteGroupToEntityMappingEventsStoredProcedureName = "DeleteGroupToEntityMappingEvents";
+        protected const String hashRangeStartParameterName = "@HashRangeStart";
+        protected const String hashRangeEndParameterName = "@HashRangeEnd";
+
+        #pragma warning restore 1591
+
         private IApplicationLogger mockApplicationLogger;
         private IMetricLogger mockMetricLogger;
         private IStoredProcedureExecutionWrapper mockStoredProcedureExecutionWrapper;
@@ -171,6 +189,90 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
             Assert.AreEqual("            WHERE   TransactionTime >= CONVERT(datetime2, '2025-02-08T16:57:29.0000001', 126) ", resultLines[202]);
             Assert.AreEqual("              AND   NOT (TransactionTime = CONVERT(datetime2, '2025-02-08T16:57:29.0000001', 126) AND TransactionSequence < 2) ", resultLines[203]);
         }
+
+        [Test]
+        public void DeleteEvents_IncludeGroupEventsParameterTrue()
+        {
+            var testHashRangeStart = -1234;
+            var testHashRangeEnd = 5678;
+            var expectedHashRangeStartParameter = new SqlParameter(hashRangeStartParameterName, SqlDbType.Int);
+            expectedHashRangeStartParameter.Value = testHashRangeStart;
+            var expectedHashRangeEndParameter = new SqlParameter(hashRangeEndParameterName, SqlDbType.Int);
+            expectedHashRangeEndParameter.Value = testHashRangeEnd;
+            var expectedParameters = new List<SqlParameter> { expectedHashRangeStartParameter, expectedHashRangeEndParameter };
+
+            testSqlServerAccessManagerTemporalEventBatchReader.DeleteEvents(testHashRangeStart, testHashRangeEnd, true);
+
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToGroupMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+        }
+
+        [Test]
+        public void DeleteEvents_IncludeGroupEventsParameterFalse()
+        {
+            var testHashRangeStart = -1234;
+            var testHashRangeEnd = 5678;
+            var expectedHashRangeStartParameter = new SqlParameter(hashRangeStartParameterName, SqlDbType.Int);
+            expectedHashRangeStartParameter.Value = testHashRangeStart;
+            var expectedHashRangeEndParameter = new SqlParameter(hashRangeEndParameterName, SqlDbType.Int);
+            expectedHashRangeEndParameter.Value = testHashRangeEnd;
+            var expectedParameters = new List<SqlParameter> { expectedHashRangeStartParameter, expectedHashRangeEndParameter };
+
+            testSqlServerAccessManagerTemporalEventBatchReader.DeleteEvents(-1234, 5678, false);
+
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToEntityMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserToGroupMappingEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+            mockStoredProcedureExecutionWrapper.DidNotReceive().Execute(deleteGroupEventsStoredProcedureName, Arg.Any<IList<SqlParameter>>());
+            mockStoredProcedureExecutionWrapper.Received(1).Execute(deleteUserEventsStoredProcedureName, Arg.Is<IList<SqlParameter>>(ContainEqualParameters(expectedParameters)));
+        }
+
+        #region Private/Protected Methods
+
+        /// <summary>
+        /// Returns an <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/> which checks whether a list of <see cref="SqlParameter">SqlParameters</see> matches the list in parameter <paramref name="expected"/>.
+        /// </summary>
+        /// <param name="expected">The list of parameters the predicate compares to.</param>
+        /// <returns>The <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/>.</returns>
+        /// <remarks>Designed to be passed to the 'predicate' parameter of the NSubstitute Arg.Any{T} argument matcher.</remarks>
+        protected Expression<Predicate<IList<SqlParameter>>> ContainEqualParameters(IList<SqlParameter> expected)
+        {
+            return (IList<SqlParameter> actual) => SqlParameterListsContainSameValues(expected, actual);
+        }
+
+        /// <summary>
+        /// Checks whether two lists of <see cref="SqlParameter"/> contain equal elements.
+        /// </summary>
+        /// <param name="enumerable1">The first list.</param>
+        /// <param name="enumerable2">The second list.</param>
+        /// <returns>True if the lists contain the same parameters.  False otherwise.</returns>
+        protected Boolean SqlParameterListsContainSameValues(IList<SqlParameter> list1, IList<SqlParameter> list2)
+        {
+            if (list1.Count != list2.Count)
+            {
+                return false;
+            }
+            for (Int32 i = 0; i < list1.Count; i++)
+            {
+                if (list1[i].ParameterName != list2[i].ParameterName)
+                    return false;
+                if (list1[i].SqlDbType != list2[i].SqlDbType)
+                    return false;
+                if (!(list1[i].Value.Equals(list2[i].Value)))
+                    return false;
+            }
+
+            return true;
+        }
+
+        #endregion
 
         #region Nested Classes
 

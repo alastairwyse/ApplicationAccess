@@ -50,7 +50,7 @@ namespace ApplicationAccess.Utilities
         /// </summary>
         /// <param name="enumerable1">The first collection.</param>
         /// <param name="enumerable2">The second collection.</param>
-        /// <returns>True if the collections contain the same string.  False otherwise.</returns>
+        /// <returns>True if the collections contain the same strings.  False otherwise.</returns>
         public Boolean StringEnumerablesContainSameValues(IEnumerable<String> enumerable1, IEnumerable<String> enumerable2)
         {
             if (enumerable1.Count() != enumerable2.Count())

@@ -23,11 +23,7 @@ namespace ApplicationAccess.Distribution.Persistence
     /// <summary>
     /// Defines methods to read events from an AccessManager instance persistent storage filtered by a shard range and read in batches.  
     /// </summary>
-    /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
-    /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-    public interface IAccessManagerTemporalEventBatchReader<TUser, TGroup, TComponent, TAccess>
+    public interface IAccessManagerTemporalEventBatchReader
     {
         /// <summary>
         /// Retrieves the id of the first event in the AccessManager.

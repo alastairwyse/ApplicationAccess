@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using Microsoft.Data.SqlClient;
 using ApplicationAccess.Persistence.Models;
@@ -34,11 +35,22 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
     /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
     public class SqlServerAccessManagerTemporalEventBatchReader<TUser, TGroup, TComponent, TAccess> :
         SqlServerAccessManagerTemporalBulkPersister<TUser, TGroup, TComponent, TAccess>,
-        IAccessManagerTemporalEventBatchReader<TUser, TGroup, TComponent, TAccess>
+        IAccessManagerTemporalEventBatchReader,
+        IAccessManagerTemporalEventDeleter
     {
         #pragma warning disable 1591
 
         protected const String eventSequenceColumnName = "EventSequence";
+
+        protected const String deleteUserEventsStoredProcedureName = "DeleteUserEvents";
+        protected const String deleteGroupEventsStoredProcedureName = "DeleteGroupEvents";
+        protected const String deleteUserToGroupMappingEventsStoredProcedureName = "DeleteUserToGroupMappingEvents";
+        protected const String deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName = "DeleteUserToApplicationComponentAndAccessLevelMappingEvents";
+        protected const String deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName = "DeleteGroupToApplicationComponentAndAccessLevelMappingEvents";
+        protected const String deleteUserToEntityMappingEventsStoredProcedureName = "DeleteUserToEntityMappingEvents";
+        protected const String deleteGroupToEntityMappingEventsStoredProcedureName = "DeleteGroupToEntityMappingEvents";
+        protected const String hashRangeStartParameterName = "@HashRangeStart";
+        protected const String hashRangeEndParameterName = "@HashRangeEnd";
 
         #pragma warning restore 1591
 
@@ -191,6 +203,22 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         public IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange)
         {
             return GetEvents(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, null);
+        }
+
+        /// <inheritdoc/>
+        /// <remarks>Parameter <paramref name="includeGroupEvents"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to avoid deleting any groups which may be present in user to group mappings.  For group shards it should be set true.</remarks>
+        public void DeleteEvents(Int32 hashRangeStart, Int32 hashRangeEnd, Boolean includeGroupEvents)
+        {
+            DeleteGroupToEntityMappingEvents(hashRangeStart, hashRangeEnd);
+            DeleteUserToEntityMappingEvents(hashRangeStart, hashRangeEnd);
+            DeleteGroupToApplicationComponentAndAccessLevelMappingEvents(hashRangeStart, hashRangeEnd);
+            DeleteUserToApplicationComponentAndAccessLevelMappingEvents(hashRangeStart, hashRangeEnd);
+            DeleteUserToGroupMappingEvents(hashRangeStart, hashRangeEnd);
+            if (includeGroupEvents == true)
+            {
+                DeleteGroupEvents(hashRangeStart, hashRangeEnd);
+            }
+            DeleteUserEvents(hashRangeStart, hashRangeEnd);
         }
 
         #region Private/Protected Methods
@@ -744,6 +772,100 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             Int32 hashCode = Int32.Parse(hashCodeAsString);
 
             return readSpecificPropertiesFunction(eventId, eventAction, occurredTime, hashCode, dataReader);
+        }
+
+        /// <summary>
+        /// Permanently deletes all user events from persistent storage.
+        /// </summary>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to delete.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to delete.</param>
+        protected void DeleteUserEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
+        {
+            List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
+            storedProcedureExecutor.Execute(deleteUserEventsStoredProcedureName, parameters);
+        }
+
+        /// <summary>
+        /// Permanently deletes all group events from persistent storage.
+        /// </summary>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to delete.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to delete.</param>
+        protected void DeleteGroupEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
+        {
+            List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
+            storedProcedureExecutor.Execute(deleteGroupEventsStoredProcedureName, parameters);
+        }
+
+        /// <summary>
+        /// Permanently deletes all user to group mapping events from persistent storage.
+        /// </summary>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to delete.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to delete.</param>
+        protected void DeleteUserToGroupMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
+        {
+            List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
+            storedProcedureExecutor.Execute(deleteUserToGroupMappingEventsStoredProcedureName, parameters);
+        }
+
+        /// <summary>
+        /// Permanently deletes all user to application component and access level mapping events from persistent storage.
+        /// </summary>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to delete.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to delete.</param>
+        protected void DeleteUserToApplicationComponentAndAccessLevelMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
+        {
+            List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
+            storedProcedureExecutor.Execute(deleteUserToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, parameters);
+        }
+
+        /// <summary>
+        /// Permanently deletes all group to application component and access level mapping events from persistent storage.
+        /// </summary>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to delete.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to delete.</param>
+        protected void DeleteGroupToApplicationComponentAndAccessLevelMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
+        {
+            List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
+            storedProcedureExecutor.Execute(deleteGroupToApplicationComponentAndAccessLevelMappingEventsStoredProcedureName, parameters);
+        }
+
+        /// <summary>
+        /// Permanently deletes all user to entity mapping events from persistent storage.
+        /// </summary>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to delete.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to delete.</param>
+        protected void DeleteUserToEntityMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
+        {
+            List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
+            storedProcedureExecutor.Execute(deleteUserToEntityMappingEventsStoredProcedureName, parameters);
+        }
+
+        /// <summary>
+        /// Permanently deletes all group to entity mapping events from persistent storage.
+        /// </summary>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to delete.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to delete.</param>
+        protected void DeleteGroupToEntityMappingEvents(Int32 hashRangeStart, Int32 hashRangeEnd)
+        {
+            List<SqlParameter> parameters = CreateHashCodeRangeSqlParameters(hashRangeStart, hashRangeEnd);
+            storedProcedureExecutor.Execute(deleteGroupToEntityMappingEventsStoredProcedureName, parameters);
+        }
+
+        /// <summary>
+        /// Creates the parameters for one of the Delete*Events stored procedures.
+        /// </summary>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to delete.</param>
+        /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to delete.</param>
+        /// <returns>The parameters as <see cref="SqlParameter">SqlParameters</see>.</returns>
+        protected List<SqlParameter> CreateHashCodeRangeSqlParameters(Int32 hashRangeStart, Int32 hashRangeEnd)
+        {
+            var returnParameters = new List<SqlParameter>()
+            {
+                CreateSqlParameterWithValue(hashRangeStartParameterName, SqlDbType.Int, hashRangeStart),
+                CreateSqlParameterWithValue(hashRangeEndParameterName, SqlDbType.Int, hashRangeEnd)
+            };
+
+            return returnParameters;
         }
 
         #endregion
