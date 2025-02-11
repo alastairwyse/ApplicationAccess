@@ -44,7 +44,6 @@ namespace ApplicationAccess.Persistence.Sql
         /// </summary>
         /// <param name="eventId">The unique id of the event.</param>
         /// <returns>The query.</returns>
-        /// <remarks>If multiple events occur at the same time as the specified event id, the transaction time and sequence numbers of all those events will be returned.</remarks>
         public abstract String GenerateGetTransactionTimeOfEventQuery(Guid eventId);
 
         /// <summary>

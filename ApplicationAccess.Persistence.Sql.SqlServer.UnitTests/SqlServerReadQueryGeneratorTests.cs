@@ -48,12 +48,7 @@ namespace ApplicationAccess.Persistence.Sql.SqlServer.UnitTests
                     CONVERT(nvarchar(30), TransactionTime , 126) AS 'TransactionTime', 
                     CONVERT(nvarchar(30), TransactionSequence) AS 'TransactionSequence' 
             FROM    EventIdToTransactionTimeMap 
-            WHERE   TransactionTime = 
-                    (
-                        SELECT  TransactionTime 
-                        FROM    EventIdToTransactionTimeMap 
-                        WHERE   EventId = '{eventIdAsString}'
-                    );";
+            WHERE   EventId = '{eventIdAsString}';";
 
             String result = testSqlServerReadQueryGenerator.GenerateGetTransactionTimeOfEventQuery(eventId);
 

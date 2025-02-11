@@ -303,5 +303,20 @@ namespace ApplicationAccess.Distribution.Metrics
         }
     }
 
+    /// <summary>
+    /// Count metric which records a buffer flush operation triggered by a manual method call.
+    /// </summary>
+    public class BufferFlushOperationTriggeredByManualAction : CountMetric
+    {
+        protected static String staticName = "BufferFlushOperationTriggeredByManualAction";
+        protected static String staticDescription = "A buffer flush operation triggered by a manual method call";
+
+        public BufferFlushOperationTriggeredByManualAction()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
     #pragma warning restore 1591
 }
