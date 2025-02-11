@@ -1,15 +1,15 @@
-﻿--------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Drop Functions / Stored Procedures
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
--- NOTE: If executing through SQL Server Management Studio, set 'SQKCMD Mode' via the 'Query' menu
+﻿-- NOTE: If executing through SQL Server Management Studio, set 'SQKCMD Mode' via the 'Query' menu
 
 :Setvar DatabaseName ApplicationAccess
 
 USE $(DatabaseName);
 GO 
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Drop Functions / Stored Procedures
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 DROP PROCEDURE dbo.ProcessEvents;
 DROP PROCEDURE dbo.RemoveGroupToEntityMapping;

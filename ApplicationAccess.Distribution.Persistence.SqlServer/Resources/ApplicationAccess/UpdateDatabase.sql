@@ -2501,6 +2501,503 @@ BEGIN
 END
 GO
 
+--------------------------------------------------------------------------------
+-- dbo.DeleteUserEvents
+
+CREATE PROCEDURE dbo.DeleteUserEvents
+(
+    @HashRangeStart  int, 
+    @HashRangeEnd    int
+)
+AS
+BEGIN
+
+    DECLARE @ErrorMessage  nvarchar(max);
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.Users
+        WHERE   Id IN 
+                (
+                    SELECT  UserId 
+                    FROM    dbo.EventIdToUserMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table Users for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToTransactionTimeMap
+        WHERE   EventId IN 
+                (
+                    SELECT  EventId 
+                    FROM    dbo.EventIdToUserMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting user events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToUserMap
+        WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table EventIdToUserMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+END
+GO
+
+--------------------------------------------------------------------------------
+-- dbo.DeleteGroupEvents
+
+CREATE PROCEDURE dbo.DeleteGroupEvents
+(
+    @HashRangeStart  int, 
+    @HashRangeEnd    int
+)
+AS
+BEGIN
+
+    DECLARE @ErrorMessage  nvarchar(max);
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.Groups
+        WHERE   Id IN 
+                (
+                    SELECT  GroupId 
+                    FROM    dbo.EventIdToGroupMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table Groups for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToTransactionTimeMap
+        WHERE   EventId IN 
+                (
+                    SELECT  EventId 
+                    FROM    dbo.EventIdToGroupMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting group events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToGroupMap
+        WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table EventIdToGroupMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+END
+GO
+
+--------------------------------------------------------------------------------
+-- dbo.DeleteUserToGroupMappingEvents
+
+CREATE PROCEDURE dbo.DeleteUserToGroupMappingEvents
+(
+    @HashRangeStart  int, 
+    @HashRangeEnd    int
+)
+AS
+BEGIN
+
+    DECLARE @ErrorMessage  nvarchar(max);
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.UserToGroupMappings
+        WHERE   Id IN 
+                (
+                    SELECT  UserToGroupMappingId 
+                    FROM    dbo.EventIdToUserToGroupMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table UserToGroupMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToTransactionTimeMap
+        WHERE   EventId IN 
+                (
+                    SELECT  EventId 
+                    FROM    dbo.EventIdToUserToGroupMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting user to group mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToUserToGroupMap
+        WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table EventIdToUserToGroupMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+END
+GO
+
+--------------------------------------------------------------------------------
+-- dbo.DeleteUserToApplicationComponentAndAccessLevelMappingEvents
+
+CREATE PROCEDURE dbo.DeleteUserToApplicationComponentAndAccessLevelMappingEvents
+(
+    @HashRangeStart  int, 
+    @HashRangeEnd    int
+)
+AS
+BEGIN
+
+    DECLARE @ErrorMessage  nvarchar(max);
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.UserToApplicationComponentAndAccessLevelMappings
+        WHERE   Id IN 
+                (
+                    SELECT  UserToApplicationComponentAndAccessLevelMappingId 
+                    FROM    dbo.EventIdToUserToApplicationComponentAndAccessLevelMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table UserToApplicationComponentAndAccessLevelMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToTransactionTimeMap
+        WHERE   EventId IN 
+                (
+                    SELECT  EventId 
+                    FROM    dbo.EventIdToUserToApplicationComponentAndAccessLevelMap
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting user to application component and access level mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToUserToApplicationComponentAndAccessLevelMap
+        WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table EventIdToUserToApplicationComponentAndAccessLevelMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+END
+GO
+
+--------------------------------------------------------------------------------
+-- dbo.DeleteGroupToApplicationComponentAndAccessLevelMappingEvents
+
+CREATE PROCEDURE dbo.DeleteGroupToApplicationComponentAndAccessLevelMappingEvents
+(
+    @HashRangeStart  int, 
+    @HashRangeEnd    int
+)
+AS
+BEGIN
+
+    DECLARE @ErrorMessage  nvarchar(max);
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.GroupToApplicationComponentAndAccessLevelMappings
+        WHERE   Id IN 
+                (
+                    SELECT  GroupToApplicationComponentAndAccessLevelMappingId 
+                    FROM    dbo.EventIdToGroupToApplicationComponentAndAccessLevelMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table GroupToApplicationComponentAndAccessLevelMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToTransactionTimeMap
+        WHERE   EventId IN 
+                (
+                    SELECT  EventId 
+                    FROM    dbo.EventIdToGroupToApplicationComponentAndAccessLevelMap
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting group to application component and access level mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToGroupToApplicationComponentAndAccessLevelMap
+        WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table EventIdToGroupToApplicationComponentAndAccessLevelMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+END
+GO
+
+--------------------------------------------------------------------------------
+-- dbo.DeleteUserToEntityMappingEvents
+
+CREATE PROCEDURE dbo.DeleteUserToEntityMappingEvents
+(
+    @HashRangeStart  int, 
+    @HashRangeEnd    int
+)
+AS
+BEGIN
+
+    DECLARE @ErrorMessage  nvarchar(max);
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.UserToEntityMappings
+        WHERE   Id IN 
+                (
+                    SELECT  UserToEntityMappingId 
+                    FROM    dbo.EventIdToUserToEntityMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table UserToEntityMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToTransactionTimeMap
+        WHERE   EventId IN 
+                (
+                    SELECT  EventId 
+                    FROM    dbo.EventIdToUserToEntityMap
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting user to entity mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToUserToEntityMap
+        WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table EventIdToUserToEntityMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+END
+GO
+
+--------------------------------------------------------------------------------
+-- dbo.DeleteGroupToEntityMappingEvents
+
+CREATE PROCEDURE dbo.DeleteGroupToEntityMappingEvents
+(
+    @HashRangeStart  int, 
+    @HashRangeEnd    int
+)
+AS
+BEGIN
+
+    DECLARE @ErrorMessage  nvarchar(max);
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.GroupToEntityMappings
+        WHERE   Id IN 
+                (
+                    SELECT  GroupToEntityMappingId 
+                    FROM    dbo.EventIdToGroupToEntityMap 
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table GroupToEntityMappings for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToTransactionTimeMap
+        WHERE   EventId IN 
+                (
+                    SELECT  EventId 
+                    FROM    dbo.EventIdToGroupToEntityMap
+                    WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd 
+                );
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting group to entity mapping events from table EventIdToTransactionTimeMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        DELETE 
+        FROM    dbo.EventIdToGroupToEntityMap
+        WHERE   HashCode BETWEEN @HashRangeStart AND @HashRangeEnd;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION
+        SET @ErrorMessage = N'Error deleting from table EventIdToGroupToEntityMap for hash range ' + STR(@HashRangeStart) + ' to ' + STR(@HashRangeEnd) + '; ' + ERROR_MESSAGE();
+        THROW 50001, @ErrorMessage, 1;
+    END CATCH
+
+    COMMIT TRANSACTION
+
+END
+GO
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
