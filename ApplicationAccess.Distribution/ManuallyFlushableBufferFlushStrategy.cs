@@ -104,7 +104,7 @@ namespace ApplicationAccess.Distribution
         protected void ImplementBufferFlush()
         {
             // The implementation below doesn't adhere to the method of flushing used by the looping worker thread and size trigger in this classes' bases.
-            //   The correct way to do this would be to bufferProcessSignal.Set(), and let the looping worker thread actually implement the flush.
+            //   The correct way to do this would be to bufferProcessSignal.Set(), and let the flushing worker thread actually implement the flush.
             //   The problem with that approach in this context is that it is an async operation, but here we need to wait until the flush process is
             //   complete before returning.  Hence here we override the 'BufferFlushingAction' property and put a lock around the region which raises
             //   event 'OnBufferFlushed'.  Then we call that region from the public FlushBuffer() method.

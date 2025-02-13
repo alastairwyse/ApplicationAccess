@@ -23,6 +23,7 @@ using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationLogging;
 using ApplicationMetrics;
+using System.Collections;
 
 namespace ApplicationAccess.Distribution.Persistence.SqlServer
 {
@@ -157,7 +158,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             String query =
             @$" 
             SELECT  TOP(1)
-                    CONVERT(nvarchar(40), EventId) AS 'EventId'
+                    CONVERT(nvarchar(40), EventId) AS 'EventId' 
             FROM    EventIdToTransactionTimeMap 
             WHERE   TransactionTime =
                     (
@@ -170,11 +171,19 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         }
 
         /// <inheritdoc/>
-        public Nullable<Guid> GetNextStateAfter(Guid inputEventId)
+        public Nullable<Guid> GetNextEventAfter(Guid inputEventId)
         {
-            String query =
+            String validationQuery =
             $@"
-            SELECT  *
+            SELECT  CONVERT(nvarchar(40), EventId) AS 'EventId' 
+            FROM    EventIdToTransactionTimeMap 
+            WHERE   EventId = '{inputEventId.ToString()}';";
+            var eventNotFoundException = new ArgumentException($"Parameter '{nameof(inputEventId)}' with value '{inputEventId}' contained an event id which was not found in the SQL Server database.", nameof(inputEventId));
+            ExecuteAccessManagerEventRetrievalQuery(validationQuery, eventNotFoundException);
+
+            String retrievalQuery =
+            $@"
+            SELECT  CONVERT(nvarchar(40), EventId) AS 'EventId' 
             FROM    EventIdToTransactionTimeMap 
             WHERE   TransactionTime >= 
                     (
@@ -183,26 +192,34 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                         WHERE   EventId = '{inputEventId.ToString()}'
                     ) 
             ORDER   BY TransactionTime, 
-                        TransactionSequence
+                       TransactionSequence
             OFFSET  1 ROWS   
             FETCH   NEXT 1 ROWS ONLY;";
-            var eventNotFoundException = new ArgumentException($"Parameter '{nameof(inputEventId)}' with value '{inputEventId}' contained an event id which was not found in the SQL Server database.", nameof(inputEventId));
-
-            return ExecuteAccessManagerEventRetrievalQuery(query, eventNotFoundException);
+            IEnumerable<Guid> queryResults = persisterUtilities.ExecuteMultiResultQueryAndHandleException
+            (
+                retrievalQuery,
+                "EventId",
+                (String cellValue) => { return Guid.Parse(cellValue); }
+            );
+            foreach (Guid currentResult in queryResults)
+            {
+                return currentResult;
+            }
+            return null;
         }
 
         /// <inheritdoc/>
         /// <remarks>Parameter <paramref name="filterGroupEventsByHashRange"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to capture all the group which may be present in user to group mappings.  For group shards it should be set true, to properly filter the returned groups and group mappings.</remarks>
         public IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Int32 eventCount)
         {
-            return GetEvents(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, eventCount);
+            return GetEventsImplementation(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, eventCount);
         }
 
         /// <inheritdoc/>
         /// <remarks>Parameter <paramref name="filterGroupEventsByHashRange"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to capture all the group which may be present in user to group mappings.  For group shards it should be set true, to properly filter the returned groups and group mappings.</remarks>
         public IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange)
         {
-            return GetEvents(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, null);
+            return GetEventsImplementation(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, null);
         }
 
         /// <inheritdoc/>
@@ -245,15 +262,15 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         }
 
         /// <summary>
-        /// Retrieves the sequence of events which follow (and include) the specified event.
+        /// Retrieves the sequence of events which follow (and potentially include) the specified event.
         /// </summary>
-        /// <param name="initialEventId">The id of the first event in the sequence.</param>
+        /// <param name="initialEventId">The id of the earliest event in the sequence.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to retrieve.</param>
         /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to retrieve.</param>
         /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will return all group events if set to false.</param>
         /// <param name="eventCount">The number of events to retrieve (including that specified in <paramref name="initialEventId"/>).  Set to null to retrieve all events.</param>
         /// <returns>The sequence of events in order of ascending date/time, and including that specified in <paramref name="initialEventId"/>, or an empty list if the event represented by <paramref name="initialEventId"/> is the latest.</returns>
-        protected IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Nullable<Int32> eventCount)
+        protected IList<TemporalEventBufferItemBase> GetEventsImplementation(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Nullable<Int32> eventCount)
         {
             // Get the AccessManagerState corresponding to 'initialEventId'
             AccessManagerState initialEventState;
@@ -766,7 +783,19 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             String occurredTimeAsString = (String)dataReader[occurredTimeColumnName];
             String hashCodeAsString = (String)dataReader[hashCodeColumnName];
             Guid eventId = Guid.Parse(eventIdAsString);
-            EventAction eventAction = Enum.Parse<EventAction>(eventActionAsString);
+            EventAction eventAction;
+            if (eventActionAsString == addEventActionValue)
+            {
+                eventAction = EventAction.Add;
+            }
+            else if (eventActionAsString == removeEventActionValue)
+            {
+                eventAction = EventAction.Remove;
+            }
+            else
+            {
+                throw new Exception($"Column '{eventActionColumnName}' in event query results contained unhandled event action '{eventActionAsString}'.");
+            }
             DateTime occurredTime = DateTime.ParseExact(occurredTimeAsString, transactionSql126DateStyle, DateTimeFormatInfo.InvariantInfo);
             occurredTime = DateTime.SpecifyKind(occurredTime, DateTimeKind.Utc);
             Int32 hashCode = Int32.Parse(hashCodeAsString);
