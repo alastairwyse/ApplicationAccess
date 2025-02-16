@@ -21,6 +21,7 @@ using Microsoft.Extensions.Options;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Utilities;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.Writer
 {
@@ -29,7 +30,12 @@ namespace ApplicationAccess.Hosting.Rest.Writer
     /// </summary>
     /// <remarks>StartAsync() constructs a <see cref="WriterNode{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
     public class WriterNodeHostedServiceWrapper
-        : WriterNodeHostedServiceWrapperBase<WriterNode<String, String, String, String>, MetricLoggingConcurrentAccessManager<String, String, String, String>>
+        : WriterNodeHostedServiceWrapperBase
+        <
+            WriterNode<String, String, String, String>, 
+            MetricLoggingConcurrentAccessManager<String, String, String, String>, 
+            SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
+        >
     {
         /// <inheritdoc/>
         protected override String MetricLoggerCategoryName
@@ -89,6 +95,33 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             var hashCodeGenerator = new DefaultStringHashCodeGenerator();
 
             return new WriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
+        }
+
+        /// <inheritdoc/>
+        protected override SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy InitializeBufferFlushStrategy()
+        {
+            return new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
+            (
+                eventBufferFlushingOptions.BufferSizeLimit,
+                eventBufferFlushingOptions.FlushLoopInterval,
+                // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
+                !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
+                eventBufferFlushingExceptionAction
+            );
+        }
+
+        /// <inheritdoc/>
+        protected override SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy InitializeBufferFlushStrategyWithMetricLogging()
+        {
+            return new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
+            (
+                eventBufferFlushingOptions.BufferSizeLimit,
+                eventBufferFlushingOptions.FlushLoopInterval,
+                // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
+                !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
+                eventBufferFlushingExceptionAction, 
+                metricLogger
+            );
         }
 
         #endregion

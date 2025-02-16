@@ -15,6 +15,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,12 +24,9 @@ using Microsoft.Extensions.Hosting;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient;
 using ApplicationAccess.Hosting.Rest.ReaderWriter.IntegrationTests;
+using ApplicationAccess.Utilities;
 using NSubstitute;
 using NUnit.Framework;
-using ApplicationAccess.Utilities;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Linq;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationTests
 {

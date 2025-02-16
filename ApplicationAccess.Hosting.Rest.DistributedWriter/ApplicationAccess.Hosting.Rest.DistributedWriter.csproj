@@ -6,7 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Authors>Alastair Wyse</Authors>
     <Description>Classes which host an ApplicationAccess DistributedWriter as a REST-based web API.</Description>
-    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
   </PropertyGroup>
 
@@ -26,10 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Writer\ApplicationAccess.Hosting.Rest.Writer.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>

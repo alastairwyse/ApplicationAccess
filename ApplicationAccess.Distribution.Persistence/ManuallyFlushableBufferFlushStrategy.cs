@@ -21,18 +21,18 @@ using ApplicationAccess.Persistence;
 using ApplicationAccess.Utilities;
 using ApplicationMetrics;
 
-namespace ApplicationAccess.Distribution
+namespace ApplicationAccess.Distribution.Persistence
 {
     /// <summary>
     /// A specialization of <see cref="SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy"/> which additionally allows manual flushing of buffered events.
     /// </summary>
-    public class ManuallyFlushableBufferFlushStrategy : SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
+    public class ManuallyFlushableBufferFlushStrategy : SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy, IManuallyFlushableBufferFlushStrategy
     {
         /// <summary>Mutual exclusion lock object on raises of event 'OnBufferFlushed'.</summary>
         protected Object onBufferFlushedLockObject;
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Distribution.ManuallyFlushableBufferFlushStrategy class.
+        /// Initialises a new instance of the ApplicationAccess.Distribution.Persistence.ManuallyFlushableBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
@@ -45,7 +45,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Distribution.ManuallyFlushableBufferFlushStrategy class.
+        /// Initialises a new instance of the ApplicationAccess.Distribution.Persistence.ManuallyFlushableBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
@@ -59,7 +59,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Distribution.ManuallyFlushableBufferFlushStrategy class.
+        /// Initialises a new instance of the ApplicationAccess.Distribution.Persistence.ManuallyFlushableBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
@@ -73,7 +73,7 @@ namespace ApplicationAccess.Distribution
         }
 
         /// <summary>
-        /// Initialises a new instance of the ApplicationAccess.Distribution.ManuallyFlushableBufferFlushStrategy class.
+        /// Initialises a new instance of the ApplicationAccess.Distribution.Persistence.ManuallyFlushableBufferFlushStrategy class.
         /// </summary>
         /// <param name="bufferSizeLimit">The total size of the buffers which when reached, triggers flushing/processing of the buffer contents.</param>
         /// <param name="flushLoopInterval">The time to wait (in milliseconds) between buffer flushing/processing iterations.</param>
@@ -87,9 +87,7 @@ namespace ApplicationAccess.Distribution
             InitializeBufferFlushingAction();
         }
 
-        /// <summary>
-        /// Immediately flushes buffered events.
-        /// </summary>
+        /// <inheritdoc/>
         public void FlushBuffers()
         {
             ImplementBufferFlush();

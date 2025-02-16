@@ -27,7 +27,7 @@ using NSubstitute;
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.IntegrationTests
 {
     /// <summary>
-    /// Test controller methods implemented by the DistributedOperationRouter node implements.
+    /// Tests controller methods implemented by the DistributedOperationRouter node.
     /// </summary>
     /// <remarks>
     ///   <para>This test class provides complete test coverage for the following controller classes...</para>

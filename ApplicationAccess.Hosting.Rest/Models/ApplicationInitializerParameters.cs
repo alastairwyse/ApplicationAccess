@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ApplicationAccess.Hosting.Models;
 
@@ -56,6 +57,9 @@ namespace ApplicationAccess.Hosting.Rest.Models
         /// <summary>A collection of types of 'processor holder' classes (e.g. <see cref="UserEventProcessorHolder"/>) to be registered in dependency injection.</summary>
         public IEnumerable<Type> ProcessorHolderTypes { get; set; }
 
+        /// <summary>An action which allows custom service configuration and registration.</summary>
+        public Action<IServiceCollection> ConfigureServicesAction { get; set; }
+
         /// <summary>A collection of mappings between a type (derived from <see cref="Exception"/>) and a <see cref="System.Net.HttpStatusCode"/> that should be returned when an exception of that type is thrown from a controller method.</summary>
         public IEnumerable<Tuple<Type, HttpStatusCode>> ExceptionToHttpStatusCodeMappings { get; set; }
 
@@ -67,6 +71,9 @@ namespace ApplicationAccess.Hosting.Rest.Models
 
         /// <summary>The exception to throw on receiving any requests after the switch has been tripped, when <see cref="TripSwitchMiddleware"/> is enabled.  <see cref="TripSwitchMiddleware"/> will not be used if not set.</summary>
         public Exception TripSwitchTrippedException { get; set; }
+
+        /// <summary>An action which allows configuring the specified <see cref="IApplicationBuilder"/>.</summary>
+        public Action<IApplicationBuilder> ConfigureApplicationBuilderAction { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.Models.ApplicationInitializerParameters class.
@@ -80,10 +87,12 @@ namespace ApplicationAccess.Hosting.Rest.Models
             SwaggerGenerationAdditionalAssemblies = Enumerable.Empty<Assembly>();
             ConfigureOptionsAction = (WebApplicationBuilder builder) => { };
             ProcessorHolderTypes = Enumerable.Empty<Type>();
+            ConfigureServicesAction = (IServiceCollection serviceCollection) => { };
             ExceptionToHttpStatusCodeMappings = Enumerable.Empty<Tuple<Type, HttpStatusCode>>();
             ExceptionTypesMappedToStandardHttpErrorResponse = Enumerable.Empty<Type>();
             ExceptionToCustomHttpErrorResponseGeneratorFunctionMappings = Enumerable.Empty<Tuple<Type, Func<Exception, HttpErrorResponse>>>();
             TripSwitchTrippedException = null;
+            ConfigureApplicationBuilderAction = (IApplicationBuilder applicationBuilder) => { };
         }
     }
 }

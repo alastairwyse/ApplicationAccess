@@ -33,7 +33,6 @@ using ApplicationAccess.Persistence;
 using ApplicationLogging;
 using ApplicationLogging.Adapters.MicrosoftLoggingExtensions;
 using ApplicationMetrics.MetricLoggers;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ApplicationAccess.Hosting.Rest.Writer
 {
@@ -41,11 +40,13 @@ namespace ApplicationAccess.Hosting.Rest.Writer
     /// Base for classes which wrap a subclass instance of <see cref="WriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> and associated components and initialize them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
     /// </summary>
     /// <typeparam name="TWriterNode">The subclass of <see cref="WriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> to wrap/host.</typeparam>
-    /// <typeparam name="TAccessManager">The instance or subclass <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> which reads and writes the permissions and authorizations in the ReaderWriterNode.</typeparam>
+    /// <typeparam name="TAccessManager">The instance or subclass of <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> which reads and writes the permissions and authorizations in the ReaderWriterNode.</typeparam>
+    /// <typeparam name="TBufferFlushStrategy">The subclass of <see cref="WorkerThreadBufferFlushStrategyBase"/> which implements the stragegy for flushing buffered events.</typeparam>
     /// <remarks>StartAsync() constructs a <see cref="WriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> subclass instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
-    public abstract class WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager> : IHostedService
+    public abstract class WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager, TBufferFlushStrategy> : IHostedService
         where TWriterNode : WriterNodeBase<String, String, String, String, TAccessManager>
         where TAccessManager : ConcurrentAccessManager<String, String, String, String>, IMetricLoggingComponent
+        where TBufferFlushStrategy : WorkerThreadBufferFlushStrategyBase
     {
         // Members passed in via dependency injection
         protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
@@ -59,10 +60,12 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         protected UserEventProcessorHolder userEventProcessorHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
-        protected ILogger<WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager>> logger;
+        protected ILogger<WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager, TBufferFlushStrategy>> logger;
 
+        /// <summary>An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</summary>
+        protected Action<BufferFlushingException> eventBufferFlushingExceptionAction;
         /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the WriterNode.</summary>
-        protected SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy eventBufferFlushStrategy;
+        protected TBufferFlushStrategy eventBufferFlushStrategy;
         /// <summary>Used to persist changes to and load data from the AccessManager.</summary>
         protected IAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
         /// <summary>Interface to a cache for events which change the AccessManager.</summary>
@@ -93,7 +96,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             UserEventProcessorHolder userEventProcessorHolder,
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
-            ILogger<WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager>> logger
+            ILogger<WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager, TBufferFlushStrategy>> logger
         )
         {
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
@@ -238,7 +241,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 throw new Exception($"Failed to convert event cache host '{eventCacheConnectionOptions.Host}' to a {typeof(Uri).Name}.", e);
             }
 
-            Action<BufferFlushingException> eventBufferFlushingExceptionAction = (BufferFlushingException bufferFlushingException) =>
+            eventBufferFlushingExceptionAction = (BufferFlushingException bufferFlushingException) =>
             {
                 tripSwitchActuator.Actuate();
                 try
@@ -271,14 +274,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     eventCacheConnectionOptions.RetryCount,
                     eventCacheConnectionOptions.RetryInterval
                 );
-                eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
-                (
-                    eventBufferFlushingOptions.BufferSizeLimit,
-                    eventBufferFlushingOptions.FlushLoopInterval,
-                    // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
-                    !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
-                    eventBufferFlushingExceptionAction
-                );
+                eventBufferFlushStrategy = InitializeBufferFlushStrategy();
             }
             else
             {
@@ -340,14 +336,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                     eventCacheClientLogger,
                     metricLogger
                 );
-                eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
-                (
-                    eventBufferFlushingOptions.BufferSizeLimit,
-                    eventBufferFlushingOptions.FlushLoopInterval,
-                    // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
-                    !(eventPersistenceOptions.EventPersisterBackupFilePath == null), 
-                    eventBufferFlushingExceptionAction
-                );
+                eventBufferFlushStrategy = InitializeBufferFlushStrategyWithMetricLogging();
             }
         }
 
@@ -362,6 +351,18 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         /// </summary>
         /// <returns>The <see cref="WriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> instance.</returns>
         protected abstract TWriterNode InitializeWriterNodeWithMetricLogging();
+
+        /// <summary>
+        /// Initializes and returns the <see cref="WorkerThreadBufferFlushStrategyBase"/> instance.
+        /// </summary>
+        /// <returns>The <see cref="WorkerThreadBufferFlushStrategyBase"/> instance.</returns>
+        protected abstract TBufferFlushStrategy InitializeBufferFlushStrategy();
+
+        /// <summary>
+        /// Initializes and returns the <see cref="WorkerThreadBufferFlushStrategyBase"/> instance configured to log metrics.
+        /// </summary>
+        /// <returns>The <see cref="WorkerThreadBufferFlushStrategyBase"/> instance.</returns>
+        protected abstract TBufferFlushStrategy InitializeBufferFlushStrategyWithMetricLogging();
 
         /// <summary>
         /// Sets the 'writerNode' member on the various 'holder' class instances (e.g. <see cref="EntityEventProcessorHolder"/>).

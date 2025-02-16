@@ -446,5 +446,40 @@
             <param name="enumerable2">The second collection.</param>
             <returns>True if the collections contain the same strings.  False otherwise.</returns>
         </member>
+        <member name="T:ApplicationAccess.Utilities.ThreadSafeCounter">
+            <summary>
+            A counter which can be incremented and decremented safely by multiple threads.
+            </summary>
+            <remarks>This class is basically a wrapper around the <see cref="T:System.Threading.Interlocked"/> class.</remarks>
+        </member>
+        <member name="F:ApplicationAccess.Utilities.ThreadSafeCounter.counterValue">
+            <summary>The value of the counter.</summary>
+        </member>
+        <member name="P:ApplicationAccess.Utilities.ThreadSafeCounter.CounterValue">
+            <summary>
+            The value of the counter.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.ThreadSafeCounter.#ctor">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Utilities.ThreadSafeCounter class.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.ThreadSafeCounter.#ctor(System.Int32)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Utilities.ThreadSafeCounter class.
+            </summary>
+            <param name="initialValue">The initial value of the counter.</param>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.ThreadSafeCounter.Increment">
+            <summary>
+            Increments the counter;
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Utilities.ThreadSafeCounter.Decrement">
+            <summary>
+            Decrements the counter;
+            </summary>
+        </member>
     </members>
 </doc>

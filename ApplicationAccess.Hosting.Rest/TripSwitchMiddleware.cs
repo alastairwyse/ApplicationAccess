@@ -279,7 +279,7 @@ namespace ApplicationAccess.Hosting.Rest
     public static class TripSwitcMiddlewareExtensions
     {
         /// <summary>
-        /// Adds the specified <see cref="TripSwitchMiddleware"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
+        /// Adds <see cref="TripSwitchMiddleware"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
         /// </summary>
         /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the tripswitch middleware to.</param>
         /// <param name="actuator">The actuator for the trip switch.</param>
@@ -297,7 +297,7 @@ namespace ApplicationAccess.Hosting.Rest
         }
 
         /// <summary>
-        /// Adds the specified <see cref="TripSwitchMiddleware"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
+        /// Adds <see cref="TripSwitchMiddleware"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
         /// </summary>
         /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the tripswitch middleware to.</param>
         /// <param name="actuator">The actuator for the trip switch.</param>
@@ -310,7 +310,7 @@ namespace ApplicationAccess.Hosting.Rest
         }
 
         /// <summary>
-        /// Adds the specified <see cref="TripSwitchMiddleware{TTripException}"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
+        /// Adds <see cref="TripSwitchMiddleware{TTripException}"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
         /// </summary>
         /// <typeparam name="TTripException">The type of the exception which activates/trips the switch.</typeparam>
         /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the tripswitch middleware to.</param>
@@ -331,7 +331,7 @@ namespace ApplicationAccess.Hosting.Rest
         }
 
         /// <summary>
-        /// Adds the specified <see cref="TripSwitchMiddleware{TTripException}"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
+        /// Adds <see cref="TripSwitchMiddleware{TTripException}"/> to the <see cref="IApplicationBuilder">IApplicationBuilder's</see> request pipeline.
         /// </summary>
         /// <typeparam name="TTripException">The type of the exception which activates/trips the switch.</typeparam>
         /// <param name="applicationBuilder">The <see cref="IApplicationBuilder"/> to add the tripswitch middleware to.</param>

@@ -187,6 +187,8 @@ namespace ApplicationAccess.Hosting.Rest
                 builder.Services.AddSingleton<TripSwitchActuator>(tripSwitchActuator);
             }
 
+            parameters.ConfigureServicesAction.Invoke(builder.Services);
+
             // Register the hosted service wrapper
             if (builder.Environment.EnvironmentName != IntegrationTestingEnvironmentName)
             {
@@ -248,6 +250,8 @@ namespace ApplicationAccess.Hosting.Rest
                 app.UseTripSwitch(tripSwitchActuator, parameters.TripSwitchTrippedException, () => { });
                 app.Lifetime.ApplicationStopped.Register(() => { tripSwitchActuator.Dispose(); });
             }
+
+            parameters.ConfigureApplicationBuilderAction(app);
 
             if (corsAllowedOrigins != null)
             {

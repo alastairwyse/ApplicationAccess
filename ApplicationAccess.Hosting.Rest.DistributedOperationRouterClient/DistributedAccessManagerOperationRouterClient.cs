@@ -29,7 +29,7 @@ using Polly;
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient
 {
     /// <summary>
-    /// Client class which asyncronously interfaces to a <see cref="IDistributedAccessManagerOperationRouter{TClientConfiguration}"/> instance hosted as a REST web API.
+    /// Client class which asyncronously interfaces to a <see cref="IDistributedAccessManagerOperationRouter"/> instance hosted as a REST web API.
     /// </summary>
     public class DistributedAccessManagerOperationRouterClient : 
         DistributedAccessManagerAsyncClient<String, String, String, String>, 

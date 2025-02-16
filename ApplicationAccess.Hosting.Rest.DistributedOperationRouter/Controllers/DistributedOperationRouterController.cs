@@ -29,7 +29,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
     /// </summary>
     public class DistributedOperationRouterController : DistributedOperationProcessorControllerBase
     {
+        #pragma warning disable 1591
+
         protected IDistributedAccessManagerOperationRouter distributedOperationRouter;
+
+        #pragma warning restore 1591
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers.DistributedOperationRouterController class.
@@ -47,7 +51,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
         }
 
         /// <summary>
-        /// Switches on routing functionality on.  If false (off) all operations are routed to the source shard.
+        /// Switches on routing functionality on.
         /// </summary>
         [HttpPost]
         [Route("routing:switchOn")]
@@ -59,7 +63,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers
         }
 
         /// <summary>
-        /// Switches on routing functionality on.  All operations will be routed to the source shard.
+        /// Switches on routing functionality off.  All operations will be routed to the source shard.
         /// </summary>
         [HttpPost]
         [Route("routing:switchOff")]

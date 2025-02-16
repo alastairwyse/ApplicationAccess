@@ -23,10 +23,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Models;
+using ApplicationAccess.Hosting.Rest.DistributedOperationRouter.Controllers;
 using ApplicationAccess.Hosting.Rest.Utilities;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
 {
+    #pragma warning disable 1591
+
     public class Program
     {
         public static void Main(string[] args)
@@ -39,7 +42,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                 SwaggerApplicationDescription = "Distributes operations to two sets of shards in a distributed AccessManager implementation",
                 SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
                 {
-                    typeof(Rest.Controllers.DistributedOperationProcessorControllerBase).Assembly
+                    typeof(Rest.Controllers.DistributedOperationProcessorControllerBase).Assembly, 
+                    typeof(DistributedOperationRouterController).Assembly
                 },
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
@@ -79,4 +83,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
             app.Run();
         }
     }
+
+    #pragma warning restore 1591
 }

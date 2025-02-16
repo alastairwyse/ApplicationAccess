@@ -19,10 +19,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ApplicationAccess.Distribution;
+using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Rest.Writer;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Utilities;
+using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedWriter
 {
@@ -31,8 +33,19 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
     /// </summary>
     /// <remarks>StartAsync() constructs a <see cref="DistributedWriterNode{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
     public class DistributedWriterNodeHostedServiceWrapper
-        : WriterNodeHostedServiceWrapperBase<DistributedWriterNode<String, String, String, String>, DistributedAccessManager<String, String, String, String>>
+        : WriterNodeHostedServiceWrapperBase
+        <
+            DistributedWriterNode<String, String, String, String>, 
+            DistributedAccessManager<String, String, String, String>,
+            ManuallyFlushableBufferFlushStrategy
+        >
     {
+        #pragma warning disable 1591
+
+        protected ManuallyFlushableBufferFlushStrategyHolder manuallyFlushableBufferFlushStrategyHolder;
+
+        #pragma warning restore 1591
+
         /// <inheritdoc/>
         protected override String MetricLoggerCategoryName
         {
@@ -53,6 +66,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
             GroupEventProcessorHolder groupEventProcessorHolder,
             GroupToGroupEventProcessorHolder groupToGroupEventProcessorHolder,
             UserEventProcessorHolder userEventProcessorHolder,
+            ManuallyFlushableBufferFlushStrategyHolder manuallyFlushableBufferFlushStrategyHolder, 
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DistributedWriterNodeHostedServiceWrapper> logger
@@ -73,6 +87,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
             logger
         )
         {
+            this.manuallyFlushableBufferFlushStrategyHolder = manuallyFlushableBufferFlushStrategyHolder;
         }
 
         #region Private/Protected Methods
@@ -91,6 +106,40 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
             var hashCodeGenerator = new DefaultStringHashCodeGenerator();
 
             return new DistributedWriterNode<String, String, String, String>(hashCodeGenerator, hashCodeGenerator, hashCodeGenerator, eventBufferFlushStrategy, eventPersister, eventPersister, eventCacheClient, metricLogger);
+        }
+
+        /// <inheritdoc/>
+        protected override ManuallyFlushableBufferFlushStrategy InitializeBufferFlushStrategy()
+        {
+            return new ManuallyFlushableBufferFlushStrategy
+            (
+                eventBufferFlushingOptions.BufferSizeLimit,
+                eventBufferFlushingOptions.FlushLoopInterval,
+                // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
+                !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
+                eventBufferFlushingExceptionAction
+            );
+        }
+
+        /// <inheritdoc/>
+        protected override ManuallyFlushableBufferFlushStrategy InitializeBufferFlushStrategyWithMetricLogging()
+        {
+            return new ManuallyFlushableBufferFlushStrategy
+            (
+                eventBufferFlushingOptions.BufferSizeLimit,
+                eventBufferFlushingOptions.FlushLoopInterval,
+                // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
+                !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
+                eventBufferFlushingExceptionAction,
+                metricLogger
+            );
+        }
+
+        /// <inheritdoc/>
+        protected override void SetupHolderClasses()
+        {
+            base.SetupHolderClasses();
+            manuallyFlushableBufferFlushStrategyHolder.ManuallyFlushableBufferFlushStrategy = eventBufferFlushStrategy;
         }
 
         #endregion

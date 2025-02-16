@@ -21,16 +21,20 @@ using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using ApplicationAccess.Hosting.Models.Options;
+using ApplicationAccess.Hosting.Rest.DistributedWriter.Controllers;
 using ApplicationAccess.Hosting.Rest.Models;
 using ApplicationAccess.Hosting.Rest.Utilities;
 using ApplicationAccess.Persistence;
 
 namespace ApplicationAccess.Hosting.Rest.DistributedWriter
 {
+    #pragma warning disable 1591
+
     public class Program
     {
         public static void Main(string[] args)
         {
+            var requestCounter = new RequestCounter();
             var parameters = new ApplicationInitializerParameters()
             {
                 Args = args,
@@ -39,7 +43,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
                 SwaggerApplicationDescription = "Node in a distributed/scaled and dependency-free deployment of ApplicationAccess which handles writing events that change permissions and authorizations",
                 SwaggerGenerationAdditionalAssemblies = new List<Assembly>()
                 {
-                    typeof(Rest.Controllers.EntityEventProcessorControllerBase).Assembly
+                    typeof(Rest.Controllers.EntityEventProcessorControllerBase).Assembly,
+                    typeof(DistributedWriterController).Assembly
                 },
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
@@ -65,18 +70,29 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
                     typeof(GroupEventProcessorHolder),
                     typeof(GroupToGroupEventProcessorHolder),
                     typeof(UserEventProcessorHolder),
+                    typeof(ManuallyFlushableBufferFlushStrategyHolder)
                 },
+                // Register the request counter in DI
+                ConfigureServicesAction = (IServiceCollection serviceCollection) =>
+                {
+                    serviceCollection.AddSingleton<RequestCounter>(requestCounter);
+                }, 
                 // Add a mapping from ServiceUnavailableException to HTTP 503 error status
                 ExceptionToHttpStatusCodeMappings = new List<Tuple<Type, HttpStatusCode>>()
                 {
                     new Tuple<Type, HttpStatusCode>(typeof(ServiceUnavailableException), HttpStatusCode.ServiceUnavailable)
                 },
                 ExceptionTypesMappedToStandardHttpErrorResponse = new List<Type>()
-                    {
-                        typeof(ServiceUnavailableException)
-                    },
+                {
+                    typeof(ServiceUnavailableException)
+                },
                 // Setup TripSwitchMiddleware
                 TripSwitchTrippedException = new ServiceUnavailableException("The service is unavailable due to an interal error."),
+                // Setup the request counter middleware
+                ConfigureApplicationBuilderAction = (IApplicationBuilder applicationBuilder) =>
+                {
+                    applicationBuilder.UseRequestCounter(requestCounter);
+                }
             };
 
             var initializer = new ApplicationInitializer();
@@ -85,4 +101,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
             app.Run();
         }
     }
+
+    #pragma warning restore 1591
 }

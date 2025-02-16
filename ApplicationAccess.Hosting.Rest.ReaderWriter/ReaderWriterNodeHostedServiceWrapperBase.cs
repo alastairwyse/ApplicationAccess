@@ -312,7 +312,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                     eventBufferFlushingOptions.FlushLoopInterval,
                     // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
                     !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
-                    eventBufferFlushingExceptionAction
+                    eventBufferFlushingExceptionAction, 
+                    metricLogger
                 );
             }
         }

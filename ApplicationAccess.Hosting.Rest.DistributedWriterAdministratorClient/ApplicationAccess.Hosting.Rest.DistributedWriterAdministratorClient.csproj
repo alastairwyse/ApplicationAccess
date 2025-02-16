@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <Description>Client classes which perform administrative functions on writer components in an AccessManager implementation hosted via REST-based web APIs.</Description>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.AsyncClient\ApplicationAccess.Hosting.Rest.AsyncClient.csproj" />
+  </ItemGroup>
+
+</Project>
