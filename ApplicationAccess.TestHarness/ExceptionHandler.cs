@@ -53,7 +53,15 @@ namespace ApplicationAccess.TestHarness
             if (previousExceptionOccurenceTimeWindowSize < 10)
                 throw new ArgumentOutOfRangeException(nameof(previousExceptionOccurenceTimeWindowSize), $"Parameter '{nameof(previousExceptionOccurenceTimeWindowSize)}' with value {previousExceptionOccurenceTimeWindowSize} cannot be less than 10.");
 
-            knownAccessManagerExceptions = new HashSet<Type>() { typeof(ArgumentException), typeof(NotFoundException) };
+            knownAccessManagerExceptions = new HashSet<Type>() 
+            { 
+                typeof(ArgumentException), 
+                typeof(NotFoundException),
+                typeof(UserNotFoundException<String>),
+                typeof(GroupNotFoundException<String>),
+                typeof(EntityTypeNotFoundException),
+                typeof(EntityNotFoundException)
+            };
             previousExceptionOccurenceTimeWindow = new LinkedList<DateTime>();
             this.exceptionsPerSecondThreshold = exceptionsPerSecondThreshold;
             this.previousExceptionOccurenceTimeWindowSize = previousExceptionOccurenceTimeWindowSize;
