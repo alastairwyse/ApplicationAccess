@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <Copyright>Copyright © Alastair Wyse 2025</Copyright>
+    <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
+    <Description>Classes which redistribute and reorganize shard contents in a distributed AccessManager implementation.</Description>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence\ApplicationAccess.Distribution.Persistence.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Distribution\ApplicationAccess.Distribution.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence\ApplicationAccess.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

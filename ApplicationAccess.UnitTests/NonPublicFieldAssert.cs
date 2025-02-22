@@ -104,7 +104,7 @@ namespace ApplicationAccess.UnitTests
         /// <param name="fieldNamePath">The 'path' of field names required to arrive at the destination field (i.e. the last element).  These are processed in order, with subsequent names being of fields of child (composed) objects, fields of child's child object, and so forth.</param>
         /// <param name="expectedValue">The expected value of the field.</param>
         /// <param name="testObject">The object holding the field with the first field name in parameter <paramref name="fieldNamePath"/>.</param>
-        /// <param name="allowAssignableType">>Whether or not to allow the type of the field to be assignable to the type specified in parameter <typeparamref name="TField"/> rather than an exact match.  If set false an exception will be thrown if the value of the field is not the same exact type as <typeparamref name="TField"/>.  If set to true an exception will by thrown if the field is not assignable to <typeparamref name="TField"/>.</param>
+        /// <param name="allowAssignableType">Whether or not to allow the type of the field to be assignable to the type specified in parameter <typeparamref name="TField"/> rather than an exact match.  If set false an exception will be thrown if the value of the field is not the same exact type as <typeparamref name="TField"/>.  If set to true an exception will by thrown if the field is not assignable to <typeparamref name="TField"/>.</param>
         /// <returns>An <see cref="AssertionResult"/> containing the result.</returns>
         private static AssertionResult NonPublicFieldHasValue<TField>(IList<String> fieldNamePath, TField expectedValue, Object testObject, Boolean allowAssignableType)
         {

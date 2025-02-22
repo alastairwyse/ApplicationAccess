@@ -62,7 +62,7 @@ namespace ApplicationAccess.Persistence.Sql.PostgreSql
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Persistence.Sql.PostgreSql.PostgreSqlPersisterUtilities class.
         /// </summary>
-        /// <param name="dataSource">>The datasource to use to create connections to PostgreSQL.</param>
+        /// <param name="dataSource">The datasource to use to create connections to PostgreSQL.</param>
         /// <param name="commandTimeout">The time in seconds to wait while trying to execute a command, before terminating the attempt and generating an error. Set to zero for infinity.</param>
         /// <param name="userStringifier">A string converter for users.</param>
         /// <param name="groupStringifier">A string converter for groups.</param>

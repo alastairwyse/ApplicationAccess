@@ -145,6 +145,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient", "ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient\ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient.csproj", "{42D07C55-0BCA-43FF-9CB6-E41EB05C53A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Redistribution", "ApplicationAccess.Redistribution\ApplicationAccess.Redistribution.csproj", "{9682BD7A-AD0D-4681-9769-F9FA948DED46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationAccess.Redistribution.UnitTests", "ApplicationAccess.Redistribution.UnitTests\ApplicationAccess.Redistribution.UnitTests.csproj", "{E9CBE374-1AB6-4B8B-9A98-D4B8156761AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -435,6 +439,14 @@ Global
 		{42D07C55-0BCA-43FF-9CB6-E41EB05C53A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42D07C55-0BCA-43FF-9CB6-E41EB05C53A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42D07C55-0BCA-43FF-9CB6-E41EB05C53A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9682BD7A-AD0D-4681-9769-F9FA948DED46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9682BD7A-AD0D-4681-9769-F9FA948DED46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9682BD7A-AD0D-4681-9769-F9FA948DED46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9682BD7A-AD0D-4681-9769-F9FA948DED46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9CBE374-1AB6-4B8B-9A98-D4B8156761AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9CBE374-1AB6-4B8B-9A98-D4B8156761AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9CBE374-1AB6-4B8B-9A98-D4B8156761AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9CBE374-1AB6-4B8B-9A98-D4B8156761AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

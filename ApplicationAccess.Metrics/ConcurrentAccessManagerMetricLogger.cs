@@ -1244,7 +1244,7 @@ namespace ApplicationAccess.Metrics
         /// <param name="group">The group in the mapping.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="wrappingAction">>The 'wrappingAction' parameter passed to the AddGroupToEntityMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the AddGroupToEntityMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
         /// <returns>The 'wrappingAction'.</returns>
         public Action<TGroup, String, String, Action> GenerateAddGroupToEntityMappingMetricLoggingWrappingAction(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
         {
@@ -1337,7 +1337,7 @@ namespace ApplicationAccess.Metrics
         /// <param name="group">The group in the mapping.</param>
         /// <param name="entityType">The type of the entity.</param>
         /// <param name="entity">The entity in the mapping.</param>
-        /// <param name="wrappingAction">>The 'wrappingAction' parameter passed to the RemoveGroupToEntityMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
+        /// <param name="wrappingAction">The 'wrappingAction' parameter passed to the RemoveGroupToEntityMapping() method of the ConcurrentAccessManager subclass metrics are being logged for.</param>
         /// <returns>The 'wrappingAction'.</returns>
         public Action<TGroup, String, String, Action> GenerateRemoveGroupToEntityMappingMetricLoggingWrappingAction(TGroup group, String entityType, String entity, Action<TGroup, String, String, Action> wrappingAction)
         {

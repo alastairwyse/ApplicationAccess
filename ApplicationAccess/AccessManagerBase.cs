@@ -82,7 +82,7 @@ namespace ApplicationAccess
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.AccessManagerBase class.
         /// </summary>
-        /// <param name="collectionFactory">>Creates instances of collection classes.</param>
+        /// <param name="collectionFactory">Creates instances of collection classes.</param>
         /// <param name="userToGroupMap">The user to group map the access manager should use internally.</param>
         public AccessManagerBase(ICollectionFactory collectionFactory, DirectedGraphBase<TUser, TGroup> userToGroupMap)
         {

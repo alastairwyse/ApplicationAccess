@@ -62,7 +62,7 @@ namespace ApplicationAccess.TestHarness
         /// <param name="parameterGenerators">The parameter generators to use for each worker thread.</param>
         /// <param name="exceptionLoggers">The exception loggers to use for each worker thread</param>
         /// <param name="stopSignal">Signal used to notify that testing should be stopped/cancelled (e.g. in the case of critical error).</param>
-        /// <param name="targetOperationsPerSecond">>The target number of operations per second to trigger.  A value of 0.0 will trigger operations continuously at the maximum possible frequency.</param>
+        /// <param name="targetOperationsPerSecond">The target number of operations per second to trigger.  A value of 0.0 will trigger operations continuously at the maximum possible frequency.</param>
         /// <param name="operationsPerSecondPrintFrequency">The number of times per operation iteration that the actual 'operations per second' value should be printed to the console.</param>
         /// <param name="previousOperationInitiationTimeWindowSize">The number of previous operation occurence timestamps to keep, in order to calculate the number of operations occurring per worker thread, per second.</param>
         /// <param name="exceptionsPerSecondThreshold">The threshold for the allowed number of exceptions per worker thread, per second.</param>

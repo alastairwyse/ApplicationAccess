@@ -45,7 +45,7 @@ namespace ApplicationAccess.Hosting.Rest
         /// Converts an <see cref="HttpResponseMessage"/> to an <see cref="HttpResponse"/>.
         /// </summary>
         /// <param name="targetResponse">The <see cref="HttpResponseMessage"/> to convert (returned from an <see cref="HttpClient"/> call).</param>
-        /// <param name="sourceHttpResponse">>The <see cref="HttpResponse"/> to convert to.</param>
+        /// <param name="sourceHttpResponse">The <see cref="HttpResponse"/> to convert to.</param>
         Task ConvertResponseAsync(HttpResponseMessage targetResponse, HttpResponse sourceHttpResponse);
     }
 }

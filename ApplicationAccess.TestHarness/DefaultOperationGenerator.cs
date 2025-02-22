@@ -75,7 +75,7 @@ namespace ApplicationAccess.TestHarness
         /// <param name="componentAvailableDataElementCounter">The available data element counter for application componenets.</param>
         /// <param name="accessLeveAvailableDataElementCounter">The available data element counter for access levels.</param>
         /// <param name="queryToEventOperationRatio">The ratio of query operations (get) to event operations (add/remove).  E.g. a value of 2.0 would make query operations twice as likely as event operations.</param>
-        /// <param name="dataElementStorerCountPrintFrequency">>How often counts of items in the 'dataElementStorer' member should be printed to the console (e.g. a value of 1000 would print once every 1000 calls to the Generate() method).</param>
+        /// <param name="dataElementStorerCountPrintFrequency">How often counts of items in the 'dataElementStorer' member should be printed to the console (e.g. a value of 1000 would print once every 1000 calls to the Generate() method).</param>
         public DefaultOperationGenerator
         (
             IDataElementStorer<TUser, TGroup, TComponent, TAccess> dataElementStorer, 

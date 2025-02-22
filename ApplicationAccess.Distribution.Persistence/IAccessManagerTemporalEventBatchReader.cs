@@ -28,7 +28,8 @@ namespace ApplicationAccess.Distribution.Persistence
         /// <summary>
         /// Retrieves the id of the first event in the AccessManager.
         /// </summary>
-        /// <returns>The <see cref="AccessManagerState"/>.</returns>
+        /// <returns>The id.</returns>
+        /// <exception cref="Exception">If no events were found in the persistent storage.</exception>
         Guid GetInitialEvent();
 
         /// <summary>
@@ -36,6 +37,7 @@ namespace ApplicationAccess.Distribution.Persistence
         /// </summary>
         /// <param name="inputEventId">The id of the preceding event.</param>
         /// <returns>The next event, or null of the specified event is the latest.</returns>
+        /// <exception cref="Exception">If no event with the specified id was found in the persistent storage..</exception>
         Nullable<Guid> GetNextEventAfter(Guid inputEventId);
 
         /// <summary>
@@ -47,6 +49,7 @@ namespace ApplicationAccess.Distribution.Persistence
         /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will return all group events if set to false.</param>
         /// <param name="eventCount">The number of events to retrieve (including that specified in <paramref name="initialEventId"/>).</param>
         /// <returns>The sequence of events in order of ascending date/time, and including that specified in <paramref name="initialEventId"/>, or an empty list if the event represented by <paramref name="initialEventId"/> is the latest.</returns>
+        /// <exception cref="Exception">If no event with the specified id was found in the persistent storage..</exception>
         /// <remarks>If the event specified in parameter <paramref name="initialEventId"/> is not within the specified hash code range, then the first event in the returned sequence will be the first event after <paramref name="initialEventId"/> which falls within the hash code range.</remarks>
         IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Int32 eventCount);
 
@@ -58,6 +61,7 @@ namespace ApplicationAccess.Distribution.Persistence
         /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to retrieve.</param>
         /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will return all group events if set to false.</param>
         /// <returns>The sequence of events in order of ascending date/time, and including that specified in <paramref name="initialEventId"/>, or an empty list if the event represented by <paramref name="initialEventId"/> is the latest.</returns>
+        /// <exception cref="Exception">If no event with the specified id was found in the persistent storage..</exception>
         /// <remarks>If the event specified in parameter <paramref name="initialEventId"/> is not within the specified hash code range, then the first event in the returned sequence will be the first event after <paramref name="initialEventId"/> which falls within the hash code range.</remarks>
         IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange);
     }

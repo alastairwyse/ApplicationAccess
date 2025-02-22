@@ -23,7 +23,6 @@ using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationLogging;
 using ApplicationMetrics;
-using System.Collections;
 
 namespace ApplicationAccess.Distribution.Persistence.SqlServer
 {
@@ -209,21 +208,21 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         }
 
         /// <inheritdoc/>
-        /// <remarks>Parameter <paramref name="filterGroupEventsByHashRange"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to capture all the group which may be present in user to group mappings.  For group shards it should be set true, to properly filter the returned groups and group mappings.</remarks>
+        /// <remarks>Parameter <paramref name="filterGroupEventsByHashRange"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, and should be set depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to capture all the groups which may be present in user to group mappings.  For group shards it should be set true, to properly filter the returned groups and group mappings.</remarks>
         public IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange, Int32 eventCount)
         {
             return GetEventsImplementation(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, eventCount);
         }
 
         /// <inheritdoc/>
-        /// <remarks>Parameter <paramref name="filterGroupEventsByHashRange"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to capture all the group which may be present in user to group mappings.  For group shards it should be set true, to properly filter the returned groups and group mappings.</remarks>
+        /// <remarks>Parameter <paramref name="filterGroupEventsByHashRange"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, and should be set depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to capture all the groups which may be present in user to group mappings.  For group shards it should be set true, to properly filter the returned groups and group mappings.</remarks>
         public IList<TemporalEventBufferItemBase> GetEvents(Guid initialEventId, Int32 hashRangeStart, Int32 hashRangeEnd, Boolean filterGroupEventsByHashRange)
         {
             return GetEventsImplementation(initialEventId, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, null);
         }
 
         /// <inheritdoc/>
-        /// <remarks>Parameter <paramref name="includeGroupEvents"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to avoid deleting any groups which may be present in user to group mappings.  For group shards it should be set true.</remarks>
+        /// <remarks>Parameter <paramref name="includeGroupEvents"/> is designed to be used on a database behind a shard in a distributed AccessManager implementation, and should be set depending on the type of data element managed by the shard.  For user shards the parameter should be set false, to avoid deleting any groups which may be present in user to group mappings.  For group shards it should be set true.</remarks>
         public void DeleteEvents(Int32 hashRangeStart, Int32 hashRangeEnd, Boolean includeGroupEvents)
         {
             DeleteGroupToEntityMappingEvents(hashRangeStart, hashRangeEnd);
