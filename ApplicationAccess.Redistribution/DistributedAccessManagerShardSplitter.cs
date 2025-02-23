@@ -22,6 +22,7 @@ using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Distribution.Serialization;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
+using ApplicationAccess.Redistribution.Metrics;
 using ApplicationLogging;
 using ApplicationMetrics;
 
@@ -32,10 +33,6 @@ namespace ApplicationAccess.Redistribution
     /// </summary>
     public class DistributedAccessManagerShardSplitter
     {
-        // TODO:
-        //   Add metrics and logging
-        //   Review all comments and make consistent
-
         /// <summary>The logger for general logging.</summary>
         protected IApplicationLogger logger;
         /// <summary>The logger for metrics.</summary>
@@ -99,24 +96,35 @@ namespace ApplicationAccess.Redistribution
             Nullable<Guid> nextEventId = GetInitialEvent(sourceShardEventReader);
 
             // Copy the events to the target shard in batches
+            logger.Log(this, LogLevel.Information, "Copying subset of events from source shard to target shard...");
             Int32 currentBatchNumber = 1;
+            logger.Log(this, LogLevel.Information, "Starting initial event batch copy...");
             lastEventId = CopyEventBatchesToTargetShard(sourceShardEventReader, targetShardEventPersister, ref currentBatchNumber, nextEventId.Value, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, eventBatchSize);
+            logger.Log(this, LogLevel.Information, "Completed initial event batch copy.");
 
             // Hold any incoming operations to the source and target shards
+            logger.Log(this, LogLevel.Information, "Pausing operations in the source and target shards.");
             PauseOperations(operationRouter);
 
             // Wait until all events are finished processing in the source writer node
+            logger.Log(this, LogLevel.Information, "Waiting for source writer node event processing to complete...");
             WaitForSourceWriterNodeEventProcessingCompletion(sourceShardWriterAdministrator, sourceWriterNodeOperationsCompleteCheckRetryAttempts, sourceWriterNodeOperationsCompleteCheckRetryInterval);
+            logger.Log(this, LogLevel.Information, "Source writer node event processing to complete.");
 
             // Flush the event buffer(s) in the source writer node
+            logger.Log(this, LogLevel.Information, "Flushing source writer node event buffers...");
             FlushSourceWriterNodeEventBuffers(sourceShardWriterAdministrator);
+            logger.Log(this, LogLevel.Information, "Completed flushing source writer node event buffers.");
 
             // Copy the final event batch to the target shard
             nextEventId = GetNextEventAfter(sourceShardEventReader, lastEventId.Value);
             if (nextEventId.HasValue == true)
             {
+                logger.Log(this, LogLevel.Information, "Starting final event batch copy...");
                 CopyEventBatchesToTargetShard(sourceShardEventReader, targetShardEventPersister, ref currentBatchNumber, nextEventId.Value, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, eventBatchSize);
+                logger.Log(this, LogLevel.Information, "Completed final event batch copy.");
             }
+            logger.Log(this, LogLevel.Information, "Completed copying subset of events from source shard to target shard.");
         }
 
         /// <summary>
@@ -134,7 +142,19 @@ namespace ApplicationAccess.Redistribution
             Boolean includeGroupEvents
         )
         {
-            sourceShardEventDeleter.DeleteEvents(hashRangeStart, hashRangeEnd, includeGroupEvents);
+            logger.Log(this, LogLevel.Information, $"Deleting events from source shard...");
+            Guid beginId = metricLogger.Begin(new EventDeleteTime());
+            try
+            {
+                sourceShardEventDeleter.DeleteEvents(hashRangeStart, hashRangeEnd, includeGroupEvents);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new EventDeleteTime());
+                throw new Exception("Failed to delete events from the source shard.", e);
+            }
+            metricLogger.End(beginId, new EventDeleteTime());
+            logger.Log(this, LogLevel.Information, $"Completed deleting events from source shard.");
         }
 
         #region Private/Protected Methods
@@ -204,23 +224,36 @@ namespace ApplicationAccess.Redistribution
             Nullable<Guid> lastEventId = null;
             while (nextEventId.HasValue)
             {
+                logger.Log(this, LogLevel.Information, $"Copying batch {currentBatchNumber} of events from source shard to target shard.");
                 IList<TemporalEventBufferItemBase> currentEvents;
+                Guid beginId = metricLogger.Begin(new EventBatchReadTime());
                 try
                 {
                     currentEvents = sourceShardEventReader.GetEvents(nextEventId.Value, hashRangeStart, hashRangeEnd, filterGroupEventsByHashRange, eventBatchSize);
                 }
                 catch (Exception e)
                 {
+                    metricLogger.CancelBegin(beginId, new EventBatchReadTime());
                     throw new Exception($"Failed to retrieve event batch from the source shard beginning with event with id '{nextEventId.Value}'.", e);
                 }
+                metricLogger.End(beginId, new EventBatchReadTime());
+                logger.Log(this, LogLevel.Information, $"Read {currentEvents.Count} events from source shard.");
+
+                beginId = metricLogger.Begin(new EventBatchWriteTime());
                 try
                 {
                     targetShardEventPersister.PersistEvents(currentEvents);
                 }
                 catch (Exception e)
                 {
+                    metricLogger.CancelBegin(beginId, new EventBatchWriteTime());
                     throw new Exception($"Failed to write events to the target shard.", e);
                 }
+                metricLogger.End(beginId, new EventBatchWriteTime());
+                metricLogger.Add(new EventsCopiedFromSourceToTargetShard(), currentEvents.Count);
+                metricLogger.Increment(new EventBatchCopyCompleted());
+                logger.Log(this, LogLevel.Information, $"Wrote {currentEvents.Count} events to target shard.");
+
                 // GetNextEventAfter() will return null if no subsequent event exist, which will drop out of while loop on next iteration
                 lastEventId = currentEvents[currentEvents.Count - 1].EventId;
                 nextEventId = GetNextEventAfter(sourceShardEventReader, lastEventId.Value);
@@ -273,6 +306,7 @@ namespace ApplicationAccess.Redistribution
                 {
                     throw new Exception("Failed to check for active operations in the source shard event writer node.", e);
                 }
+                metricLogger.Set(new WriterNodeEventProcessingCount(), currentEventProcessingCount); 
                 if (currentEventProcessingCount == 0)
                 {
                     break;
@@ -284,6 +318,10 @@ namespace ApplicationAccess.Redistribution
                         Thread.Sleep(sourceWriterNodeOperationsCompleteCheckRetryInterval);
                     }
                     sourceWriterNodeOperationsCompleteCheckRetryAttempts--;
+                    if (sourceWriterNodeOperationsCompleteCheckRetryAttempts >= 0)
+                    {
+                        metricLogger.Increment(new EventProcessingCountCheckRetried());
+                    }
                 }
             }
             if (currentEventProcessingCount != 0)

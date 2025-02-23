@@ -27,7 +27,7 @@ namespace ApplicationAccess.Hosting.Rest.AsyncClient
         #pragma warning disable 1591
 
         protected static String staticName = "HttpRequestRetried";
-        protected static String staticDescription = "Sending of a HTTP request resulting in a transient error and being retried.";
+        protected static String staticDescription = "Sending of a HTTP request resulting in a transient error and being retried";
 
         public HttpRequestRetried()
         {
