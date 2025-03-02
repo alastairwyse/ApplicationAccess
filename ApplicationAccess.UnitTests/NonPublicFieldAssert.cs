@@ -198,7 +198,7 @@ namespace ApplicationAccess.UnitTests
             public String FailureDetails { get; private set; }
 
             /// <summary>
-            /// Initialises a new instance of theApplicationAccess.UnitTests.NonPublicFieldAssert+AssertionResult class, where the result of the assertion is true.
+            /// Initialises a new instance of the ApplicationAccess.UnitTests.NonPublicFieldAssert+AssertionResult class, where the result of the assertion is true.
             /// </summary>
             public AssertionResult()
             {
@@ -207,7 +207,7 @@ namespace ApplicationAccess.UnitTests
             }
 
             /// <summary>
-            /// Initialises a new instance of theApplicationAccess.UnitTests.NonPublicFieldAssert+AssertionResult class, where the result of the assertion is false.
+            /// Initialises a new instance of the ApplicationAccess.UnitTests.NonPublicFieldAssert+AssertionResult class, where the result of the assertion is false.
             /// </summary>
             /// <param name="failureDetails">Details of why the assertion was found to be false.</param>
             public AssertionResult(String failureDetails)

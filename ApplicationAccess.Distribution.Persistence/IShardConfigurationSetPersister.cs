@@ -33,7 +33,8 @@ namespace ApplicationAccess.Distribution.Persistence
         /// Writes the specified shard configuration set to persistent storage.
         /// </summary>
         /// <param name="shardConfigurationSet">The shard configuration set to write.</param>
-        void Write(ShardConfigurationSet<TClientConfiguration> shardConfigurationSet);
+        /// <param name="deleteExistingItems">Whether to delete all the existing configuration before writing.</param>
+        void Write(ShardConfigurationSet<TClientConfiguration> shardConfigurationSet, Boolean deleteExistingItems);
 
         /// <summary>
         /// Reads and returns shard configuration set from persistent storage

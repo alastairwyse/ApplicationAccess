@@ -29,16 +29,16 @@ namespace ApplicationAccess.Distribution.UnitTests
         [Test]
         public void Describe()
         {
-            var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+            var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(123, DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
 
             String result = testShardConfiguration.Describe(true);
 
-            Assert.AreEqual($"DataElementType = User, OperationType = Query, HashRangeStart = 16, ClientConfiguration = AccessManagerRestClientConfiguration {{ BaseUrl = http://127.0.0.0.1:5001/ }}", result);
+            Assert.AreEqual($"Id = 123, DataElementType = User, OperationType = Query, HashRangeStart = 16, ClientConfiguration = AccessManagerRestClientConfiguration {{ BaseUrl = http://127.0.0.0.1:5001/ }}", result);
 
 
             result = testShardConfiguration.Describe(false);
 
-            Assert.AreEqual($"DataElementType = User, OperationType = Query, ClientConfiguration = AccessManagerRestClientConfiguration {{ BaseUrl = http://127.0.0.0.1:5001/ }}", result);
+            Assert.AreEqual($"Id = 123, DataElementType = User, OperationType = Query, ClientConfiguration = AccessManagerRestClientConfiguration {{ BaseUrl = http://127.0.0.0.1:5001/ }}", result);
         }
     }
 }

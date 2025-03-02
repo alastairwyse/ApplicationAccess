@@ -42,6 +42,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
     /// <remarks>StartAsync() constructs a <see cref="DistributedOperationRouterNode{TClientConfiguration}"/> instance (and its constructor parameters) from configuration, whist StopAsync() calls Dispose(), etc.</remarks>
     public class DistributedOperationRouterNodeHostedServiceWrapper : IHostedService
     {
+        #pragma warning disable 1591
+
         // Members passed in via dependency injection
         protected ShardRoutingOptions shardRoutingOptions;
         protected ShardConnectionOptions shardConnectionOptions;
@@ -53,6 +55,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
         protected ILogger<DistributedOperationRouterNodeHostedServiceWrapper> logger;
+
+        #pragma warning restore 1591
 
         /// <summary>The <see cref="HttpClient"/> used by the shard clients.</summary>
         protected HttpClient httpClient;
@@ -250,21 +254,22 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                 var sourceEventShardClientConfiguration = new AccessManagerRestClientConfiguration(sourceEventShardUrl);
                 var targetQueryShardClientConfiguration = new AccessManagerRestClientConfiguration(targetQueryShardUrl);
                 var targetEventShardClientConfiguration = new AccessManagerRestClientConfiguration(targetEventShardUrl);
+                Int32 currentId = 0;
                 var sourceQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    shardRoutingOptions.DataElementType, Operation.Query, shardRoutingOptions.SourceShardHashRangeStart, sourceQueryShardClientConfiguration
+                    currentId++, shardRoutingOptions.DataElementType, Operation.Query, shardRoutingOptions.SourceShardHashRangeStart, sourceQueryShardClientConfiguration
                 );
                 var sourceEventShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    shardRoutingOptions.DataElementType, Operation.Event, shardRoutingOptions.SourceShardHashRangeStart, sourceEventShardClientConfiguration
+                    currentId++, shardRoutingOptions.DataElementType, Operation.Event, shardRoutingOptions.SourceShardHashRangeStart, sourceEventShardClientConfiguration
                 );
                 var targetQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    shardRoutingOptions.DataElementType, Operation.Query, shardRoutingOptions.TargetShardHashRangeStart, targetQueryShardClientConfiguration
+                    currentId++, shardRoutingOptions.DataElementType, Operation.Query, shardRoutingOptions.TargetShardHashRangeStart, targetQueryShardClientConfiguration
                 );
                 var targetEventShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    shardRoutingOptions.DataElementType, Operation.Event, shardRoutingOptions.TargetShardHashRangeStart, targetEventShardClientConfiguration
+                    currentId++, shardRoutingOptions.DataElementType, Operation.Event, shardRoutingOptions.TargetShardHashRangeStart, targetEventShardClientConfiguration
                 );
                 var initialConfiguration = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (

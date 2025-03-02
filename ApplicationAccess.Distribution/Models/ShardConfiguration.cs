@@ -25,12 +25,8 @@ namespace ApplicationAccess.Distribution.Models
     public class ShardConfiguration<TClientConfiguration> : IEquatable<ShardConfiguration<TClientConfiguration>>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration
     {
-        /// <summary>Prime number used in calculating hash code.</summary>
-        protected const Int32 prime1 = 7;
-        /// <summary>Prime number used in calculating hash code.</summary>
-        protected const Int32 prime2 = 11;
-        /// <summary>Prime number used in calculating hash code.</summary>
-        protected const Int32 prime3 = 13;
+        /// <summary>A unique identifier for the shard configuration.</summary>
+        public Int32 Id { get; protected set; }
 
         /// <summary>The type of data element managed by the shard.</summary>
         public DataElement DataElementType { get; protected set; }
@@ -47,12 +43,14 @@ namespace ApplicationAccess.Distribution.Models
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.ShardConfiguration class.
         /// </summary>
+        /// <param name="id">A unique identifier for the shard configuration.</param>
         /// <param name="dataElementType">The type of data element managed by the shard.</param>
         /// <param name="operationType">The type of operation supported by the shard.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of data elements the shard manages.</param>
         /// <param name="clientConfiguration">Configuration which can be used to instantiate a client to connect to the shard.</param>
-        public ShardConfiguration(DataElement dataElementType, Operation operationType, int hashRangeStart, TClientConfiguration clientConfiguration)
+        public ShardConfiguration(Int32 id, DataElement dataElementType, Operation operationType, Int32 hashRangeStart, TClientConfiguration clientConfiguration)
         {
+            Id = id;
             DataElementType = dataElementType;
             OperationType = operationType;
             HashRangeStart = hashRangeStart;
@@ -68,36 +66,24 @@ namespace ApplicationAccess.Distribution.Models
         {
             if (includeHashRangeStart == true)
             {
-                return $"{nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(HashRangeStart)} = {HashRangeStart}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
+                return $"{nameof(Id)} = {Id}, {nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(HashRangeStart)} = {HashRangeStart}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
             }
             else
             {
-                return $"{nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
+                return $"{nameof(Id)} = {Id}, {nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
             }
         }
 
         /// <inheritdoc/>
         public Boolean Equals(ShardConfiguration<TClientConfiguration> other)
         {
-            return
-            
-                DataElementType == other.DataElementType &&
-                OperationType == other.OperationType &&
-                HashRangeStart == other.HashRangeStart &&
-                ClientConfiguration.Equals(other.ClientConfiguration)
-            ;
+            return Id == other.Id;
         }
 
         /// <inheritdoc/>
         public override Int32 GetHashCode()
         {
-            return
-            
-                prime1 * DataElementType.GetHashCode() +
-                prime2 * OperationType.GetHashCode() +
-                HashRangeStart.GetHashCode() +
-                prime3 * ClientConfiguration.GetHashCode()
-            ;
+            return Id.GetHashCode();
         }
     }
 }

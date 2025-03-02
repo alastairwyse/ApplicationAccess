@@ -37,6 +37,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
     public class SqlServerShardConfigurationSetPersisterTests
     {
         protected const String updateShardConfigurationsStoredProcedureName = "UpdateShardConfiguration";
+        protected const String shardConfigurationIdColumnName = "ShardConfigurationId";
         protected const String dataElementTypeColumnName = "DataElementType";
         protected const String operationTypeColumnName = "OperationType";
         protected const String hashRangeStartColumnName = "HashRangeStart";
@@ -78,8 +79,8 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
             var testClientConfiguration2 = new AccessManagerRestClientConfiguration(new Uri("https://127.0.0.1:5002/"));
             var testConfigurationItems = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, Int32.MinValue, testClientConfiguration1),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 0, testClientConfiguration2),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Event, Int32.MinValue, testClientConfiguration1),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(2, DataElement.User, Operation.Event, 0, testClientConfiguration2),
             };
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(testConfigurationItems);
             var mockException = new Exception("Mock exception");
@@ -87,12 +88,12 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testSqlServerShardConfigurationSetPersister.Write(testShardConfigurationSet);
+                testSqlServerShardConfigurationSetPersister.Write(testShardConfigurationSet, true);
             });
 
             mockJsonSerializer.Received(1).Serialize(testClientConfiguration1);
             mockJsonSerializer.Received(1).Serialize(testClientConfiguration2);
-            Assert.That(e.Message, Does.StartWith($"Failed to serialize shard configuration item for data element 'User', operation 'Event', and hash range start 0."));
+            Assert.That(e.Message, Does.StartWith($"Failed to serialize shard configuration item for shard configuration id 2, data element 'User', operation 'Event', and hash range start 0."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -104,9 +105,9 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
             var testClientConfiguration3 = new AccessManagerRestClientConfiguration(new Uri("https://127.0.0.1:5003/"));
             var testConfigurationItems = new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
             {
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, Int32.MinValue, testClientConfiguration1),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, testClientConfiguration2),
-                new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, Int32.MaxValue, testClientConfiguration3),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Event, Int32.MinValue, testClientConfiguration1),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(2, DataElement.User, Operation.Query, 0, testClientConfiguration2),
+                new ShardConfiguration<AccessManagerRestClientConfiguration>(3, DataElement.GroupToGroupMapping, Operation.Query, Int32.MaxValue, testClientConfiguration3),
             };
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>(testConfigurationItems);
             String serializedClientConfiguration1 = $"{{ \"BaseUrl\": \"{testClientConfiguration1.ToString()}\" }}";
@@ -118,12 +119,12 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
             DataTable capturedStagingTable = null;
             mockStoredProcedureExecutionWrapper.Execute(updateShardConfigurationsStoredProcedureName, Arg.Do<IEnumerable<SqlParameter>>(parameters => capturedStagingTable = (DataTable)parameters.First<SqlParameter>().Value));
 
-            testSqlServerShardConfigurationSetPersister.Write(testShardConfigurationSet);
+            testSqlServerShardConfigurationSetPersister.Write(testShardConfigurationSet, true);
 
             Assert.AreEqual(3, capturedStagingTable.Rows.Count);
-            AssertStagingTableRow(capturedStagingTable.Rows[0], "User", "Event", Int32.MinValue, serializedClientConfiguration1);
-            AssertStagingTableRow(capturedStagingTable.Rows[1], "User", "Query", 0, serializedClientConfiguration2);
-            AssertStagingTableRow(capturedStagingTable.Rows[2], "GroupToGroupMapping", "Query", Int32.MaxValue, serializedClientConfiguration3);
+            AssertStagingTableRow(capturedStagingTable.Rows[0], 1, "User", "Event", Int32.MinValue, serializedClientConfiguration1);
+            AssertStagingTableRow(capturedStagingTable.Rows[1], 2, "User", "Query", 0, serializedClientConfiguration2);
+            AssertStagingTableRow(capturedStagingTable.Rows[2], 3, "GroupToGroupMapping", "Query", Int32.MaxValue, serializedClientConfiguration3);
             mockJsonSerializer.Received(1).Serialize(testClientConfiguration1);
             mockJsonSerializer.Received(1).Serialize(testClientConfiguration2);
             mockJsonSerializer.Received(1).Serialize(testClientConfiguration3);
@@ -137,12 +138,15 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer.UnitTests
         protected void AssertStagingTableRow
         (
             DataRow row,
+            Int32 shardConfigurationIdValue, 
             String dataElementTypeValue,
             String operationTypeValue,
             Int32 hashRangeStartValue,
             String clientConfigurationValue
         )
         {
+            Assert.IsInstanceOf<Int32>(shardConfigurationIdValue);
+            Assert.AreEqual(shardConfigurationIdValue, row[shardConfigurationIdColumnName]);
             Assert.IsInstanceOf<String>(dataElementTypeValue);
             Assert.AreEqual(dataElementTypeValue, row[dataElementTypeColumnName]);
             Assert.IsInstanceOf<String>(operationTypeValue);
