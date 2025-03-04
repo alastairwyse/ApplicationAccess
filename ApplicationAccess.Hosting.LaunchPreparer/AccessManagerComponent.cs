@@ -38,6 +38,8 @@ namespace ApplicationAccess.Hosting.LaunchPreparer
         /// <summary>A distributed writer node.</summary>
         DistributedWriterNode,
         /// <summary>A distributed operation coordinator node.</summary>
-        DistributedOperationCoordinatorNode
+        DistributedOperationCoordinatorNode,
+        /// <summary>A distributed operation router node.</summary>
+        DistributedOperationRouterNode
     }
 }

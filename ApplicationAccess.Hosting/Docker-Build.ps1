@@ -35,6 +35,7 @@
 #     .\Docker-Build.ps1 "DistributedReader" "C:\Temp\DockerBuild\DistributedReader\" "DistributedReader.tar" -IncludePdbFiles
 #     .\Docker-Build.ps1 "DistributedWriter" "C:\Temp\DockerBuild\DistributedWriter\" "DistributedWriter.tar"
 #     .\Docker-Build.ps1 "DistributedOperationCoordinator" "C:\Temp\DockerBuild\DistributedOperationCoordinator\" "DistributedOperationCoordinator.tar"
+#     .\Docker-Build.ps1 "DistributedOperationRouter" "C:\Temp\DockerBuild\DistributedOperationRouter\" "DistributedOperationRouter.tar"
 #
 # NOTES / TODO
 #     Currently the below command must be executed to allow the scripts to be run (without 
@@ -93,6 +94,9 @@ elseif ($Component -eq 'DistributedWriter') {
 }
 elseif ($Component -eq 'DistributedOperationCoordinator') {
     $componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator'
+}
+elseif ($Component -eq 'DistributedOperationRouter') {
+    $componentPath = '..\ApplicationAccess.Hosting.Rest.DistributedOperationRouter'
 }
 else {
     throw "Argument 'Component' contains invalid value '$($Component)'"

@@ -40,4 +40,10 @@
     <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

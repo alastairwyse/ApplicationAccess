@@ -28,4 +28,10 @@
     <ProjectReference Include="..\ApplicationAccess.Hosting.Rest.Reader\ApplicationAccess.Hosting.Rest.Reader.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
