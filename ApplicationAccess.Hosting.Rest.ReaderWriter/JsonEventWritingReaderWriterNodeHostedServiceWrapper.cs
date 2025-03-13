@@ -200,8 +200,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         {
             eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
             (
-                eventBufferFlushingOptions.BufferSizeLimit,
-                eventBufferFlushingOptions.FlushLoopInterval,
+                eventBufferFlushingOptions.BufferSizeLimit.Value,
+                eventBufferFlushingOptions.FlushLoopInterval.Value,
                 false, 
                 (BufferFlushingException bufferFlushingException) => { }
             );

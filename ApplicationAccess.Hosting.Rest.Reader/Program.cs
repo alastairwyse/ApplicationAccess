@@ -43,7 +43,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
                     builder.Services.AddOptions<AccessManagerSqlDatabaseConnectionOptions>()
-                        .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName))
+                        .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<EventCacheConnectionOptions>()
                         .Bind(builder.Configuration.GetSection(EventCacheConnectionOptions.EventCacheConnectionOptionsName))

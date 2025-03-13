@@ -28,14 +28,11 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String ShardConfigurationRefreshOptionsName = "ShardConfigurationRefresh";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(RefreshInterval)}' is required.")]
-        [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 RefreshInterval { get; set; }
+        protected const String ValidationErrorMessagePrefix = $"Error validating {ShardConfigurationRefreshOptionsName} options";
 
-        public ShardConfigurationRefreshOptions()
-        {
-            RefreshInterval = 0;
-        }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(RefreshInterval)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? RefreshInterval { get; set; }
 
         #pragma warning restore 0649
     }

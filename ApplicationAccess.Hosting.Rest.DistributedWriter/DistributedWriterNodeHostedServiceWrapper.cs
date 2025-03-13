@@ -113,8 +113,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         {
             return new ManuallyFlushableBufferFlushStrategy
             (
-                eventBufferFlushingOptions.BufferSizeLimit,
-                eventBufferFlushingOptions.FlushLoopInterval,
+                eventBufferFlushingOptions.BufferSizeLimit.Value,
+                eventBufferFlushingOptions.FlushLoopInterval.Value,
                 // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
                 !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
                 eventBufferFlushingExceptionAction
@@ -126,8 +126,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedWriter
         {
             return new ManuallyFlushableBufferFlushStrategy
             (
-                eventBufferFlushingOptions.BufferSizeLimit,
-                eventBufferFlushingOptions.FlushLoopInterval,
+                eventBufferFlushingOptions.BufferSizeLimit.Value,
+                eventBufferFlushingOptions.FlushLoopInterval.Value,
                 // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
                 !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
                 eventBufferFlushingExceptionAction,

@@ -102,8 +102,8 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         {
             return new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
             (
-                eventBufferFlushingOptions.BufferSizeLimit,
-                eventBufferFlushingOptions.FlushLoopInterval,
+                eventBufferFlushingOptions.BufferSizeLimit.Value,
+                eventBufferFlushingOptions.FlushLoopInterval.Value,
                 // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
                 !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
                 eventBufferFlushingExceptionAction
@@ -115,8 +115,8 @@ namespace ApplicationAccess.Hosting.Rest.Writer
         {
             return new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
             (
-                eventBufferFlushingOptions.BufferSizeLimit,
-                eventBufferFlushingOptions.FlushLoopInterval,
+                eventBufferFlushingOptions.BufferSizeLimit.Value,
+                eventBufferFlushingOptions.FlushLoopInterval.Value,
                 // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
                 !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
                 eventBufferFlushingExceptionAction, 

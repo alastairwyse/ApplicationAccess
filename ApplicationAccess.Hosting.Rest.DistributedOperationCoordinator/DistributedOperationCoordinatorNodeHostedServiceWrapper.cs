@@ -229,9 +229,9 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType,
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
                     metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection
+                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
                 );
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
@@ -260,8 +260,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    shardConnectionOptions.RetryCount,
-                    shardConnectionOptions.RetryInterval,
+                    shardConnectionOptions.RetryCount.Value,
+                    shardConnectionOptions.RetryInterval.Value,
                     clientFactoryLogger,
                     metricLogger
                 );
@@ -280,9 +280,9 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 }
                 SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    accessManagerSqlDatabaseConnectionOptions.DatabaseType,
+                    accessManagerSqlDatabaseConnectionOptions.DatabaseType.Value,
                     accessManagerSqlDatabaseConnectionOptions.ConnectionParameters,
-                    AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName
+                    AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName
                 );
                 var shardConfigurationSetPersisterFactory = new SqlShardConfigurationSetPersisterFactory<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>
                 (
@@ -329,7 +329,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 };
                 shardConfigurationRefreshStrategy = new LoopingWorkerThreadDistributedOperationCoordinatorNodeShardConfigurationRefreshStrategy
                 (
-                    shardConfigurationRefreshOptions.RefreshInterval,
+                    shardConfigurationRefreshOptions.RefreshInterval.Value,
                     shardConfigurationRefreshExceptionAction
                 );
                 distributedOperationCoordinator = new DistributedAccessManagerOperationCoordinator<AccessManagerRestClientConfiguration>(shardClientManager, metricLogger);

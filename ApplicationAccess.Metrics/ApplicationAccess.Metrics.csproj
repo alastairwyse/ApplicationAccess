@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApplicationMetrics" Version="6.3.0" />
+    <PackageReference Include="ApplicationMetrics" Version="6.4.1" />
     <PackageReference Include="MoreComplexDataStructures" Version="1.9.2" />
   </ItemGroup>
 

@@ -45,7 +45,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
                     builder.Services.AddOptions<AccessManagerSqlDatabaseConnectionOptions>()
-                        .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName))
+                        .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<ShardConfigurationRefreshOptions>()
                         .Bind(builder.Configuration.GetSection(ShardConfigurationRefreshOptions.ShardConfigurationRefreshOptionsName))

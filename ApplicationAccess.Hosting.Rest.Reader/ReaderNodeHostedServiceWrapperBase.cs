@@ -225,7 +225,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 {
                 }
             };
-            refreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(eventCacheRefreshOptions.RefreshInterval, nodeRefreshExceptionAction);
+            refreshStrategy = new LoopingWorkerThreadReaderNodeRefreshStrategy(eventCacheRefreshOptions.RefreshInterval.Value, nodeRefreshExceptionAction);
 
             IApplicationLogger eventPersisterLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
             (
@@ -235,9 +235,9 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
             SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
             (
-                accessManagerSqlDatabaseConnectionOptions.DatabaseType,
+                accessManagerSqlDatabaseConnectionOptions.DatabaseType.Value,
                 accessManagerSqlDatabaseConnectionOptions.ConnectionParameters,
-                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName
+                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName
             );
 
             Uri eventCacheClientBaseUri = null;
@@ -268,8 +268,8 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    eventCacheConnectionOptions.RetryCount,
-                    eventCacheConnectionOptions.RetryInterval
+                    eventCacheConnectionOptions.RetryCount.Value,
+                    eventCacheConnectionOptions.RetryInterval.Value
                 );
             }
             else
@@ -290,9 +290,9 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                 metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType,
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
                     metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection
+                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
                 );
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
@@ -328,8 +328,8 @@ namespace ApplicationAccess.Hosting.Rest.Reader
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    eventCacheConnectionOptions.RetryCount,
-                    eventCacheConnectionOptions.RetryInterval,
+                    eventCacheConnectionOptions.RetryCount.Value,
+                    eventCacheConnectionOptions.RetryInterval.Value,
                     eventCacheClientLogger,
                     metricLogger
                 );

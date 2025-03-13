@@ -28,24 +28,23 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String MetricBufferProcessingOptionsName = "MetricBufferProcessing";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(BufferProcessingStrategy)}' is required.")]
-        public MetricBufferProcessingStrategyImplementation BufferProcessingStrategy { get; set; }
+        protected const String ValidationErrorMessagePrefix = $"Error validating {MetricBufferProcessingOptionsName} options";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(BufferSizeLimit)}' is required.")]
-        [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 BufferSizeLimit { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(BufferProcessingStrategy)}' is required.")]
+        public MetricBufferProcessingStrategyImplementation? BufferProcessingStrategy { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(DequeueOperationLoopInterval)}' is required.")]
-        [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 DequeueOperationLoopInterval { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(BufferSizeLimit)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? BufferSizeLimit { get; set; }
+
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DequeueOperationLoopInterval)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? DequeueOperationLoopInterval { get; set; }
 
         public MetricBufferProcessingFailureAction BufferProcessingFailureAction { get; set; }
 
         public MetricBufferProcessingOptions()
         {
-            BufferProcessingStrategy = default(MetricBufferProcessingStrategyImplementation);
-            BufferSizeLimit = 0;
-            DequeueOperationLoopInterval = 0;
             BufferProcessingFailureAction = MetricBufferProcessingFailureAction.ReturnServiceUnavailable;
         }
 

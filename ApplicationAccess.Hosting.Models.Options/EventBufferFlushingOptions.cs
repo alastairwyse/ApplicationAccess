@@ -28,13 +28,15 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String EventBufferFlushingOptionsName = "EventBufferFlushing";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(BufferSizeLimit)}' is required.")]
-        [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 BufferSizeLimit { get; set; }
+        protected const String ValidationErrorMessagePrefix = $"Error validating {EventBufferFlushingOptionsName} options";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(FlushLoopInterval)}' is required.")]
-        [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 FlushLoopInterval { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(BufferSizeLimit)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? BufferSizeLimit { get; set; }
+
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(FlushLoopInterval)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? FlushLoopInterval { get; set; }
 
         #pragma warning restore 0649
     }

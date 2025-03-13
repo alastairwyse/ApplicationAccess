@@ -28,19 +28,15 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String ShardConnectionOptionsName = "ShardConnection";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(RetryCount)}' is required.")]
-        [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 RetryCount { get; set; }
+        protected const String ValidationErrorMessagePrefix = $"Error validating {ShardConnectionOptionsName} options";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(RetryInterval)}' is required.")]
-        [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 RetryInterval { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(RetryCount)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? RetryCount { get; set; }
 
-        public ShardConnectionOptions()
-        {
-            RetryCount = 0;
-            RetryInterval = 0;
-        }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(RetryInterval)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? RetryInterval { get; set; }
 
         #pragma warning restore 0649
     }

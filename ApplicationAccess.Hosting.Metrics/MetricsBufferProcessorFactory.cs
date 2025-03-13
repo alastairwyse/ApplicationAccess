@@ -41,11 +41,11 @@ namespace ApplicationAccess.Hosting.Metrics
             switch (metricBufferProcessingOptions.BufferProcessingStrategy)
             {
                 case MetricBufferProcessingStrategyImplementation.SizeLimitedBufferProcessor:
-                    return new SizeLimitedBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit, bufferProcessingExceptionAction, rethrowBufferProcessingException);
+                    return new SizeLimitedBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit.Value, bufferProcessingExceptionAction, rethrowBufferProcessingException);
                 case MetricBufferProcessingStrategyImplementation.LoopingWorkerThreadBufferProcessor:
-                    return new LoopingWorkerThreadBufferProcessor(metricBufferProcessingOptions.DequeueOperationLoopInterval, bufferProcessingExceptionAction, rethrowBufferProcessingException);
+                    return new LoopingWorkerThreadBufferProcessor(metricBufferProcessingOptions.DequeueOperationLoopInterval.Value, bufferProcessingExceptionAction, rethrowBufferProcessingException);
                 case MetricBufferProcessingStrategyImplementation.SizeLimitedLoopingWorkerThreadHybridBufferProcessor:
-                    return new SizeLimitedLoopingWorkerThreadHybridBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit, metricBufferProcessingOptions.DequeueOperationLoopInterval, bufferProcessingExceptionAction, rethrowBufferProcessingException);
+                    return new SizeLimitedLoopingWorkerThreadHybridBufferProcessor(metricBufferProcessingOptions.BufferSizeLimit.Value, metricBufferProcessingOptions.DequeueOperationLoopInterval.Value, bufferProcessingExceptionAction, rethrowBufferProcessingException);
                 default:
                     throw new Exception($"Encountered unhandled {nameof(MetricBufferProcessingStrategyImplementation)} '{metricBufferProcessingOptions.BufferProcessingStrategy}' while attempting to create {typeof(WorkerThreadBufferProcessorBase).Name} instance.");
             }

@@ -208,9 +208,9 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                 var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType,
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
                     metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection
+                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
                 );
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
@@ -239,8 +239,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
                     new StringUniqueStringifier(),
-                    shardConnectionOptions.RetryCount,
-                    shardConnectionOptions.RetryInterval,
+                    shardConnectionOptions.RetryCount.Value,
+                    shardConnectionOptions.RetryInterval.Value,
                     clientFactoryLogger,
                     metricLogger
                 );
@@ -257,19 +257,19 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                 Int32 currentId = 0;
                 var sourceQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    currentId++, shardRoutingOptions.DataElementType, Operation.Query, shardRoutingOptions.SourceShardHashRangeStart, sourceQueryShardClientConfiguration
+                    currentId++, shardRoutingOptions.DataElementType.Value, Operation.Query, shardRoutingOptions.SourceShardHashRangeStart.Value, sourceQueryShardClientConfiguration
                 );
                 var sourceEventShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    currentId++, shardRoutingOptions.DataElementType, Operation.Event, shardRoutingOptions.SourceShardHashRangeStart, sourceEventShardClientConfiguration
+                    currentId++, shardRoutingOptions.DataElementType.Value, Operation.Event, shardRoutingOptions.SourceShardHashRangeStart.Value, sourceEventShardClientConfiguration
                 );
                 var targetQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    currentId++, shardRoutingOptions.DataElementType, Operation.Query, shardRoutingOptions.TargetShardHashRangeStart, targetQueryShardClientConfiguration
+                    currentId++, shardRoutingOptions.DataElementType.Value, Operation.Query, shardRoutingOptions.TargetShardHashRangeStart.Value, targetQueryShardClientConfiguration
                 );
                 var targetEventShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    currentId++, shardRoutingOptions.DataElementType, Operation.Event, shardRoutingOptions.TargetShardHashRangeStart, targetEventShardClientConfiguration
+                    currentId++, shardRoutingOptions.DataElementType.Value, Operation.Event, shardRoutingOptions.TargetShardHashRangeStart.Value, targetEventShardClientConfiguration
                 );
                 var initialConfiguration = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (
@@ -292,11 +292,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                 );
                 distributedOperationRouter = new DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration>
                 (
-                    shardRoutingOptions.SourceShardHashRangeStart, 
-                    shardRoutingOptions.SourceShardHashRangeEnd, 
-                    shardRoutingOptions.TargetShardHashRangeStart, 
-                    shardRoutingOptions.TargetShardHashRangeEnd,
-                    shardRoutingOptions.DataElementType,
+                    shardRoutingOptions.SourceShardHashRangeStart.Value, 
+                    shardRoutingOptions.SourceShardHashRangeEnd.Value, 
+                    shardRoutingOptions.TargetShardHashRangeStart.Value, 
+                    shardRoutingOptions.TargetShardHashRangeEnd.Value,
+                    shardRoutingOptions.DataElementType.Value,
                     shardClientManager,
                     hashCodeGenerator,
                     hashCodeGenerator,

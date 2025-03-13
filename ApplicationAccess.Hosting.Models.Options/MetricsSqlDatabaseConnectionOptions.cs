@@ -23,6 +23,6 @@ namespace ApplicationAccess.Hosting.Models.Options
     /// </summary>
     public class MetricsSqlDatabaseConnectionOptions : SqlDatabaseConnectionOptions
     {
-        public const String MetricsSqlDatabaseConnection = "MetricsSqlDatabaseConnection";
+        public const String MetricsSqlDatabaseConnectionOptionsName = "MetricsSqlDatabaseConnection";
     }
 }

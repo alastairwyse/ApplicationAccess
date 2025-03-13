@@ -29,44 +29,37 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String ShardRoutingOptionsName = "ShardRouting";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(DataElementType)}' is required.")]
-        public DataElement DataElementType { get; set; }
+        protected const String ValidationErrorMessagePrefix = $"Error validating {ShardRoutingOptionsName} options";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(SourceQueryShardBaseUrl)}' is required.")]
-        public String SourceQueryShardBaseUrl { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(DataElementType)}' is required.")]
+        public DataElement? DataElementType { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(SourceEventShardBaseUrl)}' is required.")]
-        public String SourceEventShardBaseUrl { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(SourceQueryShardBaseUrl)}' is required.")]
+        public String? SourceQueryShardBaseUrl { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(SourceShardHashRangeStart)}' is required.")]
-        public Int32 SourceShardHashRangeStart { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(SourceEventShardBaseUrl)}' is required.")]
+        public String? SourceEventShardBaseUrl { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(SourceShardHashRangeEnd)}' is required.")]
-        public Int32 SourceShardHashRangeEnd { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(SourceShardHashRangeStart)}' is required.")]
+        public Int32? SourceShardHashRangeStart { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(TargetQueryShardBaseUrl)}' is required.")]
-        public String TargetQueryShardBaseUrl { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(SourceShardHashRangeEnd)}' is required.")]
+        public Int32? SourceShardHashRangeEnd { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(TargetEventShardBaseUrl)}' is required.")]
-        public String TargetEventShardBaseUrl { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(TargetQueryShardBaseUrl)}' is required.")]
+        public String? TargetQueryShardBaseUrl { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(TargetShardHashRangeStart)}' is required.")]
-        public Int32 TargetShardHashRangeStart { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(TargetEventShardBaseUrl)}' is required.")]
+        public String? TargetEventShardBaseUrl { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(TargetShardHashRangeEnd)}' is required.")]
-        public Int32 TargetShardHashRangeEnd { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(TargetShardHashRangeStart)}' is required.")]
+        public Int32? TargetShardHashRangeStart { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(RoutingInitiallyOn)}' is required.")]
-        public Nullable<Boolean> RoutingInitiallyOn { get; set; }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(TargetShardHashRangeEnd)}' is required.")]
+        public Int32? TargetShardHashRangeEnd { get; set; }
 
-        public ShardRoutingOptions()
-        {
-            SourceQueryShardBaseUrl = "";
-            SourceEventShardBaseUrl = "";
-            TargetQueryShardBaseUrl = "";
-            TargetEventShardBaseUrl = "";
-            RoutingInitiallyOn = false;
-        }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(RoutingInitiallyOn)}' is required.")]
+        public Boolean? RoutingInitiallyOn { get; set; }
 
         #pragma warning restore 0649
     }

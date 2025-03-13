@@ -89,11 +89,11 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             // Create the TemporalEventBulkCachingNode
             if (metricLoggingOptions.MetricLoggingEnabled.Value == false)
             {
-                cachingNode = new TemporalEventBulkCachingNode<String, String, String, String>(eventCachingOptions.CachedEventCount, new NullMetricLogger());
+                cachingNode = new TemporalEventBulkCachingNode<String, String, String, String>(eventCachingOptions.CachedEventCount.Value, new NullMetricLogger());
             }
             else
             {
-                cachingNode = new TemporalEventBulkCachingNode<String, String, String, String>(eventCachingOptions.CachedEventCount, metricLogger);
+                cachingNode = new TemporalEventBulkCachingNode<String, String, String, String>(eventCachingOptions.CachedEventCount.Value, metricLogger);
             }
 
             // Set the TemporalEventBulkCachingNode on the 'holder' classes
@@ -173,9 +173,9 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
                 var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType,
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
                     metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection
+                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
                 );
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (

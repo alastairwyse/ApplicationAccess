@@ -224,9 +224,9 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
             SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
             (
-                accessManagerSqlDatabaseConnectionOptions.DatabaseType,
+                accessManagerSqlDatabaseConnectionOptions.DatabaseType.Value,
                 accessManagerSqlDatabaseConnectionOptions.ConnectionParameters,
-                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName
+                AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName
             );
 
             Action<BufferFlushingException> eventBufferFlushingExceptionAction = (BufferFlushingException bufferFlushingException) =>
@@ -254,8 +254,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters, eventPersistenceOptions.EventPersisterBackupFilePath);
                 eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
                 (
-                    eventBufferFlushingOptions.BufferSizeLimit,
-                    eventBufferFlushingOptions.FlushLoopInterval,
+                    eventBufferFlushingOptions.BufferSizeLimit.Value,
+                    eventBufferFlushingOptions.FlushLoopInterval.Value,
                     // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
                     !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
                     eventBufferFlushingExceptionAction
@@ -279,9 +279,9 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
                 SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType, 
+                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value, 
                     metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnection
+                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
                 );
                 IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
                 (
@@ -308,8 +308,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 eventPersister = eventPersisterFactory.GetPersister(databaseConnectionParameters, eventPersistenceOptions.EventPersisterBackupFilePath);
                 eventBufferFlushStrategy = new SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy
                 (
-                    eventBufferFlushingOptions.BufferSizeLimit,
-                    eventBufferFlushingOptions.FlushLoopInterval,
+                    eventBufferFlushingOptions.BufferSizeLimit.Value,
+                    eventBufferFlushingOptions.FlushLoopInterval.Value,
                     // If the event persister backup file is set, we want to set 'flushRemainingEventsAfterException' to true
                     !(eventPersistenceOptions.EventPersisterBackupFilePath == null),
                     eventBufferFlushingExceptionAction, 

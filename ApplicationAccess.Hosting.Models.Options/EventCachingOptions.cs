@@ -28,14 +28,11 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String EventCachingOptionsName = "EventCaching";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(CachedEventCount)}' is required.")]
-        [Range(1, 2147483647, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
-        public Int32 CachedEventCount { get; set; }
+        protected const String ValidationErrorMessagePrefix = $"Error validating {EventCachingOptionsName} options";
 
-        public EventCachingOptions()
-        {
-            CachedEventCount = 0;
-        }
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(CachedEventCount)}' is required.")]
+        [Range(1, 2147483647, ErrorMessage = ValidationErrorMessagePrefix + ".  Value for '{0}' must be between {1} and {2}.")]
+        public Int32? CachedEventCount { get; set; }
 
         #pragma warning restore 0649
     }

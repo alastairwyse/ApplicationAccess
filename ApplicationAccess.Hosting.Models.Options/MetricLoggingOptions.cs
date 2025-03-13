@@ -28,23 +28,26 @@ namespace ApplicationAccess.Hosting.Models.Options
 
         public const String MetricLoggingOptionsName = "MetricLogging";
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(MetricLoggingEnabled)}' is required.")]
+        protected const String ValidationErrorMessagePrefix = $"Error validating {MetricLoggingOptionsName} options";
+
+        [Required(ErrorMessage = $"{ValidationErrorMessagePrefix}.  Configuration for '{nameof(MetricLoggingEnabled)}' is required.")]
         public Boolean? MetricLoggingEnabled { get; set; }
 
         public String MetricCategorySuffix { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(MetricBufferProcessing)}' is required.")]
         public MetricBufferProcessingOptions? MetricBufferProcessing { get; set; }
 
-        [Required(ErrorMessage = $"Configuration for '{nameof(MetricsSqlDatabaseConnection)}' is required.")]
         public MetricsSqlDatabaseConnectionOptions? MetricsSqlDatabaseConnection { get; set; }
+
+        public OpenTelemetryConnectionOptions? OpenTelemetryConnection { get; set; }
 
         public MetricLoggingOptions()
         {
-            MetricLoggingEnabled = false;
+            MetricLoggingEnabled = null;
             MetricCategorySuffix = "";
             MetricBufferProcessing = null;
             MetricsSqlDatabaseConnection = null;
+            OpenTelemetryConnection = null;
         }
 
         #pragma warning restore 0649

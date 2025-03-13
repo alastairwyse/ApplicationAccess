@@ -44,7 +44,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 ConfigureOptionsAction = (WebApplicationBuilder builder) =>
                 {
                     builder.Services.AddOptions<AccessManagerSqlDatabaseConnectionOptions>()
-                        .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsOptionsName))
+                        .Bind(builder.Configuration.GetSection(AccessManagerSqlDatabaseConnectionOptions.AccessManagerSqlDatabaseConnectionOptionsName))
                         .ValidateDataAnnotations().ValidateOnStart();
                     builder.Services.AddOptions<EventBufferFlushingOptions>()
                         .Bind(builder.Configuration.GetSection(EventBufferFlushingOptions.EventBufferFlushingOptionsName))
