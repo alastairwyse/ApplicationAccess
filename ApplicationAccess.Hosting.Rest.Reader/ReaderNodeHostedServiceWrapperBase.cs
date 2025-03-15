@@ -40,10 +40,12 @@ namespace ApplicationAccess.Hosting.Rest.Reader
     /// <typeparam name="TReaderNode">The subclass of <see cref="ReaderNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> to wrap/host.</typeparam>
     /// <typeparam name="TAccessManager">The instance or subclass <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> which should be used to store the permissions and authorizations in the ReaderNode.</typeparam>
     /// <remarks>StartAsync() constructs a <see cref="ReaderNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> subclass instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
-    public abstract class ReaderNodeHostedServiceWrapperBase<TReaderNode, TAccessManager> : IHostedService
+    public abstract class ReaderNodeHostedServiceWrapperBase<TReaderNode, TAccessManager> : NodeHostedServiceWrapperBase, IHostedService
         where TReaderNode : ReaderNodeBase<String, String, String, String, TAccessManager>
         where TAccessManager : ConcurrentAccessManager<String, String, String, String>, IMetricLoggingComponent
     {
+        #pragma warning disable 1591
+
         // Members passed in via dependency injection
         protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected EventCacheConnectionOptions eventCacheConnectionOptions;
@@ -55,7 +57,8 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         protected UserQueryProcessorHolder userQueryProcessorHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
-        protected ILogger<ReaderNodeHostedServiceWrapperBase<TReaderNode, TAccessManager>> logger;
+
+        #pragma warning restore 1591
 
         /// <summary>Defines how often the reader node will be refreshed.</summary>
         protected LoopingWorkerThreadReaderNodeRefreshStrategy refreshStrategy;
@@ -63,10 +66,6 @@ namespace ApplicationAccess.Hosting.Rest.Reader
         protected EventCacheClient<String, String, String, String> eventCacheClient;
         /// <summary>Used to load data from the AccessManager.</summary>
         protected IAccessManagerTemporalBulkPersister<String, String, String, String> persistentReader;
-        /// <summary>The buffer processing for the logger for metrics.</summary>
-        protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
-        /// <summary>The logger for metrics.</summary>
-        protected MetricLoggerBuffer metricLogger;
         /// <summary>The <see cref="ReaderNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
         protected TReaderNode readerNode;
 
@@ -89,7 +88,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<ReaderNodeHostedServiceWrapperBase<TReaderNode, TAccessManager>> logger
-        )
+        ) : base(logger)
         {
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.eventCacheConnectionOptions = eventCacheConnectionOptions.Value;
@@ -140,9 +139,7 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             //   Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                logger.LogInformation($"Starting {nameof(metricLogger)}...");
-                metricLogger.Start();
-                logger.LogInformation($"Completed starting {nameof(metricLogger)}.");
+                StartMetricLogging();
             }
             // Load the current state of the readerNode from storage
             logger.LogInformation($"Loading data into {nameof(readerNode)}...");
@@ -169,17 +166,14 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             logger.LogInformation($"Completed stopping {nameof(refreshStrategy)}.");
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                logger.LogInformation($"Stopping {nameof(metricLogger)}...");
-                metricLogger.Stop();
-                logger.LogInformation($"Completed stopping {nameof(metricLogger)}.");
+                StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             eventCacheClient.Dispose();
             persistentReader.Dispose();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                metricLoggerBufferProcessingStrategy.Dispose();
-                metricLogger.Dispose();
+                DisposeMetricLogger();
             }
             readerNode.Dispose();
             logger.LogInformation($"Completed disposing objects.");
@@ -274,39 +268,20 @@ namespace ApplicationAccess.Hosting.Rest.Reader
             }
             else
             {
-                MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>());
+                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<MetricLoggerBuffer>());
+                var metricLoggerFactory = new MetricLoggerFactory();
+                (metricLogger, metricLoggerBufferProcessingStrategy) = metricLoggerFactory.CreateMetricLoggerAndBufferProcessor
                 (
-                    loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>()
-                );
-                Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
-                (
-                    metricBufferProcessingOptions.BufferProcessingFailureAction,
+                    metricLoggingOptions,
+                    MetricLoggerCategoryName,
                     () => { return readerNode; },
                     tripSwitchActuator,
-                    metricBufferProcessorLogger
-                );
-                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
-                SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
-                (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
-                );
-                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
-                (
-                    loggerFactory.CreateLogger<MetricLoggerBuffer>()
-                );
-                var metricLoggerFactory = new SqlMetricLoggerFactory
-                (
-                    fullMetricLoggerCategoryName,
-                    metricLoggerBufferProcessingStrategy,
+                    metricBufferProcessorLogger,
+                    metricLoggerLogger,
                     IntervalMetricBaseTimeUnit.Nanosecond,
-                    true,
-                    metricLoggerLogger
+                    true
                 );
-                metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
                 var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
                 (
                     new StringUniqueStringifier(),

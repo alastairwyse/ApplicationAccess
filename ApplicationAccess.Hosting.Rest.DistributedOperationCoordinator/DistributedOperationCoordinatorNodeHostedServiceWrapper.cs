@@ -44,8 +44,13 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
     /// Wraps an instance of <see cref="DistributedOperationCoordinatorNode{TClientConfiguration, TClientConfigurationJsonSerializer}"/> and associated components and initializes them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
     /// </summary>
     /// <remarks>StartAsync() constructs a <see cref="DistributedOperationCoordinatorNode{TClientConfiguration, TClientConfigurationJsonSerializer}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
-    public class DistributedOperationCoordinatorNodeHostedServiceWrapper : IHostedService
+    public class DistributedOperationCoordinatorNodeHostedServiceWrapper : NodeHostedServiceWrapperBase, IHostedService
     {
+        /// <summary>The category to use for metric logging.</summary>
+        protected const String metricLoggerCategoryName = "DistributedOperationCoordinatorNode";
+
+        #pragma warning disable 1591
+
         // Members passed in via dependency injection
         protected AccessManagerSqlDatabaseConnectionOptions accessManagerSqlDatabaseConnectionOptions;
         protected ShardConfigurationRefreshOptions shardConfigurationRefreshOptions;
@@ -55,7 +60,8 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         protected AsyncEventProcessorHolder asyncEventProcessorHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
-        protected ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger;
+
+        #pragma warning restore 1591
 
         /// <summary>The <see cref="HttpClient"/> used by the shard clients.</summary>
         protected HttpClient httpClient;
@@ -69,10 +75,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
         protected DistributedOperationCoordinatorNode<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> distributedOperationCoordinatorNode;
         /// <summary>Used to read shard configuration from a SQL database.</summary>
         protected IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister;
-        /// <summary>The buffer processing for the logger for metrics.</summary>
-        protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
-        /// <summary>The logger for metrics.</summary>
-        protected MetricLoggerBuffer metricLogger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator.DistributedOperationCoordinatorNodeHostedServiceWrapper class.
@@ -88,7 +90,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DistributedOperationCoordinatorNodeHostedServiceWrapper> logger
-        )
+        ) : base(logger)
         {
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.shardConfigurationRefreshOptions = shardConfigurationRefreshOptions.Value;
@@ -136,9 +138,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             //   Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                logger.LogInformation($"Starting {nameof(metricLogger)}...");
-                metricLogger.Start();
-                logger.LogInformation($"Completed starting {nameof(metricLogger)}.");
+                StartMetricLogging();
             }
             // Start the refresh strategy
             logger.LogInformation($"Starting {nameof(shardConfigurationRefreshStrategy)}...");
@@ -161,9 +161,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             logger.LogInformation($"Completed stopping {nameof(shardConfigurationRefreshStrategy)}.");
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                logger.LogInformation($"Stopping {nameof(metricLogger)}...");
-                metricLogger.Stop();
-                logger.LogInformation($"Completed stopping {nameof(metricLogger)}.");
+                StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             if (shardConfigurationSetPersister is IDisposable)
@@ -174,8 +172,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             httpClient.Dispose();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                metricLoggerBufferProcessingStrategy.Dispose();
-                metricLogger.Dispose();
+                DisposeMetricLogger();
             }
             distributedOperationCoordinatorNode.Dispose();
             logger.LogInformation($"Completed disposing objects.");
@@ -205,47 +202,20 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
             }
             else
             {
-                // Setup metric logging
-                String metricLoggerCategoryName = "DistributedOperationCoordinatorNode";
-                if (metricLoggingOptions.MetricCategorySuffix != "")
-                {
-                    metricLoggerCategoryName = $"{metricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
-                }
-                MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>());
+                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<MetricLoggerBuffer>());
+                var metricLoggerFactory = new MetricLoggerFactory();
+                (metricLogger, metricLoggerBufferProcessingStrategy) = metricLoggerFactory.CreateMetricLoggerAndBufferProcessor
                 (
-                    loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>()
-                );
-                Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
-                (
-                    MetricBufferProcessingFailureAction.ReturnServiceUnavailable,
-                    // Parameter 'metricLoggingComponentRetrievalFunction' is not used when 'processingFailureAction' is set to 'ReturnServiceUnavailable', hence can set to null
+                    metricLoggingOptions,
+                    metricLoggerCategoryName,
                     () => { return null; },
                     tripSwitchActuator,
-                    metricBufferProcessorLogger
-                );
-                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
-                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
-                SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
-                (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
-                );
-                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
-                (
-                    loggerFactory.CreateLogger<MetricLoggerBuffer>()
-                );
-                var metricLoggerFactory = new SqlMetricLoggerFactory
-                (
-                    metricLoggerCategoryName,
-                    metricLoggerBufferProcessingStrategy,
+                    metricBufferProcessorLogger,
+                    metricLoggerLogger,
                     IntervalMetricBaseTimeUnit.Nanosecond,
-                    true,
-                    metricLoggerLogger
+                    true
                 );
-                metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
 
                 // Setup the DistributedAccessManagerAsyncClientFactory (required constructor parameter for ShardClientManager)
                 httpClient = new HttpClient();
@@ -278,6 +248,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationCoordinator
                 {
                     throw new Exception($"Configuration option '{nameof(accessManagerSqlDatabaseConnectionOptions.DatabaseType)}' must be set to '{DatabaseType.SqlServer}' for the DistributedOperationCoordinatorNode.");
                 }
+                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
                 SqlDatabaseConnectionParametersBase databaseConnectionParameters = databaseConnectionParametersParser.Parse
                 (
                     accessManagerSqlDatabaseConnectionOptions.DatabaseType.Value,

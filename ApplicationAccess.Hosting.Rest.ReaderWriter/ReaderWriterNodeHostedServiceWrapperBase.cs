@@ -40,7 +40,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     /// <typeparam name="TReaderWriterNode">The subclass of <see cref="ReaderWriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> to wrap/host.</typeparam>
     /// <typeparam name="TAccessManager">The instance or subclass <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> which reads and writes the permissions and authorizations in the ReaderWriterNode.</typeparam>
     /// <remarks>StartAsync() constructs a <see cref="ReaderWriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> subclass instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
-    public abstract class ReaderWriterNodeHostedServiceWrapperBase<TReaderWriterNode, TAccessManager> : IHostedService
+    public abstract class ReaderWriterNodeHostedServiceWrapperBase<TReaderWriterNode, TAccessManager> : NodeHostedServiceWrapperBase, IHostedService
         where TReaderWriterNode : ReaderWriterNodeBase<String, String, String, String, TAccessManager>
         where TAccessManager : ConcurrentAccessManager<String, String, String, String>, IMetricLoggingComponent
     {
@@ -59,16 +59,11 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         protected UserQueryProcessorHolder userQueryProcessorHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
-        protected ILogger<ReaderWriterNodeHostedServiceWrapperBase<TReaderWriterNode, TAccessManager>> logger;
 
         /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the ReaderWriterNode.</summary>
         protected SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy eventBufferFlushStrategy;
         /// <summary>Used to persist changes to, and load data from the AccessManager.</summary>
         protected IAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
-        /// <summary>The buffer processing for the logger for metrics.</summary>
-        protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
-        /// <summary>The logger for metrics.</summary>
-        protected MetricLoggerBuffer metricLogger;
         /// <summary>The <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
         protected TReaderWriterNode readerWriterNode;
 
@@ -95,7 +90,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             TripSwitchActuator tripSwitchActuator, 
             ILoggerFactory loggerFactory,
             ILogger<ReaderWriterNodeHostedServiceWrapperBase<TReaderWriterNode, TAccessManager>> logger
-        )
+        ) : base(logger)
         {
             this.accessManagerSqlDatabaseConnectionOptions = accessManagerSqlDatabaseConnectionOptions.Value;
             this.eventBufferFlushingOptions = eventBufferFlushingOptions.Value;
@@ -145,17 +140,15 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
 
             logger.LogInformation($"Completed constructing ReaderWriterNode instance.");
 
+            // Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
+            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
+            {
+                StartMetricLogging();
+            }
             // Start buffer flushing/processing
             logger.LogInformation($"Starting {nameof(eventBufferFlushStrategy)}...");
             eventBufferFlushStrategy.Start();
             logger.LogInformation($"Completed starting {nameof(eventBufferFlushStrategy)}.");
-            // Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
-            if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
-            {
-                logger.LogInformation($"Starting {nameof(metricLogger)}...");
-                metricLogger.Start();
-                logger.LogInformation($"Completed starting {nameof(metricLogger)}.");
-            }
             // Load the current state of the ReaderWriterNode from storage
             logger.LogInformation($"Loading data into {nameof(readerWriterNode)}...");
             readerWriterNode.Load(false);
@@ -177,17 +170,14 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Completed stopping {nameof(eventBufferFlushStrategy)}.");
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                logger.LogInformation($"Stopping {nameof(metricLogger)}...");
-                metricLogger.Stop();
-                logger.LogInformation($"Completed stopping {nameof(metricLogger)}.");
+                StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             eventBufferFlushStrategy.Dispose();
             eventPersister.Dispose();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                metricLoggerBufferProcessingStrategy.Dispose();
-                metricLogger.Dispose();
+                DisposeMetricLogger();
             }
             readerWriterNode.Dispose();
             logger.LogInformation($"Completed disposing objects.");
@@ -263,39 +253,20 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             }
             else
             {
-                MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>());
+                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<MetricLoggerBuffer>());
+                var metricLoggerFactory = new MetricLoggerFactory();
+                (metricLogger, metricLoggerBufferProcessingStrategy) = metricLoggerFactory.CreateMetricLoggerAndBufferProcessor
                 (
-                    loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>()
-                );
-                Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
-                (
-                    metricBufferProcessingOptions.BufferProcessingFailureAction,
-                    () => { return readerWriterNode; }, 
+                    metricLoggingOptions,
+                    MetricLoggerCategoryName,
+                    () => { return readerWriterNode; },
                     tripSwitchActuator,
-                    metricBufferProcessorLogger
+                    metricBufferProcessorLogger,
+                    metricLoggerLogger,
+                    IntervalMetricBaseTimeUnit.Nanosecond,
+                    true
                 );
-                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
-                SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
-                (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value, 
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
-                );
-                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
-                (
-                    loggerFactory.CreateLogger<MetricLoggerBuffer>()
-                );
-                var metricLoggerFactory = new SqlMetricLoggerFactory
-                (
-                    fullMetricLoggerCategoryName, 
-                    metricLoggerBufferProcessingStrategy, 
-                    IntervalMetricBaseTimeUnit.Nanosecond, 
-                    true, 
-                    metricLoggerLogger
-                );
-                metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
                 var eventPersisterFactory = new SqlAccessManagerTemporalBulkPersisterFactory<String, String, String, String>
                 (
                     new StringUniqueStringifier(),

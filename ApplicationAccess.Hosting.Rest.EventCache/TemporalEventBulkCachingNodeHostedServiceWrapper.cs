@@ -35,8 +35,13 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
     /// Wraps an instance of <see cref="TemporalEventBulkCachingNode{TUser, TGroup, TComponent, TAccess}"/> and associated components and initializes them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
     /// </summary>
     /// <remarks>StartAsync() calls constructs an <see cref="AccessManagerTemporalEventBulkCache{TUser, TGroup, TComponent, TAccess}"/> instance (and its constructor parameters) from configuration, and calls methods like Start() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
-    public class TemporalEventBulkCachingNodeHostedServiceWrapper : IHostedService
+    public class TemporalEventBulkCachingNodeHostedServiceWrapper : NodeHostedServiceWrapperBase, IHostedService
     {
+        /// <summary>The category to use for metric logging.</summary>
+        protected const String metricLoggerCategoryName = "ApplicationAccessEventCachingNode";
+
+        #pragma warning disable 1591
+
         // Members passed in via dependency injection
         protected MetricLoggingOptions metricLoggingOptions;
         protected EventCachingOptions eventCachingOptions;
@@ -44,12 +49,9 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         protected TemporalEventBulkPersisterHolder temporalEventBulkPersisterHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
-        protected ILogger<TemporalEventBulkCachingNodeHostedServiceWrapper> logger;
 
-        /// <summary>The buffer processing for the logger for metrics.</summary>
-        protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
-        /// <summary>The logger for metrics.</summary>
-        protected MetricLoggerBuffer metricLogger;
+        #pragma warning restore 1591
+
         /// <summary>The <see cref="TemporalEventBulkCachingNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
         protected TemporalEventBulkCachingNode<String, String, String, String> cachingNode;
 
@@ -65,7 +67,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<TemporalEventBulkCachingNodeHostedServiceWrapper> logger
-        )
+        ) : base(logger)
         {
             this.metricLoggingOptions = metricLoggingOptions.Value;
             this.eventCachingOptions = eventCachingOptions.Value;
@@ -106,9 +108,7 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             // Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
             if (metricLogger != null)
             {
-                logger.LogInformation($"Starting {nameof(metricLogger)}...");
-                metricLogger.Start();
-                logger.LogInformation($"Completed starting {nameof(metricLogger)}.");
+                StartMetricLogging();
             }
 
             logger.LogInformation($"Completed starting {nameof(TemporalEventBulkCachingNodeHostedServiceWrapper)}.");
@@ -124,15 +124,12 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
             // Stop and clear buffer flushing/processing
             if (metricLogger != null)
             {
-                logger.LogInformation($"Stopping {nameof(metricLogger)}...");
-                metricLogger.Stop();
-                logger.LogInformation($"Completed stopping {nameof(metricLogger)}.");
+                StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             if (metricLogger != null)
             {
-                metricLoggerBufferProcessingStrategy.Dispose();
-                metricLogger.Dispose();
+                DisposeMetricLogger();
             }
             cachingNode.Dispose();
             logger.LogInformation($"Completed disposing objects.");
@@ -147,49 +144,22 @@ namespace ApplicationAccess.Hosting.Rest.EventCache
         /// </summary>
         protected void InitializeCachingNodeConstructorParameters(MetricLoggingOptions metricLoggingOptions)
         {
-            String metricLoggerCategoryName = "ApplicationAccessEventCachingNode";
-            if (metricLoggingOptions.MetricCategorySuffix != "")
-            {
-                metricLoggerCategoryName = $"{metricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
-            }
-
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>());
+                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<MetricLoggerBuffer>());
+                var metricLoggerFactory = new MetricLoggerFactory();
+                (metricLogger, metricLoggerBufferProcessingStrategy) = metricLoggerFactory.CreateMetricLoggerAndBufferProcessor
                 (
-                    loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>()
-                );
-                Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
-                (
-                    MetricBufferProcessingFailureAction.ReturnServiceUnavailable,
-                    // Parameter 'metricLoggingComponentRetrievalFunction' is not used when 'processingFailureAction' is set to 'ReturnServiceUnavailable', hence can set to null
+                    metricLoggingOptions,
+                    metricLoggerCategoryName,
                     () => { return null; },
                     tripSwitchActuator,
-                    metricBufferProcessorLogger
-                );
-                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
-                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
-                SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
-                (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
-                );
-                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
-                (
-                    loggerFactory.CreateLogger<MetricLoggerBuffer>()
-                );
-                var metricLoggerFactory = new SqlMetricLoggerFactory
-                (
-                    metricLoggerCategoryName,
-                    metricLoggerBufferProcessingStrategy,
+                    metricBufferProcessorLogger,
+                    metricLoggerLogger,
                     IntervalMetricBaseTimeUnit.Nanosecond,
-                    true,
-                    metricLoggerLogger
+                    true
                 );
-                metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
             }
         }
     }

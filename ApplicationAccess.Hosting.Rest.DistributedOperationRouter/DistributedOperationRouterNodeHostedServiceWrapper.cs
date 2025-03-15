@@ -40,8 +40,11 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
     /// Wraps an instance of <see cref="DistributedOperationRouterNode{TClientConfiguration}"/> and associated components and initializes them using methods defined on the <see cref="IHostedService"/> interface, to allow hosting in ASP.NET.
     /// </summary>
     /// <remarks>StartAsync() constructs a <see cref="DistributedOperationRouterNode{TClientConfiguration}"/> instance (and its constructor parameters) from configuration, whist StopAsync() calls Dispose(), etc.</remarks>
-    public class DistributedOperationRouterNodeHostedServiceWrapper : IHostedService
+    public class DistributedOperationRouterNodeHostedServiceWrapper : NodeHostedServiceWrapperBase, IHostedService
     {
+        /// <summary>The category to use for metric logging.</summary>
+        protected const String metricLoggerCategoryName = "DistributedOperationRoutingNode";
+
         #pragma warning disable 1591
 
         // Members passed in via dependency injection
@@ -54,7 +57,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
         protected DistributedOperationRouterHolder distributedOperationRouterHolder;
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
-        protected ILogger<DistributedOperationRouterNodeHostedServiceWrapper> logger;
 
         #pragma warning restore 1591
 
@@ -66,10 +68,6 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
         protected DistributedAccessManagerOperationRouter<AccessManagerRestClientConfiguration> distributedOperationRouter;
         /// <summary>The <see cref="DistributedOperationRouterNode{TClientConfiguration}"/></summary>
         protected DistributedOperationRouterNode<AccessManagerRestClientConfiguration> distributedOperationRouterNode;
-        /// <summary>The buffer processing for the logger for metrics.</summary>
-        protected WorkerThreadBufferProcessorBase metricLoggerBufferProcessingStrategy;
-        /// <summary>The logger for metrics.</summary>
-        protected MetricLoggerBuffer metricLogger;
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Hosting.Rest.DistributedOperationRouter.DistributedOperationRouterNodeHostedServiceWrapper class.
@@ -86,7 +84,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
             TripSwitchActuator tripSwitchActuator,
             ILoggerFactory loggerFactory,
             ILogger<DistributedOperationRouterNodeHostedServiceWrapper> logger
-        )
+        ) : base(logger)
         {
             this.shardRoutingOptions = shardRoutingOptions.Value;
             this.shardConnectionOptions = shardConnectionOptions.Value;
@@ -128,9 +126,7 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
             //   Don't need to call metricLoggerBufferProcessingStrategy.Start() it's called by the below call to metricLogger.Start()
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                logger.LogInformation($"Starting {nameof(metricLogger)}...");
-                metricLogger.Start();
-                logger.LogInformation($"Completed starting {nameof(metricLogger)}.");
+                StartMetricLogging();
             }
 
             logger.LogInformation($"Completed starting {this.GetType().Name}.");
@@ -145,17 +141,14 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
 
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                logger.LogInformation($"Stopping {nameof(metricLogger)}...");
-                metricLogger.Stop();
-                logger.LogInformation($"Completed stopping {nameof(metricLogger)}.");
+                StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
             shardClientManager.Dispose();
             httpClient.Dispose();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
-                metricLoggerBufferProcessingStrategy.Dispose();
-                metricLogger.Dispose();
+                DisposeMetricLogger();
             }
             distributedOperationRouter.Dispose();
             logger.LogInformation($"Completed disposing objects.");
@@ -184,47 +177,20 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
             }
             else
             {
-                // Setup metric logging
-                String metricLoggerCategoryName = "DistributedOperationRoutingNode";
-                if (metricLoggingOptions.MetricCategorySuffix != "")
-                {
-                    metricLoggerCategoryName = $"{metricLoggerCategoryName}-{metricLoggingOptions.MetricCategorySuffix}";
-                }
-                MetricBufferProcessingOptions metricBufferProcessingOptions = metricLoggingOptions.MetricBufferProcessing;
-                var metricsBufferProcessorFactory = new MetricsBufferProcessorFactory();
-                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
+                IApplicationLogger metricBufferProcessorLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>());
+                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter(loggerFactory.CreateLogger<MetricLoggerBuffer>());
+                var metricLoggerFactory = new MetricLoggerFactory();
+                (metricLogger, metricLoggerBufferProcessingStrategy) = metricLoggerFactory.CreateMetricLoggerAndBufferProcessor
                 (
-                    loggerFactory.CreateLogger<WorkerThreadBufferProcessorBase>()
-                );
-                Action<Exception> bufferProcessingExceptionAction = metricsBufferProcessorFactory.GetBufferProcessingExceptionAction
-                (
-                    MetricBufferProcessingFailureAction.ReturnServiceUnavailable,
-                    // Parameter 'metricLoggingComponentRetrievalFunction' is not used when 'processingFailureAction' is set to 'ReturnServiceUnavailable', hence can set to null
+                    metricLoggingOptions,
+                    metricLoggerCategoryName,
                     () => { return null; },
                     tripSwitchActuator,
-                    metricBufferProcessorLogger
-                );
-                metricLoggerBufferProcessingStrategy = metricsBufferProcessorFactory.GetBufferProcessor(metricBufferProcessingOptions, bufferProcessingExceptionAction, false);
-                var databaseConnectionParametersParser = new SqlDatabaseConnectionParametersParser();
-                SqlDatabaseConnectionParametersBase metricsDatabaseConnectionParameters = databaseConnectionParametersParser.Parse
-                (
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.DatabaseType.Value,
-                    metricLoggingOptions.MetricsSqlDatabaseConnection.ConnectionParameters,
-                    MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName
-                );
-                IApplicationLogger metricLoggerLogger = new ApplicationLoggingMicrosoftLoggingExtensionsAdapter
-                (
-                    loggerFactory.CreateLogger<MetricLoggerBuffer>()
-                );
-                var metricLoggerFactory = new SqlMetricLoggerFactory
-                (
-                    metricLoggerCategoryName,
-                    metricLoggerBufferProcessingStrategy,
+                    metricBufferProcessorLogger,
+                    metricLoggerLogger,
                     IntervalMetricBaseTimeUnit.Nanosecond,
-                    true,
-                    metricLoggerLogger
+                    true
                 );
-                metricLogger = metricLoggerFactory.GetMetricLogger(metricsDatabaseConnectionParameters);
 
                 // Setup the DistributedAccessManagerAsyncClientFactory (required constructor parameter for ShardClientManager)
                 httpClient = new HttpClient();

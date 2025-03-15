@@ -162,15 +162,14 @@ namespace ApplicationAccess.Hosting.Rest
             // Validate and register top level IOptions configuration items
             parameters.ConfigureOptionsAction.Invoke(builder);
 
-            // Validate and register metric logging options
+            // Register and validate metric logging options
             builder.Services.AddOptions<MetricLoggingOptions>()
                 .Bind(builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName))
                 .ValidateDataAnnotations().ValidateOnStart();
-            // Validate second level metric logging options
             var metricLoggingOptions = new MetricLoggingOptions();
-            ValidateConfigurationSection(builder, metricLoggingOptions, MetricLoggingOptions.MetricLoggingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricBufferProcessing, MetricBufferProcessingOptions.MetricBufferProcessingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricsSqlDatabaseConnection, MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName);
+            builder.Configuration.GetSection(MetricLoggingOptions.MetricLoggingOptionsName).Bind(metricLoggingOptions);
+            var validator = new MetricLoggingOptionsValidator();
+            validator.Validate(metricLoggingOptions);
 
             // Register 'holder' classes for the interfaces that comprise IAccessManager
             //   See notes in remarks of class UserQueryProcessorHolder for an explanation
@@ -264,30 +263,6 @@ namespace ApplicationAccess.Hosting.Rest
         }
 
         #region Private/Protected Methods
-
-        /// <summary>
-        /// Validates <see cref="MetricLoggingOptions"/> obtained from the specified <see cref="WebApplicationBuilder"/> instance.
-        /// </summary>
-        protected void ValidateMetricLoggingOptions(WebApplicationBuilder builder)
-        {
-            var metricLoggingOptions = new MetricLoggingOptions();
-            ValidateConfigurationSection(builder, metricLoggingOptions, MetricLoggingOptions.MetricLoggingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricBufferProcessing, MetricBufferProcessingOptions.MetricBufferProcessingOptionsName);
-            ValidateConfigurationSection(builder, metricLoggingOptions.MetricsSqlDatabaseConnection, MetricsSqlDatabaseConnectionOptions.MetricsSqlDatabaseConnectionOptionsName);
-        }
-
-        /// <summary>
-        /// Validates a specific section of the application configuration.
-        /// </summary>
-        /// <param name="builder">The builder for the application.</param>
-        /// <param name="optionsInstance">An instance of the class holding the section of the configuration.</param>
-        /// <param name="optionsSectionName">The name of the section within the configuration (e.g. in 'appsettings.json').</param>
-        protected void ValidateConfigurationSection(WebApplicationBuilder builder, Object optionsInstance, String optionsSectionName)
-        {
-            builder.Configuration.GetSection(optionsSectionName).Bind(optionsInstance);
-            var context = new ValidationContext(optionsInstance);
-            Validator.ValidateObject(optionsInstance, context, true);
-        }
 
         /// <summary>
         /// Adds mappings from *NotFoundException instances (e.g. <see cref="UserNotFoundException{T}"/> to HTTP status codes, to the specified <see cref="ExceptionToHttpStatusCodeConverter"/>.

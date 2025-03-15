@@ -25,8 +25,8 @@ using ApplicationAccess.Redistribution.Metrics;
 using ApplicationAccess.Utilities;
 using ApplicationLogging;
 using ApplicationMetrics;
-using NSubstitute;
 using NUnit.Framework;
+using NSubstitute;
 
 namespace ApplicationAccess.Redistribution.UnitTests
 {
