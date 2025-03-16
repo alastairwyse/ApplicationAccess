@@ -11,10 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApplicationMetrics" Version="6.4.1" />
-    <PackageReference Include="ApplicationMetrics.MetricLoggers.OpenTelemetry" Version="1.0.0" />
-    <PackageReference Include="ApplicationMetrics.MetricLoggers.PostgreSql" Version="1.3.0" />
-    <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="2.5.0" />
+    <PackageReference Include="ApplicationMetrics" Version="7.0.0" />
+    <PackageReference Include="ApplicationMetrics.MetricLoggers.OpenTelemetry" Version="1.1.0" />
+    <PackageReference Include="ApplicationMetrics.MetricLoggers.PostgreSql" Version="1.4.0" />
+    <PackageReference Include="ApplicationMetrics.MetricLoggers.SqlServer" Version="2.6.0" />
     <PackageReference Include="Npgsql" Version="8.0.7" />
   </ItemGroup>
 

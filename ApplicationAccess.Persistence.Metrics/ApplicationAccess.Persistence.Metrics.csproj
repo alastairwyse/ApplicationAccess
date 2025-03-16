@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ApplicationMetrics" Version="6.4.1" />
+    <PackageReference Include="ApplicationMetrics" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
