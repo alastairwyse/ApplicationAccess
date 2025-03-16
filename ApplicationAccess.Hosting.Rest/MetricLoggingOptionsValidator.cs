@@ -46,6 +46,10 @@ namespace ApplicationAccess.Hosting.Rest
             // Validate data annotations in the top level object
             var validationContext = new ValidationContext(metricLoggingOptions);
             Validator.ValidateObject(metricLoggingOptions, validationContext, true);
+            if (metricLoggingOptions.MetricLoggingEnabled == false)
+            {
+                return;
+            }
 
             if (metricLoggingOptions.MetricsSqlDatabaseConnection == null && metricLoggingOptions.OpenTelemetryConnection == null)
             {

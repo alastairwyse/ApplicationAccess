@@ -144,5 +144,19 @@ namespace ApplicationAccess.Hosting.Rest.UnitTests
             Assert.That(e.Message, Does.StartWith($"Error validating MetricLogging options."));
             Assert.That(e.InnerException.Message, Does.StartWith($"Error validating OpenTelemetryConnection options.  Configuration for 'Protocol' is required."));
         }
+
+        [Test]
+        public void Validate_MetricLoggingDisabled()
+        {
+            var testMetricLoggingOptions = new MetricLoggingOptions() { MetricLoggingEnabled = false };
+
+            testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
+
+
+            testMetricLoggingOptions.MetricsSqlDatabaseConnection = new MetricsSqlDatabaseConnectionOptions();
+            testMetricLoggingOptions.OpenTelemetryConnection = new OpenTelemetryConnectionOptions();
+
+            testMetricLoggingOptionsValidator.Validate(testMetricLoggingOptions);
+        }
     }
 }
