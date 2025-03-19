@@ -16,9 +16,9 @@
 
 using System;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
-using Microsoft.Extensions.Logging;
 
 namespace ApplicationAccess.Hosting.Rest
 {
@@ -72,7 +72,7 @@ namespace ApplicationAccess.Hosting.Rest
         }
 
         /// <summary>
-        /// Disposes any object associated with metric logging.
+        /// Disposes any objects associated with metric logging.
         /// </summary>
         protected void DisposeMetricLogger()
         {

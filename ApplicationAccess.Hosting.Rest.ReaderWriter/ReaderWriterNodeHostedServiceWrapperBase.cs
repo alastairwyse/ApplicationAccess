@@ -26,6 +26,7 @@ using ApplicationAccess.Hosting.Metrics;
 using ApplicationAccess.Hosting.Models;
 using ApplicationAccess.Hosting.Models.Options;
 using ApplicationAccess.Hosting.Persistence.Sql;
+using ApplicationAccess.Hosting.Rest;
 using ApplicationAccess.Metrics;
 using ApplicationAccess.Persistence;
 using ApplicationLogging;
@@ -40,7 +41,8 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
     /// <typeparam name="TReaderWriterNode">The subclass of <see cref="ReaderWriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> to wrap/host.</typeparam>
     /// <typeparam name="TAccessManager">The instance or subclass <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> which reads and writes the permissions and authorizations in the ReaderWriterNode.</typeparam>
     /// <remarks>StartAsync() constructs a <see cref="ReaderWriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> subclass instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
-    public abstract class ReaderWriterNodeHostedServiceWrapperBase<TReaderWriterNode, TAccessManager> : NodeHostedServiceWrapperBase, IHostedService
+    public abstract class ReaderWriterNodeHostedServiceWrapperBase<TReaderWriterNode, TAccessManager> 
+        : WriterNodeHostedServiceWrapperBase<SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy>, IHostedService
         where TReaderWriterNode : ReaderWriterNodeBase<String, String, String, String, TAccessManager>
         where TAccessManager : ConcurrentAccessManager<String, String, String, String>, IMetricLoggingComponent
     {
@@ -60,10 +62,6 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
         protected TripSwitchActuator tripSwitchActuator;
         protected ILoggerFactory loggerFactory;
 
-        /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the ReaderWriterNode.</summary>
-        protected SizeLimitedLoopingWorkerThreadHybridBufferFlushStrategy eventBufferFlushStrategy;
-        /// <summary>Used to persist changes to, and load data from the AccessManager.</summary>
-        protected IAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
         /// <summary>The <see cref="ReaderWriterNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
         protected TReaderWriterNode readerWriterNode;
 
@@ -146,9 +144,7 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
                 StartMetricLogging();
             }
             // Start buffer flushing/processing
-            logger.LogInformation($"Starting {nameof(eventBufferFlushStrategy)}...");
-            eventBufferFlushStrategy.Start();
-            logger.LogInformation($"Completed starting {nameof(eventBufferFlushStrategy)}.");
+            StartEventBufferProcessing();
             // Load the current state of the ReaderWriterNode from storage
             logger.LogInformation($"Loading data into {nameof(readerWriterNode)}...");
             readerWriterNode.Load(false);
@@ -165,16 +161,13 @@ namespace ApplicationAccess.Hosting.Rest.ReaderWriter
             logger.LogInformation($"Stopping {this.GetType().Name}...");
 
             // Stop and clear buffer flushing/processing
-            logger.LogInformation($"Stopping {nameof(eventBufferFlushStrategy)}...");
-            eventBufferFlushStrategy.Stop();
-            logger.LogInformation($"Completed stopping {nameof(eventBufferFlushStrategy)}.");
+            StopEventBufferProcessing();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
-            eventBufferFlushStrategy.Dispose();
-            eventPersister.Dispose();
+            DisposeEventBufferProcessors();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 DisposeMetricLogger();

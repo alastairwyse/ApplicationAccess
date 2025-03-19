@@ -43,7 +43,8 @@ namespace ApplicationAccess.Hosting.Rest.Writer
     /// <typeparam name="TAccessManager">The instance or subclass of <see cref="ConcurrentAccessManager{TUser, TGroup, TComponent, TAccess}"/> which reads and writes the permissions and authorizations in the ReaderWriterNode.</typeparam>
     /// <typeparam name="TBufferFlushStrategy">The subclass of <see cref="WorkerThreadBufferFlushStrategyBase"/> which implements the stragegy for flushing buffered events.</typeparam>
     /// <remarks>StartAsync() constructs a <see cref="WriterNodeBase{TUser, TGroup, TComponent, TAccess, TAccessManager}"/> subclass instance (and its constructor parameters) from configuration, and calls methods like Start() and Load() on them, whist StopAsync() calls Stop(), Dispose(), etc.</remarks>
-    public abstract class WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager, TBufferFlushStrategy> : NodeHostedServiceWrapperBase, IHostedService
+    public abstract class WriterNodeHostedServiceWrapperBase<TWriterNode, TAccessManager, TBufferFlushStrategy>
+        : ApplicationAccess.Hosting.Rest.WriterNodeHostedServiceWrapperBase<TBufferFlushStrategy>, IHostedService
         where TWriterNode : WriterNodeBase<String, String, String, String, TAccessManager>
         where TAccessManager : ConcurrentAccessManager<String, String, String, String>, IMetricLoggingComponent
         where TBufferFlushStrategy : WorkerThreadBufferFlushStrategyBase
@@ -67,10 +68,6 @@ namespace ApplicationAccess.Hosting.Rest.Writer
 
         /// <summary>An action to invoke if an error occurs during buffer flushing.  Accepts a single parameter which is the <see cref="BufferFlushingException"/> containing details of the error.</summary>
         protected Action<BufferFlushingException> eventBufferFlushingExceptionAction;
-        /// <summary>Flush strategy for the <see cref="IAccessManagerEventBuffer{TUser, TGroup, TComponent, TAccess}"/> instance used by the WriterNode.</summary>
-        protected TBufferFlushStrategy eventBufferFlushStrategy;
-        /// <summary>Used to persist changes to and load data from the AccessManager.</summary>
-        protected IAccessManagerTemporalBulkPersister<String, String, String, String> eventPersister;
         /// <summary>Interface to a cache for events which change the AccessManager.</summary>
         protected EventCacheClient<String, String, String, String> eventCacheClient;
         /// <summary>The <see cref="WriterNode{TUser, TGroup, TComponent, TAccess}"/>.</summary>
@@ -150,9 +147,7 @@ namespace ApplicationAccess.Hosting.Rest.Writer
                 StartMetricLogging();
             }
             // Start buffer flushing/processing
-            logger.LogInformation($"Starting {nameof(eventBufferFlushStrategy)}...");
-            eventBufferFlushStrategy.Start();
-            logger.LogInformation($"Completed starting {nameof(eventBufferFlushStrategy)}.");
+            StartEventBufferProcessing();
             // Load the current state of the WriterNode from storage
             logger.LogInformation($"Loading data into {nameof(writerNode)}...");
             writerNode.Load(false);
@@ -169,16 +164,13 @@ namespace ApplicationAccess.Hosting.Rest.Writer
             logger.LogInformation($"Stopping {this.GetType().Name}...");
 
             // Stop and clear buffer flushing/processing
-            logger.LogInformation($"Stopping {nameof(eventBufferFlushStrategy)}...");
-            eventBufferFlushStrategy.Stop();
-            logger.LogInformation($"Completed stopping {nameof(eventBufferFlushStrategy)}.");
+            StopEventBufferProcessing();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 StopMetricLogging();
             }
             logger.LogInformation($"Disposing objects...");
-            eventBufferFlushStrategy.Dispose();
-            eventPersister.Dispose();
+            DisposeEventBufferProcessors();
             if (metricLoggingOptions.MetricLoggingEnabled.Value == true)
             {
                 DisposeMetricLogger();
