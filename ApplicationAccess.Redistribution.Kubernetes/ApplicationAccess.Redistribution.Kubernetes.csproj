@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Authors>Alastair Wyse</Authors>
+    <Company />
+    <Copyright>Copyright © Alastair Wyse 2025</Copyright>
+    <PackageProjectUrl>https://github.com/alastairwyse/ApplicationAccess/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alastairwyse/ApplicationAccess/</RepositoryUrl>
+    <Description>Classes which manage a distributed AccessManager implementation hosted in Kubernetes.</Description>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="KubernetesClient" Version="16.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Hosting.LaunchPreparer\ApplicationAccess.Hosting.LaunchPreparer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Redistribution\ApplicationAccess.Redistribution.csproj" />
+  </ItemGroup>
+
+</Project>

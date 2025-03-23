@@ -2325,7 +2325,6 @@ namespace ApplicationAccess.Serialization.UnitTests
         /// <returns>A JSON object containing a serialized version of the test data.</returns>
         protected JObject CreateTestDataJson()
         {
-
             String stringifiedAccessManager = @"
             {
                 ""userToGroupMap"": {
