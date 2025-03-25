@@ -43,5 +43,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             return await kubernetesClient.CreateNamespacedServiceAsync(body, namespaceParameter);
         }
+
+        /// <inheritdoc/>
+        public async Task<V1Scale> PatchNamespacedDeploymentScaleAsync(k8s.Kubernetes kubernetesClient, V1Patch body, String name, String namespaceParameter)
+        {
+            return await kubernetesClient.PatchNamespacedDeploymentScaleAsync(body, name, namespaceParameter);
+        }
+
+        /// <inheritdoc/>
+        public async Task<V1PodList> ListNamespacedPodAsync(k8s.Kubernetes kubernetesClient, String namespaceParameter)
+        {
+            return await kubernetesClient.ListNamespacedPodAsync(namespaceParameter);
+        }
     }
 }

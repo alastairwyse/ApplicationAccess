@@ -58,7 +58,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
-            Assert.That(e.Message, Does.StartWith($"Failed to create Kubernetes Service for pod '{appLabelValue}'."));
+            Assert.That(e.Message, Does.StartWith($"Failed to create Kubernetes service for pod '{appLabelValue}'."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -103,7 +103,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
-            Assert.That(e.Message, Does.StartWith($"Failed to create Kubernetes Deployment '{name}'."));
+            Assert.That(e.Message, Does.StartWith($"Failed to create Kubernetes deployment '{name}'."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -265,10 +265,251 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
 
             await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentPredicateAsync(nameSpace, predicate, 100, 1000);
+
+            await mockKubernetesClientShim.Received(5).ListNamespacedDeploymentAsync(null, nameSpace);
         }
 
+        [Test]
+        public void WaitForDeploymentAvailabilityAsync_AbortTimeoutExpires()
+        {
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "OtherDeployment" } },
+                    new V1Deployment() 
+                    { 
+                        Metadata = new V1ObjectMeta() { Name = name }, 
+                        Status = new V1DeploymentStatus { AvailableReplicas = null }
+                    }
+                }
+            );
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
 
-            [Test]
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentAvailabilityAsync(name, nameSpace, 100, 500);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Timeout value of 500 milliseconds expired while waiting for Kubernetes deployment 'user-reader-n2147483648' to become available."));
+            Assert.That(e.InnerException.Message, Does.StartWith($"Timeout value of 500 milliseconds expired while waiting for deployment predicate to return true."));
+        }
+
+        [Test]
+        public async Task WaitForDeploymentAvailabilityAsync_ExceptionGettingDeployments()
+        {
+            var mockException = new Exception("Mock exception");
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromException<V1DeploymentList>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentAvailabilityAsync(name, nameSpace, 100, 500);
+            });
+
+            await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, nameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to wait for Kubernetes deployment 'user-reader-n2147483648' to become available."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task WaitForDeploymentAvailabilityAsync()
+        {
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+            V1DeploymentList unavailableDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "OtherDeployment" } },
+                    new V1Deployment()
+                    {
+                        Metadata = new V1ObjectMeta() { Name = name },
+                        Status = new V1DeploymentStatus { AvailableReplicas = null }
+                    }
+                }
+            );
+            V1DeploymentList availableDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "OtherDeployment" } },
+                    new V1Deployment()
+                    {
+                        Metadata = new V1ObjectMeta() { Name = name },
+                        Status = new V1DeploymentStatus { AvailableReplicas = 1 }
+                    }
+                }
+            );
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns
+            (
+                Task.FromResult<V1DeploymentList>(unavailableDeployments),
+                Task.FromResult<V1DeploymentList>(unavailableDeployments),
+                Task.FromResult<V1DeploymentList>(unavailableDeployments),
+                Task.FromResult<V1DeploymentList>(availableDeployments)
+            );
+
+            await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentAvailabilityAsync(name, nameSpace, 100, 1000);
+
+            await mockKubernetesClientShim.Received(4).ListNamespacedDeploymentAsync(null, nameSpace);
+        }
+
+        [Test]
+        public void WaitForDeploymentScaleDownAsync_CheckIntervalParameter0()
+        {
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+
+            var e = Assert.ThrowsAsync<ArgumentOutOfRangeException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentScaleDownAsync(name, nameSpace, 0, 2000);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'checkInterval' with value 0 must be greater than 0."));
+            Assert.AreEqual("checkInterval", e.ParamName);
+        }
+
+        [Test]
+        public void WaitForDeploymentScaleDownAsync_AbortTimeoutParameter0()
+        {
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+
+            var e = Assert.ThrowsAsync<ArgumentOutOfRangeException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentScaleDownAsync(name, nameSpace, 100, 0);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'abortTimeout' with value 0 must be greater than 0."));
+            Assert.AreEqual("abortTimeout", e.ParamName);
+        }
+
+        [Test]
+        public async Task WaitForDeploymentScaleDownAsync_ExceptionGettingPods()
+        {
+            var mockException = new Exception("Mock exception");
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, nameSpace).Returns(Task.FromException<V1PodList>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentScaleDownAsync(name, nameSpace, 100, 2000);
+            });
+
+            await mockKubernetesClientShim.Received(1).ListNamespacedPodAsync(null, nameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to wait for Kubernetes deployment 'user-reader-n2147483648' to scale down."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void WaitForDeploymentScaleDownAsync_AbortTimeoutExpires()
+        {
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+            V1PodList returnPods = new
+            (
+                new List<V1Pod>
+                {
+                    new V1Pod() { Metadata = new V1ObjectMeta() { Name = "OtherPod" } },
+                    new V1Pod() { Metadata = new V1ObjectMeta() { Name = name } }
+                }
+            );
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, nameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentScaleDownAsync(name, nameSpace, 100, 500);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Timeout value of 500 milliseconds expired while waiting for Kubernetes deployment 'user-reader-n2147483648' to scale down."));
+        }
+
+        [Test]
+        public async Task WaitForDeploymentScaleDownAsync()
+        {
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+            V1PodList podsBeforeScaleDown = new
+            (
+                new List<V1Pod>
+                {
+                    new V1Pod() { Metadata = new V1ObjectMeta() { Name = "OtherPod" } },
+                    new V1Pod() { Metadata = new V1ObjectMeta() { Name = name } }
+                }
+            );
+            V1PodList podsAfterScaleDown = new
+            (
+                new List<V1Pod>
+                {
+                    new V1Pod() { Metadata = new V1ObjectMeta() { Name = "OtherPod" } }
+                }
+            );
+            mockKubernetesClientShim.ListNamespacedPodAsync(null, nameSpace).Returns
+            (
+                Task.FromResult<V1PodList>(podsBeforeScaleDown),
+                Task.FromResult<V1PodList>(podsBeforeScaleDown),
+                Task.FromResult<V1PodList>(podsBeforeScaleDown),
+                Task.FromResult<V1PodList>(podsAfterScaleDown)
+            );
+
+            await testKubernetesDistributedAccessManagerInstanceManager.WaitForDeploymentScaleDownAsync(name, nameSpace, 100, 1000);
+
+            await mockKubernetesClientShim.Received(4).ListNamespacedPodAsync(null, nameSpace);
+        }
+
+        [Test]
+        public void ScaleDeploymentAsync_ReplicaCountParameter0()
+        {
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+
+            var e = Assert.ThrowsAsync<ArgumentOutOfRangeException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.ScaleDeploymentAsync(name, -1, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'replicaCount' with value -1 must be greater than or equal to 0."));
+            Assert.AreEqual("replicaCount", e.ParamName);
+        }
+
+        [Test]
+        public async Task ScaleDeploymentAsync_ExceptionPatchingDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+            mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), name, nameSpace).Returns(Task.FromException<V1Scale>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.ScaleDeploymentAsync(name, 0, nameSpace);
+            });
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), name, nameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to scale Kubernetes deployment 'user-reader-n2147483648' to 0 replicas."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task ScaleDeploymentAsync()
+        {
+            String nameSpace = "default";
+            String name = "user-reader-n2147483648";
+            String expectedPatchContentString = $"{{\"spec\": {{\"replicas\": 3}}}}";
+            V1Patch capturedPatchDefinition = null;
+            await mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Do<V1Patch>(argumentValue => capturedPatchDefinition = argumentValue), name, nameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.ScaleDeploymentAsync(name, 3, nameSpace);
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), name, nameSpace);
+            Assert.AreEqual(expectedPatchContentString, capturedPatchDefinition.Content);
+        }
+
+        [Test]
         public async Task IntegrationTests_REMOVETHIS()
         {
 
@@ -457,6 +698,21 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             public new async Task CreateReaderNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
             {
                 await base.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            }
+
+            public new async Task ScaleDeploymentAsync(String name, Int32 replicaCount, String nameSpace)
+            {
+                await base.ScaleDeploymentAsync(name, replicaCount, nameSpace);
+            }
+
+            public new async Task WaitForDeploymentAvailabilityAsync(String name, String nameSpace, Int32 checkInterval, Int32 abortTimeout)
+            {
+                await base.WaitForDeploymentAvailabilityAsync(name, nameSpace, checkInterval, abortTimeout);
+            }
+
+            public new async Task WaitForDeploymentScaleDownAsync(String name, String nameSpace, Int32 checkInterval, Int32 abortTimeout)
+            {
+                await base.WaitForDeploymentScaleDownAsync(name, nameSpace, checkInterval, abortTimeout);
             }
 
             public new async Task WaitForDeploymentPredicateAsync(String nameSpace, Predicate<V1Deployment> predicate, Int32 checkInterval, Int32 abortTimeout)

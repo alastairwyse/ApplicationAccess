@@ -28,7 +28,6 @@ using ApplicationAccess.Redistribution.Models;
 using Newtonsoft.Json.Linq;
 using k8s;
 using k8s.Models;
-using System.Xml.Serialization;
 
 namespace ApplicationAccess.Redistribution.Kubernetes
 {
@@ -49,6 +48,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //     Maybe just use connection string... will be easier
         //   ENSURE ALL portected members are marked as protected
         //   Use ResourceQuantity.Validate() to check '120Mi' and similar values
+        //   Might need to have 'staticConfig' and 'instanceConfig' parameters
 
         // NEXT
         //   Should CreateServiceAsync() take in NodeType, DataElement, etc...
@@ -59,7 +59,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   Then add metrics and loggings (and testing of both) to all existing methods
 
 
-#pragma warning disable 1591
+        #pragma warning disable 1591
 
         protected const String appLabel = "app";
         protected const String serviceNamePostfix = "-service";
@@ -178,7 +178,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to create Kubernetes Service for pod '{appLabelValue}'.", e);
+                throw new Exception($"Failed to create Kubernetes service for pod '{appLabelValue}'.", e);
             }
         }
 
@@ -199,6 +199,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 appsettingsMetricLoggingPropertyName
             };
             ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for reader nodes");
+
             appsettingsContents[appsettingsAccessManagerSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsInitialCatalogPropertyName] = name;
             appsettingsContents[appsettingsEventCacheConnectionPropertyName][appsettingsHostPropertyName] = eventCacheServiceUrl.ToString();
             appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
@@ -224,12 +225,128 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to create Kubernetes Deployment '{name}'.", e);
+                throw new Exception($"Failed to create Kubernetes deployment '{name}'.", e);
             }
         }
 
         /// <summary>
-        /// Waits for the specified <see cref="V1Deployment"/> predicate to become trye before returning.
+        /// Scales a deployment to the specified number of replicas
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="replicaCount">The number of replicas to scale to.</param>
+        /// <param name="nameSpace">The namespace of the deployment.</param>
+        protected async Task ScaleDeploymentAsync(String name, Int32 replicaCount, String nameSpace)
+        {
+            if (replicaCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(replicaCount), $"Parameter '{nameof(replicaCount)}' with value {replicaCount} must be greater than or equal to 0.");
+
+            // TODO: This is the only way I could find to do this, but surely there is a more robust way?
+            //   Using V1Scale and V1ScaleSpec objects rather than JSON?
+            String patchJson = $"{{\"spec\": {{\"replicas\": {replicaCount}}}}}";
+            V1Patch patchDefinition = new(patchJson, V1Patch.PatchType.MergePatch);
+
+            try
+            {
+                await kubernetesClientShim.PatchNamespacedDeploymentScaleAsync(kubernetesClient, patchDefinition, name, nameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to scale Kubernetes deployment '{name}' to {replicaCount} replicas.", e);
+            }
+        }
+
+        /// <summary>
+        /// Waits for the specified deployment to become available.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="nameSpace">The namespace which contains the deployment.</param>
+        /// <param name="checkInterval">The interval in milliseconds between successive checks.</param>
+        /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the deployment hasn't become available.</param>
+        /// <returns></returns>
+        protected async Task WaitForDeploymentAvailabilityAsync(String name, String nameSpace, Int32 checkInterval, Int32 abortTimeout)
+        {
+            Predicate<V1Deployment> waitForAvailabilityPredicate = (V1Deployment deployment) =>
+            {
+                if (deployment.Name() == name)
+                {
+                    if (deployment.Status.AvailableReplicas != null && deployment.Status.AvailableReplicas.Value != 0)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            };
+
+            try
+            {
+                await WaitForDeploymentPredicateAsync(nameSpace, waitForAvailabilityPredicate, checkInterval, abortTimeout);
+            }
+            catch (DeploymentPredicateWaitTimeoutExpiredException timeoutException)
+            {
+                throw new Exception($"Timeout value of {abortTimeout} milliseconds expired while waiting for Kubernetes deployment '{name}' to become available.", timeoutException);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to wait for Kubernetes deployment '{name}' to become available.", e);
+            }
+        }
+
+        /// <summary>
+        /// Waits for the pods of the specified deployment to shut down.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="nameSpace">The namespace which contains the deployment.</param>
+        /// <param name="checkInterval">The interval in milliseconds between successive checks.</param>
+        /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the deployment hasn't scaled down.</param>
+        /// <returns></returns>
+        protected async Task WaitForDeploymentScaleDownAsync(String name, String nameSpace, Int32 checkInterval, Int32 abortTimeout)
+        {
+            if (checkInterval < 1)
+                throw new ArgumentOutOfRangeException(nameof(checkInterval), $"Parameter '{nameof(checkInterval)}' with value {checkInterval} must be greater than 0.");
+            if (abortTimeout < 1)
+                throw new ArgumentOutOfRangeException(nameof(abortTimeout), $"Parameter '{nameof(abortTimeout)}' with value {abortTimeout} must be greater than 0.");
+
+            Boolean foundPod = true;
+            Stopwatch stopwatch = new();
+            stopwatch.Start();
+            do
+            {
+                foundPod = false;
+                try
+                {
+                    foreach (V1Pod currentPod in await kubernetesClientShim.ListNamespacedPodAsync(kubernetesClient, nameSpace))
+                    {
+                        if (currentPod.Name().StartsWith(name) == true)
+                        {
+                            foundPod = true;
+                            break;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Failed to wait for Kubernetes deployment '{name}' to scale down.", e);
+                }
+                if (foundPod == true)
+                {
+                    await Task.Delay(checkInterval);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            while (stopwatch.ElapsedMilliseconds < abortTimeout);
+
+            if (foundPod == true)
+            {
+                throw new Exception($"Timeout value of {abortTimeout} milliseconds expired while waiting for Kubernetes deployment '{name}' to scale down.");
+            }
+        }
+
+        /// <summary>
+        /// Waits for the specified <see cref="V1Deployment"/> predicate to become true before returning.
         /// </summary>
         /// <param name="nameSpace">The namespace in which to wait for the deployment predicate.</param>
         /// <param name="predicate">The <see cref="Predicate{T}"/> to wait for.</param>
@@ -255,9 +372,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                         break;
                     }
                 }
-                await Task.Delay(checkInterval);
+                if (predicateReturnValue == false)
+                {
+                    await Task.Delay(checkInterval);
+                }
             }
-            while (stopwatch.ElapsedMilliseconds < abortTimeout);
+            while (stopwatch.ElapsedMilliseconds < abortTimeout && predicateReturnValue == false);
 
             if (predicateReturnValue == false)
             {
