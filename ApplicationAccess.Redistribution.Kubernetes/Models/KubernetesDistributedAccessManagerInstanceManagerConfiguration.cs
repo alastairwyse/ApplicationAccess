@@ -28,5 +28,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
 
         /// <summary>Base/template for configuration of reader node pods/deployments within the distributed AccessManager implementation.</summary>
         public required ReaderNodeConfiguration ReaderNodeConfigurationTemplate { get; init; }
+
+        /// <summary>Base/template for configuration of event cache node pods/deployments within the distributed AccessManager implementation.</summary>
+        public required EventCacheNodeConfiguration EventCacheNodeConfigurationTemplate { get; init; }
+
+        /// <summary>Base/template for configuration of writer node pods/deployments within the distributed AccessManager implementation.</summary>
+        public required WriterNodeConfiguration WriterNodeConfigurationTemplate { get; init; }
     }
 }

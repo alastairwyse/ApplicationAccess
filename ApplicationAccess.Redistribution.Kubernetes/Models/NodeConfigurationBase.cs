@@ -25,6 +25,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
     /// </summary>
     public abstract record NodeConfigurationBase
     {
+        /// <summary>The time in seconds to wait on pod shutdown before forcefully terminating the pod.</summary>
+        public required UInt16 TerminationGracePeriod { get; init; }
+
         /// <summary>The container image to use for the pod.</summary>
         public required String ContainerImage { get; init; }
 

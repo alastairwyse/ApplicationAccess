@@ -25,6 +25,8 @@ using ApplicationAccess.Hosting.LaunchPreparer;
 using ApplicationAccess.Redistribution;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
 using ApplicationAccess.Redistribution.Models;
+using ApplicationLogging;
+using ApplicationMetrics;
 using Newtonsoft.Json.Linq;
 using k8s;
 using k8s.Models;
@@ -49,6 +51,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   ENSURE ALL portected members are marked as protected
         //   Use ResourceQuantity.Validate() to check '120Mi' and similar values
         //   Might need to have 'staticConfig' and 'instanceConfig' parameters
+        //   CreateReaderNodeDeploymentAsync() should not be setting database name parameter from deployment name
+        //     BUT if I expose as a param, that's SQL server specific
+        //   **** I could have this TPersisterCredientials, and then a class which takes one of those and a JObject of the appsettings, and applies the credentials to the app settings
+        //     That should work for anything
+
 
         // NEXT
         //   Should CreateServiceAsync() take in NodeType, DataElement, etc...
@@ -63,6 +70,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
         protected const String appLabel = "app";
         protected const String serviceNamePostfix = "-service";
+        protected const String eventBackupVolumeMountPath = "/eventbackup";
+        protected const String eventBackupPersistentVolumeName = "eventbackup-storage";
+        protected const String eventBackupFilePostfix = "-eventbackup";
         protected const String clusterIpServiceType = "ClusterIP";
         protected const String tcpProtocol = "TCP";
         protected const String nodeModeEnvironmentVariableName = "MODE";
@@ -77,7 +87,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected const String appsettingsConnectionParametersPropertyName = "ConnectionParameters";
         protected const String appsettingsInitialCatalogPropertyName = "InitialCatalog";
         protected const String appsettingsEventCacheConnectionPropertyName = "EventCacheConnection";
+        protected const String appsettingsEventCachingPropertyName = "EventCaching";
         protected const String appsettingsHostPropertyName = "Host";
+        protected const String appsettingsEventPersistencePropertyName = "EventPersistence";
+        protected const String appsettingsEventPersisterBackupFilePathPropertyName = "EventPersisterBackupFilePath";
         protected const String appsettingsMetricLoggingPropertyName = "MetricLogging";
         protected const String appsettingsMetricCategorySuffixPropertyName = "MetricCategorySuffix";
 
@@ -89,6 +102,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected k8s.Kubernetes kubernetesClient;
         /// <summary>Acts as a <see href="https://en.wikipedia.org/wiki/Shim_(computing)">shim</see> to the Kubernetes client class.</summary>
         protected IKubernetesClientShim kubernetesClientShim;
+        /// <summary>The logger for general logging.</summary>
+        protected IApplicationLogger logger;
+        /// <summary>The logger for metrics.</summary>
+        protected IMetricLogger metricLogger;
+
         /// <summary>Indicates whether the object has been disposed.</summary>
         protected Boolean disposed;
 
@@ -96,10 +114,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.KubernetesDistributedAccessManagerInstanceManager class.
         /// </summary>
         /// <param name="configuration">Configuration for the instance manager.</param>
-        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration)
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, IApplicationLogger logger, IMetricLogger metricLogger)
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
-            InitializeFields(configuration, clientConfiguration);
+            InitializeFields(configuration, clientConfiguration, logger, metricLogger);
         }
 
         /// <summary>
@@ -107,10 +127,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="configuration">Configuration for the instance manager.</param>
         /// <param name="kubernetesConfigurationFilePath">The full path to the configuration file to use to connect to the Kubernetes cluster(s).</param>
-        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, String kubernetesConfigurationFilePath)
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, String kubernetesConfigurationFilePath, IApplicationLogger logger, IMetricLogger metricLogger)
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile(kubernetesConfigurationFilePath);
-            InitializeFields(configuration, clientConfiguration);
+            InitializeFields(configuration, clientConfiguration, logger, metricLogger);
         }
 
         /// <summary>
@@ -118,12 +140,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="configuration">Configuration for the instance manager.</param>
         /// <param name="kubernetesClientShim">A mock <see cref="IKubernetesClientShim"/>.</param>
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, IKubernetesClientShim kubernetesClientShim)
+        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, IKubernetesClientShim kubernetesClientShim, IApplicationLogger logger, IMetricLogger metricLogger)
         {
             this.configuration = configuration;
             kubernetesClient = null;
             this.kubernetesClientShim = kubernetesClientShim;
+            this.logger = logger;
+            this.metricLogger = metricLogger;
         }
 
         #region Private/Protected Methods
@@ -133,11 +159,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="configuration">Configuration for the instance manager.</param>
         /// <param name="clientConfiguration">The Kubernetes client configuration.</param>
-        protected void InitializeFields(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, KubernetesClientConfiguration clientConfiguration)
+        /// <param name="logger">The logger for general logging.</param>
+        /// <param name="metricLogger">The logger for metrics.</param>
+        protected void InitializeFields(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, KubernetesClientConfiguration clientConfiguration, IApplicationLogger logger, IMetricLogger metricLogger)
         {
             this.configuration = configuration;
             kubernetesClient = new k8s.Kubernetes(clientConfiguration);
             kubernetesClientShim = new DefaultKubernetesClientShim();
+            this.logger = logger;
+            this.metricLogger = metricLogger;
         }
 
         protected void CreateShardGroup(DataElement dataElement, Int32 hashRangeStart, Int32 hasRangeEnd)
@@ -199,7 +229,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 appsettingsMetricLoggingPropertyName
             };
             ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for reader nodes");
-
             appsettingsContents[appsettingsAccessManagerSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsInitialCatalogPropertyName] = name;
             appsettingsContents[appsettingsEventCacheConnectionPropertyName][appsettingsHostPropertyName] = eventCacheServiceUrl.ToString();
             appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
@@ -213,7 +242,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             deploymentDefinition.Spec.Template.Spec.Containers[0].Name = name;
             deploymentDefinition.Spec.Template.Spec.Containers[0].Env = new[]
             {
-                new V1EnvVar { Name = nodeModeEnvironmentVariableName, Value = $"""{nodeModeEnvironmentVariableValue}""" },
+                new V1EnvVar { Name = nodeModeEnvironmentVariableName, Value = nodeModeEnvironmentVariableValue },
                 new V1EnvVar { Name = nodeListenPortEnvironmentVariableName, Value = configuration.PodPort.ToString() }, 
                 new V1EnvVar { Name = nodeMinimumLogLevelEnvironmentVariableName, Value = configuration.ReaderNodeConfigurationTemplate.MinimumLogLevel.ToString() },
                 new V1EnvVar { Name = nodeEncodedJsonConfigurationEnvironmentVariableName, Value = encodedAppsettingsContents }
@@ -225,7 +254,93 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to create Kubernetes deployment '{name}'.", e);
+                throw new Exception($"Failed to create reader node Kubernetes deployment '{name}'.", e);
+            }
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes deployment for an event cache node.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="nameSpace">The namespace in which to create the deployment.</param>
+        protected async Task CreateEventCacheNodeDeploymentAsync(String name, String nameSpace)
+        {
+            // Prepare and encode the 'appsettings.json' file contents
+            JObject appsettingsContents = configuration.EventCacheNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
+            List<String> requiredPaths = new(){ appsettingsMetricLoggingPropertyName };
+            ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for event cache nodes");
+            appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
+            var encoder = new Base64StringEncoder();
+            var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
+
+            V1Deployment deploymentDefinition = EventCacheNodeDeploymentTemplate;
+            deploymentDefinition.Metadata.Name = name;
+            deploymentDefinition.Spec.Selector.MatchLabels.Add(appLabel, name);
+            deploymentDefinition.Spec.Template.Metadata.Labels.Add(appLabel, name);
+            deploymentDefinition.Spec.Template.Spec.Containers[0].Name = name;
+            deploymentDefinition.Spec.Template.Spec.Containers[0].Env = new[]
+            {
+                new V1EnvVar { Name = nodeModeEnvironmentVariableName, Value = nodeModeEnvironmentVariableValue },
+                new V1EnvVar { Name = nodeListenPortEnvironmentVariableName, Value = configuration.PodPort.ToString() },
+                new V1EnvVar { Name = nodeMinimumLogLevelEnvironmentVariableName, Value = configuration.EventCacheNodeConfigurationTemplate.MinimumLogLevel.ToString() },
+                new V1EnvVar { Name = nodeEncodedJsonConfigurationEnvironmentVariableName, Value = encodedAppsettingsContents }
+            };
+
+            try
+            {
+                await kubernetesClientShim.CreateNamespacedDeploymentAsync(kubernetesClient, deploymentDefinition, nameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to create event cache node Kubernetes deployment '{name}'.", e);
+            }
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes deployment for a writer node.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the writer node should write events to.</param>
+        /// <param name="nameSpace">The namespace in which to create the deployment.</param>
+        protected async Task CreateWriterNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
+        {
+            // Prepare and encode the 'appsettings.json' file contents
+            JObject appsettingsContents = configuration.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
+            List<String> requiredPaths = new()
+            {
+                $"{appsettingsAccessManagerSqlDatabaseConnectionPropertyName}.{appsettingsConnectionParametersPropertyName}",
+                appsettingsEventPersistencePropertyName,
+                appsettingsEventCacheConnectionPropertyName,
+                appsettingsMetricLoggingPropertyName
+            };
+            ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for writer nodes");
+            appsettingsContents[appsettingsAccessManagerSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsInitialCatalogPropertyName] = name;
+            appsettingsContents[appsettingsEventPersistencePropertyName][appsettingsEventPersisterBackupFilePathPropertyName] = $"{eventBackupVolumeMountPath}/{name}{eventBackupFilePostfix}.json";
+            appsettingsContents[appsettingsEventCacheConnectionPropertyName][appsettingsHostPropertyName] = eventCacheServiceUrl.ToString();
+            appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
+            var encoder = new Base64StringEncoder();
+            var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
+
+            V1Deployment deploymentDefinition = WriterNodeDeploymentTemplate;
+            deploymentDefinition.Metadata.Name = name;
+            deploymentDefinition.Spec.Selector.MatchLabels.Add(appLabel, name);
+            deploymentDefinition.Spec.Template.Metadata.Labels.Add(appLabel, name);
+            deploymentDefinition.Spec.Template.Spec.Containers[0].Name = name;
+            deploymentDefinition.Spec.Template.Spec.Containers[0].Env = new[]
+            {
+                new V1EnvVar { Name = nodeModeEnvironmentVariableName, Value = nodeModeEnvironmentVariableValue },
+                new V1EnvVar { Name = nodeListenPortEnvironmentVariableName, Value = configuration.PodPort.ToString() },
+                new V1EnvVar { Name = nodeMinimumLogLevelEnvironmentVariableName, Value = configuration.WriterNodeConfigurationTemplate.MinimumLogLevel.ToString() },
+                new V1EnvVar { Name = nodeEncodedJsonConfigurationEnvironmentVariableName, Value = encodedAppsettingsContents }
+            };
+
+            try
+            {
+                await kubernetesClientShim.CreateNamespacedDeploymentAsync(kubernetesClient, deploymentDefinition, nameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to create writer node Kubernetes deployment '{name}'.", e);
             }
         }
 
@@ -391,6 +506,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="jsonDocument">The JSON document to check.</param>
         /// <param name="paths">The JSON paths to check for.</param>
         /// <param name="jsonDocumentContentsDescription">A description of the contents of the JSON document, for use in exception messages.  E.g. 'appsettings configuration for reader nodes'.</param>
+        /// <remarks>This method is designed to be used to confirm the existence of paths in a <see cref="JObject"/> which this class writes to, so as to prevent null reference exceptions when accessing the paths.</remarks>
         protected void ValidatePathsExistInJsonDocument(JObject jsonDocument, IEnumerable<String> paths, String jsonDocumentContentsDescription)
         {
             foreach (String currentPath in paths)
@@ -518,6 +634,133 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                                         }, 
                                         FailureThreshold = configuration.ReaderNodeConfigurationTemplate.StartupProbeFailureThreshold, 
                                         PeriodSeconds = configuration.ReaderNodeConfigurationTemplate.StartupProbePeriod
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        /// <summary>
+        /// The base/template for creating <see cref="V1Deployment"/> objects for event cache nodes.
+        /// </summary>
+        protected V1Deployment EventCacheNodeDeploymentTemplate
+        {
+            get => new V1Deployment()
+            {
+                ApiVersion = $"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}",
+                Kind = V1Deployment.KubeKind,
+                Metadata = new V1ObjectMeta(),
+                Spec = new V1DeploymentSpec
+                {
+                    Replicas = 1,
+                    Selector = new V1LabelSelector()
+                    {
+                        MatchLabels = new Dictionary<string, string>()
+                    },
+                    Template = new V1PodTemplateSpec()
+                    {
+                        Metadata = new V1ObjectMeta()
+                        {
+                            Labels = new Dictionary<string, string>()
+                        },
+                        Spec = new V1PodSpec
+                        {
+                            TerminationGracePeriodSeconds = configuration.EventCacheNodeConfigurationTemplate.TerminationGracePeriod,
+                            Containers = new List<V1Container>()
+                            {
+                                new V1Container()
+                                {
+                                    Image = configuration.EventCacheNodeConfigurationTemplate.ContainerImage,
+                                    Ports = new List<V1ContainerPort>()
+                                    {
+                                        new V1ContainerPort
+                                        {
+                                            ContainerPort = configuration.PodPort
+                                        }
+                                    },
+                                    Resources = new V1ResourceRequirements
+                                    {
+                                        Requests = new Dictionary<String, ResourceQuantity>()
+                                        {
+                                           [requestsCpuKey] = new ResourceQuantity(configuration.EventCacheNodeConfigurationTemplate.CpuResourceRequest),
+                                           [requestsMemoryKey] = new ResourceQuantity(configuration.EventCacheNodeConfigurationTemplate.MemoryResourceRequest)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        /// <summary>
+        /// The base/template for creating <see cref="V1Deployment"/> objects for writer nodes.
+        /// </summary>
+        protected V1Deployment WriterNodeDeploymentTemplate
+        {
+            get => new V1Deployment()
+            {
+                ApiVersion = $"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}",
+                Kind = V1Deployment.KubeKind,
+                Metadata = new V1ObjectMeta(),
+                Spec = new V1DeploymentSpec
+                {
+                    Replicas = 1,
+                    Selector = new V1LabelSelector()
+                    {
+                        MatchLabels = new Dictionary<string, string>()
+                    },
+                    Template = new V1PodTemplateSpec()
+                    {
+                        Metadata = new V1ObjectMeta()
+                        {
+                            Labels = new Dictionary<string, string>()
+                        },
+                        Spec = new V1PodSpec
+                        {
+                            Volumes = new List<V1Volume>()
+                            { 
+                                new V1Volume()
+                                {
+                                    Name = eventBackupPersistentVolumeName, 
+                                    PersistentVolumeClaim = new V1PersistentVolumeClaimVolumeSource()
+                                    {
+                                        ClaimName = configuration.WriterNodeConfigurationTemplate.PersistentVolumeClaimName
+                                    }
+                                }
+                            }, 
+                            TerminationGracePeriodSeconds = configuration.WriterNodeConfigurationTemplate.TerminationGracePeriod,
+                            Containers = new List<V1Container>()
+                            {
+                                new V1Container()
+                                {
+                                    Image = configuration.WriterNodeConfigurationTemplate.ContainerImage,
+                                    Ports = new List<V1ContainerPort>()
+                                    {
+                                        new V1ContainerPort
+                                        {
+                                            ContainerPort = configuration.PodPort
+                                        }
+                                    },
+                                    Resources = new V1ResourceRequirements
+                                    {
+                                        Requests = new Dictionary<String, ResourceQuantity>()
+                                        {
+                                           [requestsCpuKey] = new ResourceQuantity(configuration.WriterNodeConfigurationTemplate.CpuResourceRequest),
+                                           [requestsMemoryKey] = new ResourceQuantity(configuration.WriterNodeConfigurationTemplate.MemoryResourceRequest)
+                                        }
+                                    },
+                                    VolumeMounts = new List<V1VolumeMount>()
+                                    {
+                                        new V1VolumeMount()
+                                        {
+                                            MountPath = eventBackupVolumeMountPath, 
+                                            Name = eventBackupPersistentVolumeName
+                                        }
                                     }
                                 }
                             }

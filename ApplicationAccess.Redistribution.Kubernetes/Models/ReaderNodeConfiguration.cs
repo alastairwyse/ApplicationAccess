@@ -26,9 +26,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         /// <summary>The number of replicas of the pod.</summary>
         public required UInt16 ReplicaCount { get; init; }
 
-        /// <summary>The time in seconds to wait on pod shutdown before forcefully terminating the pod.</summary>
-        public required UInt16 TerminationGracePeriod { get; init; }
-
         /// <summary>The time in seconds between liveness probes.</summary>
         public required UInt16 LivenessProbePeriod { get; init; }
 

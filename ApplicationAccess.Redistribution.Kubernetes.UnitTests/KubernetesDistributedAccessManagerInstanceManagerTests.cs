@@ -20,6 +20,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ApplicationAccess.Hosting.LaunchPreparer;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
+using ApplicationLogging;
+using ApplicationMetrics;
+using ApplicationMetrics.MetricLoggers;
 using k8s.Models;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -34,13 +37,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
     public class KubernetesDistributedAccessManagerInstanceManagerTests
     {
         protected IKubernetesClientShim mockKubernetesClientShim;
+        protected IApplicationLogger mockApplicationLogger;
+        protected IMetricLogger mockMetricLogger;
         protected KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers testKubernetesDistributedAccessManagerInstanceManager;
 
         [SetUp]
         protected void SetUp()
         {
             mockKubernetesClientShim = Substitute.For<IKubernetesClientShim>();
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(CreateConfiguration(), mockKubernetesClientShim);
+            mockApplicationLogger = Substitute.For<IApplicationLogger>();
+            mockMetricLogger = Substitute.For<IMetricLogger>();
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(CreateConfiguration(), mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
         }
 
         [Test]
@@ -103,7 +110,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
-            Assert.That(e.Message, Does.StartWith($"Failed to create Kubernetes deployment '{name}'."));
+            Assert.That(e.Message, Does.StartWith($"Failed to create reader node Kubernetes deployment '{name}'."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -153,6 +160,127 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual($"""5000""", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.HttpGet.Port.Value);
             Assert.AreEqual(12, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.FailureThreshold);
             Assert.AreEqual(11, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.PeriodSeconds);
+        }
+
+        [Test]
+        public async Task CreateEventCacheNodeDeploymentAsync_ExceptionCreatingDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String name = "user-eventcache-n2147483648";
+            String nameSpace = "default";
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateEventCacheNodeDeploymentAsync(name, nameSpace);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to create event cache node Kubernetes deployment '{name}'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task CreateEventCacheNodeDeploymentAsync()
+        {
+            String name = "user-eventcache-n2147483648";
+            String nameSpace = "default";
+            V1Deployment capturedDeploymentDefinition = null;
+            JObject expectedJsonConfiguration = CreateEventCacheNodeAppSettingsConfigurationTemplate();
+            expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), nameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateEventCacheNodeDeploymentAsync(name, nameSpace);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
+            Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Metadata.Name);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Replicas);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Selector.MatchLabels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Selector.MatchLabels["app"]);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Template.Metadata.Labels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Metadata.Labels["app"]);
+            Assert.AreEqual(1800, capturedDeploymentDefinition.Spec.Template.Spec.TerminationGracePeriodSeconds);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers.Count);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Name);
+            Assert.AreEqual("applicationaccess/eventcache:20250203-0900", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Image);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports.Count);
+            Assert.AreEqual(5000, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort);
+            Assert.AreEqual(4, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env.Count);
+            IList<V1EnvVar> deploymentEnvironmentVarriables = capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env;
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MODE", "Launch")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("LISTEN_PORT", "5000")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MINIMUM_LOG_LEVEL", "Information")));
+            ValidateEncodedJsonEnvironmentVariable(deploymentEnvironmentVarriables, expectedJsonConfiguration);
+            Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
+            Assert.AreEqual(new ResourceQuantity("50m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
+            Assert.AreEqual(new ResourceQuantity("60Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+        }
+
+        [Test]
+        public async Task CreateWriterNodeDeploymentAsync_ExceptionCreatingDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String name = "user-writer-n2147483648";
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            String nameSpace = "default";
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to create writer node Kubernetes deployment '{name}'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task CreateWriterNodeDeploymentAsync()
+        {
+            String name = "user-writer-n2147483648";
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            String nameSpace = "default";
+            V1Deployment capturedDeploymentDefinition = null;
+            JObject expectedJsonConfiguration = CreateWriterNodeAppSettingsConfigurationTemplate();
+            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["InitialCatalog"] = name;
+            expectedJsonConfiguration["EventPersistence"]["EventPersisterBackupFilePath"] = "/eventbackup/user-writer-n2147483648-eventbackup.json";
+            expectedJsonConfiguration["EventCacheConnection"]["Host"] = eventCacheServiceUrl.ToString();
+            expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), nameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
+            Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Metadata.Name);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Replicas);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Selector.MatchLabels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Selector.MatchLabels["app"]);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Template.Metadata.Labels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Metadata.Labels["app"]);
+            Assert.AreEqual("eventbackup-storage", capturedDeploymentDefinition.Spec.Template.Spec.Volumes[0].Name);
+            Assert.AreEqual("eventbackup-claim", capturedDeploymentDefinition.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName);
+            Assert.AreEqual(1200, capturedDeploymentDefinition.Spec.Template.Spec.TerminationGracePeriodSeconds);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers.Count);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Name);
+            Assert.AreEqual("applicationaccess/distributedwriter:20250203-0900", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Image);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports.Count);
+            Assert.AreEqual(5000, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort);
+            Assert.AreEqual(4, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env.Count);
+            IList<V1EnvVar> deploymentEnvironmentVarriables = capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env;
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MODE", "Launch")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("LISTEN_PORT", "5000")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MINIMUM_LOG_LEVEL", "Critical")));
+            ValidateEncodedJsonEnvironmentVariable(deploymentEnvironmentVarriables, expectedJsonConfiguration);
+            Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
+            Assert.AreEqual(new ResourceQuantity("200m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
+            Assert.AreEqual(new ResourceQuantity("240Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+            Assert.AreEqual("/eventbackup", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath);
+            Assert.AreEqual("eventbackup-storage", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].VolumeMounts[0].Name);
         }
 
         [Test]
@@ -509,12 +637,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(expectedPatchContentString, capturedPatchDefinition.Content);
         }
 
-        [Test]
-        public async Task IntegrationTests_REMOVETHIS()
-        {
-
-        }
-
         #region Private/Protected Methods
 
         /// <summary>
@@ -608,6 +730,25 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     LivenessProbePeriod = 10, 
                     StartupProbeFailureThreshold = 12, 
                     StartupProbePeriod = 11
+                },
+                EventCacheNodeConfigurationTemplate = new EventCacheNodeConfiguration
+                {
+                    TerminationGracePeriod = 1800,
+                    ContainerImage = "applicationaccess/eventcache:20250203-0900",
+                    MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Information,
+                    AppSettingsConfigurationTemplate = CreateEventCacheNodeAppSettingsConfigurationTemplate(),
+                    CpuResourceRequest = "50m",
+                    MemoryResourceRequest = "60Mi"
+                },
+                WriterNodeConfigurationTemplate = new WriterNodeConfiguration
+                {
+                    PersistentVolumeClaimName = "eventbackup-claim", 
+                    TerminationGracePeriod = 1200,
+                    ContainerImage = "applicationaccess/distributedwriter:20250203-0900",
+                    MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Critical,
+                    AppSettingsConfigurationTemplate = CreateWriterNodeAppSettingsConfigurationTemplate(),
+                    CpuResourceRequest = "200m",
+                    MemoryResourceRequest = "240Mi"
                 }
             };
 
@@ -669,6 +810,103 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             return JObject.Parse(stringifiedAppSettings);
         }
 
+        /// <summary>
+        /// Creates a base/template for the 'appsettings.json' file contents for event cache nodes.
+        /// </summary>
+        /// <returns>A base/template for the 'appsettings.json' file contents for event cache nodes.</returns>
+        protected JObject CreateEventCacheNodeAppSettingsConfigurationTemplate()
+        {
+            String stringifiedAppSettings = @"
+            {
+                ""EventCaching"": {
+                    ""CachedEventCount"": 5000
+                },
+                ""MetricLogging"": {
+                    ""MetricLoggingEnabled"": false,
+                    ""MetricCategorySuffix"": """",
+                    ""MetricBufferProcessing"": {
+                        ""BufferProcessingStrategy"": ""SizeLimitedBufferProcessor"",
+                        ""BufferSizeLimit"": 501,
+                        ""DequeueOperationLoopInterval"": 30001,
+                        ""BufferProcessingFailureAction"": ""DisableMetricLogging""
+                    },
+                    ""MetricsSqlDatabaseConnection"": {
+                        ""DatabaseType"": ""SqlServer"",
+                        ""ConnectionParameters"": {
+                            ""DataSource"": ""127.0.0.1"",
+                            ""InitialCatalog"": ""ApplicationMetrics"",
+                            ""UserId"": ""sa"",
+                            ""Password"": ""password"",
+                            ""RetryCount"": 5,
+                            ""RetryInterval"": 10,
+                            ""OperationTimeout"": 60000
+                        }
+                    }
+                }
+            }";
+
+            return JObject.Parse(stringifiedAppSettings);
+        }
+
+        /// <summary>
+        /// Creates a base/template for the 'appsettings.json' file contents for writer nodes.
+        /// </summary>
+        /// <returns>A base/template for the 'appsettings.json' file contents for writer nodes.</returns>
+        protected JObject CreateWriterNodeAppSettingsConfigurationTemplate()
+        {
+            String stringifiedAppSettings = @"
+            {
+                ""AccessManagerSqlDatabaseConnection"": {
+                    ""DatabaseType"": ""SqlServer"",
+                    ""ConnectionParameters"": {
+                        ""DataSource"": ""127.0.0.1"",
+                        ""InitialCatalog"": """",
+                        ""UserId"": ""sa"",
+                        ""Password"": ""password"",
+                        ""RetryCount"": 4,
+                        ""RetryInterval"": 5,
+                        ""OperationTimeout"": 120000
+                    }
+                },
+                ""EventBufferFlushing"": {
+                    ""BufferSizeLimit"": 200,
+                    ""FlushLoopInterval"": 60000
+                },
+                ""EventPersistence"": {
+                            ""EventPersisterBackupFilePath"": """"
+                },
+                ""EventCacheConnection"": {
+                    ""Host"": """",
+                    ""RetryCount"": 6,
+                    ""RetryInterval"": 7
+                },
+                ""MetricLogging"": {
+                    ""MetricLoggingEnabled"": true,
+                    ""MetricCategorySuffix"": """",
+                    ""MetricBufferProcessing"": {
+                        ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
+                        ""BufferSizeLimit"": 1000,
+                        ""DequeueOperationLoopInterval"": 45000,
+                        ""BufferProcessingFailureAction"": ""ReturnServiceUnavailable""
+                    }
+                },
+                ""MetricsSqlDatabaseConnection"": {
+                    ""DatabaseType"": ""SqlServer"",
+                    ""ConnectionParameters"": {
+                        ""DataSource"": ""127.0.0.1"",
+                        ""InitialCatalog"": ""ApplicationMetrics"",
+                        ""UserId"": ""sa"",
+                        ""Password"": ""password"",
+                        ""RetryCount"": 5,
+                        ""RetryInterval"": 10,
+                        ""OperationTimeout"": 60000
+                    }
+                }
+            }";
+
+            return JObject.Parse(stringifiedAppSettings);
+        }
+
         #endregion
 
         #region Nested Classes
@@ -683,8 +921,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             /// </summary>
             /// <param name="configuration">Configuration for the instance manager.</param>
             /// <param name="kubernetesClientShim">A mock <see cref="IKubernetesClientShim"/>.</param>
-            public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, IKubernetesClientShim kubernetesClientShim)
-                : base(configuration, kubernetesClientShim)
+            /// <param name="logger">The logger for general logging.</param>
+            /// <param name="metricLogger">The logger for metrics.</param>
+            public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, IKubernetesClientShim kubernetesClientShim, IApplicationLogger logger, IMetricLogger metricLogger)
+                : base(configuration, kubernetesClientShim, logger, metricLogger)
             {
             }
 
@@ -698,6 +938,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             public new async Task CreateReaderNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
             {
                 await base.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            }
+
+            public new async Task CreateEventCacheNodeDeploymentAsync(String name, String nameSpace)
+            {
+                await base.CreateEventCacheNodeDeploymentAsync(name, nameSpace);
+            }
+
+            public new async Task CreateWriterNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
+            {
+                await base.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
             }
 
             public new async Task ScaleDeploymentAsync(String name, Int32 replicaCount, String nameSpace)
