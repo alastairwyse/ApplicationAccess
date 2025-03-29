@@ -55,6 +55,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //     BUT if I expose as a param, that's SQL server specific
         //   **** I could have this TPersisterCredientials, and then a class which takes one of those and a JObject of the appsettings, and applies the credentials to the app settings
         //     That should work for anything
+        //   CreateDistributedOperationCoordinatorNodeDeploymentAsync()
+        //     The way the DB 'InitialCatalog' is set is completely wrong... need to pass as a TPersisterCredientials param
+        //   Fix all the tests where I'm setting the db initial catalog to be the pod name... should not be set like this
 
 
         // NEXT
@@ -66,7 +69,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   Then add metrics and loggings (and testing of both) to all existing methods
 
 
-        #pragma warning disable 1591
+#pragma warning disable 1591
 
         protected const String appLabel = "app";
         protected const String serviceNamePostfix = "-service";
@@ -74,6 +77,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected const String eventBackupPersistentVolumeName = "eventbackup-storage";
         protected const String eventBackupFilePostfix = "-eventbackup";
         protected const String clusterIpServiceType = "ClusterIP";
+        protected const String loadBalancerServiceType = "LoadBalancer";
         protected const String tcpProtocol = "TCP";
         protected const String nodeModeEnvironmentVariableName = "MODE";
         protected const String nodeModeEnvironmentVariableValue = "Launch";
@@ -189,14 +193,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
-        /// Creates a Kubernetes service.
+        /// Creates a Kubernetes service of type 'ClusterIP'.
         /// </summary>
         /// <param name="appLabelValue">The name of the pod/deployment targetted by the service.</param>
         /// <param name="port">The TCP port the service should expose.</param>
         /// <param name="nameSpace">The namespace in which to create the service.</param>
-        protected async Task CreateServiceAsync(String appLabelValue, UInt16 port, String nameSpace)
+        protected async Task CreateClusterIpServiceAsync(String appLabelValue, UInt16 port, String nameSpace)
         {
-            V1Service serviceDefinition = ServiceTemplate;
+            V1Service serviceDefinition = ClusterIpServiceTemplate;
             serviceDefinition.Metadata.Name = $"{appLabelValue}{serviceNamePostfix}";
             serviceDefinition.Spec.Selector.Add(appLabel, appLabelValue);
             serviceDefinition.Spec.Ports[0].Port = port;
@@ -208,7 +212,32 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to create Kubernetes service for pod '{appLabelValue}'.", e);
+                throw new Exception($"Failed to create Kubernetes '{clusterIpServiceType}' service for pod '{appLabelValue}'.", e);
+            }
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer'.
+        /// </summary>
+        /// <param name="appLabelValue">The name of the pod/deployment targetted by the service.</param>
+        /// <param name="port">The TCP port the load balancer service should expose.</param>
+        /// <param name="targetPort">The TCP port to use to connect to the targetted pod/deployment.</param>
+        /// <param name="nameSpace">The namespace in which to create the service.</param>
+        protected async Task CreateLoadBalancerServiceAsync(String appLabelValue, UInt16 port, UInt16 targetPort, String nameSpace)
+        {
+            V1Service serviceDefinition = LoadBalancerServiceTemplate;
+            serviceDefinition.Metadata.Name = $"{appLabelValue}{serviceNamePostfix}";
+            serviceDefinition.Spec.Selector.Add(appLabel, appLabelValue);
+            serviceDefinition.Spec.Ports[0].Port = port;
+            serviceDefinition.Spec.Ports[0].TargetPort = targetPort;
+
+            try
+            {
+                await kubernetesClientShim.CreateNamespacedServiceAsync(kubernetesClient, serviceDefinition, nameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to create Kubernetes '{loadBalancerServiceType}' service for pod '{appLabelValue}'.", e);
             }
         }
 
@@ -341,6 +370,49 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             catch (Exception e)
             {
                 throw new Exception($"Failed to create writer node Kubernetes deployment '{name}'.", e);
+            }
+        }
+
+        /// <summary>
+        /// Creates a Kubernetes deployment for a distributed operation coordinator node.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="nameSpace">The namespace in which to create the deployment.</param>
+        protected async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync(String name, String nameSpace)
+        {
+            // Prepare and encode the 'appsettings.json' file contents
+            JObject appsettingsContents = configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
+            List<String> requiredPaths = new()
+            {
+                $"{appsettingsAccessManagerSqlDatabaseConnectionPropertyName}.{appsettingsConnectionParametersPropertyName}",
+                appsettingsMetricLoggingPropertyName
+            };
+            ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for distributed operation coordinator nodes");
+            appsettingsContents[appsettingsAccessManagerSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsInitialCatalogPropertyName] = name;
+            appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
+            var encoder = new Base64StringEncoder();
+            var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
+
+            V1Deployment deploymentDefinition = DistributedOperationCoordinatorNodeDeploymentTemplate;
+            deploymentDefinition.Metadata.Name = name;
+            deploymentDefinition.Spec.Selector.MatchLabels.Add(appLabel, name);
+            deploymentDefinition.Spec.Template.Metadata.Labels.Add(appLabel, name);
+            deploymentDefinition.Spec.Template.Spec.Containers[0].Name = name;
+            deploymentDefinition.Spec.Template.Spec.Containers[0].Env = new[]
+            {
+                new V1EnvVar { Name = nodeModeEnvironmentVariableName, Value = nodeModeEnvironmentVariableValue },
+                new V1EnvVar { Name = nodeListenPortEnvironmentVariableName, Value = configuration.PodPort.ToString() },
+                new V1EnvVar { Name = nodeMinimumLogLevelEnvironmentVariableName, Value = configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.MinimumLogLevel.ToString() },
+                new V1EnvVar { Name = nodeEncodedJsonConfigurationEnvironmentVariableName, Value = encodedAppsettingsContents }
+            };
+
+            try
+            {
+                await kubernetesClientShim.CreateNamespacedDeploymentAsync(kubernetesClient, deploymentDefinition, nameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to create distributed operation coordinator node Kubernetes deployment '{name}'.", e);
             }
         }
 
@@ -547,6 +619,34 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         #region Kubernetes Object Templates
 
         /// <summary>
+        /// The base/template for creating <see cref="V1Service"/> objects of type 'ClusterIP'.
+        /// </summary>
+        protected V1Service ClusterIpServiceTemplate
+        {
+            get
+            {
+                V1Service serviceTemplate = ServiceTemplate;
+                serviceTemplate.Spec.Type = clusterIpServiceType;
+
+                return serviceTemplate;
+            }
+        }
+
+        /// <summary>
+        /// The base/template for creating <see cref="V1Service"/> objects of type 'ClusterIP'.
+        /// </summary>
+        protected V1Service LoadBalancerServiceTemplate
+        {
+            get
+            {
+                V1Service serviceTemplate = ServiceTemplate;
+                serviceTemplate.Spec.Type = loadBalancerServiceType;
+
+                return serviceTemplate;
+            }
+        }
+
+        /// <summary>
         /// The base/template for creating <see cref="V1Service"/> objects.
         /// </summary>
         protected V1Service ServiceTemplate
@@ -558,7 +658,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 Metadata = new V1ObjectMeta(),
                 Spec = new V1ServiceSpec
                 {
-                    Type = clusterIpServiceType,
                     Selector = new Dictionary<String, String>(),
                     Ports = new List<V1ServicePort>
                     {
@@ -760,6 +859,60 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                                         {
                                             MountPath = eventBackupVolumeMountPath, 
                                             Name = eventBackupPersistentVolumeName
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        /// <summary>
+        /// The base/template for creating <see cref="V1Deployment"/> objects for distributed operation coordinator nodes.
+        /// </summary>
+        protected V1Deployment DistributedOperationCoordinatorNodeDeploymentTemplate
+        {
+            get => new V1Deployment()
+            {
+                ApiVersion = $"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}",
+                Kind = V1Deployment.KubeKind,
+                Metadata = new V1ObjectMeta(),
+                Spec = new V1DeploymentSpec
+                {
+                    Replicas = configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.ReplicaCount,
+                    Selector = new V1LabelSelector()
+                    {
+                        MatchLabels = new Dictionary<string, string>()
+                    },
+                    Template = new V1PodTemplateSpec()
+                    {
+                        Metadata = new V1ObjectMeta()
+                        {
+                            Labels = new Dictionary<string, string>()
+                        },
+                        Spec = new V1PodSpec
+                        {
+                            TerminationGracePeriodSeconds = configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.TerminationGracePeriod,
+                            Containers = new List<V1Container>()
+                            {
+                                new V1Container()
+                                {
+                                    Image = configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.ContainerImage,
+                                    Ports = new List<V1ContainerPort>()
+                                    {
+                                        new V1ContainerPort
+                                        {
+                                            ContainerPort = configuration.PodPort
+                                        }
+                                    },
+                                    Resources = new V1ResourceRequirements
+                                    {
+                                        Requests = new Dictionary<String, ResourceQuantity>()
+                                        {
+                                           [requestsCpuKey] = new ResourceQuantity(configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.CpuResourceRequest),
+                                           [requestsMemoryKey] = new ResourceQuantity(configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.MemoryResourceRequest)
                                         }
                                     }
                                 }

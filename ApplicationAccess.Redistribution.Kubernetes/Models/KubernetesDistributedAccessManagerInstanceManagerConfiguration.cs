@@ -34,5 +34,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
 
         /// <summary>Base/template for configuration of writer node pods/deployments within the distributed AccessManager implementation.</summary>
         public required WriterNodeConfiguration WriterNodeConfigurationTemplate { get; init; }
+
+        /// <summary>Base/template for configuration of distributed operation coordinator node pods/deployments within the distributed AccessManager implementation.</summary>
+        public required DistributedOperationCoordinatorNodeConfiguration DistributedOperationCoordinatorNodeConfigurationTemplate { get; init; }
     }
 }

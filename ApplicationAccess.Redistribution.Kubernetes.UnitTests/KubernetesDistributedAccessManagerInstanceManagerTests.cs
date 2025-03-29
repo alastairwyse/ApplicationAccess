@@ -51,7 +51,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateServiceAsync_ExceptionCreatingService()
+        public async Task CreateClusterIpServiceAsync_ExceptionCreatingService()
         {
             var mockException = new Exception("Mock exception");
             String appLabelValue = "user-eventcache-n2147483648";
@@ -61,16 +61,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateServiceAsync(appLabelValue, port, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateClusterIpServiceAsync(appLabelValue, port, nameSpace);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
-            Assert.That(e.Message, Does.StartWith($"Failed to create Kubernetes service for pod '{appLabelValue}'."));
+            Assert.That(e.Message, Does.StartWith($"Failed to create Kubernetes 'ClusterIP' service for pod '{appLabelValue}'."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        public async Task CreateServiceAsync()
+        public async Task CreateClusterIpServiceAsync()
         {
             String appLabelValue = "user-eventcache-n2147483648";
             UInt16 port = 5000;
@@ -78,7 +78,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             V1Service capturedServiceDefinition = null;
             await mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Do<V1Service>(argumentValue => capturedServiceDefinition = argumentValue), nameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateServiceAsync(appLabelValue, port, nameSpace);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateClusterIpServiceAsync(appLabelValue, port, nameSpace);
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
             Assert.AreEqual($"{V1Service.KubeGroup}/{V1Service.KubeApiVersion}", capturedServiceDefinition.ApiVersion);
@@ -92,7 +92,52 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual("TCP", capturedServiceDefinition.Spec.Ports[0].Protocol);
             Assert.AreEqual(port, capturedServiceDefinition.Spec.Ports[0].Port);
             Assert.AreEqual($"""{port}""", capturedServiceDefinition.Spec.Ports[0].TargetPort.Value);
-            Assert.AreEqual($"""{port}""", capturedServiceDefinition.Spec.Ports[0].TargetPort.Value);
+        }
+
+        [Test]
+        public async Task CreateLoadBalancerServiceAsync_ExceptionCreatingService()
+        {
+            var mockException = new Exception("Mock exception");
+            String appLabelValue = "operation-coordinator";
+            UInt16 port = 7000;
+            UInt16 targetPort = 5000;
+            String nameSpace = "default";
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromException<V1Service>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateLoadBalancerServiceAsync(appLabelValue, port, targetPort, nameSpace);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to create Kubernetes 'LoadBalancer' service for pod '{appLabelValue}'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task CreateLoadBalancerServiceAsync()
+        {
+            String appLabelValue = "operation-coordinator";
+            UInt16 port = 7000;
+            UInt16 targetPort = 5000;
+            String nameSpace = "default";
+            V1Service capturedServiceDefinition = null;
+            await mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Do<V1Service>(argumentValue => capturedServiceDefinition = argumentValue), nameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateLoadBalancerServiceAsync(appLabelValue, port, targetPort, nameSpace);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
+            Assert.AreEqual($"{V1Service.KubeGroup}/{V1Service.KubeApiVersion}", capturedServiceDefinition.ApiVersion);
+            Assert.AreEqual(V1Service.KubeKind, capturedServiceDefinition.Kind);
+            Assert.AreEqual($"{appLabelValue}-service", capturedServiceDefinition.Metadata.Name);
+            Assert.AreEqual("LoadBalancer", capturedServiceDefinition.Spec.Type);
+            Assert.AreEqual(1, capturedServiceDefinition.Spec.Selector.Count);
+            Assert.IsTrue(capturedServiceDefinition.Spec.Selector.ContainsKey("app"));
+            Assert.AreEqual(appLabelValue, capturedServiceDefinition.Spec.Selector["app"]);
+            Assert.AreEqual(1, capturedServiceDefinition.Spec.Ports.Count);
+            Assert.AreEqual("TCP", capturedServiceDefinition.Spec.Ports[0].Protocol);
+            Assert.AreEqual(port, capturedServiceDefinition.Spec.Ports[0].Port);
+            Assert.AreEqual($"""{targetPort}""", capturedServiceDefinition.Spec.Ports[0].TargetPort.Value);
         }
 
         [Test]
@@ -281,6 +326,63 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(new ResourceQuantity("240Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
             Assert.AreEqual("/eventbackup", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath);
             Assert.AreEqual("eventbackup-storage", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].VolumeMounts[0].Name);
+        }
+
+        [Test]
+        public async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync_ExceptionCreatingDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String name = "operation-coordinator";
+            String nameSpace = "default";
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to create distributed operation coordinator node Kubernetes deployment '{name}'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync()
+        {
+            String name = "operation-coordinator";
+            String nameSpace = "default";
+            V1Deployment capturedDeploymentDefinition = null;
+            JObject expectedJsonConfiguration = CreateDistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate();
+            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["InitialCatalog"] = name;
+            expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), nameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
+            Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Metadata.Name);
+            Assert.AreEqual(3, capturedDeploymentDefinition.Spec.Replicas);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Selector.MatchLabels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Selector.MatchLabels["app"]);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Template.Metadata.Labels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Metadata.Labels["app"]);
+            Assert.AreEqual(60, capturedDeploymentDefinition.Spec.Template.Spec.TerminationGracePeriodSeconds);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers.Count);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Name);
+            Assert.AreEqual("applicationaccess/distributedoperationcoordinator:20250203-0900", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Image);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports.Count);
+            Assert.AreEqual(5000, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort);
+            Assert.AreEqual(4, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env.Count);
+            IList<V1EnvVar> deploymentEnvironmentVarriables = capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env;
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MODE", "Launch")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("LISTEN_PORT", "5000")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MINIMUM_LOG_LEVEL", "Warning")));
+            ValidateEncodedJsonEnvironmentVariable(deploymentEnvironmentVarriables, expectedJsonConfiguration);
+            Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
+            Assert.AreEqual(new ResourceQuantity("500m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
+            Assert.AreEqual(new ResourceQuantity("600Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
         }
 
         [Test]
@@ -637,6 +739,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(expectedPatchContentString, capturedPatchDefinition.Content);
         }
 
+        [Test]
+        public async Task IntegrationTests_REMOVETHIS()
+        {
+        }
+
         #region Private/Protected Methods
 
         /// <summary>
@@ -749,6 +856,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     AppSettingsConfigurationTemplate = CreateWriterNodeAppSettingsConfigurationTemplate(),
                     CpuResourceRequest = "200m",
                     MemoryResourceRequest = "240Mi"
+                }, 
+                DistributedOperationCoordinatorNodeConfigurationTemplate = new DistributedOperationCoordinatorNodeConfiguration
+                {
+                    ReplicaCount = 3,
+                    TerminationGracePeriod = 60,
+                    ContainerImage = "applicationaccess/distributedoperationcoordinator:20250203-0900",
+                    MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
+                    AppSettingsConfigurationTemplate = CreateDistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate(),
+                    CpuResourceRequest = "500m",
+                    MemoryResourceRequest = "600Mi"
                 }
             };
 
@@ -888,20 +1005,74 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                         ""BufferSizeLimit"": 1000,
                         ""DequeueOperationLoopInterval"": 45000,
                         ""BufferProcessingFailureAction"": ""ReturnServiceUnavailable""
+                    },
+                    ""MetricsSqlDatabaseConnection"": {
+                        ""DatabaseType"": ""SqlServer"",
+                        ""ConnectionParameters"": {
+                            ""DataSource"": ""127.0.0.1"",
+                            ""InitialCatalog"": ""ApplicationMetrics"",
+                            ""UserId"": ""sa"",
+                            ""Password"": ""password"",
+                            ""RetryCount"": 5,
+                            ""RetryInterval"": 10,
+                            ""OperationTimeout"": 10000
+                        }
                     }
                 },
-                ""MetricsSqlDatabaseConnection"": {
+            }";
+
+            return JObject.Parse(stringifiedAppSettings);
+        }
+
+        /// <summary>
+        /// Creates a base/template for the 'appsettings.json' file contents for distributed operation coordinator nodes.
+        /// </summary>
+        /// <returns>A base/template for the 'appsettings.json' file contents for distributed operation coordinator nodes.</returns>
+        protected JObject CreateDistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate()
+        {
+            String stringifiedAppSettings = @"
+            {
+                ""AccessManagerSqlDatabaseConnection"": {
                     ""DatabaseType"": ""SqlServer"",
                     ""ConnectionParameters"": {
                         ""DataSource"": ""127.0.0.1"",
-                        ""InitialCatalog"": ""ApplicationMetrics"",
+                        ""InitialCatalog"": """",
                         ""UserId"": ""sa"",
                         ""Password"": ""password"",
-                        ""RetryCount"": 5,
-                        ""RetryInterval"": 10,
-                        ""OperationTimeout"": 60000
+                        ""RetryCount"": 3,
+                        ""RetryInterval"": 9,
+                        ""OperationTimeout"": 120000
                     }
-                }
+                },
+                ""ShardConfigurationRefresh"": {
+                    ""RefreshInterval"": ""11000""
+                },
+                ""ShardConnection"": {
+                    ""RetryCount"": ""3"",
+                    ""RetryInterval"": ""11"",
+                },
+                ""MetricLogging"": {
+                    ""MetricLoggingEnabled"": true,
+                    ""MetricCategorySuffix"": """",
+                    ""MetricBufferProcessing"": {
+                        ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
+                        ""BufferSizeLimit"": 2000,
+                        ""DequeueOperationLoopInterval"": 46000,
+                        ""BufferProcessingFailureAction"": ""ReturnServiceUnavailable""
+                    },
+                    ""MetricsSqlDatabaseConnection"": {
+                        ""DatabaseType"": ""SqlServer"",
+                        ""ConnectionParameters"": {
+                            ""DataSource"": ""127.0.0.1"",
+                            ""InitialCatalog"": ""ApplicationMetrics"",
+                            ""UserId"": ""sa"",
+                            ""Password"": ""password"",
+                            ""RetryCount"": 9,
+                            ""RetryInterval"": 2,
+                            ""OperationTimeout"": 61000
+                        }
+                    }
+                },
             }";
 
             return JObject.Parse(stringifiedAppSettings);
@@ -930,9 +1101,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             #pragma warning disable 1591
 
-            public new async Task CreateServiceAsync(String appLabelValue, UInt16 port, String nameSpace)
+            public new async Task CreateClusterIpServiceAsync(String appLabelValue, UInt16 port, String nameSpace)
             {
-                await base.CreateServiceAsync(appLabelValue, port, nameSpace);
+                await base.CreateClusterIpServiceAsync(appLabelValue, port, nameSpace);
+            }
+
+            public new async Task CreateLoadBalancerServiceAsync(String appLabelValue, UInt16 port, UInt16 targetPort, String nameSpace)
+            {
+                await base.CreateLoadBalancerServiceAsync(appLabelValue, port, targetPort, nameSpace);
             }
 
             public new async Task CreateReaderNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
@@ -948,6 +1124,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             public new async Task CreateWriterNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
             {
                 await base.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            }
+
+            public new async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync(String name, String nameSpace)
+            {
+                await base.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
             }
 
             public new async Task ScaleDeploymentAsync(String name, Int32 replicaCount, String nameSpace)
