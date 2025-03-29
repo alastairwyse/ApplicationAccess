@@ -58,6 +58,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   CreateDistributedOperationCoordinatorNodeDeploymentAsync()
         //     The way the DB 'InitialCatalog' is set is completely wrong... need to pass as a TPersisterCredientials param
         //   Fix all the tests where I'm setting the db initial catalog to be the pod name... should not be set like this
+        //   Creation of ShardConfig database should be optional... if creation false need to provide TConnectionCreds for it
 
 
         // NEXT
@@ -69,7 +70,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   Then add metrics and loggings (and testing of both) to all existing methods
 
 
-#pragma warning disable 1591
+        #pragma warning disable 1591
 
         protected const String appLabel = "app";
         protected const String serviceNamePostfix = "-service";
@@ -97,6 +98,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected const String appsettingsEventPersisterBackupFilePathPropertyName = "EventPersisterBackupFilePath";
         protected const String appsettingsMetricLoggingPropertyName = "MetricLogging";
         protected const String appsettingsMetricCategorySuffixPropertyName = "MetricCategorySuffix";
+        protected const String appsettingsShardRoutingPropertyName = "ShardRouting";
+        protected const String appsettingsDataElementTypePropertyName = "DataElementType";
+        protected const String appsettingsSourceQueryShardBaseUrlPropertyName = "SourceQueryShardBaseUrl";
+        protected const String appsettingsSourceEventShardBaseUrlPropertyName = "SourceEventShardBaseUrl";
+        protected const String appsettingsSourceShardHashRangeStartPropertyName = "SourceShardHashRangeStart";
+        protected const String appsettingsSourceShardHashRangeEndPropertyName = "SourceShardHashRangeEnd";
+        protected const String appsettingsTargetQueryShardBaseUrlPropertyName = "TargetQueryShardBaseUrl";
+        protected const String appsettingsTargetEventShardBaseUrlPropertyName = "TargetEventShardBaseUrl";
+        protected const String appsettingsTargetShardHashRangeStartPropertyName = "TargetShardHashRangeStart";
+        protected const String appsettingsTargetShardHashRangeEndPropertyName = "TargetShardHashRangeEnd";
+        protected const String appsettingsRoutingInitiallyOnPropertyName = "RoutingInitiallyOn";
 
         #pragma warning restore 1591
 
@@ -417,6 +429,82 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
+        /// Creates a Kubernetes deployment for a distributed operation router node.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="dataElement">The type of data element of the shard groups the router should manage (i.e. sit in front of).</param>
+        /// <param name="sourceReaderUrl">The URL of the reader node(s) of the source shard group.</param>
+        /// <param name="sourceWriterUrl">The URL of the writer node of the source shard group.</param>
+        /// <param name="sourceHashRangeStart">The first (inclusive) in the range of hash codes of data elements managed by the source shard group.</param>
+        /// <param name="sourceHashRangeEnd">The last (inclusive) in the range of hash codes of data elements managed by the source shard group.</param>
+        /// <param name="targetReaderUrl">The URL of the reader node(s) of the target shard group.</param>
+        /// <param name="targetWriterUrl">The URL of the writer node of the target shard group.</param>
+        /// <param name="targetHashRangeStart">The first (inclusive) in the range of hash codes of data elements managed by the target shard group.</param>
+        /// <param name="targetHashRangeEnd">The last (inclusive) in the range of hash codes of data elements managed by the target shard group.</param>
+        /// <param name="routingInitiallyOn">Whether or not the routing functionality is initially swicthed on.</param>
+        /// <param name="nameSpace">The namespace in which to create the deployment.</param>
+        public async Task CreateDistributedOperationRouterNodeDeploymentAsync
+        (
+            String name, 
+            DataElement dataElement,
+            Uri sourceReaderUrl,
+            Uri sourceWriterUrl,
+            Int32 sourceHashRangeStart,
+            Int32 sourceHashRangeEnd,
+            Uri targetReaderUrl,
+            Uri targetWriterUrl,
+            Int32 targetHashRangeStart,
+            Int32 targetHashRangeEnd,
+            Boolean routingInitiallyOn,
+            String nameSpace
+        )
+        {
+            // Prepare and encode the 'appsettings.json' file contents
+            JObject appsettingsContents = configuration.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
+            List<String> requiredPaths = new()
+            {
+                appsettingsShardRoutingPropertyName,
+                appsettingsMetricLoggingPropertyName
+            };
+            ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for distributed operation router nodes");
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsDataElementTypePropertyName] = dataElement.ToString();
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsSourceQueryShardBaseUrlPropertyName] = sourceReaderUrl.ToString(); ;
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsSourceEventShardBaseUrlPropertyName] = sourceWriterUrl.ToString();
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsSourceShardHashRangeStartPropertyName] = sourceHashRangeStart;
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsSourceShardHashRangeEndPropertyName] = sourceHashRangeEnd;
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsTargetQueryShardBaseUrlPropertyName] = targetReaderUrl.ToString();
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsTargetEventShardBaseUrlPropertyName] = targetWriterUrl.ToString();
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsTargetShardHashRangeStartPropertyName] = targetHashRangeStart;
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsTargetShardHashRangeEndPropertyName] = targetHashRangeEnd;
+            appsettingsContents[appsettingsShardRoutingPropertyName][appsettingsRoutingInitiallyOnPropertyName] = routingInitiallyOn;
+            appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
+            var encoder = new Base64StringEncoder();
+            var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
+
+            V1Deployment deploymentDefinition = DistributedOperationRouterNodeDeploymentTemplate;
+            deploymentDefinition.Metadata.Name = name;
+            deploymentDefinition.Spec.Selector.MatchLabels.Add(appLabel, name);
+            deploymentDefinition.Spec.Template.Metadata.Labels.Add(appLabel, name);
+            deploymentDefinition.Spec.Template.Spec.Containers[0].Name = name;
+            deploymentDefinition.Spec.Template.Spec.Containers[0].Env = new[]
+            {
+                new V1EnvVar { Name = nodeModeEnvironmentVariableName, Value = nodeModeEnvironmentVariableValue },
+                new V1EnvVar { Name = nodeListenPortEnvironmentVariableName, Value = configuration.PodPort.ToString() },
+                new V1EnvVar { Name = nodeMinimumLogLevelEnvironmentVariableName, Value = configuration.DistributedOperationRouterNodeConfigurationTemplate.MinimumLogLevel.ToString() },
+                new V1EnvVar { Name = nodeEncodedJsonConfigurationEnvironmentVariableName, Value = encodedAppsettingsContents }
+            };
+
+            try
+            {
+                await kubernetesClientShim.CreateNamespacedDeploymentAsync(kubernetesClient, deploymentDefinition, nameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to create distributed operation router node Kubernetes deployment '{name}'.", e);
+            }
+        }
+
+        /// <summary>
         /// Scales a deployment to the specified number of replicas
         /// </summary>
         /// <param name="name">The name of the deployment.</param>
@@ -449,7 +537,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="nameSpace">The namespace which contains the deployment.</param>
         /// <param name="checkInterval">The interval in milliseconds between successive checks.</param>
         /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the deployment hasn't become available.</param>
-        /// <returns></returns>
         protected async Task WaitForDeploymentAvailabilityAsync(String name, String nameSpace, Int32 checkInterval, Int32 abortTimeout)
         {
             Predicate<V1Deployment> waitForAvailabilityPredicate = (V1Deployment deployment) =>
@@ -486,7 +573,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="nameSpace">The namespace which contains the deployment.</param>
         /// <param name="checkInterval">The interval in milliseconds between successive checks.</param>
         /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the deployment hasn't scaled down.</param>
-        /// <returns></returns>
         protected async Task WaitForDeploymentScaleDownAsync(String name, String nameSpace, Int32 checkInterval, Int32 abortTimeout)
         {
             if (checkInterval < 1)
@@ -913,6 +999,60 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                                         {
                                            [requestsCpuKey] = new ResourceQuantity(configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.CpuResourceRequest),
                                            [requestsMemoryKey] = new ResourceQuantity(configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.MemoryResourceRequest)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        /// <summary>
+        /// The base/template for creating <see cref="V1Deployment"/> objects for distributed operation router nodes.
+        /// </summary>
+        protected V1Deployment DistributedOperationRouterNodeDeploymentTemplate
+        {
+            get => new V1Deployment()
+            {
+                ApiVersion = $"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}",
+                Kind = V1Deployment.KubeKind,
+                Metadata = new V1ObjectMeta(),
+                Spec = new V1DeploymentSpec
+                {
+                    Replicas = 1,
+                    Selector = new V1LabelSelector()
+                    {
+                        MatchLabels = new Dictionary<string, string>()
+                    },
+                    Template = new V1PodTemplateSpec()
+                    {
+                        Metadata = new V1ObjectMeta()
+                        {
+                            Labels = new Dictionary<string, string>()
+                        },
+                        Spec = new V1PodSpec
+                        {
+                            TerminationGracePeriodSeconds = configuration.DistributedOperationRouterNodeConfigurationTemplate.TerminationGracePeriod,
+                            Containers = new List<V1Container>()
+                            {
+                                new V1Container()
+                                {
+                                    Image = configuration.DistributedOperationRouterNodeConfigurationTemplate.ContainerImage,
+                                    Ports = new List<V1ContainerPort>()
+                                    {
+                                        new V1ContainerPort
+                                        {
+                                            ContainerPort = configuration.PodPort
+                                        }
+                                    },
+                                    Resources = new V1ResourceRequirements
+                                    {
+                                        Requests = new Dictionary<String, ResourceQuantity>()
+                                        {
+                                           [requestsCpuKey] = new ResourceQuantity(configuration.DistributedOperationRouterNodeConfigurationTemplate.CpuResourceRequest),
+                                           [requestsMemoryKey] = new ResourceQuantity(configuration.DistributedOperationRouterNodeConfigurationTemplate.MemoryResourceRequest)
                                         }
                                     }
                                 }

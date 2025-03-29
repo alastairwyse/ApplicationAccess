@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Hosting.LaunchPreparer;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
 using ApplicationLogging;
@@ -141,6 +142,51 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public void CreateReaderNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
+        {
+            String name = "user-reader-n2147483648";
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            String nameSpace = "default";
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
+            ((JObject)config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate["AccessManagerSqlDatabaseConnection"]).Remove("ConnectionParameters");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'AccessManagerSqlDatabaseConnection.ConnectionParameters' was not found in JSON document containing appsettings configuration for reader nodes."));
+
+
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            config = CreateConfiguration();
+            config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventCacheConnection");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'EventCacheConnection' was not found in JSON document containing appsettings configuration for reader nodes."));
+
+
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            config = CreateConfiguration();
+            config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for reader nodes."));
+        }
+
+        [Test]
         public async Task CreateReaderNodeDeploymentAsync_ExceptionCreatingDeployment()
         {
             var mockException = new Exception("Mock exception");
@@ -208,6 +254,23 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public void CreateEventCacheNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
+        {
+            String name = "user-eventcache-n2147483648";
+            String nameSpace = "default";
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
+            config.EventCacheNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateEventCacheNodeDeploymentAsync(name, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for event cache nodes."));
+        }
+
+        [Test]
         public async Task CreateEventCacheNodeDeploymentAsync_ExceptionCreatingDeployment()
         {
             var mockException = new Exception("Mock exception");
@@ -261,6 +324,64 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
             Assert.AreEqual(new ResourceQuantity("50m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
             Assert.AreEqual(new ResourceQuantity("60Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+        }
+
+        [Test]
+        public void CreateWriterNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
+        {
+            String name = "user-writer-n2147483648";
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            String nameSpace = "default";
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
+            ((JObject)config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate["AccessManagerSqlDatabaseConnection"]).Remove("ConnectionParameters");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'AccessManagerSqlDatabaseConnection.ConnectionParameters' was not found in JSON document containing appsettings configuration for writer nodes."));
+
+
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            config = CreateConfiguration();
+            config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventPersistence");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'EventPersistence' was not found in JSON document containing appsettings configuration for writer nodes."));
+
+
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            config = CreateConfiguration();
+            config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventCacheConnection");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'EventCacheConnection' was not found in JSON document containing appsettings configuration for writer nodes."));
+
+
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            config = CreateConfiguration();
+            config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for writer nodes."));
         }
 
         [Test]
@@ -329,6 +450,37 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public void CreateDistributedOperationCoordinatorNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
+        {
+            String name = "operation-coordinator";
+            String nameSpace = "default";
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
+            ((JObject)config.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["AccessManagerSqlDatabaseConnection"]).Remove("ConnectionParameters");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'AccessManagerSqlDatabaseConnection.ConnectionParameters' was not found in JSON document containing appsettings configuration for distributed operation coordinator nodes."));
+
+
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            config = CreateConfiguration();
+            config.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for distributed operation coordinator nodes."));
+        }
+
+        [Test]
         public async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync_ExceptionCreatingDeployment()
         {
             var mockException = new Exception("Mock exception");
@@ -383,6 +535,159 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
             Assert.AreEqual(new ResourceQuantity("500m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
             Assert.AreEqual(new ResourceQuantity("600Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+        }
+
+        [Test]
+        public void CreateDistributedOperationRouterNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
+        {
+            String name = "operation-router";
+            String nameSpace = "default";
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
+            config.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("ShardRouting");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationRouterNodeDeploymentAsync
+                (
+                    name,
+                    DataElement.User,
+                    new Uri("http://user-reader-n2147483648-service:5000"),
+                    new Uri("http://user-writer-n2147483648-service:5000"),
+                    -2_147_483_648,
+                    -1,
+                    new Uri("http://user-reader-0-service:5000"),
+                    new Uri("http://user-writer-0-service:5000"),
+                    0,
+                    2_147_483_647,
+                    true,
+                    nameSpace
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'ShardRouting' was not found in JSON document containing appsettings configuration for distributed operation router nodes."));
+
+
+            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
+            config = CreateConfiguration();
+            config.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+
+            e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationRouterNodeDeploymentAsync
+                (
+                    name,
+                    DataElement.User,
+                    new Uri("http://user-reader-n2147483648-service:5000"),
+                    new Uri("http://user-writer-n2147483648-service:5000"),
+                    -2_147_483_648,
+                    -1,
+                    new Uri("http://user-reader-0-service:5000"),
+                    new Uri("http://user-writer-0-service:5000"),
+                    0,
+                    2_147_483_647,
+                    true,
+                    nameSpace
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for distributed operation router nodes."));
+        }
+
+        [Test]
+        public async Task CreateDistributedOperationRouterNodeDeploymentAsync_ExceptionCreatingDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String name = "operation-router";
+            String nameSpace = "default";
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationRouterNodeDeploymentAsync
+                (
+                    name,
+                    DataElement.User,
+                    new Uri("http://user-reader-n2147483648-service:5000"),
+                    new Uri("http://user-writer-n2147483648-service:5000"),
+                    -2_147_483_648, 
+                    -1,
+                    new Uri("http://user-reader-0-service:5000"),
+                    new Uri("http://user-writer-0-service:5000"),
+                    0,
+                    2_147_483_647,
+                    true,
+                    nameSpace
+                );
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to create distributed operation router node Kubernetes deployment '{name}'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task CreateDistributedOperationRouterNodeDeploymentAsync()
+        {
+            String name = "operation-router";
+            String nameSpace = "default";
+            V1Deployment capturedDeploymentDefinition = null;
+            JObject expectedJsonConfiguration = CreateDistributedOperationRouterNodeAppSettingsConfigurationTemplate();
+            expectedJsonConfiguration["ShardRouting"]["DataElementType"] = "User";
+            expectedJsonConfiguration["ShardRouting"]["SourceQueryShardBaseUrl"] = "http://user-reader-n2147483648-service:5000/";
+            expectedJsonConfiguration["ShardRouting"]["SourceEventShardBaseUrl"] = "http://user-writer-n2147483648-service:5000/";
+            expectedJsonConfiguration["ShardRouting"]["SourceShardHashRangeStart"] = -2_147_483_648;
+            expectedJsonConfiguration["ShardRouting"]["SourceShardHashRangeEnd"] = -1;
+            expectedJsonConfiguration["ShardRouting"]["TargetQueryShardBaseUrl"] = "http://user-reader-0-service:5000/";
+            expectedJsonConfiguration["ShardRouting"]["TargetEventShardBaseUrl"] = "http://user-writer-0-service:5000/";
+            expectedJsonConfiguration["ShardRouting"]["TargetShardHashRangeStart"] = 0;
+            expectedJsonConfiguration["ShardRouting"]["TargetShardHashRangeEnd"] = 2_147_483_647;
+            expectedJsonConfiguration["ShardRouting"]["RoutingInitiallyOn"] = true;
+            expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), nameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationRouterNodeDeploymentAsync
+            (
+                name,
+                DataElement.User,
+                new Uri("http://user-reader-n2147483648-service:5000"),
+                new Uri("http://user-writer-n2147483648-service:5000"),
+                -2_147_483_648,
+                -1,
+                new Uri("http://user-reader-0-service:5000"),
+                new Uri("http://user-writer-0-service:5000"),
+                0,
+                2_147_483_647,
+                true,
+                nameSpace
+            );
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
+            Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Metadata.Name);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Replicas);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Selector.MatchLabels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Selector.MatchLabels["app"]);
+            Assert.IsTrue(capturedDeploymentDefinition.Spec.Template.Metadata.Labels.ContainsKey("app"));
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Metadata.Labels["app"]);
+            Assert.AreEqual(30, capturedDeploymentDefinition.Spec.Template.Spec.TerminationGracePeriodSeconds);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers.Count);
+            Assert.AreEqual(name, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Name);
+            Assert.AreEqual("applicationaccess/distributedoperationrouter:20250203-0900", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Image);
+            Assert.AreEqual(1, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports.Count);
+            Assert.AreEqual(5000, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Ports[0].ContainerPort);
+            Assert.AreEqual(4, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env.Count);
+            IList<V1EnvVar> deploymentEnvironmentVarriables = capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Env;
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MODE", "Launch")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("LISTEN_PORT", "5000")));
+            Assert.IsTrue(EnvironmentVariablesContainsKeyValuePair(deploymentEnvironmentVarriables, KeyValuePair.Create("MINIMUM_LOG_LEVEL", "Critical")));
+            ValidateEncodedJsonEnvironmentVariable(deploymentEnvironmentVarriables, expectedJsonConfiguration);
+            Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
+            Assert.AreEqual(new ResourceQuantity("400m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
+            Assert.AreEqual(new ResourceQuantity("450Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
         }
 
         [Test]
@@ -742,6 +1047,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         public async Task IntegrationTests_REMOVETHIS()
         {
+
         }
 
         #region Private/Protected Methods
@@ -866,6 +1172,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     AppSettingsConfigurationTemplate = CreateDistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate(),
                     CpuResourceRequest = "500m",
                     MemoryResourceRequest = "600Mi"
+                },
+                DistributedOperationRouterNodeConfigurationTemplate = new DistributedOperationRouterNodeConfiguration
+                {
+                    TerminationGracePeriod = 30,
+                    ContainerImage = "applicationaccess/distributedoperationrouter:20250203-0900",
+                    MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Critical,
+                    AppSettingsConfigurationTemplate = CreateDistributedOperationRouterNodeAppSettingsConfigurationTemplate(),
+                    CpuResourceRequest = "400m",
+                    MemoryResourceRequest = "450Mi"
                 }
             };
 
@@ -884,7 +1199,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""DatabaseType"": ""SqlServer"",
                     ""ConnectionParameters"": {
                         ""DataSource"": ""127.0.0.1"",
-                        ""InitialCatalog"": """",
                         ""UserId"": ""sa"",
                         ""Password"": ""password"",
                         ""RetryCount"": 10,
@@ -893,7 +1207,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     }
                 },
                 ""EventCacheConnection"": {
-                    ""Host"": """",
                     ""RetryCount"": 10,
                     ""RetryInterval"": 5
                 },
@@ -902,7 +1215,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 },
                 ""MetricLogging"": {
                     ""MetricLoggingEnabled"": true,
-                    ""MetricCategorySuffix"": """",
                     ""MetricBufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
                         ""BufferSizeLimit"": 500,
@@ -940,7 +1252,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 },
                 ""MetricLogging"": {
                     ""MetricLoggingEnabled"": false,
-                    ""MetricCategorySuffix"": """",
                     ""MetricBufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedBufferProcessor"",
                         ""BufferSizeLimit"": 501,
@@ -977,7 +1288,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""DatabaseType"": ""SqlServer"",
                     ""ConnectionParameters"": {
                         ""DataSource"": ""127.0.0.1"",
-                        ""InitialCatalog"": """",
                         ""UserId"": ""sa"",
                         ""Password"": ""password"",
                         ""RetryCount"": 4,
@@ -990,16 +1300,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""FlushLoopInterval"": 60000
                 },
                 ""EventPersistence"": {
-                            ""EventPersisterBackupFilePath"": """"
                 },
                 ""EventCacheConnection"": {
-                    ""Host"": """",
                     ""RetryCount"": 6,
                     ""RetryInterval"": 7
                 },
                 ""MetricLogging"": {
                     ""MetricLoggingEnabled"": true,
-                    ""MetricCategorySuffix"": """",
                     ""MetricBufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
                         ""BufferSizeLimit"": 1000,
@@ -1036,7 +1343,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ""DatabaseType"": ""SqlServer"",
                     ""ConnectionParameters"": {
                         ""DataSource"": ""127.0.0.1"",
-                        ""InitialCatalog"": """",
                         ""UserId"": ""sa"",
                         ""Password"": ""password"",
                         ""RetryCount"": 3,
@@ -1053,7 +1359,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 },
                 ""MetricLogging"": {
                     ""MetricLoggingEnabled"": true,
-                    ""MetricCategorySuffix"": """",
                     ""MetricBufferProcessing"": {
                         ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
                         ""BufferSizeLimit"": 2000,
@@ -1070,6 +1375,46 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                             ""RetryCount"": 9,
                             ""RetryInterval"": 2,
                             ""OperationTimeout"": 61000
+                        }
+                    }
+                },
+            }";
+
+            return JObject.Parse(stringifiedAppSettings);
+        }
+
+        /// <summary>
+        /// Creates a base/template for the 'appsettings.json' file contents for distributed operation router nodes.
+        /// </summary>
+        /// <returns>A base/template for the 'appsettings.json' file contents for distributed operation router nodes.</returns>
+        protected JObject CreateDistributedOperationRouterNodeAppSettingsConfigurationTemplate()
+        {
+            String stringifiedAppSettings = @"
+            {
+                ""ShardRouting"": {
+                },
+                ""ShardConnection"": {
+                    ""RetryCount"": ""15"",
+                    ""RetryInterval"": ""2"",
+                },
+                ""MetricLogging"": {
+                    ""MetricLoggingEnabled"": true,
+                    ""MetricBufferProcessing"": {
+                        ""BufferProcessingStrategy"": ""SizeLimitedLoopingWorkerThreadHybridBufferProcessor"",
+                        ""BufferSizeLimit"": 250,
+                        ""DequeueOperationLoopInterval"": 2000,
+                        ""BufferProcessingFailureAction"": ""ReturnServiceUnavailable""
+                    },
+                    ""MetricsSqlDatabaseConnection"": {
+                        ""DatabaseType"": ""SqlServer"",
+                        ""ConnectionParameters"": {
+                            ""DataSource"": ""127.0.0.1"",
+                            ""InitialCatalog"": ""ApplicationMetrics"",
+                            ""UserId"": ""sa"",
+                            ""Password"": ""password"",
+                            ""RetryCount"": 20,
+                            ""RetryInterval"": 3,
+                            ""OperationTimeout"": 125000
                         }
                     }
                 },
@@ -1129,6 +1474,39 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             public new async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync(String name, String nameSpace)
             {
                 await base.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+            }
+
+            public new async Task CreateDistributedOperationRouterNodeDeploymentAsync
+            (
+                String name,
+                DataElement dataElement,
+                Uri sourceReaderUrl,
+                Uri sourceWriterUrl,
+                Int32 sourceHashRangeStart,
+                Int32 sourceHashRangeEnd,
+                Uri targetReaderUrl,
+                Uri targetWriterUrl,
+                Int32 targetHashRangeStart,
+                Int32 targetHashRangeEnd,
+                Boolean routingInitiallyOn,
+                String nameSpace
+            )
+            {
+                await base.CreateDistributedOperationRouterNodeDeploymentAsync
+                (
+                    name,
+                    dataElement,
+                    sourceReaderUrl,
+                    sourceWriterUrl,
+                    sourceHashRangeStart,
+                    sourceHashRangeEnd,
+                    targetReaderUrl,
+                    targetWriterUrl,
+                    targetHashRangeStart,
+                    targetHashRangeEnd,
+                    routingInitiallyOn,
+                    nameSpace
+                );
             }
 
             public new async Task ScaleDeploymentAsync(String name, Int32 replicaCount, String nameSpace)

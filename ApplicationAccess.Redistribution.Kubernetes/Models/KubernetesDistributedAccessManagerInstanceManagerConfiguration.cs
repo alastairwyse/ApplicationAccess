@@ -37,5 +37,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
 
         /// <summary>Base/template for configuration of distributed operation coordinator node pods/deployments within the distributed AccessManager implementation.</summary>
         public required DistributedOperationCoordinatorNodeConfiguration DistributedOperationCoordinatorNodeConfigurationTemplate { get; init; }
+
+        /// <summary>Base/template for configuration of distributed operation router node pods/deployments within the distributed AccessManager implementation.</summary>
+        public required DistributedOperationRouterNodeConfiguration DistributedOperationRouterNodeConfigurationTemplate { get; init; }
     }
 }
