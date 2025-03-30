@@ -30,13 +30,16 @@ using ApplicationMetrics;
 using Newtonsoft.Json.Linq;
 using k8s;
 using k8s.Models;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Redistribution.Kubernetes
 {
     /// <summary>
     /// Manages a distributed AccessManager implementation hosted in Kubernetes.
     /// </summary>
-    public class KubernetesDistributedAccessManagerInstanceManager : IDistributedAccessManagerInstanceManager, IDisposable
+    /// <typeparam name="TPersistentStorageCredentials">An implementation of <see cref="IPersistentStorageLoginCredentials"/> containing login credentials for persistent storage instances.</typeparam>
+    public class KubernetesDistributedAccessManagerInstanceManager<TPersistentStorageCredentials> : IDistributedAccessManagerInstanceManager, IDisposable
+        where TPersistentStorageCredentials : IPersistentStorageLoginCredentials
     {
         // TODO:
         //   If I have to introduce a specific dependency on SQL server, add this to the class description...
@@ -59,6 +62,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //     The way the DB 'InitialCatalog' is set is completely wrong... need to pass as a TPersisterCredientials param
         //   Fix all the tests where I'm setting the db initial catalog to be the pod name... should not be set like this
         //   Creation of ShardConfig database should be optional... if creation false need to provide TConnectionCreds for it
+        //   Should be able to supply a postfix for db names like...
+        //     applicationaccess-{postfix}-user-n100
 
 
         // NEXT
@@ -88,8 +93,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected const String nodeStatusApiEndpointUrl = "/api/v1/status";
         protected const String requestsCpuKey = "cpu";
         protected const String requestsMemoryKey = "memory";
-        protected const String appsettingsAccessManagerSqlDatabaseConnectionPropertyName = "AccessManagerSqlDatabaseConnection";
-        protected const String appsettingsConnectionParametersPropertyName = "ConnectionParameters";
         protected const String appsettingsInitialCatalogPropertyName = "InitialCatalog";
         protected const String appsettingsEventCacheConnectionPropertyName = "EventCacheConnection";
         protected const String appsettingsEventCachingPropertyName = "EventCaching";
@@ -118,6 +121,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected k8s.Kubernetes kubernetesClient;
         /// <summary>Acts as a <see href="https://en.wikipedia.org/wiki/Shim_(computing)">shim</see> to the Kubernetes client class.</summary>
         protected IKubernetesClientShim kubernetesClientShim;
+        /// <summary>Used to create new instances of persistent storage used by the distributed AccessManager implementation.</summary>
+        protected IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator;
+        /// <summary>Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</summary>
+        protected IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer;
         /// <summary>The logger for general logging.</summary>
         protected IApplicationLogger logger;
         /// <summary>The logger for metrics.</summary>
@@ -130,12 +137,21 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.KubernetesDistributedAccessManagerInstanceManager class.
         /// </summary>
         /// <param name="configuration">Configuration for the instance manager.</param>
+        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, IApplicationLogger logger, IMetricLogger metricLogger)
+        public KubernetesDistributedAccessManagerInstanceManager
+        (
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, 
+            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer, 
+            IApplicationLogger logger, 
+            IMetricLogger metricLogger
+        )
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
-            InitializeFields(configuration, clientConfiguration, logger, metricLogger);
+            InitializeFields(configuration, clientConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, logger, metricLogger);
         }
 
         /// <summary>
@@ -143,29 +159,56 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="configuration">Configuration for the instance manager.</param>
         /// <param name="kubernetesConfigurationFilePath">The full path to the configuration file to use to connect to the Kubernetes cluster(s).</param>
+        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, String kubernetesConfigurationFilePath, IApplicationLogger logger, IMetricLogger metricLogger)
+        public KubernetesDistributedAccessManagerInstanceManager
+        (
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, 
+            String kubernetesConfigurationFilePath, 
+            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
+            IApplicationLogger logger, 
+            IMetricLogger metricLogger
+        )
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile(kubernetesConfigurationFilePath);
-            InitializeFields(configuration, clientConfiguration, logger, metricLogger);
+            InitializeFields(configuration, clientConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, logger, metricLogger);
         }
 
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.KubernetesDistributedAccessManagerInstanceManager class.
         /// </summary>
         /// <param name="configuration">Configuration for the instance manager.</param>
+        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="kubernetesClientShim">A mock <see cref="IKubernetesClientShim"/>.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         /// <remarks>This constructor is included to facilitate unit testing.</remarks>
-        public KubernetesDistributedAccessManagerInstanceManager(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, IKubernetesClientShim kubernetesClientShim, IApplicationLogger logger, IMetricLogger metricLogger)
+        public KubernetesDistributedAccessManagerInstanceManager
+        (
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, 
+            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
+            IKubernetesClientShim kubernetesClientShim, 
+            IApplicationLogger logger, 
+            IMetricLogger metricLogger
+        )
         {
             this.configuration = configuration;
             kubernetesClient = null;
+            this.persistentStorageCreator = persistentStorageCreator;
+            this.credentialsAppSettingsConfigurer = credentialsAppSettingsConfigurer;
             this.kubernetesClientShim = kubernetesClientShim;
             this.logger = logger;
             this.metricLogger = metricLogger;
+        }
+
+        public async Task CreateDistributedAccessManagerInstanceAsync()
+        {
+            throw new NotImplementedException();
         }
 
         #region Private/Protected Methods
@@ -175,30 +218,48 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="configuration">Configuration for the instance manager.</param>
         /// <param name="clientConfiguration">The Kubernetes client configuration.</param>
+        /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+        /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        protected void InitializeFields(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, KubernetesClientConfiguration clientConfiguration, IApplicationLogger logger, IMetricLogger metricLogger)
+        protected void InitializeFields
+        (
+            KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, 
+            KubernetesClientConfiguration clientConfiguration, 
+            IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
+            IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
+            IApplicationLogger logger, 
+            IMetricLogger metricLogger
+        )
         {
             this.configuration = configuration;
             kubernetesClient = new k8s.Kubernetes(clientConfiguration);
+            this.persistentStorageCreator = persistentStorageCreator;
+            this.credentialsAppSettingsConfigurer = credentialsAppSettingsConfigurer;
             kubernetesClientShim = new DefaultKubernetesClientShim();
             this.logger = logger;
             this.metricLogger = metricLogger;
         }
 
-        protected void CreateShardGroup(DataElement dataElement, Int32 hashRangeStart, Int32 hasRangeEnd)
+        /// <summary>
+        /// Creates a 'shard group' of distributed AccessManager components (i.e. a set of reader, event cache, and writer node pods/deployments, plus associated Kubernetes services).
+        /// </summary>
+        /// <param name="dataElement">The data element to create the shard group for.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group.</param>
+        protected async Task CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
+        {
+            // TODO: Should have logging and metrics here
+
+            // Create the event cache node
+        }
+
+        protected async Task StopShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
         {
             // TODO
             //   Might need to be async
         }
 
-        protected void StopShardGroup(DataElement dataElement, Int32 hashRangeStart)
-        {
-            // TODO
-            //   Might need to be async
-        }
-
-        protected void StartShardGroup(DataElement dataElement, Int32 hashRangeStart)
+        protected async Task StartShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
         {
             // TODO
             //   Might need to be async
@@ -257,22 +318,22 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Creates a Kubernetes deployment for a reader node.
         /// </summary>
         /// <param name="name">The name of the deployment.</param>
+        /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
         /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the reader node should consume events from.</param>
         /// <param name="nameSpace">The namespace in which to create the deployment.</param>
-        protected async Task CreateReaderNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
+        public async Task CreateReaderNodeDeploymentAsync(String name, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
         {
             // Prepare and encode the 'appsettings.json' file contents
             JObject appsettingsContents = configuration.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
             List<String> requiredPaths = new()
             {
-                $"{appsettingsAccessManagerSqlDatabaseConnectionPropertyName}.{appsettingsConnectionParametersPropertyName}", 
                 appsettingsEventCacheConnectionPropertyName,
                 appsettingsMetricLoggingPropertyName
             };
             ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for reader nodes");
-            appsettingsContents[appsettingsAccessManagerSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsInitialCatalogPropertyName] = name;
             appsettingsContents[appsettingsEventCacheConnectionPropertyName][appsettingsHostPropertyName] = eventCacheServiceUrl.ToString();
             appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
+            credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
             var encoder = new Base64StringEncoder();
             var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
 
@@ -341,24 +402,24 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Creates a Kubernetes deployment for a writer node.
         /// </summary>
         /// <param name="name">The name of the deployment.</param>
+        /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
         /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the writer node should write events to.</param>
         /// <param name="nameSpace">The namespace in which to create the deployment.</param>
-        protected async Task CreateWriterNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
+        protected async Task CreateWriterNodeDeploymentAsync(String name, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
         {
             // Prepare and encode the 'appsettings.json' file contents
             JObject appsettingsContents = configuration.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
             List<String> requiredPaths = new()
             {
-                $"{appsettingsAccessManagerSqlDatabaseConnectionPropertyName}.{appsettingsConnectionParametersPropertyName}",
                 appsettingsEventPersistencePropertyName,
                 appsettingsEventCacheConnectionPropertyName,
                 appsettingsMetricLoggingPropertyName
             };
             ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for writer nodes");
-            appsettingsContents[appsettingsAccessManagerSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsInitialCatalogPropertyName] = name;
             appsettingsContents[appsettingsEventPersistencePropertyName][appsettingsEventPersisterBackupFilePathPropertyName] = $"{eventBackupVolumeMountPath}/{name}{eventBackupFilePostfix}.json";
             appsettingsContents[appsettingsEventCacheConnectionPropertyName][appsettingsHostPropertyName] = eventCacheServiceUrl.ToString();
             appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
+            credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
             var encoder = new Base64StringEncoder();
             var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
 
@@ -389,19 +450,19 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// Creates a Kubernetes deployment for a distributed operation coordinator node.
         /// </summary>
         /// <param name="name">The name of the deployment.</param>
+        /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the distributed operation coordinator node.</param>
         /// <param name="nameSpace">The namespace in which to create the deployment.</param>
-        protected async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync(String name, String nameSpace)
+        protected async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync(String name, TPersistentStorageCredentials persistentStorageCredentials, String nameSpace)
         {
             // Prepare and encode the 'appsettings.json' file contents
             JObject appsettingsContents = configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
             List<String> requiredPaths = new()
             {
-                $"{appsettingsAccessManagerSqlDatabaseConnectionPropertyName}.{appsettingsConnectionParametersPropertyName}",
                 appsettingsMetricLoggingPropertyName
             };
             ValidatePathsExistInJsonDocument(appsettingsContents, requiredPaths, "appsettings configuration for distributed operation coordinator nodes");
-            appsettingsContents[appsettingsAccessManagerSqlDatabaseConnectionPropertyName][appsettingsConnectionParametersPropertyName][appsettingsInitialCatalogPropertyName] = name;
             appsettingsContents[appsettingsMetricLoggingPropertyName][appsettingsMetricCategorySuffixPropertyName] = name;
+            credentialsAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(persistentStorageCredentials, appsettingsContents);
             var encoder = new Base64StringEncoder();
             var encodedAppsettingsContents = encoder.Encode(appsettingsContents.ToString());
 
@@ -443,7 +504,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="targetHashRangeEnd">The last (inclusive) in the range of hash codes of data elements managed by the target shard group.</param>
         /// <param name="routingInitiallyOn">Whether or not the routing functionality is initially swicthed on.</param>
         /// <param name="nameSpace">The namespace in which to create the deployment.</param>
-        public async Task CreateDistributedOperationRouterNodeDeploymentAsync
+        protected async Task CreateDistributedOperationRouterNodeDeploymentAsync
         (
             String name, 
             DataElement dataElement,

@@ -29,6 +29,7 @@ using Newtonsoft.Json.Linq;
 using NSubstitute;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 {
@@ -37,6 +38,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
     /// </summary>
     public class KubernetesDistributedAccessManagerInstanceManagerTests
     {
+        protected IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> mockPersistentStorageCreator;
+        protected IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> mockAppSettingsConfigurer;
         protected IKubernetesClientShim mockKubernetesClientShim;
         protected IApplicationLogger mockApplicationLogger;
         protected IMetricLogger mockMetricLogger;
@@ -45,10 +48,20 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            mockPersistentStorageCreator = Substitute.For<IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials>>();
+            mockAppSettingsConfigurer = Substitute.For<IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials>>();
             mockKubernetesClientShim = Substitute.For<IKubernetesClientShim>();
             mockApplicationLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(CreateConfiguration(), mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateConfiguration(),
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer, 
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
         }
 
         [Test]
@@ -145,29 +158,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void CreateReaderNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "user-reader-n2147483648";
+            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             String nameSpace = "default";
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
-            ((JObject)config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate["AccessManagerSqlDatabaseConnection"]).Remove("ConnectionParameters");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
-
-            var e = Assert.ThrowsAsync<Exception>(async delegate
-            {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
-            });
-
-            Assert.That(e.Message, Does.StartWith("JSON path 'AccessManagerSqlDatabaseConnection.ConnectionParameters' was not found in JSON document containing appsettings configuration for reader nodes."));
-
-
-            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
-            config = CreateConfiguration();
             config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventCacheConnection");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
-            e = Assert.ThrowsAsync<Exception>(async delegate
+            Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'EventCacheConnection' was not found in JSON document containing appsettings configuration for reader nodes."));
@@ -176,11 +177,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateConfiguration();
             config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for reader nodes."));
@@ -191,13 +192,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String name = "user-reader-n2147483648";
+            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             String nameSpace = "default";
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
@@ -209,17 +211,23 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateReaderNodeDeploymentAsync()
         {
             String name = "user-reader-n2147483648";
+            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             String nameSpace = "default";
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateReaderNodeAppSettingsConfigurationTemplate();
-            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["InitialCatalog"] = name;
+            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
             expectedJsonConfiguration["EventCacheConnection"]["Host"] = eventCacheServiceUrl.ToString();
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            mockAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Do<JObject>
+            (
+                appSettingsConfig => appSettingsConfig["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
+            ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), nameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
 
+            mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
             Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
             Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
@@ -260,7 +268,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             String nameSpace = "default";
             KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
             config.EventCacheNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -330,29 +338,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void CreateWriterNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "user-writer-n2147483648";
+            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             String nameSpace = "default";
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
-            ((JObject)config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate["AccessManagerSqlDatabaseConnection"]).Remove("ConnectionParameters");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
-
-            var e = Assert.ThrowsAsync<Exception>(async delegate
-            {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
-            });
-
-            Assert.That(e.Message, Does.StartWith("JSON path 'AccessManagerSqlDatabaseConnection.ConnectionParameters' was not found in JSON document containing appsettings configuration for writer nodes."));
-
-
-            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
-            config = CreateConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventPersistence");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
-            e = Assert.ThrowsAsync<Exception>(async delegate
+            Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'EventPersistence' was not found in JSON document containing appsettings configuration for writer nodes."));
@@ -361,11 +357,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventCacheConnection");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'EventCacheConnection' was not found in JSON document containing appsettings configuration for writer nodes."));
@@ -374,11 +370,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for writer nodes."));
@@ -389,13 +385,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String name = "user-writer-n2147483648";
+            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             String nameSpace = "default";
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
@@ -407,18 +404,24 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateWriterNodeDeploymentAsync()
         {
             String name = "user-writer-n2147483648";
+            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
             Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
             String nameSpace = "default";
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateWriterNodeAppSettingsConfigurationTemplate();
-            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["InitialCatalog"] = name;
+            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
             expectedJsonConfiguration["EventPersistence"]["EventPersisterBackupFilePath"] = "/eventbackup/user-writer-n2147483648-eventbackup.json";
             expectedJsonConfiguration["EventCacheConnection"]["Host"] = eventCacheServiceUrl.ToString();
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            mockAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Do<JObject>
+            (
+                appSettingsConfig => appSettingsConfig["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
+            ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), nameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeDeploymentAsync(name, storageCredentials, eventCacheServiceUrl, nameSpace);
 
+            mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
             Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
             Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
@@ -453,28 +456,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public void CreateDistributedOperationCoordinatorNodeDeploymentAsync_AppSettingsConfigurationTemplateMissingProperties()
         {
             String name = "operation-coordinator";
+            TestPersistentStorageLoginCredentials storageCredentials = new("AccessManagerConfiguration");
             String nameSpace = "default";
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
-            ((JObject)config.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate["AccessManagerSqlDatabaseConnection"]).Remove("ConnectionParameters");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
-
-            var e = Assert.ThrowsAsync<Exception>(async delegate
-            {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
-            });
-
-            Assert.That(e.Message, Does.StartWith("JSON path 'AccessManagerSqlDatabaseConnection.ConnectionParameters' was not found in JSON document containing appsettings configuration for distributed operation coordinator nodes."));
-
-
-            testKubernetesDistributedAccessManagerInstanceManager.Dispose();
-            config = CreateConfiguration();
             config.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
-            e = Assert.ThrowsAsync<Exception>(async delegate
+            Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, storageCredentials, nameSpace);
             });
 
             Assert.That(e.Message, Does.StartWith("JSON path 'MetricLogging' was not found in JSON document containing appsettings configuration for distributed operation coordinator nodes."));
@@ -485,12 +476,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         {
             var mockException = new Exception("Mock exception");
             String name = "operation-coordinator";
+            TestPersistentStorageLoginCredentials storageCredentials = new("AccessManagerConfiguration");
             String nameSpace = "default";
             mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, storageCredentials, nameSpace);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
@@ -502,15 +494,21 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync()
         {
             String name = "operation-coordinator";
+            TestPersistentStorageLoginCredentials storageCredentials = new("AccessManagerConfiguration");
             String nameSpace = "default";
             V1Deployment capturedDeploymentDefinition = null;
             JObject expectedJsonConfiguration = CreateDistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate();
-            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["InitialCatalog"] = name;
+            expectedJsonConfiguration["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString;
             expectedJsonConfiguration["MetricLogging"]["MetricCategorySuffix"] = name;
+            mockAppSettingsConfigurer.ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Do<JObject>
+            (
+                appSettingsConfig => appSettingsConfig["AccessManagerSqlDatabaseConnection"]["ConnectionParameters"]["ConnectionString"] = storageCredentials.ConnectionString
+            ));
             await mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Do<V1Deployment>(argumentValue => capturedDeploymentDefinition = argumentValue), nameSpace);
 
-            await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, storageCredentials, nameSpace);
 
+            mockAppSettingsConfigurer.Received(1).ConfigureAppsettingsJsonWithPersistentStorageCredentials(storageCredentials, Arg.Any<JObject>());
             await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
             Assert.AreEqual($"{V1Deployment.KubeGroup}/{V1Deployment.KubeApiVersion}", capturedDeploymentDefinition.ApiVersion);
             Assert.AreEqual(V1Deployment.KubeKind, capturedDeploymentDefinition.Kind);
@@ -545,7 +543,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerConfiguration config = CreateConfiguration();
             config.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("ShardRouting");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -572,7 +570,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateConfiguration();
             config.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -1131,6 +1129,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration = new()
             {
                 PodPort = 5000,
+                PersistentStorageInstanceNameSuffix = "test", 
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
                     ReplicaCount = 1,
@@ -1198,9 +1197,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ""AccessManagerSqlDatabaseConnection"": {
                     ""DatabaseType"": ""SqlServer"",
                     ""ConnectionParameters"": {
-                        ""DataSource"": ""127.0.0.1"",
-                        ""UserId"": ""sa"",
-                        ""Password"": ""password"",
                         ""RetryCount"": 10,
                         ""RetryInterval"": 20,
                         ""OperationTimeout"": 0
@@ -1287,9 +1283,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ""AccessManagerSqlDatabaseConnection"": {
                     ""DatabaseType"": ""SqlServer"",
                     ""ConnectionParameters"": {
-                        ""DataSource"": ""127.0.0.1"",
-                        ""UserId"": ""sa"",
-                        ""Password"": ""password"",
                         ""RetryCount"": 4,
                         ""RetryInterval"": 5,
                         ""OperationTimeout"": 120000
@@ -1342,9 +1335,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ""AccessManagerSqlDatabaseConnection"": {
                     ""DatabaseType"": ""SqlServer"",
                     ""ConnectionParameters"": {
-                        ""DataSource"": ""127.0.0.1"",
-                        ""UserId"": ""sa"",
-                        ""Password"": ""password"",
                         ""RetryCount"": 3,
                         ""RetryInterval"": 9,
                         ""OperationTimeout"": 120000
@@ -1430,17 +1420,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         /// <summary>
         /// Version of the KubernetesDistributedAccessManagerInstanceManager class where protected members are exposed as public so that they can be unit tested.
         /// </summary>
-        protected class KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers : KubernetesDistributedAccessManagerInstanceManager
+        protected class KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers : KubernetesDistributedAccessManagerInstanceManager<TestPersistentStorageLoginCredentials>
         {
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.UnitTests.KubernetesDistributedAccessManagerInstanceManagerTests+KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers class.
             /// </summary>
             /// <param name="configuration">Configuration for the instance manager.</param>
+            /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+            /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
             /// <param name="kubernetesClientShim">A mock <see cref="IKubernetesClientShim"/>.</param>
             /// <param name="logger">The logger for general logging.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
-            public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration, IKubernetesClientShim kubernetesClientShim, IApplicationLogger logger, IMetricLogger metricLogger)
-                : base(configuration, kubernetesClientShim, logger, metricLogger)
+            public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration,
+                IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
+                IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
+                IKubernetesClientShim kubernetesClientShim, 
+                IApplicationLogger logger, 
+                IMetricLogger metricLogger
+            )
+                : base(configuration, persistentStorageCreator, credentialsAppSettingsConfigurer, kubernetesClientShim, logger, metricLogger)
             {
             }
 
@@ -1456,9 +1456,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await base.CreateLoadBalancerServiceAsync(appLabelValue, port, targetPort, nameSpace);
             }
 
-            public new async Task CreateReaderNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
+            public new async Task CreateReaderNodeDeploymentAsync(String name, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
             {
-                await base.CreateReaderNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await base.CreateReaderNodeDeploymentAsync(name, persistentStorageCredentials, eventCacheServiceUrl, nameSpace);
             }
 
             public new async Task CreateEventCacheNodeDeploymentAsync(String name, String nameSpace)
@@ -1466,14 +1466,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await base.CreateEventCacheNodeDeploymentAsync(name, nameSpace);
             }
 
-            public new async Task CreateWriterNodeDeploymentAsync(String name, Uri eventCacheServiceUrl, String nameSpace)
+            public new async Task CreateWriterNodeDeploymentAsync(String name, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
             {
-                await base.CreateWriterNodeDeploymentAsync(name, eventCacheServiceUrl, nameSpace);
+                await base.CreateWriterNodeDeploymentAsync(name, persistentStorageCredentials, eventCacheServiceUrl, nameSpace);
             }
 
-            public new async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync(String name, String nameSpace)
+            public new async Task CreateDistributedOperationCoordinatorNodeDeploymentAsync(String name, TestPersistentStorageLoginCredentials persistentStorageCredentials, String nameSpace)
             {
-                await base.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, nameSpace);
+                await base.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, persistentStorageCredentials, nameSpace);
             }
 
             public new async Task CreateDistributedOperationRouterNodeDeploymentAsync

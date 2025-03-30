@@ -1922,6 +1922,20 @@
             <param name="stateSequence">Sequence number used to distinguish events which occured at the same <see cref="P:ApplicationAccess.Persistence.Models.AccessManagerState.StateTime"/> (higher numbers indicate later events.).</param>
             <exception cref="T:System.ArgumentException">Parameter '<paramref name="stateTime"/>' must be expressed as UTC.</exception>
         </member>
+        <member name="T:ApplicationAccess.Persistence.Models.ConnectionStringPersistentStorageLoginCredentials">
+            <summary>
+            Base for model/container classes which store credentials for logging into a persistent storage component, in the form of a connection string.
+            </summary>
+        </member>
+        <member name="P:ApplicationAccess.Persistence.Models.ConnectionStringPersistentStorageLoginCredentials.ConnectionString">
+            <summary>The connection string for the persistent storage component.</summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Models.ConnectionStringPersistentStorageLoginCredentials.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Models.ConnectionStringPersistentStorageLoginCredentials class.
+            </summary>
+            <param name="connectionString">The connection string for the persistent storage component.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.Models.EntityEventBufferItem">
             <summary>
             Container class for a buffered/cached entity event.
@@ -2128,6 +2142,11 @@
             <param name="toGroup">The 'to' group in the mapping.</param>
             <param name="occurredTime">The time that the event originally occurred.</param>
             <param name="hashCode">The hash code for the 'from' group.</param>
+        </member>
+        <member name="T:ApplicationAccess.Persistence.Models.IPersistentStorageLoginCredentials">
+            <summary>
+            Defines a model/container class which stores credentials for logging into a persistent storage component.
+            </summary>
         </member>
         <member name="T:ApplicationAccess.Persistence.Models.TemporalEventBufferItemBase">
             <summary>

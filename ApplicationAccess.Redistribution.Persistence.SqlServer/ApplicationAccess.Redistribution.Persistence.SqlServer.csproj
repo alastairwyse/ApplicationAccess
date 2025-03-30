@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Description>Classes which write and read data associated with distributed AccessManager implementations to and from Microsoft SQL Server databases.</Description>
+    <Authors>Alastair Wyse</Authors>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="172.64.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationAccess.Distribution.Persistence.SqlServer\ApplicationAccess.Distribution.Persistence.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Persistence.Sql.SqlServer\ApplicationAccess.Persistence.Sql.SqlServer.csproj" />
+    <ProjectReference Include="..\ApplicationAccess.Redistribution\ApplicationAccess.Redistribution.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -486,6 +486,17 @@
         <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerAccessManagerTemporalPersisterBase`4.Load(System.DateTime,ApplicationAccess.AccessManagerBase{`0,`1,`2,`3})">
             <inheritdoc/>
         </member>
+        <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerLoginCredentials">
+            <summary>
+            Model/container class which holds a connection string for SQL Server.
+            </summary>
+        </member>
+        <member name="M:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerLoginCredentials.#ctor(System.String)">
+            <summary>
+            Initialises a new instance of the ApplicationAccess.Persistence.Persistence.Sql.SqlServer.SqlServerLoginCredentials class.
+            </summary>
+            <param name="connectionString">A connection string for SQL Server.</param>
+        </member>
         <member name="T:ApplicationAccess.Persistence.Sql.SqlServer.SqlServerPersisterBase">
             <summary>
             Base class providing common funcionality for classes which read and write to and from Microsoft SQL Server databases.

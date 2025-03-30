@@ -19,12 +19,16 @@ using System;
 namespace ApplicationAccess.Redistribution.Kubernetes.Models
 {
     /// <summary>
-    /// Model/container class holding configuration for a <see cref="KubernetesDistributedAccessManagerInstanceManager"/> instance.
+    /// Model/container class holding configuration for a <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}"/> instance.
     /// </summary>
     public record KubernetesDistributedAccessManagerInstanceManagerConfiguration
     {
         /// <summary>The port to use to expose trafic between the pods/deployments.</summary>
         public required UInt16 PodPort { get; init; }
+
+        /// <summary>Suffix to use in names for persistent instances created by the manager.</summary>
+        /// <remarks>Should only contain printable ASCII characters without whitespace.</remarks>
+        public required String PersistentStorageInstanceNameSuffix { get; init; }
 
         /// <summary>Base/template for configuration of reader node pods/deployments within the distributed AccessManager implementation.</summary>
         public required ReaderNodeConfiguration ReaderNodeConfigurationTemplate { get; init; }

@@ -21,4 +21,13 @@
     <ProjectReference Include="..\ApplicationAccess.Serialization\ApplicationAccess.Serialization.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resources\ApplicationAccessConfiguration\CreateDatabase.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\ApplicationAccess\UpdateDatabase.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
