@@ -42,5 +42,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
 
         /// <summary>The memory resource request value for the pod/deployment.</summary>
         public required String MemoryResourceRequest { get; init; }
+
+        /// <summary>The time in seconds between startup probes.</summary>
+        public required UInt16 StartupProbePeriod { get; init; }
+
+        /// <summary>The number of startup probes which are allowed to fail before considering that the startup has failed.</summary>
+        public required UInt16 StartupProbeFailureThreshold { get; init; }
     }
 }

@@ -22,15 +22,16 @@ using System.Threading.Tasks;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Hosting.LaunchPreparer;
+using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Redistribution;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
+using ApplicationAccess.Redistribution.Metrics;
 using ApplicationAccess.Redistribution.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 using Newtonsoft.Json.Linq;
 using k8s;
 using k8s.Models;
-using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Redistribution.Kubernetes
 {
@@ -39,7 +40,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
     /// </summary>
     /// <typeparam name="TPersistentStorageCredentials">An implementation of <see cref="IPersistentStorageLoginCredentials"/> containing login credentials for persistent storage instances.</typeparam>
     public class KubernetesDistributedAccessManagerInstanceManager<TPersistentStorageCredentials> : IDistributedAccessManagerInstanceManager, IDisposable
-        where TPersistentStorageCredentials : IPersistentStorageLoginCredentials
+        where TPersistentStorageCredentials : class, IPersistentStorageLoginCredentials
     {
         // TODO:
         //   If I have to introduce a specific dependency on SQL server, add this to the class description...
@@ -64,6 +65,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   Creation of ShardConfig database should be optional... if creation false need to provide TConnectionCreds for it
         //   Should be able to supply a postfix for db names like...
         //     applicationaccess-{postfix}-user-n100
+        //   Add code region for 'ApplicationAccess Node and Shard Group Creation Methods'
+        //   Validation for 'configuration' parameter
+        //   Will need to access writer node and router from outside the cluster during split.  Might have to create temporary 'ClusterIP' services to access them.
 
 
         // NEXT
@@ -75,7 +79,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   Then add metrics and loggings (and testing of both) to all existing methods
 
 
-        #pragma warning disable 1591
+#pragma warning disable 1591
 
         protected const String appLabel = "app";
         protected const String serviceNamePostfix = "-service";
@@ -213,6 +217,18 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
         #region Private/Protected Methods
 
+        protected async Task StopShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
+        {
+            // TODO
+            //   Might need to be async
+        }
+
+        protected async Task StartShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
+        {
+            // TODO
+            //   Might need to be async
+        }
+
         /// <summary>
         /// Initializes fields of the class.
         /// </summary>
@@ -242,28 +258,277 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
-        /// Creates a 'shard group' of distributed AccessManager components (i.e. a set of reader, event cache, and writer node pods/deployments, plus associated Kubernetes services).
+        /// Validates that all of the specified JSON paths exist within a JSON document.
+        /// </summary>
+        /// <param name="jsonDocument">The JSON document to check.</param>
+        /// <param name="paths">The JSON paths to check for.</param>
+        /// <param name="jsonDocumentContentsDescription">A description of the contents of the JSON document, for use in exception messages.  E.g. 'appsettings configuration for reader nodes'.</param>
+        /// <remarks>This method is designed to be used to confirm the existence of paths in a <see cref="JObject"/> which this class writes to, so as to prevent null reference exceptions when accessing the paths.</remarks>
+        protected void ValidatePathsExistInJsonDocument(JObject jsonDocument, IEnumerable<String> paths, String jsonDocumentContentsDescription)
+        {
+            foreach (String currentPath in paths)
+            {
+                try
+                {
+                    jsonDocument.SelectToken(currentPath, true);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"JSON path '{currentPath}' was not found in JSON document containing {jsonDocumentContentsDescription}.", e);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generates a unique identifier for an ApplicationAccess node (i.e. Kubernetes pod/deployment) based on its key properties.
+        /// </summary>
+        /// <param name="dataElement">The data element handled by the node.</param>
+        /// <param name="nodeType">The type of the node.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes handled by the node.</param>
+        /// <remarks>For use in pod/deployment names, service hostnames, database names, etc...</remarks>
+        /// <returns>The identifier.</returns>
+        protected String GenerateNodeIdentifier(DataElement dataElement, NodeType nodeType, Int32 hashRangeStart)
+        {
+            return $"{dataElement.ToString().ToLower()}-{nodeType.ToString().ToLower()}-{StringifyHashRangeStart(hashRangeStart)}";
+        }
+
+        /// <summary>
+        /// Generates a name for a persistent storage instance.
+        /// </summary>
+        /// <param name="dataElement">The data element stored in the persistent storage instance.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes stored in the persistent storage instance.</param>
+        /// <returns>The name.</returns>
+        protected String GeneratePersistentStorageInstanceName(DataElement dataElement, Int32 hashRangeStart)
+        {
+            return $"{configuration.PersistentStorageInstanceNamePrefix}_{dataElement.ToString().ToLower()}_{StringifyHashRangeStart(hashRangeStart)}";
+        }
+
+        /// <summary>
+        /// Converts the specified hash range value into a string which can be used in identifier names (i.e. replacing the negation symbol for negative hash range values).
+        /// </summary>
+        /// <param name="hashRangeStart">The hash range value.</param>
+        /// <returns>The stringified hash range value.</returns>
+        protected String StringifyHashRangeStart(Int32 hashRangeStart)
+        {
+            String returnString = hashRangeStart.ToString();
+            if (hashRangeStart < 0)
+            {
+                returnString = returnString.Replace('-', 'n');
+            }
+
+            return returnString;
+        }
+
+        #endregion
+
+        #region ApplicationAccess Node and Shard Group Creation Methods
+
+        /// <summary>
+        /// Creates a shard group in a distributed AccessManager implementation.
         /// </summary>
         /// <param name="dataElement">The data element to create the shard group for.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group.</param>
-        protected async Task CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
+        /// <param name="nameSpace">The namespace to create the shard group in.</param>
+        /// <param name="persistentStorageCredentials">Optional credentials for the persistent storage used by the reader and writer nodes.  If set to null, a new persistent storage instance will be created.</param>
+        protected async Task CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, String nameSpace, TPersistentStorageCredentials persistentStorageCredentials=null)
         {
-            // TODO: Should have logging and metrics here
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            Guid shardGroupBeginId = metricLogger.Begin(new ShardGroupCreateTime());
 
-            // Create the event cache node
+            if (persistentStorageCredentials == null)
+            {
+                // Create a persistent storage instance
+                logger.Log(ApplicationLogging.LogLevel.Information, $"Creating persistent storage instance for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart}...");
+                String persistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, hashRangeStart);
+                Guid storageBeginId = metricLogger.Begin(new PersistentStorageInstanceCreateTime());
+                try
+                {
+                    persistentStorageCredentials = persistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName);
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(storageBeginId, new PersistentStorageInstanceCreateTime());
+                    metricLogger.CancelBegin(shardGroupBeginId, new ShardGroupCreateTime());
+                    throw new Exception($"Error creating persistent storage instance for data element type '{dataElement}' and hash range start value {hashRangeStart}.", e);
+                }
+                metricLogger.End(storageBeginId, new PersistentStorageInstanceCreateTime());
+                metricLogger.Increment(new PersistentStorageInstanceCreated());
+                logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating persistent storage instance.");
+            }
+
+            // Create event cache node
+            try
+            {
+                await CreateEventCacheNodeAsync(dataElement, hashRangeStart, nameSpace);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(shardGroupBeginId, new ShardGroupCreateTime());
+                throw;
+            }
+            Uri eventCacheServiceUrl = new($"http://{GenerateNodeIdentifier(dataElement, NodeType.EventCache, hashRangeStart)}{serviceNamePostfix}:{configuration.PodPort}");
+
+            // Create reader and writer nodes
+            Task createReaderNodeTask = Task.Run(async () => await CreateReaderNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl, nameSpace));
+            Task createWriterNodeTask = Task.Run(async () => await CreateWriterNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl, nameSpace));
+            try
+            {
+                await Task.WhenAll(createReaderNodeTask, createWriterNodeTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(shardGroupBeginId, new ShardGroupCreateTime());
+                throw;
+            }
+
+            metricLogger.End(shardGroupBeginId, new ShardGroupCreateTime());
+            metricLogger.Increment(new ShardGroupCreated());
+            logger.Log(ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
         }
 
-        protected async Task StopShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
+        /// <summary>
+        /// Creates a reader node as part of a shard group in a distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="dataElement">The data element to create the reader node for.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group the reader node is a member of.</param>
+        /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
+        /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the reader node should consume events from.</param>
+        /// <param name="nameSpace">The namespace to create the node in.</param>
+        /// <returns></returns>
+        protected async Task CreateReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
         {
-            // TODO
-            //   Might need to be async
+            String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
+            Func<Task> createDeploymentFunction = () => CreateReaderNodeDeploymentAsync(deploymentName, persistentStorageCredentials, eventCacheServiceUrl, nameSpace);
+            Int32 abortAvailabiolityWaitAbortTimeout = (configuration.ReaderNodeConfigurationTemplate.StartupProbeFailureThreshold + 1) * configuration.ReaderNodeConfigurationTemplate.StartupProbePeriod * 1000;
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating reader node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            Guid beginId = metricLogger.Begin(new ReaderNodeCreateTime());
+            try
+            {
+                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "reader", nameSpace, abortAvailabiolityWaitAbortTimeout);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ReaderNodeCreateTime());
+                throw new Exception($"Error creating reader node for data element type '{dataElement}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'.", e);
+            }
+            metricLogger.End(beginId, new ReaderNodeCreateTime());
+            metricLogger.Increment(new ReaderNodeCreated());
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating reader node.");
         }
 
-        protected async Task StartShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
+        /// <summary>
+        /// Creates an event cache node as part of a shard group in a distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="dataElement">The data element to create the event cache node for.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group the event cache node is a member of.</param>
+        /// <param name="nameSpace">The namespace to create the node in.</param>
+        protected async Task CreateEventCacheNodeAsync(DataElement dataElement, Int32 hashRangeStart, String nameSpace)
         {
-            // TODO
-            //   Might need to be async
+            String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.EventCache, hashRangeStart);
+            Func<Task> createDeploymentFunction = () => CreateEventCacheNodeDeploymentAsync(deploymentName, nameSpace);
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating event cache node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            Guid beginId = metricLogger.Begin(new EventCacheNodeCreateTime());
+            try
+            {
+                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "event cache", nameSpace, configuration.DeploymentWaitThreshold);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new EventCacheNodeCreateTime());
+                throw new Exception($"Error creating event cache node for data element type '{dataElement}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'.", e);
+            }
+            metricLogger.End(beginId, new EventCacheNodeCreateTime());
+            metricLogger.Increment(new EventCacheNodeCreated());
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating event cache node.");
         }
+
+        /// <summary>
+        /// Creates a writer node as part of a shard group in a distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="dataElement">The data element to create the writer node for.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group the writer node is a member of.</param>
+        /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the writer node.</param>
+        /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the writer node should consume events from.</param>
+        /// <param name="nameSpace">The namespace to create the node in.</param>
+        /// <returns></returns>
+        protected async Task CreateWriterNodeAsync(DataElement dataElement, Int32 hashRangeStart, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
+        {
+            String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
+            Func<Task> createDeploymentFunction = () => CreateWriterNodeDeploymentAsync(deploymentName, persistentStorageCredentials, eventCacheServiceUrl, nameSpace);
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating writer node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            Guid beginId = metricLogger.Begin(new WriterNodeCreateTime());
+            try
+            {
+                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "writer", nameSpace, configuration.DeploymentWaitThreshold);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new WriterNodeCreateTime());
+                throw new Exception($"Error creating writer node for data element type '{dataElement}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'.", e);
+            }
+            metricLogger.End(beginId, new WriterNodeCreateTime());
+            metricLogger.Increment(new WriterNodeCreated());
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating writer node.");
+        }
+
+        /// <summary>
+        /// Creates an ApplicationAccess 'node' as part of a shard group in a distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="deploymentName">The name of the Kubernetes deployment to create to host the node.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group the node is a member of.</param>
+        /// <param name="createDeploymentFunction">An async <see cref="Func{TResult}"/> which creates the Kubernetes deployment for the node.</param>
+        /// <param name="nodeTypeName">The name of the type of the node (to use in exception messages, e.g. 'event cache', 'reader', etc...).</param>
+        /// <param name="nameSpace">The namespace to create the node in.</param>
+        /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the node hasn't become available.</param>
+        protected async Task CreateApplicationAccessNodeAsync
+        (
+            String deploymentName,
+            Int32 hashRangeStart,
+            Func<Task> createDeploymentFunction,
+            String nodeTypeName,
+            String nameSpace,
+            Int32 abortTimeout
+        )
+        {
+            Task createDeploymentTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await createDeploymentFunction();
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error creating {nodeTypeName} deployment '{deploymentName}' in namespace '{nameSpace}'.", e);
+                }
+            });
+            Task createServiceTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await CreateClusterIpServiceAsync(deploymentName, configuration.PodPort, nameSpace);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error creating {nodeTypeName} service '{deploymentName}{serviceNamePostfix}' in namespace '{nameSpace}'.", e);
+                }
+            });
+            Task waitForDeploymentTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await WaitForDeploymentAvailabilityAsync(deploymentName, nameSpace, configuration.DeploymentWaitPollingInterval, abortTimeout);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error waiting for {nodeTypeName} deployment '{deploymentName}' in namespace '{nameSpace}' to become available.", e);
+                }
+            });
+            await Task.WhenAll(createDeploymentTask, createServiceTask, waitForDeploymentTask);
+        }
+
+        #endregion
+
+        #region Kubernetes Object Creation Methods
 
         /// <summary>
         /// Creates a Kubernetes service of type 'ClusterIP'.
@@ -321,7 +586,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="persistentStorageCredentials">Credentials to connect to the persistent storage for the reader node.</param>
         /// <param name="eventCacheServiceUrl">The URL for the service for the event cache that the reader node should consume events from.</param>
         /// <param name="nameSpace">The namespace in which to create the deployment.</param>
-        public async Task CreateReaderNodeDeploymentAsync(String name, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
+        protected async Task CreateReaderNodeDeploymentAsync(String name, TPersistentStorageCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
         {
             // Prepare and encode the 'appsettings.json' file contents
             JObject appsettingsContents = configuration.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
@@ -719,48 +984,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
         }
 
-        /// <summary>
-        /// Validates that all of the specified JSON paths exist within a JSON document.
-        /// </summary>
-        /// <param name="jsonDocument">The JSON document to check.</param>
-        /// <param name="paths">The JSON paths to check for.</param>
-        /// <param name="jsonDocumentContentsDescription">A description of the contents of the JSON document, for use in exception messages.  E.g. 'appsettings configuration for reader nodes'.</param>
-        /// <remarks>This method is designed to be used to confirm the existence of paths in a <see cref="JObject"/> which this class writes to, so as to prevent null reference exceptions when accessing the paths.</remarks>
-        protected void ValidatePathsExistInJsonDocument(JObject jsonDocument, IEnumerable<String> paths, String jsonDocumentContentsDescription)
-        {
-            foreach (String currentPath in paths)
-            {
-                try
-                {
-                    jsonDocument.SelectToken(currentPath, true);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception($"JSON path '{currentPath}' was not found in JSON document containing {jsonDocumentContentsDescription}.", e);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Generates a unique identifier for an ApplicationAccess node (i.e. Kubernetes pod/deployment) based on its key properties.
-        /// </summary>
-        /// <param name="dataElement">The data element handled by the node.</param>
-        /// <param name="nodeType">The type of the node.</param>
-        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes handled by the node.</param>
-        /// <remarks>For use in pod/deployment names, service hostnames, database names, etc...</remarks>
-        /// <returns>The identifier.</returns>
-        protected String GenerateNodeIdentifier(DataElement dataElement, NodeType nodeType, Int32 hashRangeStart)
-        {
-            StringBuilder stringifiedHashRangeStartBuilder = new();
-            if (hashRangeStart < 0)
-            {
-                stringifiedHashRangeStartBuilder.Append("n");
-            }
-            stringifiedHashRangeStartBuilder.Append(hashRangeStart.ToString());
-
-            return $"{dataElement.ToString().ToLower()}-{nodeType.ToString().ToLower()}-{stringifiedHashRangeStartBuilder.ToString()}";
-        }
-
         #endregion
 
         #region Kubernetes Object Templates
@@ -934,6 +1157,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                                            [requestsCpuKey] = new ResourceQuantity(configuration.EventCacheNodeConfigurationTemplate.CpuResourceRequest),
                                            [requestsMemoryKey] = new ResourceQuantity(configuration.EventCacheNodeConfigurationTemplate.MemoryResourceRequest)
                                         }
+                                    }, 
+                                    StartupProbe = new V1Probe
+                                    {
+                                        HttpGet = new V1HTTPGetAction
+                                        {
+                                            Path = nodeStatusApiEndpointUrl,
+                                            Port = configuration.PodPort
+                                        },
+                                        FailureThreshold = configuration.EventCacheNodeConfigurationTemplate.StartupProbeFailureThreshold,
+                                        PeriodSeconds = configuration.EventCacheNodeConfigurationTemplate.StartupProbePeriod
                                     }
                                 }
                             }
@@ -1000,6 +1233,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                                            [requestsMemoryKey] = new ResourceQuantity(configuration.WriterNodeConfigurationTemplate.MemoryResourceRequest)
                                         }
                                     },
+                                    StartupProbe = new V1Probe
+                                    {
+                                        HttpGet = new V1HTTPGetAction
+                                        {
+                                            Path = nodeStatusApiEndpointUrl,
+                                            Port = configuration.PodPort
+                                        },
+                                        FailureThreshold = configuration.WriterNodeConfigurationTemplate.StartupProbeFailureThreshold,
+                                        PeriodSeconds = configuration.WriterNodeConfigurationTemplate.StartupProbePeriod
+                                    }, 
                                     VolumeMounts = new List<V1VolumeMount>()
                                     {
                                         new V1VolumeMount()
@@ -1061,6 +1304,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                                            [requestsCpuKey] = new ResourceQuantity(configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.CpuResourceRequest),
                                            [requestsMemoryKey] = new ResourceQuantity(configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.MemoryResourceRequest)
                                         }
+                                    },
+                                    StartupProbe = new V1Probe
+                                    {
+                                        HttpGet = new V1HTTPGetAction
+                                        {
+                                            Path = nodeStatusApiEndpointUrl,
+                                            Port = configuration.PodPort
+                                        },
+                                        FailureThreshold = configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.StartupProbeFailureThreshold,
+                                        PeriodSeconds = configuration.DistributedOperationCoordinatorNodeConfigurationTemplate.StartupProbePeriod
                                     }
                                 }
                             }
@@ -1115,6 +1368,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                                            [requestsCpuKey] = new ResourceQuantity(configuration.DistributedOperationRouterNodeConfigurationTemplate.CpuResourceRequest),
                                            [requestsMemoryKey] = new ResourceQuantity(configuration.DistributedOperationRouterNodeConfigurationTemplate.MemoryResourceRequest)
                                         }
+                                    },
+                                    StartupProbe = new V1Probe
+                                    {
+                                        HttpGet = new V1HTTPGetAction
+                                        {
+                                            Path = nodeStatusApiEndpointUrl,
+                                            Port = configuration.PodPort
+                                        },
+                                        FailureThreshold = configuration.DistributedOperationRouterNodeConfigurationTemplate.StartupProbeFailureThreshold,
+                                        PeriodSeconds = configuration.DistributedOperationRouterNodeConfigurationTemplate.StartupProbePeriod
                                     }
                                 }
                             }

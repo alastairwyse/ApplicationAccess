@@ -26,9 +26,19 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         /// <summary>The port to use to expose trafic between the pods/deployments.</summary>
         public required UInt16 PodPort { get; init; }
 
-        /// <summary>Suffix to use in names for persistent instances created by the manager.</summary>
+        /// <summary>Prefix to use in names for persistent instances created by the manager.</summary>
         /// <remarks>Should only contain printable ASCII characters without whitespace.</remarks>
-        public required String PersistentStorageInstanceNameSuffix { get; init; }
+        public required String PersistentStorageInstanceNamePrefix { get; init; }
+
+        /// <summary>
+        /// The time in milliseconds between polls to check whether a deployment has either become available or scaled down.
+        /// </summary>
+        public required Int32 DeploymentWaitPollingInterval { get; init; }
+
+        /// <summary>
+        /// The threshold to wait in milliseconds for a deployment to either become available or scale down, after which an exception is thrown.
+        /// </summary>
+        public required Int32 DeploymentWaitThreshold { get; init; }
 
         /// <summary>Base/template for configuration of reader node pods/deployments within the distributed AccessManager implementation.</summary>
         public required ReaderNodeConfiguration ReaderNodeConfigurationTemplate { get; init; }

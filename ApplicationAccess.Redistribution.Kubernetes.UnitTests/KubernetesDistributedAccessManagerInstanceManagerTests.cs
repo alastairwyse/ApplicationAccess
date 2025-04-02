@@ -16,11 +16,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Hosting.LaunchPreparer;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
+using ApplicationAccess.Redistribution.Metrics;
+using ApplicationAccess.Redistribution.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 using ApplicationMetrics.MetricLoggers;
@@ -29,7 +32,6 @@ using Newtonsoft.Json.Linq;
 using NSubstitute;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using ApplicationAccess.Persistence.Models;
 
 namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 {
@@ -62,6 +64,584 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockApplicationLogger,
                 mockMetricLogger
             );
+        }
+
+        [Test]
+        public void GenerateNodeIdentifier()
+        {
+            String result = testKubernetesDistributedAccessManagerInstanceManager.GenerateNodeIdentifier(DataElement.User, NodeType.Reader, -2147483648);
+
+            Assert.AreEqual("user-reader-n2147483648", result);
+
+
+            result = testKubernetesDistributedAccessManagerInstanceManager.GenerateNodeIdentifier(DataElement.Group, NodeType.EventCache, -1);
+
+            Assert.AreEqual("group-eventcache-n1", result);
+
+
+            result = testKubernetesDistributedAccessManagerInstanceManager.GenerateNodeIdentifier(DataElement.GroupToGroupMapping, NodeType.Writer, 0);
+
+            Assert.AreEqual("grouptogroupmapping-writer-0", result);
+
+
+            result = testKubernetesDistributedAccessManagerInstanceManager.GenerateNodeIdentifier(DataElement.User, NodeType.Reader, 1);
+
+            Assert.AreEqual("user-reader-1", result);
+        }
+
+        [Test]
+        public void GeneratePersistentStorageInstanceName()
+        {
+            String result = testKubernetesDistributedAccessManagerInstanceManager.GeneratePersistentStorageInstanceName(DataElement.User, -100);
+
+            Assert.AreEqual("applicationaccesstest_user_n100", result);
+        }
+
+        [Test]
+        public void CreateShardGroupAsync_ExceptionCreatingPersistentStorageInstance()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            DataElement dataElement = DataElement.Group;
+            Int32 hashRangeStart = -10_000;
+            String nameSpace = "default";
+            mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
+            mockPersistentStorageCreator.When((storageCreator) => storageCreator.CreateAccessManagerPersistentStorage("applicationaccesstest_group_n10000")).Do((callInfo) => throw mockException);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart, nameSpace);
+            });
+
+            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_group_n10000");
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating persistent storage instance for data element type 'Group' and hash range start value -10000."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task CreateShardGroupAsync_ExceptionCreatingEventCacheNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            Guid testBeginId3 = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
+            DataElement dataElement = DataElement.GroupToGroupMapping;
+            Int32 hashRangeStart = 20_000;
+            String nameSpace = "default";
+            String persistentStorageInstanceName = "applicationaccesstest_grouptogroupmapping_20000";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>{ new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-eventcache-20000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 }  } }
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart, nameSpace);
+            });
+
+            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_20000");
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating event cache node for data element type 'GroupToGroupMapping' and hash range start value 20000 in namespace 'default'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateShardGroupAsync_ExceptionCreatingReaderNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            Guid testBeginId3 = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
+            Guid testBeginId4 = Guid.Parse("738650cb-eec3-40b2-8ffb-476e85084be1");
+            Guid testBeginId5 = Guid.Parse("4fb4f095-2a6f-4f02-8cc6-e42700f69736");
+            DataElement dataElement = DataElement.GroupToGroupMapping;
+            Int32 hashRangeStart = 20_000;
+            String nameSpace = "default";
+            String persistentStorageInstanceName = "applicationaccesstest_grouptogroupmapping_20000";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-eventcache-20000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-reader-20000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-writer-20000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId4);
+            mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId5);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("grouptogroupmapping-eventcache-20000")), nameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("grouptogroupmapping-reader-20000")), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("grouptogroupmapping-writer-20000")), nameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart, nameSpace);
+            });
+
+            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_grouptogroupmapping_20000");
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("grouptogroupmapping-eventcache-20000")), nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating reader node for data element type 'GroupToGroupMapping' and hash range start value 20000 in namespace 'default'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateShardGroupAsync_ExceptionCreatingWriterNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            Guid testBeginId3 = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
+            Guid testBeginId4 = Guid.Parse("738650cb-eec3-40b2-8ffb-476e85084be1");
+            Guid testBeginId5 = Guid.Parse("4fb4f095-2a6f-4f02-8cc6-e42700f69736");
+            DataElement dataElement = DataElement.User;
+            Int32 hashRangeStart = -400_000;
+            String nameSpace = "default";
+            String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId4);
+            mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId5);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), nameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-reader-n400000")), nameSpace).Returns(Task.FromResult<V1Deployment>(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-writer-n400000")), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart, nameSpace);
+            });
+
+            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId1, Arg.Any<ShardGroupCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating writer node for data element type 'User' and hash range start value -400000 in namespace 'default'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateShardGroupAsync()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            Guid testBeginId3 = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
+            Guid testBeginId4 = Guid.Parse("738650cb-eec3-40b2-8ffb-476e85084be1");
+            Guid testBeginId5 = Guid.Parse("4fb4f095-2a6f-4f02-8cc6-e42700f69736");
+            DataElement dataElement = DataElement.User;
+            Int32 hashRangeStart = -400_000;
+            String nameSpace = "default";
+            String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId4);
+            mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId5);
+            mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromResult(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart, nameSpace);
+
+            mockPersistentStorageCreator.Received(1).CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.Received(1).Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId1, Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupCreated>());
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating shard group for data element 'User' and hash range start value -400000 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value -400000...");
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
+        }
+
+        [Test]
+        public async Task CreateShardGroupAsync_PersistentStorageCredentialsParameterNotNull()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId1 = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            Guid testBeginId2 = Guid.Parse("fae322df-92d1-4306-a8ef-c39ce1a2f084");
+            Guid testBeginId3 = Guid.Parse("40f87f47-c586-42ea-905e-54de0e559944");
+            Guid testBeginId4 = Guid.Parse("738650cb-eec3-40b2-8ffb-476e85084be1");
+            Guid testBeginId5 = Guid.Parse("4fb4f095-2a6f-4f02-8cc6-e42700f69736");
+            DataElement dataElement = DataElement.User;
+            Int32 hashRangeStart = -400_000;
+            String nameSpace = "default";
+            String persistentStorageInstanceName = "applicationaccesstest_user_n400000";
+            TestPersistentStorageLoginCredentials storageCredentials = new(persistentStorageInstanceName);
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } },
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n400000" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockMetricLogger.Begin(Arg.Any<ShardGroupCreateTime>()).Returns(testBeginId1);
+            mockMetricLogger.Begin(Arg.Any<PersistentStorageInstanceCreateTime>()).Returns(testBeginId2);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId3);
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId4);
+            mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId5);
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromResult(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateShardGroupAsync(dataElement, hashRangeStart, nameSpace, storageCredentials);
+
+            mockPersistentStorageCreator.DidNotReceive().CreateAccessManagerPersistentStorage("applicationaccesstest_user_n400000");
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Is<V1Deployment>(DeploymentWithAppName("user-eventcache-n400000")), nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.DidNotReceive().Begin(Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.DidNotReceive().End(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId1, Arg.Any<ShardGroupCreateTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupCreated>());
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating shard group for data element 'User' and hash range start value -400000 in namespace 'default'...");
+            mockApplicationLogger.DidNotReceive().Log(ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value -400000...");
+            mockApplicationLogger.DidNotReceive().Log(ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
+        }
+
+        [Test]
+        public async Task CreateReaderNodeAsync_ExceptionCreatingNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            TestPersistentStorageLoginCredentials storageCredentials = new("user_n2147483648");
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeAsync(DataElement.User, -2_147_483_648, storageCredentials, eventCacheServiceUrl, nameSpace);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<ReaderNodeCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating reader node for data element type 'User' and hash range start value -2147483648 in namespace 'default'."));
+            Assert.That(e.InnerException.Message, Does.StartWith($"Error creating reader deployment 'user-reader-n2147483648' in namespace 'default'."));
+            Assert.That(e.InnerException.InnerException.Message, Does.StartWith($"Failed to create reader node Kubernetes deployment 'user-reader-n2147483648'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateReaderNodeAsync()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            TestPersistentStorageLoginCredentials storageCredentials = new("grouptogroupmapping_n2147483648");
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "grouptogroupmapping-reader-n2147483648" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromResult(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockMetricLogger.Begin(Arg.Any<ReaderNodeCreateTime>()).Returns(testBeginId);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateReaderNodeAsync(DataElement.GroupToGroupMapping, -2_147_483_648, storageCredentials, eventCacheServiceUrl, nameSpace);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
+            await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ReaderNodeCreateTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<ReaderNodeCreated>());
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating reader node for data element 'GroupToGroupMapping' and hash range start value -2147483648 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating reader node.");
+        }
+
+        [Test]
+        public async Task CreateEventCacheNodeAsync_ExceptionCreatingNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-eventcache-100" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateEventCacheNodeAsync(DataElement.Group, 100, nameSpace);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<EventCacheNodeCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<EventCacheNodeCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating event cache node for data element type 'Group' and hash range start value 100 in namespace 'default'."));
+            Assert.That(e.InnerException.Message, Does.StartWith($"Error creating event cache deployment 'group-eventcache-100' in namespace 'default'."));
+            Assert.That(e.InnerException.InnerException.Message, Does.StartWith($"Failed to create event cache node Kubernetes deployment 'group-eventcache-100'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateEventCacheNodeAsync()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-eventcache-n100" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromResult(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockMetricLogger.Begin(Arg.Any<EventCacheNodeCreateTime>()).Returns(testBeginId);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateEventCacheNodeAsync(DataElement.User, -100, nameSpace);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
+            await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<EventCacheNodeCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EventCacheNodeCreateTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<EventCacheNodeCreated>());
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating event cache node for data element 'User' and hash range start value -100 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating event cache node.");
+        }
+
+        [Test]
+        public async Task CreateWriterNodeAsync_ExceptionCreatingNode()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            TestPersistentStorageLoginCredentials storageCredentials = new("user_n1");
+            Uri eventCacheServiceUrl = new("http://user-writer-n1-service:5000");
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "user-writer-n1" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromException<V1Deployment>(mockException));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId);
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeAsync(DataElement.User, -1, storageCredentials, eventCacheServiceUrl, nameSpace);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<WriterNodeCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<WriterNodeCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating writer node for data element type 'User' and hash range start value -1 in namespace 'default'."));
+            Assert.That(e.InnerException.Message, Does.StartWith($"Error creating writer deployment 'user-writer-n1' in namespace 'default'."));
+            Assert.That(e.InnerException.InnerException.Message, Does.StartWith($"Failed to create writer node Kubernetes deployment 'user-writer-n1'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateWriterNodeAsync()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            TestPersistentStorageLoginCredentials storageCredentials = new("group_0");
+            Uri eventCacheServiceUrl = new("http://user-eventcache-n2147483648-service:5000");
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = "group-writer-0" }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace).Returns(Task.FromResult(new V1Deployment()));
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+            mockMetricLogger.Begin(Arg.Any<WriterNodeCreateTime>()).Returns(testBeginId);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterNodeAsync(DataElement.Group, 0, storageCredentials, eventCacheServiceUrl, nameSpace);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedDeploymentAsync(null, Arg.Any<V1Deployment>(), nameSpace);
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
+            await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, nameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<WriterNodeCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<WriterNodeCreateTime>());
+            mockMetricLogger.Received(1).Increment(Arg.Any<WriterNodeCreated>());
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating writer node for data element 'Group' and hash range start value 0 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating writer node.");
+        }
+
+        [Test]
+        public void CreateApplicationAccessNodeAsync_ExceptionCreatingDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String deploymentName = "user-reader-n2147483648";
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = deploymentName }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            Func<Task> createDeploymentFunction = () => Task.FromException(mockException);
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, -2_147_483_648, createDeploymentFunction, "reader", nameSpace, 10_000);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error creating reader deployment 'user-reader-n2147483648' in namespace 'default'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void CreateApplicationAccessNodeAsync_ExceptionCreatingService()
+        {
+            var mockException = new Exception("Mock exception");
+            String deploymentName = "user-reader-n2147483648";
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = deploymentName }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            Func<Task> createDeploymentFunction = () => Task.CompletedTask;
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromException<V1Service>(mockException));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, -2_147_483_648, createDeploymentFunction, "reader", nameSpace, 10_000);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error creating reader service 'user-reader-n2147483648-service' in namespace 'default'."));
+        }
+
+        [Test]
+        public void CreateApplicationAccessNodeAsync_WaitingForDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String deploymentName = "user-writer-2147483647";
+            String nameSpace = "default";
+            Func<Task> createDeploymentFunction = () => Task.CompletedTask;
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromException<V1DeploymentList>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, 2_147_483_647, createDeploymentFunction, "writer", nameSpace, 10_000);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Error waiting for writer deployment 'user-writer-2147483647' in namespace 'default' to become available."));
+        }
+
+        [Test]
+        public async Task CreateApplicationAccessNodeAsync()
+        {
+            String deploymentName = "group-eventcache-n2147483648";
+            String nameSpace = "default";
+            V1DeploymentList returnDeployments = new
+            (
+                new List<V1Deployment>()
+                {
+                    new V1Deployment() { Metadata = new V1ObjectMeta() { Name = deploymentName }, Status = new V1DeploymentStatus { AvailableReplicas = 1 } }
+                }
+            );
+            Func<Task> createDeploymentFunction = () => Task.CompletedTask;
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace).Returns(Task.FromResult(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, nameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
+
+            await testKubernetesDistributedAccessManagerInstanceManager.CreateApplicationAccessNodeAsync(deploymentName, -2_147_483_648, createDeploymentFunction, "event cache", nameSpace, 10_000);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), nameSpace);
+            await mockKubernetesClientShim.Received(1).ListNamespacedDeploymentAsync(null, nameSpace);
         }
 
         [Test]
@@ -332,6 +912,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
             Assert.AreEqual(new ResourceQuantity("50m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
             Assert.AreEqual(new ResourceQuantity("60Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+            Assert.AreEqual(6, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.FailureThreshold);
+            Assert.AreEqual(4, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.PeriodSeconds);
         }
 
         [Test]
@@ -450,6 +1032,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(new ResourceQuantity("240Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
             Assert.AreEqual("/eventbackup", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].VolumeMounts[0].MountPath);
             Assert.AreEqual("eventbackup-storage", capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].VolumeMounts[0].Name);
+            Assert.AreEqual(7, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.FailureThreshold);
+            Assert.AreEqual(5, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.PeriodSeconds);
         }
 
         [Test]
@@ -533,6 +1117,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
             Assert.AreEqual(new ResourceQuantity("500m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
             Assert.AreEqual(new ResourceQuantity("600Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+            Assert.AreEqual(8, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.FailureThreshold);
+            Assert.AreEqual(6, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.PeriodSeconds);
         }
 
         [Test]
@@ -686,6 +1272,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(2, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests.Count);
             Assert.AreEqual(new ResourceQuantity("400m"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["cpu"]);
             Assert.AreEqual(new ResourceQuantity("450Mi"), capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].Resources.Requests["memory"]);
+            Assert.AreEqual(9, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.FailureThreshold);
+            Assert.AreEqual(7, capturedDeploymentDefinition.Spec.Template.Spec.Containers[0].StartupProbe.PeriodSeconds);
         }
 
         [Test]
@@ -1129,7 +1717,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration = new()
             {
                 PodPort = 5000,
-                PersistentStorageInstanceNameSuffix = "test", 
+                PersistentStorageInstanceNamePrefix = "applicationaccesstest",
+                DeploymentWaitPollingInterval = 100,
+                DeploymentWaitThreshold = 30000, 
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
                     ReplicaCount = 1,
@@ -1150,7 +1740,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Information,
                     AppSettingsConfigurationTemplate = CreateEventCacheNodeAppSettingsConfigurationTemplate(),
                     CpuResourceRequest = "50m",
-                    MemoryResourceRequest = "60Mi"
+                    MemoryResourceRequest = "60Mi",
+                    StartupProbeFailureThreshold = 6,
+                    StartupProbePeriod = 4
                 },
                 WriterNodeConfigurationTemplate = new WriterNodeConfiguration
                 {
@@ -1160,7 +1752,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Critical,
                     AppSettingsConfigurationTemplate = CreateWriterNodeAppSettingsConfigurationTemplate(),
                     CpuResourceRequest = "200m",
-                    MemoryResourceRequest = "240Mi"
+                    MemoryResourceRequest = "240Mi",
+                    StartupProbeFailureThreshold = 7,
+                    StartupProbePeriod = 5
                 }, 
                 DistributedOperationCoordinatorNodeConfigurationTemplate = new DistributedOperationCoordinatorNodeConfiguration
                 {
@@ -1170,7 +1764,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
                     AppSettingsConfigurationTemplate = CreateDistributedOperationCoordinatorNodeAppSettingsConfigurationTemplate(),
                     CpuResourceRequest = "500m",
-                    MemoryResourceRequest = "600Mi"
+                    MemoryResourceRequest = "600Mi",
+                    StartupProbeFailureThreshold = 8,
+                    StartupProbePeriod = 6
                 },
                 DistributedOperationRouterNodeConfigurationTemplate = new DistributedOperationRouterNodeConfiguration
                 {
@@ -1179,7 +1775,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Critical,
                     AppSettingsConfigurationTemplate = CreateDistributedOperationRouterNodeAppSettingsConfigurationTemplate(),
                     CpuResourceRequest = "400m",
-                    MemoryResourceRequest = "450Mi"
+                    MemoryResourceRequest = "450Mi",
+                    StartupProbeFailureThreshold = 9,
+                    StartupProbePeriod = 7
                 }
             };
 
@@ -1413,6 +2011,17 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             return JObject.Parse(stringifiedAppSettings);
         }
 
+        /// <summary>
+        /// Returns an <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/> which checks whether a <see cref="V1Deployment"/> has a specified 'app' label name.
+        /// </summary>
+        /// <param name="expectedAppName">The expected 'app' label name.</param>
+        /// <returns>The <see cref="Expression"/> which evaluates a <see cref="Predicate{T}"/>.</returns>
+        /// <remarks>Designed to be passed to the 'predicate' parameter of the NSubstitute Arg.Any{T} argument matcher.</remarks>
+        protected Expression<Predicate<V1Deployment>> DeploymentWithAppName(String expectedAppName)
+        {
+            return (V1Deployment actualDeployment) => actualDeployment.Spec.Selector.MatchLabels["app"] == expectedAppName;
+        }
+
         #endregion
 
         #region Nested Classes
@@ -1445,6 +2054,41 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             }
 
             #pragma warning disable 1591
+
+            public new String GenerateNodeIdentifier(DataElement dataElement, NodeType nodeType, Int32 hashRangeStart)
+            {
+                return base.GenerateNodeIdentifier(dataElement, nodeType, hashRangeStart);
+            }
+
+            public new String GeneratePersistentStorageInstanceName(DataElement dataElement, Int32 hashRangeStart)
+            {
+                return base.GeneratePersistentStorageInstanceName(dataElement, hashRangeStart);
+            }
+
+            public new async Task CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, String nameSpace, TestPersistentStorageLoginCredentials persistentStorageCredentials = null)
+            {
+                await base.CreateShardGroupAsync(dataElement, hashRangeStart, nameSpace, persistentStorageCredentials);
+            }
+
+            public new async Task CreateReaderNodeAsync(DataElement dataElement, Int32 hashRangeStart, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
+            {
+                await base.CreateReaderNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl, nameSpace);
+            }
+
+            public new async Task CreateEventCacheNodeAsync(DataElement dataElement, Int32 hashRangeStart, String nameSpace)
+            {
+                await base.CreateEventCacheNodeAsync(dataElement, hashRangeStart, nameSpace);
+            }
+
+            public new async Task CreateWriterNodeAsync(DataElement dataElement, Int32 hashRangeStart, TestPersistentStorageLoginCredentials persistentStorageCredentials, Uri eventCacheServiceUrl, String nameSpace)
+            {
+                await base.CreateWriterNodeAsync(dataElement, hashRangeStart, persistentStorageCredentials, eventCacheServiceUrl, nameSpace);
+            }
+
+            public new async Task CreateApplicationAccessNodeAsync(String deploymentName, Int32 hashRangeStart, Func<Task> createDeploymentFunction, String nodeTypeName, String nameSpace, Int32 abortTimeout)
+            {
+                await base.CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, nodeTypeName, nameSpace, abortTimeout);
+            }
 
             public new async Task CreateClusterIpServiceAsync(String appLabelValue, UInt16 port, String nameSpace)
             {

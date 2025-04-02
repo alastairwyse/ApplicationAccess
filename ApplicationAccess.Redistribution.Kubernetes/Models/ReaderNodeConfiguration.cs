@@ -28,11 +28,5 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
 
         /// <summary>The time in seconds between liveness probes.</summary>
         public required UInt16 LivenessProbePeriod { get; init; }
-
-        /// <summary>The time in seconds between startup probes.</summary>
-        public required UInt16 StartupProbePeriod { get; init; }
-
-        /// <summary>The number of startup probes which are allowed to fail before considering that the startup has failed.</summary>
-        public required UInt16 StartupProbeFailureThreshold { get; init; }
     }
 }

@@ -126,5 +126,155 @@ namespace ApplicationAccess.Redistribution.Metrics
         }
     }
 
+    /// <summary>
+    /// Count metric which records that a reader node was created in a distributed AccessManager implementation.
+    /// </summary>
+    public class ReaderNodeCreated : CountMetric
+    {
+        protected static String staticName = "ReaderNodeCreated";
+        protected static String staticDescription = "A reader node was created in a distributed AccessManager implementation";
+
+        public ReaderNodeCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that an event cache node was created in a distributed AccessManager implementation.
+    /// </summary>
+    public class EventCacheNodeCreated : CountMetric
+    {
+        protected static String staticName = "EventCacheNodeCreated";
+        protected static String staticDescription = "An event cache node was created in a distributed AccessManager implementation";
+
+        public EventCacheNodeCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a writer node was created in a distributed AccessManager implementation.
+    /// </summary>
+    public class WriterNodeCreated : CountMetric
+    {
+        protected static String staticName = "WriterNodeCreated";
+        protected static String staticDescription = "A writer node was created in a distributed AccessManager implementation";
+
+        public WriterNodeCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a persistent storage instance was created for a distributed AccessManager implementation.
+    /// </summary>
+    public class PersistentStorageInstanceCreated : CountMetric
+    {
+        protected static String staticName = "PersistentStorageInstanceCreated";
+        protected static String staticDescription = "A persistent storage instance was created for a distributed AccessManager implementation";
+
+        public PersistentStorageInstanceCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a shard group was created in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupCreated : CountMetric
+    {
+        protected static String staticName = "ShardGroupCreated";
+        protected static String staticDescription = "A shard group was created in a distributed AccessManager implementation";
+
+        public ShardGroupCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to create a reader node in a distributed AccessManager implementation.
+    /// </summary>
+    public class ReaderNodeCreateTime : IntervalMetric
+    {
+        protected static String staticName = "ReaderNodeCreateTime";
+        protected static String staticDescription = "The time taken to create a reader node in a distributed AccessManager implementation";
+
+        public ReaderNodeCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to create an event cache node in a distributed AccessManager implementation.
+    /// </summary>
+    public class EventCacheNodeCreateTime : IntervalMetric
+    {
+        protected static String staticName = "EventCacheNodeCreateTime";
+        protected static String staticDescription = "The time taken to create an event cache node in a distributed AccessManager implementation";
+
+        public EventCacheNodeCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to create a writer node in a distributed AccessManager implementation.
+    /// </summary>
+    public class WriterNodeCreateTime : IntervalMetric
+    {
+        protected static String staticName = "WriterNodeCreateTime";
+        protected static String staticDescription = "The time taken to create a writer node in a distributed AccessManager implementation";
+
+        public WriterNodeCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to create a persistent storage instance for a distributed AccessManager implementation.
+    /// </summary>
+    public class PersistentStorageInstanceCreateTime : IntervalMetric
+    {
+        protected static String staticName = "PersistentStorageInstanceCreateTime";
+        protected static String staticDescription = "The time taken to create a persistent storage instance for a distributed AccessManager implementation";
+
+        public PersistentStorageInstanceCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to create a shard group in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupCreateTime : IntervalMetric
+    {
+        protected static String staticName = "ShardGroupCreateTime";
+        protected static String staticDescription = "The time taken to create a shard group in a distributed AccessManager implementation";
+
+        public ShardGroupCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
     #pragma warning restore 1591
 }
