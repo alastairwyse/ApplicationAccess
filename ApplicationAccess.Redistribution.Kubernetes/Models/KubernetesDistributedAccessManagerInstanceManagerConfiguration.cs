@@ -35,11 +35,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         /// </summary>
         public required Int32 DeploymentWaitPollingInterval { get; init; }
 
-        /// <summary>
-        /// The threshold to wait in milliseconds for a deployment to either become available or scale down, after which an exception is thrown.
-        /// </summary>
-        public required Int32 DeploymentWaitThreshold { get; init; }
-
         /// <summary>Base/template for configuration of reader node pods/deployments within the distributed AccessManager implementation.</summary>
         public required ReaderNodeConfiguration ReaderNodeConfigurationTemplate { get; init; }
 

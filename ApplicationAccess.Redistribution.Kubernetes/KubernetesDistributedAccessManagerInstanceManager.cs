@@ -79,10 +79,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   Then add metrics and loggings (and testing of both) to all existing methods
 
 
-#pragma warning disable 1591
+        #pragma warning disable 1591
 
         protected const String appLabel = "app";
         protected const String serviceNamePostfix = "-service";
+        protected const String externalServiceNamePostfix = "-externalservice";
         protected const String eventBackupVolumeMountPath = "/eventbackup";
         protected const String eventBackupPersistentVolumeName = "eventbackup-storage";
         protected const String eventBackupFilePostfix = "-eventbackup";
@@ -118,6 +119,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected const String appsettingsRoutingInitiallyOnPropertyName = "RoutingInitiallyOn";
 
         #pragma warning restore 1591
+
+        /// <summary>The number of milliseconds to wait after the 'TerminationGracePeriod' expires for a deployment to scale down, before throwing an exception.</summary>
+        protected const Int32 scaleDownTerminationGracePeriodBuffer = 1000;
 
         /// <summary>Configuration for the instance manager.</summary>
         protected KubernetesDistributedAccessManagerInstanceManagerConfiguration configuration;
@@ -319,6 +323,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             return returnString;
         }
 
+        /// <summary>
+        /// Generates the abort timeout in milliseconds to wait for a deployment to become available.
+        /// </summary>
+        /// <param name="nodeConfiguration">The node configuration to use to calculate the abort timeout.</param>
+        /// <returns>The abort timeout in milliseconds</returns>
+        protected Int32 GenerateAvailabilityWaitAbortTimeout(NodeConfigurationBase nodeConfiguration)
+        {
+            return (nodeConfiguration.StartupProbeFailureThreshold + 1) * nodeConfiguration.StartupProbePeriod * 1000;
+        }
+
         #endregion
 
         #region ApplicationAccess Node and Shard Group Creation Methods
@@ -387,6 +401,156 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
+        /// Restarts all nodes of a shard group in a distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard group.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group.</param>
+        /// <param name="nameSpace">The namespace of the shard group.</param>
+        protected async Task RestartShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, String nameSpace)
+        {
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Restarting shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            Guid beginId = metricLogger.Begin(new ShardGroupRestartTime());
+
+            try
+            {
+                await ScaleDownShardGroupAsync(dataElement, hashRangeStart, nameSpace);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupRestartTime());
+                throw new Exception($"Error scaling down shard group for data element '{dataElement}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'.", e);
+            }
+            try
+            {
+                await ScaleUpShardGroupAsync(dataElement, hashRangeStart, nameSpace);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupRestartTime());
+                throw new Exception($"Error scaling up shard group for data element '{dataElement}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'.", e);
+            }
+
+            metricLogger.End(beginId, new ShardGroupRestartTime());
+            metricLogger.Increment(new ShardGroupRestarted());
+            logger.Log(ApplicationLogging.LogLevel.Information, "Completed restarting shard group.");
+        }
+
+        /// <summary>
+        /// Scales down all nodes of a shard group in a distributed AccessManager implementation (i.e. sets all node's pod/deployment replica counts to 0, and waits for the scale down to complete).
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard group.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group.</param>
+        /// <param name="nameSpace">The namespace of the shard group.</param>
+        protected async Task ScaleDownShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, String nameSpace)
+        {
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Scaling down shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            Guid beginId = metricLogger.Begin(new ShardGroupScaleDownTime());
+
+            // Scale down reader and writer nodes
+            String readerNodeDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
+            String writerNodeDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
+            Task scaleDownReaderNodeTask = Task.Run(async () => await ScaleDeploymentAsync(readerNodeDeploymentName, 0, nameSpace));
+            Task scaleDownWriterNodeTask = Task.Run(async () => await ScaleDeploymentAsync(writerNodeDeploymentName, 0, nameSpace));
+            Task waitForScaleDownReaderNodeTask = Task.Run(async () =>
+            {
+                await WaitForDeploymentScaleDownAsync(readerNodeDeploymentName, nameSpace, configuration.DeploymentWaitPollingInterval, (configuration.ReaderNodeConfigurationTemplate.TerminationGracePeriod * 1000) + scaleDownTerminationGracePeriodBuffer);
+            });
+            Task waitForScaleDownWriterNodeTask = Task.Run(async () =>
+            {
+                await WaitForDeploymentScaleDownAsync(writerNodeDeploymentName, nameSpace, configuration.DeploymentWaitPollingInterval, (configuration.WriterNodeConfigurationTemplate.TerminationGracePeriod * 1000) + scaleDownTerminationGracePeriodBuffer);
+            });
+            try
+            {
+                await Task.WhenAll(scaleDownReaderNodeTask, scaleDownWriterNodeTask, waitForScaleDownReaderNodeTask, waitForScaleDownWriterNodeTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupScaleDownTime());
+                throw;
+            }
+
+            // Scale down event cache node
+            String eventCacheNodeDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.EventCache, hashRangeStart);
+            Task scaleDownEventCacheNodeTask = Task.Run(async () => await ScaleDeploymentAsync(eventCacheNodeDeploymentName, 0, nameSpace));
+            Task waitForScaleDownEventCacheNodeTask = Task.Run(async () =>
+            {
+                await WaitForDeploymentScaleDownAsync(eventCacheNodeDeploymentName, nameSpace, configuration.DeploymentWaitPollingInterval, (configuration.EventCacheNodeConfigurationTemplate.TerminationGracePeriod * 1000) + scaleDownTerminationGracePeriodBuffer);
+            });
+            try
+            {
+                await Task.WhenAll(scaleDownEventCacheNodeTask, waitForScaleDownEventCacheNodeTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupScaleDownTime());
+                throw;
+            }
+
+            metricLogger.End(beginId, new ShardGroupScaleDownTime());
+            metricLogger.Increment(new ShardGroupScaledDown());
+            logger.Log(ApplicationLogging.LogLevel.Information, "Completed scaling down shard group.");
+        }
+
+        /// <summary>
+        /// Scales up all nodes of a shard group in a distributed AccessManager implementation (i.e. sets all node's pod/deployment replica counts to their original, non-0 values, and waits for the scale up to complete).
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard group.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group.</param>
+        /// <param name="nameSpace">The namespace of the shard group.</param>
+        protected async Task ScaleUpShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, String nameSpace)
+        {
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Scaling up shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            Guid beginId = metricLogger.Begin(new ShardGroupScaleUpTime());
+
+            // Scale up event cache node
+            String eventCacheNodeDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.EventCache, hashRangeStart);
+            Int32 eventCacheNodeAvailabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(configuration.EventCacheNodeConfigurationTemplate);
+            Task scaleUpEventCacheNodeTask = Task.Run(async () => await ScaleDeploymentAsync(eventCacheNodeDeploymentName, 1, nameSpace));
+            Task waitForScaleUpEventCacheNodeTask = Task.Run(async () =>
+            {
+                await WaitForDeploymentAvailabilityAsync(eventCacheNodeDeploymentName, nameSpace, configuration.DeploymentWaitPollingInterval, eventCacheNodeAvailabilityWaitAbortTimeout);
+            });
+            try
+            {
+                await Task.WhenAll(scaleUpEventCacheNodeTask, waitForScaleUpEventCacheNodeTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupScaleUpTime());
+                throw;
+            }
+
+            // Scale up reader and writer nodes
+            String readerNodeDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
+            String writerNodeDeploymentName = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
+            Int32 readerNodeAvailabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(configuration.ReaderNodeConfigurationTemplate);
+            Int32 writerNodeAvailabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(configuration.WriterNodeConfigurationTemplate);
+            Task scaleUpReaderNodeTask = Task.Run(async () => await ScaleDeploymentAsync(readerNodeDeploymentName, configuration.ReaderNodeConfigurationTemplate.ReplicaCount, nameSpace));
+            Task scaleUpWriterNodeTask = Task.Run(async () => await ScaleDeploymentAsync(writerNodeDeploymentName, 1, nameSpace));
+            Task waitForScaleUpReaderNodeTask = Task.Run(async () =>
+            {
+                await WaitForDeploymentAvailabilityAsync(readerNodeDeploymentName, nameSpace, configuration.DeploymentWaitPollingInterval, readerNodeAvailabilityWaitAbortTimeout);
+            });
+            Task waitForScaleUpWriterNodeTask = Task.Run(async () =>
+            {
+                await WaitForDeploymentAvailabilityAsync(writerNodeDeploymentName, nameSpace, configuration.DeploymentWaitPollingInterval, writerNodeAvailabilityWaitAbortTimeout);
+            });
+            try
+            {
+                await Task.WhenAll(scaleUpReaderNodeTask, scaleUpWriterNodeTask, waitForScaleUpReaderNodeTask, waitForScaleUpWriterNodeTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupScaleUpTime());
+                throw;
+            }
+
+            metricLogger.End(beginId, new ShardGroupScaleUpTime());
+            metricLogger.Increment(new ShardGroupScaledUp());
+            logger.Log(ApplicationLogging.LogLevel.Information, "Completed scaling up shard group.");
+        }
+
+        /// <summary>
         /// Creates a reader node as part of a shard group in a distributed AccessManager implementation.
         /// </summary>
         /// <param name="dataElement">The data element to create the reader node for.</param>
@@ -399,12 +563,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
             Func<Task> createDeploymentFunction = () => CreateReaderNodeDeploymentAsync(deploymentName, persistentStorageCredentials, eventCacheServiceUrl, nameSpace);
-            Int32 abortAvailabiolityWaitAbortTimeout = (configuration.ReaderNodeConfigurationTemplate.StartupProbeFailureThreshold + 1) * configuration.ReaderNodeConfigurationTemplate.StartupProbePeriod * 1000;
+            Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(configuration.ReaderNodeConfigurationTemplate);
             logger.Log(ApplicationLogging.LogLevel.Information, $"Creating reader node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new ReaderNodeCreateTime());
             try
             {
-                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "reader", nameSpace, abortAvailabiolityWaitAbortTimeout);
+                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "reader", nameSpace, availabilityWaitAbortTimeout);
             }
             catch (Exception e)
             {
@@ -426,11 +590,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.EventCache, hashRangeStart);
             Func<Task> createDeploymentFunction = () => CreateEventCacheNodeDeploymentAsync(deploymentName, nameSpace);
+            Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(configuration.EventCacheNodeConfigurationTemplate);
             logger.Log(ApplicationLogging.LogLevel.Information, $"Creating event cache node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new EventCacheNodeCreateTime());
             try
             {
-                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "event cache", nameSpace, configuration.DeploymentWaitThreshold);
+                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "event cache", nameSpace, availabilityWaitAbortTimeout);
             }
             catch (Exception e)
             {
@@ -455,11 +620,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
             Func<Task> createDeploymentFunction = () => CreateWriterNodeDeploymentAsync(deploymentName, persistentStorageCredentials, eventCacheServiceUrl, nameSpace);
+            Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(configuration.WriterNodeConfigurationTemplate);
             logger.Log(ApplicationLogging.LogLevel.Information, $"Creating writer node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new WriterNodeCreateTime());
             try
             {
-                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "writer", nameSpace, configuration.DeploymentWaitThreshold);
+                await CreateApplicationAccessNodeAsync(deploymentName, hashRangeStart, createDeploymentFunction, "writer", nameSpace, availabilityWaitAbortTimeout);
             }
             catch (Exception e)
             {
@@ -564,7 +730,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected async Task CreateLoadBalancerServiceAsync(String appLabelValue, UInt16 port, UInt16 targetPort, String nameSpace)
         {
             V1Service serviceDefinition = LoadBalancerServiceTemplate;
-            serviceDefinition.Metadata.Name = $"{appLabelValue}{serviceNamePostfix}";
+            serviceDefinition.Metadata.Name = $"{appLabelValue}{externalServiceNamePostfix}";
             serviceDefinition.Spec.Selector.Add(appLabel, appLabelValue);
             serviceDefinition.Spec.Ports[0].Port = port;
             serviceDefinition.Spec.Ports[0].TargetPort = targetPort;

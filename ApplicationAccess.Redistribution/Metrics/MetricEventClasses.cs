@@ -202,6 +202,51 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Count metric which records that a shard group was scaled down in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupScaledDown : CountMetric
+    {
+        protected static String staticName = "ShardGroupScaledDown";
+        protected static String staticDescription = "A shard group was scaled down in a distributed AccessManager implementation";
+
+        public ShardGroupScaledDown()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a shard group was scaled up in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupScaledUp : CountMetric
+    {
+        protected static String staticName = "ShardGroupScaledUp";
+        protected static String staticDescription = "A shard group was scaled up in a distributed AccessManager implementation";
+
+        public ShardGroupScaledUp()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a shard group was restarted in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupRestarted : CountMetric
+    {
+        protected static String staticName = "ShardGroupRestarted";
+        protected static String staticDescription = "A shard group was restarted in a distributed AccessManager implementation";
+
+        public ShardGroupRestarted()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Interval metric which records the time taken to create a reader node in a distributed AccessManager implementation.
     /// </summary>
     public class ReaderNodeCreateTime : IntervalMetric
@@ -270,6 +315,51 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "The time taken to create a shard group in a distributed AccessManager implementation";
 
         public ShardGroupCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to scale down a shard group in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupScaleDownTime : IntervalMetric
+    {
+        protected static String staticName = "ShardGroupScaleDownTime";
+        protected static String staticDescription = "The time taken to scale down a shard group in a distributed AccessManager implementation";
+
+        public ShardGroupScaleDownTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to scale up a shard group in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupScaleUpTime : IntervalMetric
+    {
+        protected static String staticName = "ShardGroupScaleUpTime";
+        protected static String staticDescription = "The time taken to scale up a shard group in a distributed AccessManager implementation";
+
+        public ShardGroupScaleUpTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to restart a shard group in a distributed AccessManager implementation.
+    /// </summary>
+    public class ShardGroupRestartTime : IntervalMetric
+    {
+        protected static String staticName = "ShardGroupRestartTime";
+        protected static String staticDescription = "The time taken to restart a shard group in a distributed AccessManager implementation";
+
+        public ShardGroupRestartTime()
         {
             base.name = staticName;
             base.description = staticDescription;
