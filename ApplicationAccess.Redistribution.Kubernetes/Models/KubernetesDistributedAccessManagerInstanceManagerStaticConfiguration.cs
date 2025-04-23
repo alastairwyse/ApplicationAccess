@@ -19,21 +19,34 @@ using System;
 namespace ApplicationAccess.Redistribution.Kubernetes.Models
 {
     /// <summary>
-    /// Model/container class holding configuration for a <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}"/> instance.
+    /// Model/container class holding static configuration for a <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}"/> instance.
     /// </summary>
-    public record KubernetesDistributedAccessManagerInstanceManagerConfiguration
+    public record KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration
     {
         /// <summary>The port to use to expose trafic between the pods/deployments.</summary>
         public required UInt16 PodPort { get; init; }
+
+        /// <summary>The port to use to expose the AccessManager instance outside the Kubernetes cluster.</summary>
+        public required UInt16 ExternalPort { get; init; }
+
+        /// <summary>The Kubernetes namespace to create and manage the distributed AccessManager implementation in.</summary>
+        public required String NameSpace { get; init; }
 
         /// <summary>Prefix to use in names for persistent instances created by the manager.</summary>
         /// <remarks>Should only contain printable ASCII characters without whitespace.</remarks>
         public required String PersistentStorageInstanceNamePrefix { get; init; }
 
+        /// <summary>Whether HTTPS should be used to connect to load balancer services exposed outside the Kubernetes cluster.</summary>
+        public required Boolean LoadBalancerServicesHttps { get; init; }
+
         /// <summary>
         /// The time in milliseconds between polls to check whether a deployment has either become available or scaled down.
         /// </summary>
         public required Int32 DeploymentWaitPollingInterval { get; init; }
+
+        /// The time in milliseconds to wait for a service to become available after creation, before throwing an exception.
+        /// </summary>
+        public required Int32 ServiceAvailabilityWaitAbortTimeout { get; init; }
 
         /// <summary>Base/template for configuration of reader node pods/deployments within the distributed AccessManager implementation.</summary>
         public required ReaderNodeConfiguration ReaderNodeConfigurationTemplate { get; init; }

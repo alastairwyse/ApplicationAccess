@@ -19,6 +19,8 @@ using ApplicationMetrics;
 
 namespace ApplicationAccess.Redistribution.Metrics
 {
+    // TODO: Some of these metrics are Kubernetes specific
+
     #pragma warning disable 1591
 
     /// <summary>
@@ -172,6 +174,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Count metric which records that a distributed operation coordinator node was created in a distributed AccessManager implementation.
+    /// </summary>
+    public class DistributedOperationCoordinatorNodeCreated : CountMetric
+    {
+        protected static String staticName = "DistributedOperationCoordinatorNodeCreated";
+        protected static String staticDescription = "A distributed operation coordinator node was created in a distributed AccessManager implementation";
+
+        public DistributedOperationCoordinatorNodeCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records that a persistent storage instance was created for a distributed AccessManager implementation.
     /// </summary>
     public class PersistentStorageInstanceCreated : CountMetric
@@ -202,36 +219,6 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
-    /// Count metric which records that a shard group was scaled down in a distributed AccessManager implementation.
-    /// </summary>
-    public class ShardGroupScaledDown : CountMetric
-    {
-        protected static String staticName = "ShardGroupScaledDown";
-        protected static String staticDescription = "A shard group was scaled down in a distributed AccessManager implementation";
-
-        public ShardGroupScaledDown()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
-    /// Count metric which records that a shard group was scaled up in a distributed AccessManager implementation.
-    /// </summary>
-    public class ShardGroupScaledUp : CountMetric
-    {
-        protected static String staticName = "ShardGroupScaledUp";
-        protected static String staticDescription = "A shard group was scaled up in a distributed AccessManager implementation";
-
-        public ShardGroupScaledUp()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
     /// Count metric which records that a shard group was restarted in a distributed AccessManager implementation.
     /// </summary>
     public class ShardGroupRestarted : CountMetric
@@ -240,6 +227,21 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "A shard group was restarted in a distributed AccessManager implementation";
 
         public ShardGroupRestarted()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a distributed AccessManager instance was created.
+    /// </summary>
+    public class DistributedAccessManagerInstanceCreated : CountMetric
+    {
+        protected static String staticName = "DistributedAccessManagerInstanceCreated";
+        protected static String staticDescription = "A distributed AccessManager instance was created";
+
+        public DistributedAccessManagerInstanceCreated()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -292,6 +294,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Interval metric which records the time taken to create a distributed operation coordinator node in a distributed AccessManager implementation.
+    /// </summary>
+    public class DistributedOperationCoordinatorNodeCreateTime : IntervalMetric
+    {
+        protected static String staticName = "DistributedOperationCoordinatorNodeCreateTime";
+        protected static String staticDescription = "The time taken to create a distributed operation coordinator node in a distributed AccessManager implementation";
+
+        public DistributedOperationCoordinatorNodeCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Interval metric which records the time taken to create a persistent storage instance for a distributed AccessManager implementation.
     /// </summary>
     public class PersistentStorageInstanceCreateTime : IntervalMetric
@@ -322,36 +339,6 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to scale down a shard group in a distributed AccessManager implementation.
-    /// </summary>
-    public class ShardGroupScaleDownTime : IntervalMetric
-    {
-        protected static String staticName = "ShardGroupScaleDownTime";
-        protected static String staticDescription = "The time taken to scale down a shard group in a distributed AccessManager implementation";
-
-        public ShardGroupScaleDownTime()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
-    /// Interval metric which records the time taken to scale up a shard group in a distributed AccessManager implementation.
-    /// </summary>
-    public class ShardGroupScaleUpTime : IntervalMetric
-    {
-        protected static String staticName = "ShardGroupScaleUpTime";
-        protected static String staticDescription = "The time taken to scale up a shard group in a distributed AccessManager implementation";
-
-        public ShardGroupScaleUpTime()
-        {
-            base.name = staticName;
-            base.description = staticDescription;
-        }
-    }
-
-    /// <summary>
     /// Interval metric which records the time taken to restart a shard group in a distributed AccessManager implementation.
     /// </summary>
     public class ShardGroupRestartTime : IntervalMetric
@@ -360,6 +347,21 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "The time taken to restart a shard group in a distributed AccessManager implementation";
 
         public ShardGroupRestartTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to create a distributed AccessManager instance.
+    /// </summary>
+    public class DistributedAccessManagerInstanceCreateTime : IntervalMetric
+    {
+        protected static String staticName = "DistributedAccessManagerInstanceCreateTime";
+        protected static String staticDescription = "The time taken to create a distributed AccessManager instance";
+
+        public DistributedAccessManagerInstanceCreateTime()
         {
             base.name = staticName;
             base.description = staticDescription;

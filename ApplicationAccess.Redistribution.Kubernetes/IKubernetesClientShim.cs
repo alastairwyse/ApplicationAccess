@@ -52,6 +52,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         Task<V1Service> CreateNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, V1Service body, String namespaceParameter);
 
         /// <summary>
+        /// Returns all the services in the specified namespace.
+        /// </summary>
+        /// <param name="kubernetesClient">The client to use.</param>
+        /// <param name="namespaceParameter">The namespace to get the services from.</param>
+        /// <returns>A list of services.</returns>
+        Task<V1ServiceList> ListNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, String namespaceParameter);
+
+        /// <summary>
         /// Scales a specified deployment.
         /// </summary>
         /// <param name="kubernetesClient">The client to use.</param>

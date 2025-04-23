@@ -16,14 +16,33 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Net;
+using System.Threading.Tasks;
+using ApplicationAccess.Distribution;
+using ApplicationAccess.Persistence.Models;
+using ApplicationAccess.Redistribution.Models;
 
 namespace ApplicationAccess.Redistribution
 {
     /// <summary>
     /// Defines methods to manage a running instance of a distributed AccessManager implementation.
     /// </summary>
-    public interface IDistributedAccessManagerInstanceManager
+    /// <typeparam name="TPersistentStorageCredentials">An implementation of <see cref="IPersistentStorageLoginCredentials"/> defining the type of login credentials for persistent storage instances.</typeparam>
+    public interface IDistributedAccessManagerInstanceManager<TPersistentStorageCredentials>
+        where TPersistentStorageCredentials : class, IPersistentStorageLoginCredentials
     {
+        /// <summary>
+        /// Creates a new distributed AccessManager instance.
+        /// </summary>
+        /// <param name="userShardGroupConfiguration">The configuration of the user shard groups to create.</param>
+        /// <param name="groupToGroupMappingShardGroupConfiguration">The configuration of the group to group mapping shard groups to create.</param>
+        /// <param name="groupShardGroupConfiguration">The configuration of the group shard groups to create.</param>
+        /// <remarks>If the <see cref="ShardGroupConfiguration{TPersistentStorageCredentials}.PersistentStorageCredentials"/> properties in each of the <see cref="ShardGroupConfiguration{TPersistentStorageCredentials}"/> parameters is set to null, persistent storage instances will be created for those shard groups.  If a value is provided, the provided credentials will be used to connect the shard group to persistent storage.</remarks> 
+        Task CreateDistributedAccessManagerInstanceAsync
+        (
+            IList<ShardGroupConfiguration<TPersistentStorageCredentials>> userShardGroupConfiguration,
+            IList<ShardGroupConfiguration<TPersistentStorageCredentials>> groupToGroupMappingShardGroupConfiguration,
+            IList<ShardGroupConfiguration<TPersistentStorageCredentials>> groupShardGroupConfiguration
+        );
     }
 }
