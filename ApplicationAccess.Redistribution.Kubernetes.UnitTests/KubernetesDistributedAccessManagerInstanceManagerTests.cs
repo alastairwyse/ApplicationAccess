@@ -58,6 +58,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         protected IKubernetesClientShim mockKubernetesClientShim;
         protected IApplicationLogger mockApplicationLogger;
         protected IMetricLogger mockMetricLogger;
+        protected Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> testShardConfigurationSetPersisterCreationFunction;
         protected KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers testKubernetesDistributedAccessManagerInstanceManager;
 
         [SetUp]
@@ -71,13 +72,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockKubernetesClientShim = Substitute.For<IKubernetesClientShim>();
             mockApplicationLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
+            testShardConfigurationSetPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { return mockShardConfigurationSetPersister; };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
                 CreateStaticConfiguration(),
                 emptyInstanceConfiguration, 
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister, 
+                testShardConfigurationSetPersisterCreationFunction, 
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -94,7 +96,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     CreateStaticConfiguration() with { NameSpace = null },
                     mockPersistentStorageCreator,
                     mockAppSettingsConfigurer,
-                    mockShardConfigurationSetPersister,
+                    testShardConfigurationSetPersisterCreationFunction,
                     mockApplicationLogger,
                     mockMetricLogger
                 );
@@ -132,7 +134,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     instanceConfiguration,
                     mockPersistentStorageCreator,
                     mockAppSettingsConfigurer,
-                    mockShardConfigurationSetPersister,
+                    testShardConfigurationSetPersisterCreationFunction,
                     mockApplicationLogger,
                     mockMetricLogger
                 );
@@ -196,7 +198,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 testInstanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockApplicationLogger,
                 mockMetricLogger
             );
@@ -217,7 +219,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 instanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -377,7 +379,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 instanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -553,7 +555,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 instanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -587,7 +589,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 instanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -621,7 +623,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 instanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -655,7 +657,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 instanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -1335,7 +1337,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 testInstanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -1560,7 +1562,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 testInstanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -1703,6 +1705,32 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public void ConstructShardConfigurationSetPersister_ShardConfigurationSetPersisterCreationFunctionInvokeFails()
+        {
+            var mockException = new Exception("Mock exception");
+            testShardConfigurationSetPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                emptyInstanceConfiguration, 
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testKubernetesDistributedAccessManagerInstanceManager.ConstructShardConfigurationSetPersister(new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password"));
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Failed to construct ShardConfigurationSetPersister."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
         public void GenerateNodeIdentifier()
         {
             String result = testKubernetesDistributedAccessManagerInstanceManager.GenerateNodeIdentifier(DataElement.User, NodeType.Reader, -2147483648);
@@ -1740,7 +1768,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 emptyInstanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -1766,7 +1794,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 emptyInstanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister,
+                testShardConfigurationSetPersisterCreationFunction,
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -3341,7 +3369,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventCacheConnection");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -3354,7 +3382,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateStaticConfiguration();
             config.ReaderNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -3442,7 +3470,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             String name = "user-eventcache-n2147483648";
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.EventCacheNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -3517,7 +3545,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventPersistence");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -3530,7 +3558,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateStaticConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("EventCacheConnection");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -3543,7 +3571,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateStaticConfiguration();
             config.WriterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -3633,7 +3661,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             Exception e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -3714,7 +3742,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration config = CreateStaticConfiguration();
             config.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("ShardRouting");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -3740,7 +3768,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             testKubernetesDistributedAccessManagerInstanceManager.Dispose();
             config = CreateStaticConfiguration();
             config.DistributedOperationRouterNodeConfigurationTemplate.AppSettingsConfigurationTemplate.Remove("MetricLogging");
-            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, mockShardConfigurationSetPersister, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers(config, emptyInstanceConfiguration, mockPersistentStorageCreator, mockAppSettingsConfigurer, testShardConfigurationSetPersisterCreationFunction, mockKubernetesClientShim, mockApplicationLogger, mockMetricLogger);
 
             e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -4349,7 +4377,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 instanceConfiguration,
                 mockPersistentStorageCreator,
                 mockAppSettingsConfigurer,
-                mockShardConfigurationSetPersister, 
+                testShardConfigurationSetPersisterCreationFunction, 
                 mockKubernetesClientShim,
                 mockApplicationLogger,
                 mockMetricLogger
@@ -4772,11 +4800,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
                 IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
-                IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister,
+                Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersister, logger, metricLogger)
+                : base(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
             {
             }
 
@@ -4796,11 +4824,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration,
                 IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
-                IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister,
+                Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersister, logger, metricLogger)
+                : base(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger)
             {
             }
 
@@ -4821,16 +4849,21 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration,
                 IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
-                IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister,
+                Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
                 IKubernetesClientShim kubernetesClientShim,
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersister, kubernetesClientShim, logger, metricLogger)
+                : base(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, kubernetesClientShim, logger, metricLogger)
             {
             }
 
             #pragma warning disable 1591
+
+            public new void ConstructShardConfigurationSetPersister(TestPersistentStorageLoginCredentials persistentStorageCredentials)
+            {
+                base.ConstructShardConfigurationSetPersister(persistentStorageCredentials);
+            }
 
             public new String GenerateNodeIdentifier(DataElement dataElement, NodeType nodeType, Int32 hashRangeStart)
             {
