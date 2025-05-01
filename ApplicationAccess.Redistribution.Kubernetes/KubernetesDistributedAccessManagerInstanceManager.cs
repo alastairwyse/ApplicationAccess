@@ -31,6 +31,7 @@ using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Redistribution;
 using ApplicationAccess.Redistribution.Kubernetes.Metrics;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
+using ApplicationAccess.Redistribution.Kubernetes.Validation;
 using ApplicationAccess.Redistribution.Metrics;
 using ApplicationAccess.Redistribution.Models;
 using ApplicationLogging;
@@ -51,22 +52,23 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         // TODO:
         //   If I have to introduce a specific dependency on SQL server, add this to the class description...
         //     ", and using Microsoft SQL Server for persistence."
-        //   Some method to get the URL for the public service which the distopcoord(s) expose
-        //   Will want to allow different resource values for user readers, group readers, etc...
-        //     Might want to also do the same for startup/liveliness etc...
-        //     Maybe reader node replicas too... group to group might need more
         //   Do we need different log parameters per database??
         //     Maybe just use connection string... will be easier
-        //   ENSURE ALL portected members are marked as protected
-        //   Use ResourceQuantity.Validate() to check '120Mi' and similar values
         //   Creation of ShardConfig database should be optional... if creation false need to provide TConnectionCreds for it
-        //   Validation for 'configuration' parameter
+        //   Validation for 'configuration' parameters
         //   Will need to access writer node and router from outside the cluster during split.  Might have to create temporary 'ClusterIP' services to access them.
         //   In the thosted version of thie class, InvalidOperationException should be mapped to maybe 400?
         //     e.g. trying to create LB when it's already been created
-        //   KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration class might need to
-        //     return TPersistentStorageCredentials for each shard group 
-        //     How to access those DBs to split??
+        //   Metric category for distOpCoord coming up as 'DistributedOperationCoordinatorNode-operation-coordinator'... do we need suffix?
+
+        // Test with proper metrics setup in each node config...configure all nodes as they would be in real prod...
+        //   'AppSettingsConfigurationTemplate' property
+        //     Also, use connection strings rather than individual params
+        //     Up the log level to warning.  Info is logging every request
+        //     Test with db name prefix
+
+        // ** Problem with shard config credentials not being used... need to possibly new up the persister
+
 
 
 
@@ -410,9 +412,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new ArgumentException($"Parameter '{nameof(groupToGroupMappingShardGroupConfiguration)}' must contain a single value (actually contained {groupToGroupMappingShardGroupConfiguration.Count}).  Only a single group to group mapping shard group is supported.", nameof(groupToGroupMappingShardGroupConfiguration));
             if (groupShardGroupConfiguration.Count == 0)
                 throw new ArgumentException($"Parameter '{nameof(groupShardGroupConfiguration)}' cannot be empty.", nameof(groupShardGroupConfiguration));
-            ValidateShardGroupConfigurationParameter(nameof(userShardGroupConfiguration), userShardGroupConfiguration);
-            ValidateShardGroupConfigurationParameter(nameof(groupToGroupMappingShardGroupConfiguration), groupToGroupMappingShardGroupConfiguration);
-            ValidateShardGroupConfigurationParameter(nameof(groupShardGroupConfiguration), groupShardGroupConfiguration);
+            var instanceConfigurationValidator = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfigurationValidator<TPersistentStorageCredentials>();
+            instanceConfigurationValidator.ValidateShardGroupConfigurationList<ShardGroupConfiguration<TPersistentStorageCredentials>>(nameof(userShardGroupConfiguration), userShardGroupConfiguration);
+            instanceConfigurationValidator.ValidateShardGroupConfigurationList<ShardGroupConfiguration<TPersistentStorageCredentials>>(nameof(groupToGroupMappingShardGroupConfiguration), groupToGroupMappingShardGroupConfiguration);
+            instanceConfigurationValidator.ValidateShardGroupConfigurationList<ShardGroupConfiguration<TPersistentStorageCredentials>>(nameof(groupShardGroupConfiguration), groupShardGroupConfiguration);
 
             String nameSpace = staticConfiguration.NameSpace;
             logger.Log(ApplicationLogging.LogLevel.Information, $"Creating distributed AccessManager instance in namespace '{nameSpace}'...");
@@ -531,6 +534,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             IMetricLogger metricLogger
         )
         {
+            var staticConfigurationValidator = new KubernetesDistributedAccessManagerInstanceManagerStaticConfigurationValidator();
+            try
+            {
+                staticConfigurationValidator.Validate(staticConfiguration);
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentException($"Parameter '{nameof(staticConfiguration)}' failed to validate.", nameof(staticConfiguration), e);
+            }
             this.staticConfiguration = staticConfiguration;
             instanceConfiguration = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>();
             kubernetesClient = new k8s.Kubernetes(clientConfiguration);
@@ -567,6 +579,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         )
         {
             InitializeFields(staticConfiguration, clientConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersister, logger, metricLogger);
+            var instanceConfigurationValidator = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfigurationValidator<TPersistentStorageCredentials>();
+            try
+            {
+                instanceConfigurationValidator.Validate(instanceConfiguration);
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentException($"Parameter '{nameof(instanceConfiguration)}' failed to validate.", nameof(instanceConfiguration), e);
+            }
             this.instanceConfiguration = instanceConfiguration;
             UpdateNextShardGroupId(instanceConfiguration);
         }
@@ -835,33 +856,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             else
             {
                 return "http";
-            }
-        }
-
-        /// <summary>
-        /// Validates a method parameter containing a list of <see cref="ShardGroupConfiguration{TPersistentStorageCredentials}"/> objects.
-        /// </summary>
-        /// <param name="parameterName">The name of the parameter.</param>
-        /// <param name="parameterValue">The value of the parameter.</param>
-        protected void ValidateShardGroupConfigurationParameter(String parameterName, IList<ShardGroupConfiguration<TPersistentStorageCredentials>> parameterValue)
-        {
-            HashSet<Int32> allHashRangeStartValues = new();
-            Int32 minHashRangeStartValue = Int32.MaxValue;
-            foreach (ShardGroupConfiguration<TPersistentStorageCredentials> currentParameterValue in parameterValue)
-            {
-                if (currentParameterValue.HashRangeStart < minHashRangeStartValue)
-                {
-                    minHashRangeStartValue = currentParameterValue.HashRangeStart;
-                }
-                if (allHashRangeStartValues.Contains(currentParameterValue.HashRangeStart) == true)
-                {
-                    throw new ArgumentException($"Parameter '{parameterName}' contains duplicate hash range start value {currentParameterValue.HashRangeStart}.", parameterName);
-                }
-                allHashRangeStartValues.Add(currentParameterValue.HashRangeStart);
-            }
-            if (minHashRangeStartValue != Int32.MinValue)
-            {
-                throw new ArgumentException($"Parameter '{parameterName}' must contain one element with value {Int32.MinValue}.", parameterName);
             }
         }
 
@@ -1400,7 +1394,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="serviceName">The name of the service.</param>
         /// <returns>The external endpoint IP address.</returns>
-        public async Task<IPAddress> GetLoadBalancerServiceIpAddressAsync(String serviceName)
+        protected async Task<IPAddress> GetLoadBalancerServiceIpAddressAsync(String serviceName)
         {
             // TODO: This works in Minikube, but not sure if it will work in AKS or EKS
             //   Need to test and adjust if necessary to something that works across different Kubernetes hosting platforms

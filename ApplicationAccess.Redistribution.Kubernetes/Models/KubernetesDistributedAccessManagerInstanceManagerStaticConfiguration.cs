@@ -44,6 +44,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         /// </summary>
         public required Int32 DeploymentWaitPollingInterval { get; init; }
 
+        /// <summary>
         /// The time in milliseconds to wait for a service to become available after creation, before throwing an exception.
         /// </summary>
         public required Int32 ServiceAvailabilityWaitAbortTimeout { get; init; }

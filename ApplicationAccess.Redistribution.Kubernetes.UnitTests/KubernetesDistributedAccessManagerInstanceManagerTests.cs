@@ -38,6 +38,11 @@ using NSubstitute;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
+// TODO: ** Remove these references and Project references **
+using ApplicationAccess.Distribution.Persistence.SqlServer;
+using ApplicationAccess.Redistribution.Persistence.SqlServer;
+using ApplicationAccess.Persistence.Sql.SqlServer;
+
 namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 {
     /// <summary>
@@ -77,6 +82,126 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockApplicationLogger,
                 mockMetricLogger
             );
+        }
+
+        [Test]
+        public void Constructor_StaticConfigurationParameterValidationFails()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+                (
+                    CreateStaticConfiguration() with { NameSpace = null },
+                    mockPersistentStorageCreator,
+                    mockAppSettingsConfigurer,
+                    mockShardConfigurationSetPersister,
+                    mockApplicationLogger,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'staticConfiguration' failed to validate."));
+            Assert.AreEqual("staticConfiguration", e.ParamName);
+            Assert.That(e.InnerException.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration property 'NameSpace' cannot be null."));
+        }
+
+        [Test]
+        public void Constructor_InstanceConfigurationParameterValidationFails()
+        {
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = new()
+            {
+                UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+                {
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        1,
+                        2,
+                        Int32.MinValue,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
+                    )
+                }
+            };
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+                (
+                    CreateStaticConfiguration(),
+                    instanceConfiguration,
+                    mockPersistentStorageCreator,
+                    mockAppSettingsConfigurer,
+                    mockShardConfigurationSetPersister,
+                    mockApplicationLogger,
+                    mockMetricLogger
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'instanceConfiguration' failed to validate."));
+            Assert.AreEqual("instanceConfiguration", e.ParamName);
+            Assert.That(e.InnerException.Message, Does.StartWith("KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration '*ShardGroupConfiguration' properties must be either all null or all non-null."));
+        }
+
+        [Test]
+        public void Constructor_NextShardGroupIdCorrectlyUpdated()
+        {
+            var testInstanceConfiguration = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials>
+            {
+                DistributedOperationRouterUrl = new Uri("http://10.104.198.17:5000/"),
+                WriterUrl = new Uri("http://10.104.198.18:5000/"),
+                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=ApplicationAccessConfig"),
+                UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+                {
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        1,
+                        2,
+                        Int32.MinValue,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
+                    )
+                },
+                GroupToGroupMappingShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+                {
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        3,
+                        4,
+                        Int32.MinValue,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-writer-n2147483648-service:5000/"))
+                    )
+                },
+                GroupShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+                {
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        5,
+                        60,
+                        Int32.MinValue,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
+                    )
+                },
+                DistributedOperationCoordinatorUrl = new Uri("http://10.104.198.19:7000/")
+            };
+
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                testInstanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                mockShardConfigurationSetPersister,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            Assert.AreEqual(61, testKubernetesDistributedAccessManagerInstanceManager.NextShardGroupId);
         }
 
         [Test]
@@ -681,7 +806,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Parameter 'userShardGroupConfiguration' contains duplicate hash range start value 0."));
+            Assert.That(e.Message, Does.StartWith($"Property or parameter 'userShardGroupConfiguration' contains duplicate hash range start value 0."));
             Assert.AreEqual("userShardGroupConfiguration", e.ParamName);
         }
 
@@ -710,7 +835,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Parameter 'userShardGroupConfiguration' must contain one element with value {Int32.MinValue}."));
+            Assert.That(e.Message, Does.StartWith($"Property or parameter 'userShardGroupConfiguration' must contain one element with value {Int32.MinValue}."));
             Assert.AreEqual("userShardGroupConfiguration", e.ParamName);
         }
 
@@ -738,7 +863,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Parameter 'groupToGroupMappingShardGroupConfiguration' must contain one element with value {Int32.MinValue}."));
+            Assert.That(e.Message, Does.StartWith($"Property or parameter 'groupToGroupMappingShardGroupConfiguration' must contain one element with value {Int32.MinValue}."));
             Assert.AreEqual("groupToGroupMappingShardGroupConfiguration", e.ParamName);
         }
 
@@ -769,7 +894,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Parameter 'groupShardGroupConfiguration' contains duplicate hash range start value 0."));
+            Assert.That(e.Message, Does.StartWith($"Property or parameter 'groupShardGroupConfiguration' contains duplicate hash range start value 0."));
             Assert.AreEqual("groupShardGroupConfiguration", e.ParamName);
         }
 
@@ -798,7 +923,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Parameter 'groupShardGroupConfiguration' must contain one element with value {Int32.MinValue}."));
+            Assert.That(e.Message, Does.StartWith($"Property or parameter 'groupShardGroupConfiguration' must contain one element with value {Int32.MinValue}."));
             Assert.AreEqual("groupShardGroupConfiguration", e.ParamName);
         }
 
@@ -4201,6 +4326,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        [Ignore("Integration test")]
         public async Task IntegrationTests_REMOVETHIS()
         {
         }
@@ -4626,10 +4752,62 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         /// </summary>
         protected class KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers : KubernetesDistributedAccessManagerInstanceManager<TestPersistentStorageLoginCredentials>
         {
+            /// <summary>The unique id to use for newly created shard groups.</summary>
+            public Int32 NextShardGroupId 
+            {
+                get { return nextShardGroupId; }
+            }
+
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.UnitTests.KubernetesDistributedAccessManagerInstanceManagerTests+KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers class.
             /// </summary>
-            /// <param name="configuration">Configuration for the instance manager.</param>
+            /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
+            /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+            /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
+            /// <param name="shardConfigurationSetPersister">Used to write shard configuration to persistent storage.</param>
+            /// <param name="logger">The logger for general logging.</param>
+            /// <param name="metricLogger">The logger for metrics.</param>
+            public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
+                IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
+                IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
+                IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister,
+                IApplicationLogger logger,
+                IMetricLogger metricLogger
+            )
+                : base(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersister, logger, metricLogger)
+            {
+            }
+
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.UnitTests.KubernetesDistributedAccessManagerInstanceManagerTests+KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers class.
+            /// </summary>
+            /// <param name="staticConfiguration">Configuration for the instance manager.</param>
+            /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
+            /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
+            /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
+            /// <param name="shardConfigurationSetPersister">Used to write shard configuration to persistent storage.</param>
+            /// <param name="logger">The logger for general logging.</param>
+            /// <param name="metricLogger">The logger for metrics.</param>
+            public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
+                KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration,
+                IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
+                IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
+                IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> shardConfigurationSetPersister,
+                IApplicationLogger logger,
+                IMetricLogger metricLogger
+            )
+                : base(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersister, logger, metricLogger)
+            {
+            }
+
+            /// <summary>
+            /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.UnitTests.KubernetesDistributedAccessManagerInstanceManagerTests+KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers class.
+            /// </summary>
+            /// <param name="staticConfiguration">Configuration for the instance manager.</param>
             /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
             /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
             /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
@@ -4639,7 +4817,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             /// <param name="metricLogger">The logger for metrics.</param>
             public KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
-                KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration configuration,
+                KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
                 KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration,
                 IDistributedAccessManagerPersistentStorageCreator<TestPersistentStorageLoginCredentials> persistentStorageCreator,
                 IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> credentialsAppSettingsConfigurer,
@@ -4648,7 +4826,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 IApplicationLogger logger,
                 IMetricLogger metricLogger
             )
-                : base(configuration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersister, kubernetesClientShim, logger, metricLogger)
+                : base(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersister, kubernetesClientShim, logger, metricLogger)
             {
             }
 
