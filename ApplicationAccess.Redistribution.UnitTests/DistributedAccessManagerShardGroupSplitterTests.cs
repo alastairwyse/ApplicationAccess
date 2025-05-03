@@ -31,9 +31,9 @@ using NSubstitute;
 namespace ApplicationAccess.Redistribution.UnitTests
 {
     /// <summary>
-    /// Unit tests for the ApplicationAccess.Redistribution.DistributedAccessManagerShardSplitter class.
+    /// Unit tests for the ApplicationAccess.Redistribution.DistributedAccessManagerShardGroupSplitter class.
     /// </summary>
-    public class DistributedAccessManagerShardSplitterTests
+    public class DistributedAccessManagerShardGroupSplitterTests
     {
         private Int32 testHashRangeStart;
         private Int32 testHashRangeEnd;
@@ -42,14 +42,14 @@ namespace ApplicationAccess.Redistribution.UnitTests
         private Int32 testSourceWriterNodeOperationsCompleteCheckRetryAttempts;
         private Int32 testSourceWriterNodeOperationsCompleteCheckRetryInterval;
         private IHashCodeGenerator<String> hashCodeGenerator;
-        private IAccessManagerTemporalEventBatchReader mockSourceShardEventReader;
-        private IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String> mockTargetShardEventPersister;
-        private IAccessManagerTemporalEventDeleter mockSourceShardEventDeleter;
+        private IAccessManagerTemporalEventBatchReader mockSourceShardGroupEventReader;
+        private IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String> mockTargetShardGroupEventPersister;
+        private IAccessManagerTemporalEventDeleter mockSourceShardGroupEventDeleter;
         private IDistributedAccessManagerOperationRouter mockOperationRouter;
         private IApplicationLogger mockApplicationLogger;
         private IMetricLogger mockMetricLogger;
-        private IDistributedAccessManagerWriterAdministrator mockSourceShardWriterAdministrator;
-        private DistributedAccessManagerShardSplitterWithProtectedMembers testShardSplitter;
+        private IDistributedAccessManagerWriterAdministrator mockSourceShardGroupWriterAdministrator;
+        private DistributedAccessManagerShardGroupSplitterWithProtectedMembers testShardGroupSplitter;
 
         [SetUp]
         protected void SetUp()
@@ -61,27 +61,27 @@ namespace ApplicationAccess.Redistribution.UnitTests
             testSourceWriterNodeOperationsCompleteCheckRetryAttempts = 3;
             testSourceWriterNodeOperationsCompleteCheckRetryInterval = 50;
             hashCodeGenerator = new DefaultStringHashCodeGenerator();
-            mockSourceShardEventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
-            mockTargetShardEventPersister = Substitute.For<IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>>();
-            mockSourceShardEventDeleter = Substitute.For<IAccessManagerTemporalEventDeleter>();
+            mockSourceShardGroupEventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
+            mockTargetShardGroupEventPersister = Substitute.For<IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>>();
+            mockSourceShardGroupEventDeleter = Substitute.For<IAccessManagerTemporalEventDeleter>();
             mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
-            mockSourceShardWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
+            mockSourceShardGroupWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
             mockApplicationLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testShardSplitter = new DistributedAccessManagerShardSplitterWithProtectedMembers(mockApplicationLogger, mockMetricLogger);
+            testShardGroupSplitter = new DistributedAccessManagerShardGroupSplitterWithProtectedMembers(mockApplicationLogger, mockMetricLogger);
         }
 
         [Test]
-        public void CopyEventsToTargetShard_SourceWriterNodeOperationsCompleteCheckRetryAttemptsParameterLessThan0()
+        public void CopyEventsToTargetShardGroup_SourceWriterNodeOperationsCompleteCheckRetryAttemptsParameterLessThan0()
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testShardSplitter.CopyEventsToTargetShard
+                testShardGroupSplitter.CopyEventsToTargetShardGroup
                 (
-                    mockSourceShardEventReader, 
-                    mockTargetShardEventPersister, 
+                    mockSourceShardGroupEventReader, 
+                    mockTargetShardGroupEventPersister, 
                     mockOperationRouter, 
-                    mockSourceShardWriterAdministrator,
+                    mockSourceShardGroupWriterAdministrator,
                     testHashRangeStart,
                     testHashRangeEnd,
                     testFilterGroupEventsByHashRange,
@@ -96,16 +96,16 @@ namespace ApplicationAccess.Redistribution.UnitTests
         }
 
         [Test]
-        public void CopyEventsToTargetShard_SourceWriterNodeOperationsCompleteCheckRetryIntervalParameterLessThan0()
+        public void CopyEventsToTargetShardGroup_SourceWriterNodeOperationsCompleteCheckRetryIntervalParameterLessThan0()
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testShardSplitter.CopyEventsToTargetShard
+                testShardGroupSplitter.CopyEventsToTargetShardGroup
                 (
-                    mockSourceShardEventReader,
-                    mockTargetShardEventPersister,
+                    mockSourceShardGroupEventReader,
+                    mockTargetShardGroupEventPersister,
                     mockOperationRouter,
-                    mockSourceShardWriterAdministrator,
+                    mockSourceShardGroupWriterAdministrator,
                     testHashRangeStart,
                     testHashRangeEnd,
                     testFilterGroupEventsByHashRange,
@@ -120,16 +120,16 @@ namespace ApplicationAccess.Redistribution.UnitTests
         }
 
         [Test]
-        public void CopyEventsToTargetShard_EventBatchSizeParameterLessThan1()
+        public void CopyEventsToTargetShardGroup_EventBatchSizeParameterLessThan1()
         {
             var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
             {
-                testShardSplitter.CopyEventsToTargetShard
+                testShardGroupSplitter.CopyEventsToTargetShardGroup
                 (
-                    mockSourceShardEventReader,
-                    mockTargetShardEventPersister,
+                    mockSourceShardGroupEventReader,
+                    mockTargetShardGroupEventPersister,
                     mockOperationRouter,
-                    mockSourceShardWriterAdministrator,
+                    mockSourceShardGroupWriterAdministrator,
                     testHashRangeStart,
                     testHashRangeEnd,
                     testFilterGroupEventsByHashRange,
@@ -144,19 +144,19 @@ namespace ApplicationAccess.Redistribution.UnitTests
         }
 
         [Test]
-        public void CopyEventsToTargetShard_NoEventsExistInSourceShard()
+        public void CopyEventsToTargetShardGroup_NoEventsExistInSourceShardGroup()
         {
             var mockException = new Exception("Mock exception");
-            mockSourceShardEventReader.When(reader => reader.GetInitialEvent()).Do((callInfo) => throw mockException);
+            mockSourceShardGroupEventReader.When(reader => reader.GetInitialEvent()).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.CopyEventsToTargetShard
+                testShardGroupSplitter.CopyEventsToTargetShardGroup
                 (
-                    mockSourceShardEventReader,
-                    mockTargetShardEventPersister,
+                    mockSourceShardGroupEventReader,
+                    mockTargetShardGroupEventPersister,
                     mockOperationRouter,
-                    mockSourceShardWriterAdministrator,
+                    mockSourceShardGroupWriterAdministrator,
                     testHashRangeStart,
                     testHashRangeEnd,
                     testFilterGroupEventsByHashRange,
@@ -166,12 +166,12 @@ namespace ApplicationAccess.Redistribution.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Failed to retrieve initial event id from the source shard."));
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve initial event id from the source shard group."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        public void CopyEventsToTargetShard()
+        public void CopyEventsToTargetShardGroup()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var batch1FirstEventId = Guid.Parse("5ce76236-0d94-481e-a14b-d9ff5c7ab250");
@@ -200,23 +200,23 @@ namespace ApplicationAccess.Redistribution.UnitTests
             };
             mockMetricLogger.Begin(Arg.Any<EventBatchReadTime>()).Returns(testBeginId);
             mockMetricLogger.Begin(Arg.Any<EventBatchWriteTime>()).Returns(testBeginId);
-            mockSourceShardEventReader.GetInitialEvent().Returns<Guid>(batch1FirstEventId);
-            mockSourceShardEventReader.GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch1);
-            mockSourceShardEventReader.GetNextEventAfter(eventBatch1[1].EventId).Returns(batch2FirstEventId);
-            mockSourceShardEventReader.GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch2);
-            mockSourceShardEventReader.GetNextEventAfter(eventBatch2[1].EventId).Returns(batch3FirstEventId);
-            mockSourceShardEventReader.GetEvents(batch3FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch3);
-            mockSourceShardEventReader.GetNextEventAfter(eventBatch3[1].EventId).Returns((Nullable<Guid>)null, batch4FirstEventId);
-            mockSourceShardEventReader.GetEvents(batch4FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch4);
-            mockSourceShardEventReader.GetNextEventAfter(eventBatch4[1].EventId).Returns((Nullable<Guid>)null);
-            mockSourceShardWriterAdministrator.GetEventProcessingCount().Returns(0);
+            mockSourceShardGroupEventReader.GetInitialEvent().Returns<Guid>(batch1FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch1);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch1[1].EventId).Returns(batch2FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch2);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch2[1].EventId).Returns(batch3FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch3FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch3);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch3[1].EventId).Returns((Nullable<Guid>)null, batch4FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch4FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch4);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch4[1].EventId).Returns((Nullable<Guid>)null);
+            mockSourceShardGroupWriterAdministrator.GetEventProcessingCount().Returns(0);
 
-            testShardSplitter.CopyEventsToTargetShard
+            testShardGroupSplitter.CopyEventsToTargetShardGroup
             (
-                mockSourceShardEventReader,
-                mockTargetShardEventPersister,
+                mockSourceShardGroupEventReader,
+                mockTargetShardGroupEventPersister,
                 mockOperationRouter,
-                mockSourceShardWriterAdministrator,
+                mockSourceShardGroupWriterAdministrator,
                 testHashRangeStart,
                 testHashRangeEnd,
                 testFilterGroupEventsByHashRange,
@@ -225,22 +225,22 @@ namespace ApplicationAccess.Redistribution.UnitTests
                 testSourceWriterNodeOperationsCompleteCheckRetryInterval
             );
 
-            mockSourceShardEventReader.Received(1).GetInitialEvent();
-            mockSourceShardEventReader.Received(1).GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
-            mockTargetShardEventPersister.PersistEvents(eventBatch1);
-            mockSourceShardEventReader.Received(1).GetNextEventAfter(eventBatch1[1].EventId);
-            mockSourceShardEventReader.Received(1).GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
-            mockTargetShardEventPersister.PersistEvents(eventBatch2);
-            mockSourceShardEventReader.Received(1).GetNextEventAfter(eventBatch2[1].EventId);
-            mockSourceShardEventReader.Received(1).GetEvents(batch3FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
-            mockTargetShardEventPersister.PersistEvents(eventBatch3);
-            mockSourceShardEventReader.Received(2).GetNextEventAfter(eventBatch3[1].EventId);
-            mockSourceShardEventReader.Received(1).GetEvents(batch4FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
-            mockTargetShardEventPersister.PersistEvents(eventBatch4);
-            mockSourceShardEventReader.Received(1).GetNextEventAfter(eventBatch4[1].EventId);
+            mockSourceShardGroupEventReader.Received(1).GetInitialEvent();
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch1);
+            mockSourceShardGroupEventReader.Received(1).GetNextEventAfter(eventBatch1[1].EventId);
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch2);
+            mockSourceShardGroupEventReader.Received(1).GetNextEventAfter(eventBatch2[1].EventId);
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch3FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch3);
+            mockSourceShardGroupEventReader.Received(2).GetNextEventAfter(eventBatch3[1].EventId);
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch4FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch4);
+            mockSourceShardGroupEventReader.Received(1).GetNextEventAfter(eventBatch4[1].EventId);
             mockOperationRouter.Received(1).PauseOperations();
-            mockSourceShardWriterAdministrator.Received(1).GetEventProcessingCount();
-            mockSourceShardWriterAdministrator.Received(1).FlushEventBuffers();
+            mockSourceShardGroupWriterAdministrator.Received(1).GetEventProcessingCount();
+            mockSourceShardGroupWriterAdministrator.Received(1).FlushEventBuffers();
             mockMetricLogger.Received(4).Begin(Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(4).End(testBeginId, Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(4).Begin(Arg.Any<EventBatchWriteTime>());
@@ -250,7 +250,7 @@ namespace ApplicationAccess.Redistribution.UnitTests
         }
 
         [Test]
-        public void CopyEventsToTargetShard_FinalBatchNotRequired()
+        public void CopyEventsToTargetShardGroup_FinalBatchNotRequired()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var batch1FirstEventId = Guid.Parse("5ce76236-0d94-481e-a14b-d9ff5c7ab250");
@@ -273,21 +273,21 @@ namespace ApplicationAccess.Redistribution.UnitTests
             };
             mockMetricLogger.Begin(Arg.Any<EventBatchReadTime>()).Returns(testBeginId);
             mockMetricLogger.Begin(Arg.Any<EventBatchWriteTime>()).Returns(testBeginId);
-            mockSourceShardEventReader.GetInitialEvent().Returns<Guid>(batch1FirstEventId);
-            mockSourceShardEventReader.GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch1);
-            mockSourceShardEventReader.GetNextEventAfter(eventBatch1[1].EventId).Returns(batch2FirstEventId);
-            mockSourceShardEventReader.GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch2);
-            mockSourceShardEventReader.GetNextEventAfter(eventBatch2[1].EventId).Returns(batch3FirstEventId);
-            mockSourceShardEventReader.GetEvents(batch3FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch3);
-            mockSourceShardEventReader.GetNextEventAfter(eventBatch3[1].EventId).Returns((Nullable<Guid>)null);
-            mockSourceShardWriterAdministrator.GetEventProcessingCount().Returns(0);
+            mockSourceShardGroupEventReader.GetInitialEvent().Returns<Guid>(batch1FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch1);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch1[1].EventId).Returns(batch2FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch2);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch2[1].EventId).Returns(batch3FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch3FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch3);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch3[1].EventId).Returns((Nullable<Guid>)null);
+            mockSourceShardGroupWriterAdministrator.GetEventProcessingCount().Returns(0);
 
-            testShardSplitter.CopyEventsToTargetShard
+            testShardGroupSplitter.CopyEventsToTargetShardGroup
             (
-                mockSourceShardEventReader,
-                mockTargetShardEventPersister,
+                mockSourceShardGroupEventReader,
+                mockTargetShardGroupEventPersister,
                 mockOperationRouter,
-                mockSourceShardWriterAdministrator,
+                mockSourceShardGroupWriterAdministrator,
                 testHashRangeStart,
                 testHashRangeEnd,
                 testFilterGroupEventsByHashRange,
@@ -296,19 +296,19 @@ namespace ApplicationAccess.Redistribution.UnitTests
                 testSourceWriterNodeOperationsCompleteCheckRetryInterval
             );
 
-            mockSourceShardEventReader.Received(1).GetInitialEvent();
-            mockSourceShardEventReader.Received(1).GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
-            mockTargetShardEventPersister.PersistEvents(eventBatch1);
-            mockSourceShardEventReader.Received(1).GetNextEventAfter(eventBatch1[1].EventId);
-            mockSourceShardEventReader.Received(1).GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
-            mockTargetShardEventPersister.PersistEvents(eventBatch2);
-            mockSourceShardEventReader.Received(1).GetNextEventAfter(eventBatch2[1].EventId);
-            mockSourceShardEventReader.Received(1).GetEvents(batch3FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
-            mockTargetShardEventPersister.PersistEvents(eventBatch3);
-            mockSourceShardEventReader.Received(2).GetNextEventAfter(eventBatch3[1].EventId);
+            mockSourceShardGroupEventReader.Received(1).GetInitialEvent();
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch1);
+            mockSourceShardGroupEventReader.Received(1).GetNextEventAfter(eventBatch1[1].EventId);
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch2);
+            mockSourceShardGroupEventReader.Received(1).GetNextEventAfter(eventBatch2[1].EventId);
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch3FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch3);
+            mockSourceShardGroupEventReader.Received(2).GetNextEventAfter(eventBatch3[1].EventId);
             mockOperationRouter.Received(1).PauseOperations();
-            mockSourceShardWriterAdministrator.Received(1).GetEventProcessingCount();
-            mockSourceShardWriterAdministrator.Received(1).FlushEventBuffers();
+            mockSourceShardGroupWriterAdministrator.Received(1).GetEventProcessingCount();
+            mockSourceShardGroupWriterAdministrator.Received(1).FlushEventBuffers();
             mockMetricLogger.Received(3).Begin(Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(3).End(testBeginId, Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(3).Begin(Arg.Any<EventBatchWriteTime>());
@@ -318,35 +318,35 @@ namespace ApplicationAccess.Redistribution.UnitTests
         }
 
         [Test]
-        public void DeleteEventsFromSourceShard_DeleteFais()
+        public void DeleteEventsFromSourceShardGroup_DeleteFais()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Boolean includeGroupEvents = true;
             var mockException = new Exception("Mock exception");
             mockMetricLogger.Begin(Arg.Any<EventDeleteTime>()).Returns(testBeginId);
-            mockSourceShardEventDeleter.When(deleter => deleter.DeleteEvents(testHashRangeStart, testHashRangeEnd, includeGroupEvents)).Do((callInfo) => throw mockException);
+            mockSourceShardGroupEventDeleter.When(deleter => deleter.DeleteEvents(testHashRangeStart, testHashRangeEnd, includeGroupEvents)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.DeleteEventsFromSourceShard(mockSourceShardEventDeleter, testHashRangeStart, testHashRangeEnd, includeGroupEvents);
+                testShardGroupSplitter.DeleteEventsFromSourceShardGroup(mockSourceShardGroupEventDeleter, testHashRangeStart, testHashRangeEnd, includeGroupEvents);
             });
 
             mockMetricLogger.Received(1).Begin(Arg.Any<EventDeleteTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<EventDeleteTime>());
-            Assert.That(e.Message, Does.StartWith($"Failed to delete events from the source shard."));
+            Assert.That(e.Message, Does.StartWith($"Failed to delete events from the source shard group."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        public void DeleteEventsFromSourceShard()
+        public void DeleteEventsFromSourceShardGroup()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             Boolean includeGroupEvents = true;
             mockMetricLogger.Begin(Arg.Any<EventDeleteTime>()).Returns(testBeginId);
 
-            testShardSplitter.DeleteEventsFromSourceShard(mockSourceShardEventDeleter, testHashRangeStart, testHashRangeEnd, includeGroupEvents);
+            testShardGroupSplitter.DeleteEventsFromSourceShardGroup(mockSourceShardGroupEventDeleter, testHashRangeStart, testHashRangeEnd, includeGroupEvents);
 
-            mockSourceShardEventDeleter.Received(1).DeleteEvents(testHashRangeStart, testHashRangeEnd, includeGroupEvents);
+            mockSourceShardGroupEventDeleter.Received(1).DeleteEvents(testHashRangeStart, testHashRangeEnd, includeGroupEvents);
             mockMetricLogger.Received(1).Begin(Arg.Any<EventDeleteTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EventDeleteTime>());
         }
@@ -359,29 +359,29 @@ namespace ApplicationAccess.Redistribution.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.PauseOperations(mockOperationRouter);
+                testShardGroupSplitter.PauseOperations(mockOperationRouter);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Failed to hold/pause incoming operations to the source and target shards."));
+            Assert.That(e.Message, Does.StartWith($"Failed to hold/pause incoming operations to the source and target shard groups."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        public void CopyEventBatchesToTargetShard_EventRetrievalFails()
+        public void CopyEventBatchesToTargetShardGroup_EventRetrievalFails()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var initialEventId = Guid.Parse("5ce76236-0d94-481e-a14b-d9ff5c7ab250");
             Int32 currentBatchNumber = 1;
             var mockException = new Exception("Mock exception");
             mockMetricLogger.Begin(Arg.Any<EventBatchReadTime>()).Returns(testBeginId);
-            mockSourceShardEventReader.When(reader => reader.GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize)).Do((callInfo) => throw mockException);
+            mockSourceShardGroupEventReader.When(reader => reader.GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.CopyEventBatchesToTargetShard
+                testShardGroupSplitter.CopyEventBatchesToTargetShardGroup
                 (
-                    mockSourceShardEventReader,
-                    mockTargetShardEventPersister,
+                    mockSourceShardGroupEventReader,
+                    mockTargetShardGroupEventPersister,
                     ref currentBatchNumber,
                     initialEventId,
                     testHashRangeStart,
@@ -393,12 +393,12 @@ namespace ApplicationAccess.Redistribution.UnitTests
 
             mockMetricLogger.Received(1).Begin(Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<EventBatchReadTime>());
-            Assert.That(e.Message, Does.StartWith($"Failed to retrieve event batch from the source shard beginning with event with id '{initialEventId}'."));
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve event batch from the source shard group beginning with event with id '{initialEventId}'."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        public void CopyEventBatchesToTargetShard_EventPersistenceFails()
+        public void CopyEventBatchesToTargetShardGroup_EventPersistenceFails()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var initialEventId = Guid.Parse("5ce76236-0d94-481e-a14b-d9ff5c7ab250");
@@ -411,15 +411,15 @@ namespace ApplicationAccess.Redistribution.UnitTests
             var mockException = new Exception("Mock exception");
             mockMetricLogger.Begin(Arg.Any<EventBatchReadTime>()).Returns(testBeginId);
             mockMetricLogger.Begin(Arg.Any<EventBatchWriteTime>()).Returns(testBeginId);
-            mockSourceShardEventReader.GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch);
-            mockTargetShardEventPersister.When(persister => persister.PersistEvents(eventBatch)).Do((callInfo) => throw mockException);
+            mockSourceShardGroupEventReader.GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch);
+            mockTargetShardGroupEventPersister.When(persister => persister.PersistEvents(eventBatch)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.CopyEventBatchesToTargetShard
+                testShardGroupSplitter.CopyEventBatchesToTargetShardGroup
                 (
-                    mockSourceShardEventReader,
-                    mockTargetShardEventPersister,
+                    mockSourceShardGroupEventReader,
+                    mockTargetShardGroupEventPersister,
                     ref currentBatchNumber,
                     initialEventId,
                     testHashRangeStart,
@@ -429,17 +429,17 @@ namespace ApplicationAccess.Redistribution.UnitTests
                 );
             });
 
-            mockSourceShardEventReader.Received(1).GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockSourceShardGroupEventReader.Received(1).GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
             mockMetricLogger.Received(1).Begin(Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<EventBatchWriteTime>());
             mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<EventBatchWriteTime>());
-            Assert.That(e.Message, Does.StartWith($"Failed to write events to the target shard."));
+            Assert.That(e.Message, Does.StartWith($"Failed to write events to the target shard group."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
-        public void CopyEventBatchesToTargetShard_GetNextEventFails()
+        public void CopyEventBatchesToTargetShardGroup_GetNextEventFails()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             var initialEventId = Guid.Parse("5ce76236-0d94-481e-a14b-d9ff5c7ab250");
@@ -452,15 +452,15 @@ namespace ApplicationAccess.Redistribution.UnitTests
             var mockException = new Exception("Mock exception");
             mockMetricLogger.Begin(Arg.Any<EventBatchReadTime>()).Returns(testBeginId);
             mockMetricLogger.Begin(Arg.Any<EventBatchWriteTime>()).Returns(testBeginId);
-            mockSourceShardEventReader.GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch);
-            mockSourceShardEventReader.When(reader => reader.GetNextEventAfter(eventBatch[1].EventId)).Do((callInfo) => throw mockException);
+            mockSourceShardGroupEventReader.GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch);
+            mockSourceShardGroupEventReader.When(reader => reader.GetNextEventAfter(eventBatch[1].EventId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.CopyEventBatchesToTargetShard
+                testShardGroupSplitter.CopyEventBatchesToTargetShardGroup
                 (
-                    mockSourceShardEventReader,
-                    mockTargetShardEventPersister,
+                    mockSourceShardGroupEventReader,
+                    mockTargetShardGroupEventPersister,
                     ref currentBatchNumber,
                     initialEventId,
                     testHashRangeStart,
@@ -470,8 +470,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
                 );
             });
 
-            mockSourceShardEventReader.Received(1).GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
-            mockTargetShardEventPersister.Received(1).PersistEvents(eventBatch);
+            mockSourceShardGroupEventReader.Received(1).GetEvents(initialEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.Received(1).PersistEvents(eventBatch);
             mockMetricLogger.Received(1).Begin(Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EventBatchReadTime>());
             mockMetricLogger.Received(1).Begin(Arg.Any<EventBatchWriteTime>());
@@ -485,11 +485,11 @@ namespace ApplicationAccess.Redistribution.UnitTests
         {
             var testEventId = Guid.Parse("5ce76236-0d94-481e-a14b-d9ff5c7ab250");
             var mockException = new Exception("Mock exception");
-            mockSourceShardEventReader.When(reader => reader.GetNextEventAfter(testEventId)).Do((callInfo) => throw mockException);
+            mockSourceShardGroupEventReader.When(reader => reader.GetNextEventAfter(testEventId)).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.GetNextEventAfter(mockSourceShardEventReader, testEventId);
+                testShardGroupSplitter.GetNextEventAfter(mockSourceShardGroupEventReader, testEventId);
             });
 
             Assert.That(e.Message, Does.StartWith($"Failed to retrieve next event after event with id '{testEventId.ToString()}'."));
@@ -500,56 +500,56 @@ namespace ApplicationAccess.Redistribution.UnitTests
         public void WaitForSourceWriterNodeEventProcessingCompletion_RetrievingEventProcessingCountFails()
         {
             var mockException = new Exception("Mock exception");
-            mockSourceShardWriterAdministrator.When(administrator => administrator.GetEventProcessingCount()).Do((callInfo) => throw mockException);
+            mockSourceShardGroupWriterAdministrator.When(administrator => administrator.GetEventProcessingCount()).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.WaitForSourceWriterNodeEventProcessingCompletion
+                testShardGroupSplitter.WaitForSourceWriterNodeEventProcessingCompletion
                 (
-                    mockSourceShardWriterAdministrator,
+                    mockSourceShardGroupWriterAdministrator,
                     testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
                     testSourceWriterNodeOperationsCompleteCheckRetryInterval
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Failed to check for active operations in the source shard event writer node."));
+            Assert.That(e.Message, Does.StartWith($"Failed to check for active operations in the source shard group event writer node."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
         [Test]
         public void WaitForSourceWriterNodeEventProcessingCompletion_ProcessingNotCompletedAfterRetries()
         {
-            mockSourceShardWriterAdministrator.GetEventProcessingCount().Returns(3);
+            mockSourceShardGroupWriterAdministrator.GetEventProcessingCount().Returns(3);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.WaitForSourceWriterNodeEventProcessingCompletion
+                testShardGroupSplitter.WaitForSourceWriterNodeEventProcessingCompletion
                 (
-                    mockSourceShardWriterAdministrator,
+                    mockSourceShardGroupWriterAdministrator,
                     testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
                     testSourceWriterNodeOperationsCompleteCheckRetryInterval
                 );
             });
 
-            mockSourceShardWriterAdministrator.Received(4).GetEventProcessingCount();
+            mockSourceShardGroupWriterAdministrator.Received(4).GetEventProcessingCount();
             mockMetricLogger.Received(4).Set(Arg.Any<WriterNodeEventProcessingCount>(), 3);
             mockMetricLogger.Received(3).Increment(Arg.Any<EventProcessingCountCheckRetried>());
-            Assert.That(e.Message, Does.StartWith($"Active operations in the source shard event writer node remains at 3 after 3 retries with 50ms interval."));
+            Assert.That(e.Message, Does.StartWith($"Active operations in the source shard group event writer node remains at 3 after 3 retries with 50ms interval."));
         }
 
         [Test]
         public void WaitForSourceWriterNodeEventProcessingCompletion_SuccessAfterRetries()
         {
-            mockSourceShardWriterAdministrator.GetEventProcessingCount().Returns(3, 2, 0);
+            mockSourceShardGroupWriterAdministrator.GetEventProcessingCount().Returns(3, 2, 0);
 
-            testShardSplitter.WaitForSourceWriterNodeEventProcessingCompletion
+            testShardGroupSplitter.WaitForSourceWriterNodeEventProcessingCompletion
             (
-                mockSourceShardWriterAdministrator,
+                mockSourceShardGroupWriterAdministrator,
                 testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
                 testSourceWriterNodeOperationsCompleteCheckRetryInterval
             );
 
-            mockSourceShardWriterAdministrator.Received(3).GetEventProcessingCount();
+            mockSourceShardGroupWriterAdministrator.Received(3).GetEventProcessingCount();
             mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 3);
             mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 2);
             mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 0);
@@ -560,14 +560,14 @@ namespace ApplicationAccess.Redistribution.UnitTests
         public void FlushSourceWriterNodeEventBuffers_FlushFails()
         {
             var mockException = new Exception("Mock exception");
-            mockSourceShardWriterAdministrator.When(administrator => administrator.FlushEventBuffers()).Do((callInfo) => throw mockException);
+            mockSourceShardGroupWriterAdministrator.When(administrator => administrator.FlushEventBuffers()).Do((callInfo) => throw mockException);
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testShardSplitter.FlushSourceWriterNodeEventBuffers(mockSourceShardWriterAdministrator);
+                testShardGroupSplitter.FlushSourceWriterNodeEventBuffers(mockSourceShardGroupWriterAdministrator);
             });
 
-            Assert.That(e.Message, Does.StartWith($"Failed to flush event buffer(s) in the source shard event writer node."));
+            Assert.That(e.Message, Does.StartWith($"Failed to flush event buffer(s) in the source shard group event writer node."));
             Assert.AreSame(mockException, e.InnerException);
         }
 
@@ -588,14 +588,14 @@ namespace ApplicationAccess.Redistribution.UnitTests
 
         #region Nested Classes
 
-        private class DistributedAccessManagerShardSplitterWithProtectedMembers : DistributedAccessManagerShardSplitter
+        private class DistributedAccessManagerShardGroupSplitterWithProtectedMembers : DistributedAccessManagerShardGroupSplitter
         {
             /// <summary>
-            /// Initialises a new instance of the ApplicationAccess.Redistribution.UnitTests.DistributedAccessManagerShardSplitterTests+DistributedAccessManagerShardSplitterWithProtectedMembers class.
+            /// Initialises a new instance of the ApplicationAccess.Redistribution.UnitTests.DistributedAccessManagerShardGroupSplitterTests+DistributedAccessManagerShardGroupSplitterWithProtectedMembers class.
             /// </summary>
             /// <param name="logger">The logger for general logging.</param>
             /// <param name="metricLogger">The logger for metrics.</param>
-            public DistributedAccessManagerShardSplitterWithProtectedMembers(IApplicationLogger logger, IMetricLogger metricLogger)
+            public DistributedAccessManagerShardGroupSplitterWithProtectedMembers(IApplicationLogger logger, IMetricLogger metricLogger)
                 : base(logger, metricLogger)
             {
             }
@@ -610,14 +610,14 @@ namespace ApplicationAccess.Redistribution.UnitTests
             }
 
             /// <summary>
-            /// Copies a portion of events from a source to a target shard in batches
+            /// Copies a portion of events from a source to a target shard group in batches
             /// </summary>
             /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
             /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
             /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
             /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
-            /// <param name="sourceShardEventReader">The event reader for the source shard.</param>
-            /// <param name="targetShardEventPersister">The event persister for the target shard.</param>
+            /// <param name="sourceShardGroupEventReader">The event reader for the source shard group.</param>
+            /// <param name="targetShardGroupEventPersister">The event persister for the target shard group.</param>
             /// <param name="currentBatchNumber">The sequential number of the first batch of events (may be set to greater than 1 if this method is called multiple times).</param>
             /// <param name="firstEventId">The id of the first event in the sequence of events to copy.</param>
             /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to copy.</param>
@@ -625,10 +625,10 @@ namespace ApplicationAccess.Redistribution.UnitTests
             /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will move all group events if set to false.</param>
             /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard in each batch.</param>
             /// <returns>The id of the last event that was copied.</returns>
-            public new Guid CopyEventBatchesToTargetShard<TUser, TGroup, TComponent, TAccess>
+            public new Guid CopyEventBatchesToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
             (
-                IAccessManagerTemporalEventBatchReader sourceShardEventReader,
-                IAccessManagerIdempotentTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardEventPersister,
+                IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader,
+                IAccessManagerIdempotentTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
                 ref Int32 currentBatchNumber,
                 Nullable<Guid> firstEventId,
                 Int32 hashRangeStart,
@@ -637,10 +637,10 @@ namespace ApplicationAccess.Redistribution.UnitTests
                 Int32 eventBatchSize
             )
             {
-                return base.CopyEventBatchesToTargetShard
+                return base.CopyEventBatchesToTargetShardGroup
                 (
-                sourceShardEventReader,
-                targetShardEventPersister,
+                sourceShardGroupEventReader,
+                targetShardGroupEventPersister,
                 ref currentBatchNumber,
                 firstEventId,
                 hashRangeStart,
@@ -662,28 +662,28 @@ namespace ApplicationAccess.Redistribution.UnitTests
             }
 
             /// <summary>
-            /// Waits until any active event processing in the source shard writer node is completed.
+            /// Waits until any active event processing in the source shard group writer node is completed.
             /// </summary>
-            /// <param name="sourceShardWriterAdministrator">The source shard writer node client.</param>
+            /// <param name="sourceShardGroupWriterAdministrator">The source shard group writer node client.</param>
             /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking active operations.</param>
             /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
             public new void WaitForSourceWriterNodeEventProcessingCompletion
             (
-                IDistributedAccessManagerWriterAdministrator sourceShardWriterAdministrator,
+                IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator,
                 Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
                 Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
             )
             { 
-                base.WaitForSourceWriterNodeEventProcessingCompletion(sourceShardWriterAdministrator, sourceWriterNodeOperationsCompleteCheckRetryAttempts, sourceWriterNodeOperationsCompleteCheckRetryInterval);
+                base.WaitForSourceWriterNodeEventProcessingCompletion(sourceShardGroupWriterAdministrator, sourceWriterNodeOperationsCompleteCheckRetryAttempts, sourceWriterNodeOperationsCompleteCheckRetryInterval);
             }
 
             /// <summary>
-            /// Flushes the event buffer(s) on the source shard's writer node.
+            /// Flushes the event buffer(s) on the source shard group's writer node.
             /// </summary>
-            /// <param name="sourceShardWriterAdministrator">The source shard writer node client.</param>
-            public new void FlushSourceWriterNodeEventBuffers(IDistributedAccessManagerWriterAdministrator sourceShardWriterAdministrator)
+            /// <param name="sourceShardGroupWriterAdministrator">The source shard group writer node client.</param>
+            public new void FlushSourceWriterNodeEventBuffers(IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator)
             {
-                base.FlushSourceWriterNodeEventBuffers(sourceShardWriterAdministrator);
+                base.FlushSourceWriterNodeEventBuffers(sourceShardGroupWriterAdministrator);
             }
         }
 

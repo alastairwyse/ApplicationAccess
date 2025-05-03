@@ -24,14 +24,14 @@ namespace ApplicationAccess.Redistribution.Metrics
     #pragma warning disable 1591
 
     /// <summary>
-    /// Amount metric which records the number of events copied from a source to a target shard as part of a shard split operation.
+    /// Amount metric which records the number of events copied from a source to a target shard group as part of a shard group split operation.
     /// </summary>
-    public class EventsCopiedFromSourceToTargetShard : AmountMetric
+    public class EventsCopiedFromSourceToTargetShardGroup : AmountMetric
     {
-        protected static String staticName = "EventsCopiedFromSourceToTargetShard";
-        protected static String staticDescription = "The number of events copied from a source to a target shard as part of a shard split operation";
+        protected static String staticName = "EventsCopiedFromSourceToTargetShardGroup";
+        protected static String staticDescription = "The number of events copied from a source to a target shard group as part of a shard group split operation";
 
-        public EventsCopiedFromSourceToTargetShard()
+        public EventsCopiedFromSourceToTargetShardGroup()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -39,12 +39,12 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
-    /// Count metric which records completion of copying a batch of events from a source to a target shard as part of a shard split operation.
+    /// Count metric which records completion of copying a batch of events from a source to a target shard group as part of a shard group split operation.
     /// </summary>
     public class EventBatchCopyCompleted : CountMetric
     {
         protected static String staticName = "EventBatchCopyCompleted";
-        protected static String staticDescription = "Completion of copying a batch of events from a source to a target shard as part of a shard split operation";
+        protected static String staticDescription = "Completion of copying a batch of events from a source to a target shard group as part of a shard group split operation";
 
         public EventBatchCopyCompleted()
         {
@@ -54,12 +54,12 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to read a batch of events from a source shard as part of a shard split operation.
+    /// Interval metric which records the time taken to read a batch of events from a source shard group as part of a shard group split operation.
     /// </summary>
     public class EventBatchReadTime : IntervalMetric
     {
         protected static String staticName = "EventBatchReadTime";
-        protected static String staticDescription = "The time taken to read a batch of events from a source shard as part of a shard split operation";
+        protected static String staticDescription = "The time taken to read a batch of events from a source shard group as part of a shard group split operation";
 
         public EventBatchReadTime()
         {
@@ -69,12 +69,12 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to write a batch of events to a target shard as part of a shard split operation.
+    /// Interval metric which records the time taken to write a batch of events to a target shard group as part of a shard group split operation.
     /// </summary>
     public class EventBatchWriteTime : IntervalMetric
     {
         protected static String staticName = "EventBatchWriteTime";
-        protected static String staticDescription = "The time taken to write a batch of events to a target shard as part of a shard split operation";
+        protected static String staticDescription = "The time taken to write a batch of events to a target shard group as part of a shard group split operation";
 
         public EventBatchWriteTime()
         {
@@ -84,12 +84,12 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
-    /// Interval metric which records the time taken to delete events from a source shard as part of a shard split operation.
+    /// Interval metric which records the time taken to delete events from a source shard group as part of a shard group split operation.
     /// </summary>
     public class EventDeleteTime : IntervalMetric
     {
         protected static String staticName = "EventDeleteTime";
-        protected static String staticDescription = "The time taken to delete events from a source shard as part of a shard split operation";
+        protected static String staticDescription = "The time taken to delete events from a source shard group as part of a shard group split operation";
 
         public EventDeleteTime()
         {
@@ -99,12 +99,12 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
-    /// Status metric which records the number of active events being processed by the writer node in a shard of a distributed AccessManager implementation.
+    /// Status metric which records the number of active events being processed by the writer node in a shard group of a distributed AccessManager implementation.
     /// </summary>
     public class WriterNodeEventProcessingCount : StatusMetric
     {
         protected static String staticName = "WriterNodeEventProcessingCount";
-        protected static String staticDescription = "The number of active events being processed by the writer node in a shard of a distributed AccessManager implementation";
+        protected static String staticDescription = "The number of active events being processed by the writer node in a shard group of a distributed AccessManager implementation";
 
         public WriterNodeEventProcessingCount()
         {
@@ -114,12 +114,12 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
-    /// Count metric which records retrying checking the number of active events being processed by the writer node during a shard split operation, due to the number of active events being greater than 0.
+    /// Count metric which records retrying checking the number of active events being processed by the writer node during a shard group split operation, due to the number of active events being greater than 0.
     /// </summary>
     public class EventProcessingCountCheckRetried : CountMetric
     {
         protected static String staticName = "EventProcessingCountCheckRetried";
-        protected static String staticDescription = "Retrying checking the number of active events being processed by the writer node during a shard split operation, due to the number of active events being greater than 0";
+        protected static String staticDescription = "Retrying checking the number of active events being processed by the writer node during a shard group split operation, due to the number of active events being greater than 0";
 
         public EventProcessingCountCheckRetried()
         {

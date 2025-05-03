@@ -50,24 +50,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         where TPersistentStorageCredentials : class, IPersistentStorageLoginCredentials
     {
         // TODO:
-        //   If I have to introduce a specific dependency on SQL server, add this to the class description...
-        //     ", and using Microsoft SQL Server for persistence."
-        //   Do we need different log parameters per database??
-        //     Maybe just use connection string... will be easier
-        //   Creation of ShardConfig database should be optional... if creation false need to provide TConnectionCreds for it
-        //   Validation for 'configuration' parameters
-        //   Will need to access writer node and router from outside the cluster during split.  Might have to create temporary 'ClusterIP' services to access them.
+        //   Test creating dist instance with TPersistentStorageCredentials already set in static config
         //   In the thosted version of thie class, InvalidOperationException should be mapped to maybe 400?
         //     e.g. trying to create LB when it's already been created
-        //   Metric category for distOpCoord coming up as 'DistributedOperationCoordinatorNode-operation-coordinator'... do we need suffix?
-
         // Test with proper metrics setup in each node config...configure all nodes as they would be in real prod...
+        //   Metric category for distOpCoord coming up as 'DistributedOperationCoordinatorNode-operation-coordinator'... do we need suffix (or prefix)?
         //   'AppSettingsConfigurationTemplate' property
         //     Also, use connection strings rather than individual params
         //     Up the log level to warning.  Info is logging every request
         //     Test with db name prefix
-
-        // ** Problem with shard config credentials not being used... need to possibly new up the persister
 
 
         // Regarding the 'shardConfigurationSetPersisterCreationFunction' parameter... elsewhere in the solution a factory pattern is used to construct instances, 
@@ -425,16 +416,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new InvalidOperationException($"A writer load balancer service must be created via method {nameof(CreateWriterLoadBalancerService)}() before creating a distributed AccessManager instance.");
             if (instanceConfiguration.UserShardGroupConfiguration != null || instanceConfiguration.GroupToGroupMappingShardGroupConfiguration != null || instanceConfiguration.GroupShardGroupConfiguration != null)
                 throw new InvalidOperationException($"A distributed AccessManager instance has already been created.");
-            if (userShardGroupConfiguration.Count == 0)
-                throw new ArgumentException($"Parameter '{nameof(userShardGroupConfiguration)}' cannot be empty.", nameof(userShardGroupConfiguration));
-            if (groupToGroupMappingShardGroupConfiguration.Count != 1)
-                throw new ArgumentException($"Parameter '{nameof(groupToGroupMappingShardGroupConfiguration)}' must contain a single value (actually contained {groupToGroupMappingShardGroupConfiguration.Count}).  Only a single group to group mapping shard group is supported.", nameof(groupToGroupMappingShardGroupConfiguration));
-            if (groupShardGroupConfiguration.Count == 0)
-                throw new ArgumentException($"Parameter '{nameof(groupShardGroupConfiguration)}' cannot be empty.", nameof(groupShardGroupConfiguration));
-            var instanceConfigurationValidator = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfigurationValidator<TPersistentStorageCredentials>();
-            instanceConfigurationValidator.ValidateShardGroupConfigurationList<ShardGroupConfiguration<TPersistentStorageCredentials>>(nameof(userShardGroupConfiguration), userShardGroupConfiguration);
-            instanceConfigurationValidator.ValidateShardGroupConfigurationList<ShardGroupConfiguration<TPersistentStorageCredentials>>(nameof(groupToGroupMappingShardGroupConfiguration), groupToGroupMappingShardGroupConfiguration);
-            instanceConfigurationValidator.ValidateShardGroupConfigurationList<ShardGroupConfiguration<TPersistentStorageCredentials>>(nameof(groupShardGroupConfiguration), groupShardGroupConfiguration);
 
             String nameSpace = staticConfiguration.NameSpace;
             logger.Log(ApplicationLogging.LogLevel.Information, $"Creating distributed AccessManager instance in namespace '{nameSpace}'...");
