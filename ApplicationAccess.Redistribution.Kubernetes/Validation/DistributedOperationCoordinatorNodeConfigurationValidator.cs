@@ -16,6 +16,7 @@
 
 using System;
 using ApplicationAccess.Redistribution.Kubernetes.Models;
+using Newtonsoft.Json.Linq;
 using k8s.Models;
 
 namespace ApplicationAccess.Redistribution.Kubernetes.Validation
@@ -25,6 +26,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Validation
     /// </summary>
     public class DistributedOperationCoordinatorNodeConfigurationValidator : NodeConfigurationBaseValidator<DistributedOperationCoordinatorNodeConfiguration>
     {
+        #pragma warning disable 1591
+
+        protected const String appsettingsShardConfigurationRefreshPropertyName = "ShardConfigurationRefresh";
+        protected const String appsettingsRefreshIntervalPropertyName = "RefreshInterval";
+
+        #pragma warning restore 1591
+
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.Validation.DistributedOperationCoordinatorNodeConfigurationValidator class.
         /// </summary>
@@ -43,6 +51,20 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Validation
             if (nodeConfiguration.ReplicaCount == 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(nodeConfiguration.ReplicaCount), $"{nodeConfigurationClassName} property '{nameof(nodeConfiguration.ReplicaCount)}' with value {nodeConfiguration.ReplicaCount} must be greater than 0.");
+            }
+            JToken refreshIntervalToken = nodeConfiguration.AppSettingsConfigurationTemplate.SelectToken($"{appsettingsShardConfigurationRefreshPropertyName}.{appsettingsRefreshIntervalPropertyName}", false);
+            if (refreshIntervalToken == null)
+            {
+                throw new ArgumentException($"{nodeConfigurationClassName} property '{nameof(nodeConfiguration.AppSettingsConfigurationTemplate)}' did not contain configuration refresh interval configuration property '{appsettingsRefreshIntervalPropertyName}'.");
+            }
+            Boolean result = Int32.TryParse(refreshIntervalToken.ToString(), out Int32 refreshInterval);
+            if (result == false)
+            {
+                throw new ArgumentException($"{nodeConfigurationClassName} property '{nameof(nodeConfiguration.AppSettingsConfigurationTemplate)}' configuration refresh interval configuration property '{appsettingsRefreshIntervalPropertyName}' with value '{refreshIntervalToken.ToString()}' could be no converted to an integer.");
+            }
+            if (refreshInterval < 1)
+            {
+                throw new ArgumentOutOfRangeException(appsettingsRefreshIntervalPropertyName, $"{nodeConfigurationClassName} property '{nameof(nodeConfiguration.AppSettingsConfigurationTemplate)}' configuration refresh interval configuration property '{appsettingsRefreshIntervalPropertyName}' with value {refreshIntervalToken.ToString()} must be greater than 0.");
             }
         }
     }

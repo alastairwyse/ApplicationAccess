@@ -40,6 +40,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Validation
             {
                 throw new ArgumentOutOfRangeException(nameof(staticConfiguration.ServiceAvailabilityWaitAbortTimeout), $"KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration property '{nameof(staticConfiguration.ServiceAvailabilityWaitAbortTimeout)}' with value {staticConfiguration.ServiceAvailabilityWaitAbortTimeout} must be greater than 0.");
             }
+            if (staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer), $"KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration property '{nameof(staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer)}' with value {staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer} must be greater than or equal to 0.");
+            }
             var readerNodeConfigurationValidator = new ReaderNodeConfigurationValidator();
             readerNodeConfigurationValidator.Validate(staticConfiguration.ReaderNodeConfigurationTemplate);
             var eventCacheNodeConfigurationValidator = new NodeConfigurationBaseValidator<EventCacheNodeConfiguration>();

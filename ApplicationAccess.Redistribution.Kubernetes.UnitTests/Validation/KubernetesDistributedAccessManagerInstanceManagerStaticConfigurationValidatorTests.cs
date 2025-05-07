@@ -33,6 +33,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
         [SetUp]
         protected void SetUp()
         {
+            String stringifiedOperationCoordinatorAppSettings = @"
+            {
+                ""ShardConfigurationRefresh"": {
+                    ""RefreshInterval"": ""5000""
+                }
+            }";
             testStaticConfiguration = new KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration
             {
                 PodPort = 5000,
@@ -42,6 +48,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 LoadBalancerServicesHttps = false,
                 DeploymentWaitPollingInterval = 100,
                 ServiceAvailabilityWaitAbortTimeout = 5000,
+                DistributedOperationCoordinatorRefreshIntervalWaitBuffer = 1000,
                 ReaderNodeConfigurationTemplate = new ReaderNodeConfiguration
                 {
                     ReplicaCount = 1,
@@ -84,7 +91,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                     TerminationGracePeriod = 60,
                     ContainerImage = "applicationaccess/distributedoperationcoordinator:20250203-0900",
                     MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Warning,
-                    AppSettingsConfigurationTemplate = new JObject(),
+                    AppSettingsConfigurationTemplate = JObject.Parse(stringifiedOperationCoordinatorAppSettings),
                     CpuResourceRequest = "500m",
                     MemoryResourceRequest = "600Mi",
                     StartupProbeFailureThreshold = 8,
@@ -159,6 +166,20 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
 
             Assert.That(e.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration property 'ServiceAvailabilityWaitAbortTimeout' with value 0 must be greater than 0."));
             Assert.AreEqual("ServiceAvailabilityWaitAbortTimeout", e.ParamName);
+        }
+
+        [Test]
+        public void Validate_DistributedOperationCoordinatorRefreshIntervalWaitBufferPropertyLessThan0()
+        {
+            testStaticConfiguration = testStaticConfiguration with { DistributedOperationCoordinatorRefreshIntervalWaitBuffer = -1 };
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testStaticConfigurationValidator.Validate(testStaticConfiguration);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration property 'DistributedOperationCoordinatorRefreshIntervalWaitBuffer' with value -1 must be greater than or equal to 0."));
+            Assert.AreEqual("DistributedOperationCoordinatorRefreshIntervalWaitBuffer", e.ParamName);
         }
 
         [Test]

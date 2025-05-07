@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Models;
@@ -27,6 +26,7 @@ using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Distribution.Serialization;
 using ApplicationAccess.Hosting.LaunchPreparer;
 using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
+using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Redistribution;
 using ApplicationAccess.Redistribution.Kubernetes.Metrics;
@@ -59,6 +59,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //     Also, use connection strings rather than individual params
         //     Up the log level to warning.  Info is logging every request
         //     Test with db name prefix
+        // Comment about innefficiencies iterating instance config lists... and why I chose to do this.
+        // Thing about passing Guid back from Splitter.CopyEvents() method which is a Begin metric guid for when operations were paused
+        //   So I can capture the hold time with a normal interval metric
 
 
         // Regarding the 'shardConfigurationSetPersisterCreationFunction' parameter... elsewhere in the solution a factory pattern is used to construct instances, 
@@ -108,6 +111,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected const String appsettingsEventPersisterBackupFilePathPropertyName = "EventPersisterBackupFilePath";
         protected const String appsettingsMetricLoggingPropertyName = "MetricLogging";
         protected const String appsettingsMetricCategorySuffixPropertyName = "MetricCategorySuffix";
+        protected const String appsettingsShardConfigurationRefreshPropertyName = "ShardConfigurationRefresh";
+        protected const String appsettingsRefreshIntervalPropertyName = "RefreshInterval";
         protected const String appsettingsShardRoutingPropertyName = "ShardRouting";
         protected const String appsettingsDataElementTypePropertyName = "DataElementType";
         protected const String appsettingsSourceQueryShardBaseUrlPropertyName = "SourceQueryShardBaseUrl";
@@ -178,7 +183,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         )
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
-            InitializeFields(staticConfiguration, clientConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            kubernetesClient = new k8s.Kubernetes(clientConfiguration);
+            InitializeFields(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
         }
 
         /// <summary>
@@ -203,7 +209,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         )
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
-            InitializeFields(staticConfiguration, instanceConfiguration, clientConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            kubernetesClient = new k8s.Kubernetes(clientConfiguration);
+            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
         }
 
         /// <summary>
@@ -228,7 +235,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         )
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile(kubernetesConfigurationFilePath);
-            InitializeFields(staticConfiguration, clientConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            kubernetesClient = new k8s.Kubernetes(clientConfiguration);
+            InitializeFields(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
         }
 
         /// <summary>
@@ -255,7 +263,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         )
         {
             var clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile(kubernetesConfigurationFilePath);
-            InitializeFields(staticConfiguration, instanceConfiguration, clientConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            kubernetesClient = new k8s.Kubernetes(clientConfiguration);
+            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
         }
 
         /// <summary>
@@ -282,17 +291,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             IMetricLogger metricLogger
         )
         {
-            this.staticConfiguration = staticConfiguration;
-            this.instanceConfiguration = instanceConfiguration;
             kubernetesClient = null;
-            this.persistentStorageCreator = persistentStorageCreator;
-            this.credentialsAppSettingsConfigurer = credentialsAppSettingsConfigurer;
-            this.shardConfigurationSetPersisterCreationFunction = shardConfigurationSetPersisterCreationFunction;
-            this.shardConfigurationSetPersister = null;
+            InitializeFields(staticConfiguration, instanceConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
             this.kubernetesClientShim = kubernetesClientShim;
-            this.logger = logger;
-            this.metricLogger = metricLogger;
-            UpdateNextShardGroupId(instanceConfiguration);
         }
 
         /// <summary>
@@ -301,7 +302,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="port">The external port to expose the load balancer service on.</param>
         /// <returns>The IP address of the load balancer service.</returns>
         /// <remarks>This method should be called before creating a distributed AccessManager instance.  Some Kubernetes hosting platforms (e.g. Minikube) require additional actions outside of the cluster to allow Kubernetes services to be accessed from outside of the host machine (e.g. in the case if Minikube the IP address and port of the load balancer service must exposed outside the machine using 'simpleproxy' or a similar tool).  Hence this method can be called, and then any required additional actions be performed.</remarks>
-        public async Task<IPAddress> CreateDistributedOperationRouterLoadBalancerService(UInt16 port)
+        public async Task<IPAddress> CreateDistributedOperationRouterLoadBalancerServiceAsync(UInt16 port)
         {
             if (instanceConfiguration.DistributedOperationRouterUrl != null)
                 throw new InvalidOperationException("A load balancer service for the distributed operation router has already been created.");
@@ -354,7 +355,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="port">The external port to expose the writer service on.</param>
         /// <returns>The IP address of the load balancer service.</returns>
         /// <remarks>This method should be called before creating a distributed AccessManager instance.  Some Kubernetes hosting platforms (e.g. Minikube) require additional actions outside of the cluster to allow Kubernetes services to be accessed from outside of the host machine (e.g. in the case if Minikube the IP address and port of the load balancer service must exposed outside the machine using 'simpleproxy' or a similar tool).  Hence this method can be called, and then any required additional actions be performed.</remarks>
-        public async Task<IPAddress> CreateWriterLoadBalancerService(UInt16 port)
+        public async Task<IPAddress> CreateWriterLoadBalancerServiceAsync(UInt16 port)
         {
             if (instanceConfiguration.WriterUrl != null)
                 throw new InvalidOperationException("A load balancer service for writer components has already been created.");
@@ -411,9 +412,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         )
         {
             if (instanceConfiguration.DistributedOperationRouterUrl == null)
-                throw new InvalidOperationException($"A distributed operation router load balancer service must be created via method {nameof(CreateDistributedOperationRouterLoadBalancerService)}() before creating a distributed AccessManager instance.");
+                throw new InvalidOperationException($"A distributed operation router load balancer service must be created via method {nameof(CreateDistributedOperationRouterLoadBalancerServiceAsync)}() before creating a distributed AccessManager instance.");
             if (instanceConfiguration.WriterUrl == null)
-                throw new InvalidOperationException($"A writer load balancer service must be created via method {nameof(CreateWriterLoadBalancerService)}() before creating a distributed AccessManager instance.");
+                throw new InvalidOperationException($"A writer load balancer service must be created via method {nameof(CreateWriterLoadBalancerServiceAsync)}() before creating a distributed AccessManager instance.");
             if (instanceConfiguration.UserShardGroupConfiguration != null || instanceConfiguration.GroupToGroupMappingShardGroupConfiguration != null || instanceConfiguration.GroupShardGroupConfiguration != null)
                 throw new InvalidOperationException($"A distributed AccessManager instance has already been created.");
 
@@ -485,7 +486,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     instanceConfiguration.GroupToGroupMappingShardGroupConfiguration,
                     instanceConfiguration.GroupShardGroupConfiguration
                 );
-                ConstructShardConfigurationSetPersister(instanceConfiguration.ShardConfigurationPersistentStorageCredentials);
+                ConstructInstance
+                (   
+                    () => { shardConfigurationSetPersister = shardConfigurationSetPersisterCreationFunction(instanceConfiguration.ShardConfigurationPersistentStorageCredentials); }, 
+                    "shardConfigurationSetPersister"
+                );
                 try
                 {
                     shardConfigurationSetPersister.Write(shardConfigurationSet, true);
@@ -512,13 +517,61 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             logger.Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
         }
 
+        /// <summary>
+        /// Splits a shard group in the distributed AccessManager instance, by moving elements whose hash codes fall within a specified range to a new shard group.
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard group to split..</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group to split.</param>
+        /// <param name="splitHashRangeStart">The first (inclusive) in the range of hash codes to move to the new shard group.</param>
+        /// <param name="splitHashRangeEnd">The last (inclusive) in the range of hash codes to move to the new shard group.</param>
+        /// <param name="sourceShardGroupEventReaderCreationFunction">A function used to create a reader used to read events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventBatchReader"/> instance.</param>
+        /// <param name="targetShardGroupEventPersisterCreationFunction">A function used to create a persister used to write events to the target shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
+        /// <param name="sourceShardGroupEventDeleterCreationFunction">A function used to create a deleter used to delete events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventDeleter"/> instance.</param>
+        /// <param name="operationRouterCreationFunction">A function used to create a client used control the router which directs operations between the source and target shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerOperationRouter"/> instance.</param>
+        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer node in the target shard group.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
+        /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard group in each batch.</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard group, before copying of the final batch of events (event copy will fail if all retries are exhausted before the number of active operations becomes 0).</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
+        public async Task SplitShardGroupAsync
+        (
+            DataElement dataElement,
+            Int32 hashRangeStart,
+            Int32 splitHashRangeStart,
+            Int32 splitHashRangeEnd,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
+            Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
+            Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+            Int32 eventBatchSize,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
+        )
+        {
+            await SplitShardGroupAsync
+            (
+                dataElement, 
+                hashRangeStart, 
+                splitHashRangeStart, 
+                splitHashRangeEnd,
+                sourceShardGroupEventReaderCreationFunction,
+                targetShardGroupEventPersisterCreationFunction,
+                sourceShardGroupEventDeleterCreationFunction,
+                operationRouterCreationFunction,
+                sourceShardGroupWriterAdministratorCreationFunction,
+                eventBatchSize,
+                sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                sourceWriterNodeOperationsCompleteCheckRetryInterval,
+                new DistributedAccessManagerShardGroupSplitter(logger, metricLogger)
+            );
+        }
+
         #region Private/Protected Methods
 
         /// <summary>
         /// Initializes fields of the class.
         /// </summary>
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
-        /// <param name="clientConfiguration">The Kubernetes client configuration.</param>
         /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
@@ -527,7 +580,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected void InitializeFields
         (
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration, 
-            KubernetesClientConfiguration clientConfiguration, 
             IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
@@ -546,7 +598,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             this.staticConfiguration = staticConfiguration;
             instanceConfiguration = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>();
-            kubernetesClient = new k8s.Kubernetes(clientConfiguration);
             this.persistentStorageCreator = persistentStorageCreator;
             this.credentialsAppSettingsConfigurer = credentialsAppSettingsConfigurer;
             this.shardConfigurationSetPersisterCreationFunction = shardConfigurationSetPersisterCreationFunction;
@@ -562,7 +613,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="staticConfiguration">Static configuration for the instance manager (i.e. configuration which does not reflect the state of the distributed AccessManager instance).</param>
         /// <param name="instanceConfiguration">Configuration for an existing distributed AccessManager instance.</param>
-        /// <param name="clientConfiguration">The Kubernetes client configuration.</param>
         /// <param name="persistentStorageCreator">Used to create new instances of persistent storage used by the distributed AccessManager implementation.</param>
         /// <param name="credentialsAppSettingsConfigurer">Used to configure a component's 'appsettings.json' configuration with persistent storage credentials.</param>
         /// <param name="shardConfigurationSetPersisterCreationFunction">A function used to create the persister used to write shard configuration to persistent storage.  Accepts TPersistentStorageCredentials and returns an <see cref="IShardConfigurationSetPersister{TClientConfiguration, TJsonSerializer}"/> instance.</param>
@@ -572,7 +622,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         (
             KubernetesDistributedAccessManagerInstanceManagerStaticConfiguration staticConfiguration,
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials> instanceConfiguration,
-            KubernetesClientConfiguration clientConfiguration,
             IDistributedAccessManagerPersistentStorageCreator<TPersistentStorageCredentials> persistentStorageCreator,
             IPersistentStorageCredentialsAppSettingsConfigurer<TPersistentStorageCredentials> credentialsAppSettingsConfigurer,
             Func<TPersistentStorageCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> shardConfigurationSetPersisterCreationFunction,
@@ -580,7 +629,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             IMetricLogger metricLogger
         )
         {
-            InitializeFields(staticConfiguration, clientConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
+            InitializeFields(staticConfiguration, persistentStorageCreator, credentialsAppSettingsConfigurer, shardConfigurationSetPersisterCreationFunction, logger, metricLogger);
             var instanceConfigurationValidator = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfigurationValidator<TPersistentStorageCredentials>();
             try
             {
@@ -591,7 +640,271 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new ArgumentException($"Parameter '{nameof(instanceConfiguration)}' failed to validate.", nameof(instanceConfiguration), e);
             }
             this.instanceConfiguration = instanceConfiguration;
+            if (this.instanceConfiguration.UserShardGroupConfiguration != null)
+            {
+                SortShardGroupConfigurationByHashRangeStart(this.instanceConfiguration.UserShardGroupConfiguration);
+                SortShardGroupConfigurationByHashRangeStart(this.instanceConfiguration.GroupShardGroupConfiguration);
+            }
             UpdateNextShardGroupId(instanceConfiguration);
+        }
+
+        /// <summary>
+        /// Splits a shard group in the distributed AccessManager instance, by moving elements whose hash codes fall within a specified range to a new shard group.
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard group to split..</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group to split.</param>
+        /// <param name="splitHashRangeStart">The first (inclusive) in the range of hash codes to move to the new shard group.</param>
+        /// <param name="splitHashRangeEnd">The last (inclusive) in the range of hash codes to move to the new shard group.</param>
+        /// <param name="sourceShardGroupEventReaderCreationFunction">A function used to create a reader used to read events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventBatchReader"/> instance.</param>
+        /// <param name="targetShardGroupEventPersisterCreationFunction">A function used to create a persister used to write events to the target shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
+        /// <param name="sourceShardGroupEventDeleterCreationFunction">A function used to create a deleter used to delete events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventDeleter"/> instance.</param>
+        /// <param name="operationRouterCreationFunction">A function used to create a client used control the router which directs operations between the source and target shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerOperationRouter"/> instance.</param>
+        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer node in the target shard group.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
+        /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard group in each batch.</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard group, before copying of the final batch of events (event copy will fail if all retries are exhausted before the number of active operations becomes 0).</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
+        /// <param name="shardGroupSplitter">The <see cref="IDistributedAccessManagerShardGroupSplitter"/> implementation used to perform the splitting.</param>
+        protected async Task SplitShardGroupAsync
+        (
+            DataElement dataElement, 
+            Int32 hashRangeStart, 
+            Int32 splitHashRangeStart, 
+            Int32 splitHashRangeEnd, 
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
+            Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
+            Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
+            Int32 eventBatchSize,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
+            Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval, 
+            IDistributedAccessManagerShardGroupSplitter shardGroupSplitter
+        )
+        {
+            if (instanceConfiguration.UserShardGroupConfiguration == null)
+                throw new InvalidOperationException($"A distributed AccessManager instance has not been created.");
+            if (dataElement == DataElement.GroupToGroupMapping)
+                throw new ArgumentException($"Shard group splitting is not supported for '{typeof(DataElement).Name}' '{dataElement}'.", nameof(dataElement));
+            if (splitHashRangeEnd <= splitHashRangeStart)
+                throw new ArgumentOutOfRangeException(nameof(splitHashRangeEnd), $"Parameter '{nameof(splitHashRangeEnd)}' with value {splitHashRangeEnd} must be greater than parameter '{nameof(splitHashRangeStart)}' with value {splitHashRangeStart}.");
+            KubernetesShardGroupConfiguration<TPersistentStorageCredentials> shardGroupConfiguration = GetShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), hashRangeStart);
+            if (shardGroupConfiguration == null)
+                throw new ArgumentException($"Parameter '{nameof(hashRangeStart)}' with value {hashRangeStart} contains an invalid hash range start value for '{dataElement}' shard groups.", nameof(hashRangeStart));
+            if (splitHashRangeStart <= hashRangeStart)
+                throw new ArgumentOutOfRangeException(nameof(splitHashRangeStart), $"Parameter '{nameof(splitHashRangeStart)}' with value {splitHashRangeStart} must be greater than parameter '{nameof(hashRangeStart)}' wth value {hashRangeStart}.");
+            KubernetesShardGroupConfiguration<TPersistentStorageCredentials> nextShardGroupConfiguration = null;
+            try
+            {
+                nextShardGroupConfiguration = GetNextShardGroupConfiguration(GetShardGroupConfigurationList(dataElement), hashRangeStart);
+            }
+            catch
+            {
+                if (splitHashRangeEnd != Int32.MaxValue)
+                    throw new ArgumentOutOfRangeException(nameof(splitHashRangeEnd), $"Parameter '{nameof(splitHashRangeEnd)}' with value {splitHashRangeEnd} contains a different hash range end value to the hash range end value {Int32.MaxValue} of the shard group being split.");
+            }
+            if (nextShardGroupConfiguration != null)
+            {
+                if (splitHashRangeStart >= nextShardGroupConfiguration.HashRangeStart)
+                    throw new ArgumentOutOfRangeException(nameof(splitHashRangeStart), $"Parameter '{nameof(splitHashRangeStart)}' with value {splitHashRangeStart} must be less than the hash range start value {nextShardGroupConfiguration.HashRangeStart} of the next sequential shard group.");
+                if (splitHashRangeEnd != nextShardGroupConfiguration.HashRangeStart - 1)
+                    throw new ArgumentOutOfRangeException(nameof(splitHashRangeEnd), $"Parameter '{nameof(splitHashRangeEnd)}' with value {splitHashRangeEnd} contains a different hash range end value to the hash range end value {nextShardGroupConfiguration.HashRangeStart - 1} of the shard group being split.");
+            }
+
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Splitting {dataElement} shard group with hash range start value {hashRangeStart} at new shard group with hash range start value {splitHashRangeStart}...");
+            Guid beginId = metricLogger.Begin(new ShardGroupSplitTime());
+
+            // Create the target persistent storage instance
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating persistent storage instance for data element '{dataElement.ToString()}' and hash range start value {splitHashRangeStart}...");
+            String targetPersistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, splitHashRangeStart);
+            Guid storageBeginId = metricLogger.Begin(new PersistentStorageInstanceCreateTime());
+            TPersistentStorageCredentials targetPersistentStorageCredentials;
+            try
+            {
+                targetPersistentStorageCredentials = persistentStorageCreator.CreateAccessManagerPersistentStorage(targetPersistentStorageInstanceName);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(storageBeginId, new PersistentStorageInstanceCreateTime());
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw new Exception($"Error creating persistent storage instance for data element type '{dataElement}' and hash range start value {splitHashRangeStart}.", e);
+            }
+            metricLogger.End(storageBeginId, new PersistentStorageInstanceCreateTime());
+            metricLogger.Increment(new PersistentStorageInstanceCreated());
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating persistent storage instance.");
+
+            // Create persisters and clients
+            IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader = null;
+            ConstructInstance
+            (
+                () => { sourceShardGroupEventReader = sourceShardGroupEventReaderCreationFunction(shardGroupConfiguration.PersistentStorageCredentials); },
+                nameof(sourceShardGroupEventReader)
+            );
+            IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String> targetShardGroupEventPersister = null;
+            ConstructInstance
+            (
+                () => { targetShardGroupEventPersister = targetShardGroupEventPersisterCreationFunction(targetPersistentStorageCredentials); },
+                nameof(targetShardGroupEventPersister)
+            );
+            IAccessManagerTemporalEventDeleter sourceShardGroupEventDeleter = null;
+            ConstructInstance
+            (
+                () => { sourceShardGroupEventDeleter = sourceShardGroupEventDeleterCreationFunction(shardGroupConfiguration.PersistentStorageCredentials); },
+                nameof(sourceShardGroupEventDeleter)
+            );
+            IDistributedAccessManagerOperationRouter operationRouter = null;
+            ConstructInstance
+            (
+                () => { operationRouter = operationRouterCreationFunction(instanceConfiguration.DistributedOperationRouterUrl); },
+                nameof(operationRouter)
+            );
+            IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator = null;
+            ConstructInstance
+            (
+                () => { sourceShardGroupWriterAdministrator = sourceShardGroupWriterAdministratorCreationFunction(instanceConfiguration.WriterUrl); },
+                nameof(sourceShardGroupWriterAdministrator)
+            );
+
+            // Create new/target shard group configuration
+            Uri targetReaderNodeServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.Reader, splitHashRangeStart);
+            Uri targetWriterNodeServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.Writer, splitHashRangeStart);
+
+            // Create distributed operation router
+            try
+            {
+                await CreateDistributedOperationRouterNodeAsync
+                (
+                    dataElement,
+                    shardGroupConfiguration.ReaderNodeClientConfiguration.BaseUrl,
+                    shardGroupConfiguration.WriterNodeClientConfiguration.BaseUrl,
+                    hashRangeStart,
+                    splitHashRangeStart - 1,
+                    targetReaderNodeServiceUrl,
+                    targetWriterNodeServiceUrl,
+                    splitHashRangeStart,
+                    splitHashRangeEnd,
+                    false
+                );
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
+
+            // ** TODO **: Create Split Target Writer Service (or patch/replace)
+
+            // Update the shard group configuration to redirect to the router
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
+            Uri routerInternalUrl = new($"http://{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}:{staticConfiguration.PodPort}");
+            AccessManagerRestClientConfiguration routerClientConfiguration = new(routerInternalUrl);
+            List<HashRangeStartAndClientConfigurations> configurationUpdates = new()
+            {
+                new HashRangeStartAndClientConfigurations
+                {
+                    HashRangeStart = hashRangeStart,
+                    ReaderNodeClientConfiguration = routerClientConfiguration,
+                    WriterNodeClientConfiguration = routerClientConfiguration
+                }
+            }; 
+            List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> configurationAdditions = new()
+            {
+                new KubernetesShardGroupConfiguration<TPersistentStorageCredentials>
+                (
+                    nextShardGroupId++,
+                    nextShardGroupId++,
+                    splitHashRangeStart,
+                    targetPersistentStorageCredentials,
+                    routerClientConfiguration,
+                    routerClientConfiguration
+                )
+            };
+            IList<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> updatedShardGroupConfiguration = UpdateAndPersistShardConfiguration
+            (
+                dataElement,
+                configurationUpdates,
+                configurationAdditions
+            );
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+
+            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+            Int32 configurationUpdateWait = GetDistributedOperationCoordinatorConfigurationRefreshInterval() + staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer;
+            await Task.Delay(configurationUpdateWait);
+
+            // Copy events from the source to target shard group
+            Boolean filterGroupEventsByHashRange = false;
+            if (dataElement == DataElement.Group)
+            {
+                filterGroupEventsByHashRange = true;
+            }
+            Guid copyBeginId = metricLogger.Begin(new EventCopyTime());
+            try
+            {
+                shardGroupSplitter.CopyEventsToTargetShardGroup
+                (
+                    sourceShardGroupEventReader, 
+                    targetShardGroupEventPersister, 
+                    operationRouter, 
+                    sourceShardGroupWriterAdministrator,
+                    splitHashRangeStart, 
+                    splitHashRangeEnd,
+                    filterGroupEventsByHashRange,
+                    eventBatchSize, 
+                    sourceWriterNodeOperationsCompleteCheckRetryAttempts, 
+                    sourceWriterNodeOperationsCompleteCheckRetryInterval
+                );
+            }
+            catch(Exception e)
+            {
+                metricLogger.CancelBegin(copyBeginId, new EventCopyTime());
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw new Exception("Error copying events from source shard group to target shard group.", e);
+            }
+            metricLogger.End(copyBeginId, new EventCopyTime());
+
+            // Create the new shard group
+            try
+            {
+                await CreateShardGroupAsync(dataElement, splitHashRangeStart, targetPersistentStorageCredentials);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
+
+            // Turn on the router
+            try
+            {
+                operationRouter.RoutingOn = true;
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw new Exception("Failed to switch routing on.", e);
+            }
+
+
+            // TODO:
+            //   Release held operations
+            //   Update shard configuration to include remove router and add new shard group and and wait
+            //   (Start delete part)
+
+
+
+            // ** TODO **: Delete Split Target Writer Service
+
+            // ** TODO **: Delete router deployment
+
+            // Dispose persisters and clients
+            DisposeObject(sourceShardGroupWriterAdministrator);
+            DisposeObject(operationRouter);
+            DisposeObject(sourceShardGroupEventDeleter);
+            DisposeObject(targetShardGroupEventPersister);
+            DisposeObject(sourceShardGroupEventReader);
+
+            metricLogger.End(beginId, new ShardGroupSplitTime());
+            metricLogger.Increment(new ShardGroupSplit());
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed splitting shard group.");
         }
 
         /// <summary>
@@ -755,22 +1068,223 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
-        /// Creates/constructs field <see cref="shardConfigurationSetPersister"/> if it's null.
+        /// Retrieves the shard group configuration for the specified data element from the instance configuration.
         /// </summary>
-        /// <param name="persistentStorageCredentials">The credentials to use to construct the field.</param>
-        protected void ConstructShardConfigurationSetPersister(TPersistentStorageCredentials persistentStorageCredentials)
+        /// <param name="dataElement">The data element to retrieve the shard group configuration for.</param>
+        /// <returns>The shard group configuration.</returns>
+        protected IList<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> GetShardGroupConfigurationList(DataElement dataElement)
         {
-            if (shardConfigurationSetPersister == null)
+            if (dataElement == DataElement.User)
             {
-                try
+                return instanceConfiguration.UserShardGroupConfiguration;
+            }
+            else if (dataElement == DataElement.GroupToGroupMapping)
+            {
+                return instanceConfiguration.GroupToGroupMappingShardGroupConfiguration;
+            }
+            else if (dataElement == DataElement.Group)
+            {
+                return instanceConfiguration.GroupShardGroupConfiguration;
+            }
+            else
+            {
+                throw new ArgumentException($"Encountered unhandled {typeof(DataElement).Name} value '{dataElement}'.");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves shard group configuration with the specified hash range start value from a list of shard group configuration.
+        /// </summary>
+        /// <param name="shardGroupConfigurationList">The list of shard group configuration to retrieve the specified configuration from.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of the shard group.</param>
+        /// <returns>The shard group configuration or null if shard group configuration with the specified properties was not found.</returns>
+        protected KubernetesShardGroupConfiguration<TPersistentStorageCredentials> GetShardGroupConfiguration(IList<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> shardGroupConfigurationList, Int32 hashRangeStart)
+        {
+            foreach (KubernetesShardGroupConfiguration<TPersistentStorageCredentials> currentConfiguration in shardGroupConfigurationList)
+            {
+                if (currentConfiguration.HashRangeStart == hashRangeStart)
                 {
-                    shardConfigurationSetPersister = shardConfigurationSetPersisterCreationFunction(persistentStorageCredentials);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Failed to construct ShardConfigurationSetPersister.", e);
+                    return currentConfiguration;
                 }
             }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Retrieves shard group configuration sequentially after that with with the specified hash range start value, from a list of shard group configuration.
+        /// </summary>
+        /// <param name="shardGroupConfigurationList">The list of shard group configuration to retrieve the configuration from.</param>
+        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of the shard group before the one to return.</param>
+        /// <returns>The shard group configuration or null if the shard group configuration with the specified hash range start value is the last (i.e. hash range ends on Int32.MaxValue).</returns>
+        protected KubernetesShardGroupConfiguration<TPersistentStorageCredentials> GetNextShardGroupConfiguration(IList<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> shardGroupConfigurationList, Int32 hashRangeStart)
+        {
+            for (Int32 i = 0; i < shardGroupConfigurationList.Count; i++)
+            {
+                if (shardGroupConfigurationList[i].HashRangeStart == hashRangeStart)
+                {
+                    if (i == shardGroupConfigurationList.Count - 1)
+                    {
+                        throw new ArgumentException($"No shard configuration exists with greater hash range start value than that specified in parameter '{nameof(hashRangeStart)}' with value {hashRangeStart}.", nameof(hashRangeStart));
+                    }
+
+                    return shardGroupConfigurationList[i + 1];
+                }
+            }
+
+            throw new ArgumentException($"No shard configuration exists with the hash range start value specified in parameter '{nameof(hashRangeStart)}' with value {hashRangeStart}.", nameof(hashRangeStart));
+        }
+
+        /// <summary>
+        /// Updates and persists the current shard group configuration.
+        /// </summary>
+        /// <param name="dataElement">The data element of the shard group configuration to apply the updates and additions to.</param>
+        /// <param name="configurationUpdates">Updates that should be applied to the shard group configuration of type specified in parameter <paramref name="dataElement"/> (keyed by hash rage start value).</param>
+        /// <param name="configurationAdditions">Configuration which should be added to the shard group configuration of type specified in parameter <paramref name="dataElement"/>.</param>
+        /// <returns>The shard group configuration with the updates and additions applied (either user or group configuration depending on parameter <paramref name="dataElement"/>).</returns>
+        protected IList<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> UpdateAndPersistShardConfiguration
+        (
+            DataElement dataElement, 
+            IEnumerable<HashRangeStartAndClientConfigurations> configurationUpdates, 
+            IEnumerable<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> configurationAdditions
+        )
+        {
+            Dictionary<Int32, HashRangeStartAndClientConfigurations> indexedConfigurationUpdates = new();
+            foreach (HashRangeStartAndClientConfigurations currentConfigurationUpdate in configurationUpdates)
+            {
+                if (indexedConfigurationUpdates.ContainsKey(currentConfigurationUpdate.HashRangeStart) == true)
+                    throw new ArgumentException($"Parameter '{nameof(configurationUpdates)}' contains elements with duplicate '{nameof(currentConfigurationUpdate.HashRangeStart)}' values {currentConfigurationUpdate.HashRangeStart}.", nameof(configurationUpdates));
+
+                indexedConfigurationUpdates.Add(currentConfigurationUpdate.HashRangeStart, currentConfigurationUpdate);
+            }
+            if (shardConfigurationSetPersister == null)
+            {
+                ConstructInstance
+                (
+                    () => { shardConfigurationSetPersister = shardConfigurationSetPersisterCreationFunction(instanceConfiguration.ShardConfigurationPersistentStorageCredentials); },
+                    "shardConfigurationSetPersister"
+                );
+            }
+            IList<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> originalShardGroupConfiguration = null;
+            List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> updatedShardGroupConfiguration = new();
+            ShardConfigurationSet<AccessManagerRestClientConfiguration> shardConfigurationSet = null;
+            if (dataElement == DataElement.User)
+            {
+                originalShardGroupConfiguration = instanceConfiguration.UserShardGroupConfiguration;
+            }
+            else if (dataElement == DataElement.Group)
+            {
+                originalShardGroupConfiguration = instanceConfiguration.GroupShardGroupConfiguration;
+            }
+            else
+            {
+                throw new Exception($"Encountered unhandled {typeof(DataElement).Name} '{dataElement}'.");
+            }
+            foreach (KubernetesShardGroupConfiguration<TPersistentStorageCredentials> currentConfiguration in originalShardGroupConfiguration)
+            {
+                if (indexedConfigurationUpdates.ContainsKey(currentConfiguration.HashRangeStart) == true)
+                {
+                    updatedShardGroupConfiguration.Add
+                    (
+                        new KubernetesShardGroupConfiguration<TPersistentStorageCredentials>
+                        (
+                            currentConfiguration.ReaderNodeId,
+                            currentConfiguration.WriterNodeId,
+                            currentConfiguration.HashRangeStart,
+                            currentConfiguration.PersistentStorageCredentials,
+                            indexedConfigurationUpdates[currentConfiguration.HashRangeStart].ReaderNodeClientConfiguration,
+                            indexedConfigurationUpdates[currentConfiguration.HashRangeStart].WriterNodeClientConfiguration
+                        )
+                    );
+                }
+                else
+                {
+                    updatedShardGroupConfiguration.Add
+                    (
+                        new KubernetesShardGroupConfiguration<TPersistentStorageCredentials>
+                        (
+                            currentConfiguration.ReaderNodeId,
+                            currentConfiguration.WriterNodeId,
+                            currentConfiguration.HashRangeStart,
+                            currentConfiguration.PersistentStorageCredentials,
+                            currentConfiguration.ReaderNodeClientConfiguration,
+                            currentConfiguration.WriterNodeClientConfiguration
+                        )
+                    );
+                }
+            }
+            updatedShardGroupConfiguration.AddRange(configurationAdditions);
+            if (dataElement == DataElement.User)
+            {
+                shardConfigurationSet = CreateShardConfigurationSet
+                (
+                    updatedShardGroupConfiguration,
+                    instanceConfiguration.GroupToGroupMappingShardGroupConfiguration,
+                    instanceConfiguration.GroupShardGroupConfiguration
+                );
+            }
+            else
+            {
+                shardConfigurationSet = CreateShardConfigurationSet
+                (
+                    instanceConfiguration.UserShardGroupConfiguration,
+                    instanceConfiguration.GroupToGroupMappingShardGroupConfiguration,
+                    updatedShardGroupConfiguration
+                );
+            }
+            try
+            {
+                shardConfigurationSetPersister.Write(shardConfigurationSet, true);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Error updating shard configuration in persistent storage.", e);
+            }
+
+            return updatedShardGroupConfiguration;
+        }
+
+        /// <summary>
+        /// Constructs a class instance used within the AccessManager instance manager, throwing an exception if construction fails.
+        /// </summary>
+        /// <param name="instanceConstructionAction">Action which constructs the instance.</param>
+        /// <param name="instanceName">The name of the instance being constructed (to use in exception messages).</param>
+        protected void ConstructInstance(Action instanceConstructionAction, String instanceName)
+        {
+            try
+            {
+                instanceConstructionAction();
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to construct {instanceName}.", e);
+            }
+        }
+
+        /// <summary>
+        /// Calls Dispose() on the specified object if it implements IDisposable.
+        /// </summary>
+        /// <param name="inputObject">The object to dispose.</param>
+        protected void DisposeObject(Object inputObject)
+        {
+            if (inputObject is IDisposable)
+            {
+                ((IDisposable)inputObject).Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Gets the distributed operation coordinator node's configuration refresh interval (in milliseconds).
+        /// </summary>
+        /// <returns>The refresh interval.</returns>
+        protected Int32 GetDistributedOperationCoordinatorConfigurationRefreshInterval()
+        {
+            // Don't need to validate this as it's validated on construction by class KubernetesDistributedAccessManagerInstanceManagerStaticConfigurationValidatorTests
+            JObject coordinatorNodeConfiguration = staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate.AppSettingsConfigurationTemplate;
+            JToken refreshIntervalToken = coordinatorNodeConfiguration.SelectToken($"{appsettingsShardConfigurationRefreshPropertyName}.{appsettingsRefreshIntervalPropertyName}", false);
+            Int32 refreshInterval = Int32.Parse(refreshIntervalToken.ToString());
+
+            return refreshInterval;
         }
 
         /// <summary>
@@ -882,11 +1396,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
         #pragma warning disable 1591
 
-        protected void SortShardGroupConfigurationByHashRangeStart(IList<ShardGroupConfiguration<TPersistentStorageCredentials>> shardGroupConfiguration)
+        protected void SortShardGroupConfigurationByHashRangeStart<TShardGroupConfiguration>(IList<TShardGroupConfiguration> shardGroupConfiguration)
+            where TShardGroupConfiguration : ShardGroupConfiguration<TPersistentStorageCredentials>
         {
-            List<ShardGroupConfiguration<TPersistentStorageCredentials>> sortedConfiguration = new(shardGroupConfiguration.OrderBy(shardGroupConfiguration => shardGroupConfiguration.HashRangeStart));
+            List<TShardGroupConfiguration> sortedConfiguration = new(shardGroupConfiguration.OrderBy(shardGroupConfiguration => shardGroupConfiguration.HashRangeStart));
             shardGroupConfiguration.Clear();
-            foreach (ShardGroupConfiguration<TPersistentStorageCredentials> currentSortedConfigurationItem in sortedConfiguration)
+            foreach (TShardGroupConfiguration currentSortedConfigurationItem in sortedConfiguration)
             {
                 shardGroupConfiguration.Add(currentSortedConfigurationItem);
             }
@@ -1252,6 +1767,97 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             metricLogger.End(beginId, new DistributedOperationCoordinatorNodeCreateTime());
             metricLogger.Increment(new DistributedOperationCoordinatorNodeCreated());
             logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating distributed operation coordinator node.");
+        }
+
+        /// <summary>
+        /// Creates a distributed operation router node in a distributed AccessManager implementation.
+        /// </summary>
+        /// <param name="dataElement">The type of data element of the shard groups the router should manage (i.e. sit in front of).</param>
+        /// <param name="sourceReaderUrl">The URL of the reader node(s) of the source shard group.</param>
+        /// <param name="sourceWriterUrl">The URL of the writer node of the source shard group.</param>
+        /// <param name="sourceHashRangeStart">The first (inclusive) in the range of hash codes of data elements managed by the source shard group.</param>
+        /// <param name="sourceHashRangeEnd">The last (inclusive) in the range of hash codes of data elements managed by the source shard group.</param>
+        /// <param name="targetReaderUrl">The URL of the reader node(s) of the target shard group.</param>
+        /// <param name="targetWriterUrl">The URL of the writer node of the target shard group.</param>
+        /// <param name="targetHashRangeStart">The first (inclusive) in the range of hash codes of data elements managed by the target shard group.</param>
+        /// <param name="targetHashRangeEnd">The last (inclusive) in the range of hash codes of data elements managed by the target shard group.</param>
+        /// <param name="routingInitiallyOn">Whether or not the routing functionality is initially swicthed on.</param>
+        protected async Task CreateDistributedOperationRouterNodeAsync
+        (
+            DataElement dataElement,
+            Uri sourceReaderUrl,
+            Uri sourceWriterUrl,
+            Int32 sourceHashRangeStart,
+            Int32 sourceHashRangeEnd,
+            Uri targetReaderUrl,
+            Uri targetWriterUrl,
+            Int32 targetHashRangeStart,
+            Int32 targetHashRangeEnd,
+            Boolean routingInitiallyOn
+        )
+        {
+            String nameSpace = staticConfiguration.NameSpace;
+            Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.DistributedOperationRouterNodeConfigurationTemplate);
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating distributed operation router node...");
+            Guid beginId = metricLogger.Begin(new DistributedOperationRouterNodeCreateTime());
+            Task createDeploymentTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await CreateDistributedOperationRouterNodeDeploymentAsync
+                    (
+                        distributedOperationRouterObjectNamePrefix,
+                        dataElement,
+                        sourceReaderUrl,
+                        sourceWriterUrl,
+                        sourceHashRangeStart,
+                        sourceHashRangeEnd,
+                        targetReaderUrl,
+                        targetWriterUrl,
+                        targetHashRangeStart,
+                        targetHashRangeEnd,
+                        routingInitiallyOn
+                    );
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error creating distributed operation router deployment.", e);
+                }
+            });
+            Task createServiceTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await CreateClusterIpServiceAsync(distributedOperationRouterObjectNamePrefix, serviceNamePostfix, staticConfiguration.PodPort);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error creating operation router service '{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}'.", e);
+                }
+            });
+            Task waitForDeploymentTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await WaitForDeploymentAvailabilityAsync(distributedOperationRouterObjectNamePrefix, staticConfiguration.DeploymentWaitPollingInterval, availabilityWaitAbortTimeout);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error waiting for distributed operation router deployment to become available.", e);
+                }
+            });
+            try
+            {
+                await Task.WhenAll(createDeploymentTask, createServiceTask, waitForDeploymentTask);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new DistributedOperationRouterNodeCreateTime());
+                throw;
+            }
+            metricLogger.End(beginId, new DistributedOperationRouterNodeCreateTime());
+            metricLogger.Increment(new DistributedOperationRouterNodeCreated());
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating distributed operation router node.");
         }
 
         /// <summary>
@@ -2338,9 +2944,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 if (disposing)
                 {
                     // Free other state (managed objects).
-                    if (shardConfigurationSetPersister != null && shardConfigurationSetPersister is IDisposable)
+                    if (shardConfigurationSetPersister != null)
                     {
-                        ((IDisposable)shardConfigurationSetPersister).Dispose();
+                        DisposeObject(shardConfigurationSetPersister);
                     }
                     if (kubernetesClient != null)
                     {

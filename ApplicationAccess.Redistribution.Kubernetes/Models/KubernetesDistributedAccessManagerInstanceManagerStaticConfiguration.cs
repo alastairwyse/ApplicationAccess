@@ -49,6 +49,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
         /// </summary>
         public required Int32 ServiceAvailabilityWaitAbortTimeout { get; init; }
 
+        /// <summary>
+        /// The time in milliseconds to wait for distributed operation coordinator configuration changes to be applied, over and above the refresh interval configured in the operation coordinator's appsettings.
+        /// </summary>
+        public required Int32 DistributedOperationCoordinatorRefreshIntervalWaitBuffer { get; init; }
+
         /// <summary>Base/template for configuration of reader node pods/deployments within the distributed AccessManager implementation.</summary>
         public required ReaderNodeConfiguration ReaderNodeConfigurationTemplate { get; init; }
 

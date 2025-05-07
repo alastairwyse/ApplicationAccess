@@ -84,6 +84,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Interval metric which records the time taken to copy events from a source shard group to a target shard group as part of a shard group split operation.
+    /// </summary>
+    public class EventCopyTime : IntervalMetric
+    {
+        protected static String staticName = "EventCopyTime";
+        protected static String staticDescription = "The time taken to copy events from a source shard group to a target shard group as part of a shard group split operation";
+
+        public EventCopyTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Interval metric which records the time taken to delete events from a source shard group as part of a shard group split operation.
     /// </summary>
     public class EventDeleteTime : IntervalMetric
@@ -189,6 +204,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Count metric which records that a distributed operation router node was created in a distributed AccessManager implementation.
+    /// </summary>
+    public class DistributedOperationRouterNodeCreated : CountMetric
+    {
+        protected static String staticName = "DistributedOperationRouterNodeCreated";
+        protected static String staticDescription = "A distributed operation router node was created in a distributed AccessManager implementation";
+
+        public DistributedOperationRouterNodeCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Count metric which records that a persistent storage instance was created for a distributed AccessManager implementation.
     /// </summary>
     public class PersistentStorageInstanceCreated : CountMetric
@@ -242,6 +272,21 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "A distributed AccessManager instance was created";
 
         public DistributedAccessManagerInstanceCreated()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that a shard group in a distributed AccessManager instance was split.
+    /// </summary>
+    public class ShardGroupSplit : CountMetric
+    {
+        protected static String staticName = "ShardGroupSplit";
+        protected static String staticDescription = "A shard group in a distributed AccessManager instance was split";
+
+        public ShardGroupSplit()
         {
             base.name = staticName;
             base.description = staticDescription;
@@ -309,6 +354,21 @@ namespace ApplicationAccess.Redistribution.Metrics
     }
 
     /// <summary>
+    /// Interval metric which records the time taken to create a distributed operation router node in a distributed AccessManager implementation.
+    /// </summary>
+    public class DistributedOperationRouterNodeCreateTime : IntervalMetric
+    {
+        protected static String staticName = "DistributedOperationRouterNodeCreateTime";
+        protected static String staticDescription = "The time taken to create a distributed operation router node in a distributed AccessManager implementation";
+
+        public DistributedOperationRouterNodeCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
     /// Interval metric which records the time taken to create a persistent storage instance for a distributed AccessManager implementation.
     /// </summary>
     public class PersistentStorageInstanceCreateTime : IntervalMetric
@@ -362,6 +422,21 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "The time taken to create a distributed AccessManager instance";
 
         public DistributedAccessManagerInstanceCreateTime()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Interval metric which records the time taken to split a shard group in a distributed AccessManager instance.
+    /// </summary>
+    public class ShardGroupSplitTime : IntervalMetric
+    {
+        protected static String staticName = "ShardGroupSplitTime";
+        protected static String staticDescription = "The time taken to split a shard group in a distributed AccessManager instance";
+
+        public ShardGroupSplitTime()
         {
             base.name = staticName;
             base.description = staticDescription;

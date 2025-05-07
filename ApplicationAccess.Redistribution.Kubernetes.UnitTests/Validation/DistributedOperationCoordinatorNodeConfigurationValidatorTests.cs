@@ -33,12 +33,18 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
         [SetUp]
         protected void SetUp()
         {
+            String stringifiedAppSettings = @"
+            {
+                ""ShardConfigurationRefresh"": {
+                    ""RefreshInterval"": ""5000""
+                }
+            }";
             testNodeConfiguration = new DistributedOperationCoordinatorNodeConfiguration
             {
                 TerminationGracePeriod = 1800,
                 ContainerImage = "applicationaccess/eventcache:20250203-0900",
                 MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Information,
-                AppSettingsConfigurationTemplate = new JObject(),
+                AppSettingsConfigurationTemplate = JObject.Parse(stringifiedAppSettings),
                 CpuResourceRequest = "50m",
                 MemoryResourceRequest = "60Mi",
                 StartupProbeFailureThreshold = 5,
@@ -74,6 +80,46 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
 
             Assert.That(e.Message, Does.StartWith($"DistributedOperationCoordinatorNodeConfiguration property 'ContainerImage' cannot be null."));
             Assert.AreEqual("ContainerImage", e.ParamName);
+        }
+
+        [Test]
+        public void Validate_AppSettingsConfigurationTemplateShardConfigurationRefreshPropertyDoesntExist()
+        {
+            testNodeConfiguration.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"] = null;
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testDistributedOperationCoordinatorNodeConfigurationValidator.Validate(testNodeConfiguration);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"DistributedOperationCoordinatorNodeConfiguration property 'AppSettingsConfigurationTemplate' did not contain configuration refresh interval configuration property 'RefreshInterval'."));
+        }
+
+        [Test]
+        public void Validate_AppSettingsConfigurationTemplateShardConfigurationRefreshPropertyNotInteger()
+        {
+            testNodeConfiguration.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = "abc";
+
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testDistributedOperationCoordinatorNodeConfigurationValidator.Validate(testNodeConfiguration);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"DistributedOperationCoordinatorNodeConfiguration property 'AppSettingsConfigurationTemplate' configuration refresh interval configuration property 'RefreshInterval' with value 'abc' could be no converted to an integer."));
+        }
+
+        [Test]
+        public void Validate_AppSettingsConfigurationTemplateShardConfigurationRefreshProperty0()
+        {
+            testNodeConfiguration.AppSettingsConfigurationTemplate["ShardConfigurationRefresh"]["RefreshInterval"] = 0;
+
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testDistributedOperationCoordinatorNodeConfigurationValidator.Validate(testNodeConfiguration);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"DistributedOperationCoordinatorNodeConfiguration property 'AppSettingsConfigurationTemplate' configuration refresh interval configuration property 'RefreshInterval' with value 0 must be greater than 0."));
+            Assert.AreEqual("RefreshInterval", e.ParamName);
         }
     }
 }
