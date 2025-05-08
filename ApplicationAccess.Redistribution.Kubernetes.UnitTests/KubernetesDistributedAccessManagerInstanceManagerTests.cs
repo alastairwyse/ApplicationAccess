@@ -4302,6 +4302,68 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
+        public async Task UpdateServiceAsync_ExceptionUpdatingService()
+        {
+            var mockException = new Exception("Mock exception");
+            String existingAppLabelValue = "writer";
+            String serviceNamePostfix = "-externalservice";
+            String newAppLabelValue = "user-writer-n2147483648-service";
+            mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), $"{existingAppLabelValue}{serviceNamePostfix}", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.UpdateServiceAsync($"{existingAppLabelValue}{serviceNamePostfix}", newAppLabelValue);
+            });
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), $"{existingAppLabelValue}{serviceNamePostfix}", testNameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to update Kubernetes service '{existingAppLabelValue}{serviceNamePostfix}' to target pod '{newAppLabelValue}'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task UpdateServiceAsync()
+        {
+            String existingAppLabelValue = "writer";
+            String serviceNamePostfix = "-externalservice";
+            String newAppLabelValue = "user-writer-n2147483648-service";
+            String expectedPatchContentString = $"{{\"spec\":{{\"selector\":{{\"app\":\"user-writer-n2147483648-service\"}}}}}}";
+            V1Patch capturedPatchDefinition = null;
+            await mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Do<V1Patch>(argumentValue => capturedPatchDefinition = argumentValue), $"{existingAppLabelValue}{serviceNamePostfix}", testNameSpace);
+
+            await testKubernetesDistributedAccessManagerInstanceManager.UpdateServiceAsync($"{existingAppLabelValue}{serviceNamePostfix}", newAppLabelValue);
+
+            await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), $"{existingAppLabelValue}{serviceNamePostfix}", testNameSpace);
+            Assert.AreEqual(expectedPatchContentString, capturedPatchDefinition.Content);
+        }
+
+        [Test]
+        public async Task DeleteServiceAsync_ExceptionDeletingService()
+        {
+            var mockException = new Exception("Mock exception");
+            String name = "operation-router-service";
+            mockKubernetesClientShim.DeleteNamespacedServiceAsync(null, name, testNameSpace).Returns(Task.FromException<V1Service>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteServiceAsync(name);
+            });
+
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, name, testNameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to delete Kubernetes service 'operation-router-service'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task DeleteServiceAsync()
+        {
+            String name = "operation-router-service";
+
+            await testKubernetesDistributedAccessManagerInstanceManager.DeleteServiceAsync(name);
+
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, name, testNameSpace);
+        }
+
+        [Test]
         public async Task GetLoadBalancerServiceIpAddressAsync_ExceptionRetrievingServices()
         {
             var mockException = new Exception("Mock exception");
@@ -5030,7 +5092,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         public async Task ScaleDeploymentAsync()
         {
             String name = "user-reader-n2147483648";
-            String expectedPatchContentString = $"{{\"spec\": {{\"replicas\": 3}}}}";
+            String expectedPatchContentString = $"{{\"spec\":{{\"replicas\":3}}}}";
             V1Patch capturedPatchDefinition = null;
             await mockKubernetesClientShim.PatchNamespacedDeploymentScaleAsync(null, Arg.Do<V1Patch>(argumentValue => capturedPatchDefinition = argumentValue), name, testNameSpace);
 
@@ -5466,7 +5528,34 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        [Ignore("Integration test")]
+        public async Task DeleteDeploymentAsync_ExceptionDeletingDeployment()
+        {
+            var mockException = new Exception("Mock exception");
+            String name = "user-reader-n3000000";
+            mockKubernetesClientShim.DeleteNamespacedDeploymentAsync(null, name, testNameSpace).Returns(Task.FromException<V1Status>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.DeleteDeploymentAsync(name);
+            });
+
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, name, testNameSpace);
+            Assert.That(e.Message, Does.StartWith($"Failed to delete Kubernetes deployment 'user-reader-n3000000'."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public async Task DeleteDeploymentAsync()
+        {
+            String name = "user-reader-n3000000";
+
+            await testKubernetesDistributedAccessManagerInstanceManager.DeleteDeploymentAsync(name);
+
+            await mockKubernetesClientShim.Received(1).DeleteNamespacedDeploymentAsync(null, name, testNameSpace);
+        }
+
+        [Test]
+        //[Ignore("Integration test")]
         public async Task IntegrationTests_REMOVETHIS()
         {
         }
@@ -6179,6 +6268,16 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await base.CreateLoadBalancerServiceAsync(appLabelValue, serviceNamePostfix, port, targetPort);
             }
 
+            public new async Task UpdateServiceAsync(String serviceName, String appLabelValue)
+            {
+                await base.UpdateServiceAsync(serviceName, appLabelValue);
+            }
+
+            public new async Task DeleteServiceAsync(String name)
+            {
+                await base.DeleteServiceAsync(name);
+            }
+
             public new async Task<IPAddress> GetLoadBalancerServiceIpAddressAsync(String serviceName)
             {
                 return await base.GetLoadBalancerServiceIpAddressAsync(serviceName);
@@ -6263,6 +6362,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             public new async Task WaitForDeploymentPredicateAsync(Predicate<V1Deployment> predicate, Int32 checkInterval, Int32 abortTimeout)
             {
                 await base.WaitForDeploymentPredicateAsync(predicate, checkInterval, abortTimeout);
+            }
+
+            public new async Task DeleteDeploymentAsync(String name)
+            {
+                await base.DeleteDeploymentAsync(name);
             }
 
             #pragma warning restore 1591

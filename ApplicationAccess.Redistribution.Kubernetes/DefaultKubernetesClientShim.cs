@@ -39,15 +39,33 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <inheritdoc/>
+        public async Task<V1Status> DeleteNamespacedDeploymentAsync(k8s.Kubernetes kubernetesClient, String deploymentName, String namespaceParameter)
+        {
+            return await kubernetesClient.DeleteNamespacedDeploymentAsync(deploymentName, namespaceParameter);
+        }
+
+        /// <inheritdoc/>
         public async Task<V1Service> CreateNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, V1Service body, String namespaceParameter)
         {
             return await kubernetesClient.CreateNamespacedServiceAsync(body, namespaceParameter);
         }
 
         /// <inheritdoc/>
+        public async Task<V1Service> PatchNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, V1Patch body, String serviceName, String namespaceParameter)
+        {
+            return await kubernetesClient.PatchNamespacedServiceAsync(body, serviceName, namespaceParameter);
+        }
+
+        /// <inheritdoc/>
         public async Task<V1ServiceList> ListNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, String namespaceParameter)
         {
             return await kubernetesClient.ListNamespacedServiceAsync(namespaceParameter);
+        }
+
+        /// <inheritdoc/>
+        public async Task<V1Service> DeleteNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, String serviceName, String namespaceParameter)
+        {
+            return await kubernetesClient.DeleteNamespacedServiceAsync(serviceName, namespaceParameter);
         }
 
         /// <inheritdoc/>

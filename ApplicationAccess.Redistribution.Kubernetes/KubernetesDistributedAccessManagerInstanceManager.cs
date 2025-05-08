@@ -36,6 +36,7 @@ using ApplicationAccess.Redistribution.Metrics;
 using ApplicationAccess.Redistribution.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using k8s;
 using k8s.Models;
@@ -893,7 +894,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             // ** TODO **: Delete Split Target Writer Service
 
-            // ** TODO **: Delete router deployment
+            // ** TODO **: Delete router deployment (scale down first as delete doesn't observe termination grace period)
 
             // Dispose persisters and clients
             DisposeObject(sourceShardGroupWriterAdministrator);
@@ -2017,6 +2018,43 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
+        /// Updates the 'app' label value (i.e. the targetted pod(s)) of a Kubernetes service.
+        /// </summary>
+        /// <param name="serviceName">The name of the service to update.</param>
+        /// <param name="appLabelValue">The name of the new pod/deployment to be targetted by the service.</param>
+        protected async Task UpdateServiceAsync(String serviceName, String appLabelValue)
+        {
+            JObject patchJson = JObject.Parse( $"{{ \"spec\": {{ \"selector\": {{ \"{appLabel}\": \"{appLabelValue}\" }} }} }}" );
+
+            V1Patch patchDefinition = new(patchJson.ToString(Formatting.None), V1Patch.PatchType.MergePatch);
+
+            try
+            {
+                await kubernetesClientShim.PatchNamespacedServiceAsync(kubernetesClient, patchDefinition, serviceName, staticConfiguration.NameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to update Kubernetes service '{serviceName}' to target pod '{appLabelValue}'.", e);
+            }
+        }
+
+        /// <summary>
+        /// Deletes the specified service.
+        /// </summary>
+        /// <param name="name">The name of the service.</param>
+        protected async Task DeleteServiceAsync(String name)
+        {
+            try
+            {
+                await kubernetesClientShim.DeleteNamespacedServiceAsync(kubernetesClient, name, staticConfiguration.NameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to delete Kubernetes service '{name}'.", e);
+            }
+        }
+
+        /// <summary>
         /// Retrieves the external endpoint IP address of a Kubernetes service of type 'LoadBalancer'.
         /// </summary>
         /// <param name="serviceName">The name of the service.</param>
@@ -2314,10 +2352,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             if (replicaCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(replicaCount), $"Parameter '{nameof(replicaCount)}' with value {replicaCount} must be greater than or equal to 0.");
 
-            // TODO: This is the only way I could find to do this, but surely there is a more robust way?
-            //   Using V1Scale and V1ScaleSpec objects rather than JSON?
-            String patchJson = $"{{\"spec\": {{\"replicas\": {replicaCount}}}}}";
-            V1Patch patchDefinition = new(patchJson, V1Patch.PatchType.MergePatch);
+            JObject patchJson = JObject.Parse( $"{{ \"spec\": {{ \"replicas\": {replicaCount} }} }}" );
+            V1Patch patchDefinition = new(patchJson.ToString(Formatting.None), V1Patch.PatchType.MergePatch);
 
             try
             {
@@ -2508,6 +2544,22 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
         }
 
+        /// <summary>
+        /// Deletes the specified deployment.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        protected async Task DeleteDeploymentAsync(String name)
+        {
+            try
+            {
+                await kubernetesClientShim.DeleteNamespacedDeploymentAsync(kubernetesClient, name, staticConfiguration.NameSpace);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to delete Kubernetes deployment '{name}'.", e);
+            }
+        }
+        
         #endregion
 
         #region Kubernetes Object Templates

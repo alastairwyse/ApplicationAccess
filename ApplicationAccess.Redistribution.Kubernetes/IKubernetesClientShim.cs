@@ -44,6 +44,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         Task<V1DeploymentList> ListNamespacedDeploymentAsync(k8s.Kubernetes kubernetesClient, String namespaceParameter);
 
         /// <summary>
+        /// Deletes a deployment.
+        /// </summary>
+        /// <param name="kubernetesClient">The client to use.</param>
+        /// <param name="deploymentName">The name of the deployment.</param>
+        /// <param name="namespaceParameter">The namespace to delete the deployment from.</param>
+        Task<V1Status> DeleteNamespacedDeploymentAsync(k8s.Kubernetes kubernetesClient, String deploymentName, String namespaceParameter);
+
+        /// <summary>
         /// Creates a Service.
         /// </summary>
         /// <param name="kubernetesClient">The client to use.</param>
@@ -52,12 +60,29 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         Task<V1Service> CreateNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, V1Service body, String namespaceParameter);
 
         /// <summary>
+        /// Patches a Service.
+        /// </summary>
+        /// <param name="kubernetesClient">The client to use.</param>
+        /// <param name="body">The definition of the service patch.</param>
+        /// <param name="serviceName">The name of the service.</param>
+        /// <param name="namespaceParameter">The namespace to update the service in.</param>
+        Task<V1Service> PatchNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, V1Patch body, String serviceName, String namespaceParameter);
+
+        /// <summary>
         /// Returns all the services in the specified namespace.
         /// </summary>
         /// <param name="kubernetesClient">The client to use.</param>
         /// <param name="namespaceParameter">The namespace to get the services from.</param>
         /// <returns>A list of services.</returns>
         Task<V1ServiceList> ListNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, String namespaceParameter);
+
+        /// <summary>
+        /// Deletes a service.
+        /// </summary>
+        /// <param name="kubernetesClient">The client to use.</param>
+        /// <param name="serviceName">The name of the service.</param>
+        /// <param name="namespaceParameter">The namespace to delete the service from.</param>
+        Task<V1Service> DeleteNamespacedServiceAsync(k8s.Kubernetes kubernetesClient, String serviceName, String namespaceParameter);
 
         /// <summary>
         /// Scales a specified deployment.
