@@ -36,10 +36,10 @@ using ApplicationAccess.Redistribution.Metrics;
 using ApplicationAccess.Redistribution.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using k8s;
 using k8s.Models;
+using System.Xml.Linq;
 
 namespace ApplicationAccess.Redistribution.Kubernetes
 {
@@ -792,7 +792,20 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw;
             }
 
-            // ** TODO **: Create Split Target Writer Service (or patch/replace)
+            // Update writer load balancer service to target source shard group writer node
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to target source shard group writer node...");
+            String writerLoadBalancerServiceName = $"{NodeType.Writer.ToString().ToLower()}{externalServiceNamePostfix}";
+            String sourceWriterNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
+            try
+            {
+                await UpdateServiceAsync(writerLoadBalancerServiceName, sourceWriterNodeIdentifier);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating writer load balancer service.");
 
             // Update the shard group configuration to redirect to the router
             logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
@@ -884,17 +897,76 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new Exception("Failed to switch routing on.", e);
             }
 
+            // Release all paused/held operation requests
+            logger.Log(ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
+            try
+            {
+                operationRouter.ResumeOperations();
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw new Exception("Failed to resume incoming operations to the source and target shard groups.", e);
+            }
+
+            // Update the instance configuration with the previously updated shard group configuration (required by call to UpdateAndPersistShardConfiguration())
+            if (dataElement == DataElement.User)
+            {
+                instanceConfiguration.UserShardGroupConfiguration = updatedShardGroupConfiguration;
+            }
+            else
+            {
+                instanceConfiguration.GroupShardGroupConfiguration = updatedShardGroupConfiguration;
+            }
+
+            // Update the shard group configuration to redirect to target shard groups
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to target shard groups...");
+            configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
+            {
+                new HashRangeStartAndClientConfigurations
+                {
+                    HashRangeStart = splitHashRangeStart,
+                    ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, splitHashRangeStart)),
+                    WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, splitHashRangeStart))
+                },
+            };
+            configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
+            updatedShardGroupConfiguration = UpdateAndPersistShardConfiguration
+            (
+                dataElement,
+                configurationUpdates,
+                configurationAdditions
+            );
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+
+            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+            await Task.Delay(configurationUpdateWait);
+
 
             // TODO:
-            //   Release held operations
-            //   Update shard configuration to include remove router and add new shard group and and wait
             //   (Start delete part)
 
 
 
-            // ** TODO **: Delete Split Target Writer Service
+
+
+
+
+            // Update the instance configuration with the previously updated shard group configuration
+            SortShardGroupConfigurationByHashRangeStart(updatedShardGroupConfiguration);
+            if (dataElement == DataElement.User)
+            {
+                instanceConfiguration.UserShardGroupConfiguration = updatedShardGroupConfiguration;
+            }
+            else
+            {
+                instanceConfiguration.GroupShardGroupConfiguration = updatedShardGroupConfiguration;
+            }
+
+            // ** TODO **: Reverse update to Split Target Writer Service
 
             // ** TODO **: Delete router deployment (scale down first as delete doesn't observe termination grace period)
+            //    ScaleDownAndDeleteDeploymentAsync()
 
             // Dispose persisters and clients
             DisposeObject(sourceShardGroupWriterAdministrator);
@@ -2024,9 +2096,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <param name="appLabelValue">The name of the new pod/deployment to be targetted by the service.</param>
         protected async Task UpdateServiceAsync(String serviceName, String appLabelValue)
         {
-            JObject patchJson = JObject.Parse( $"{{ \"spec\": {{ \"selector\": {{ \"{appLabel}\": \"{appLabelValue}\" }} }} }}" );
-
-            V1Patch patchDefinition = new(patchJson.ToString(Formatting.None), V1Patch.PatchType.MergePatch);
+            V1Service servicePatch = new()
+            {
+                Spec = new V1ServiceSpec()
+                {
+                    Selector = new Dictionary<String, String>()
+                }
+            };
+            servicePatch.Spec.Selector.Add(appLabel, appLabelValue);
+            V1Patch patchDefinition = new(servicePatch, V1Patch.PatchType.MergePatch);
 
             try
             {
@@ -2352,8 +2430,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             if (replicaCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(replicaCount), $"Parameter '{nameof(replicaCount)}' with value {replicaCount} must be greater than or equal to 0.");
 
-            JObject patchJson = JObject.Parse( $"{{ \"spec\": {{ \"replicas\": {replicaCount} }} }}" );
-            V1Patch patchDefinition = new(patchJson.ToString(Formatting.None), V1Patch.PatchType.MergePatch);
+            V1Deployment deploymentPatch = new()
+            {
+                Spec = new V1DeploymentSpec()
+                {
+                    Replicas = replicaCount
+                }
+            };
+            V1Patch patchDefinition = new(deploymentPatch, V1Patch.PatchType.MergePatch);
 
             try
             {
@@ -2559,7 +2643,21 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new Exception($"Failed to delete Kubernetes deployment '{name}'.", e);
             }
         }
-        
+
+        /// <summary>
+        /// Scales down and then deletes the specified deployment.
+        /// </summary>
+        /// <param name="name">The name of the deployment.</param>
+        /// <param name="checkInterval">The interval in milliseconds between successive checks as to whether the deployment has scaled down.</param>
+        /// <param name="abortTimeout">The number of milliseconds to wait before throwing an exception if the deployment hasn't scaled down.</param>
+        /// <remarks>Calling DeleteDeploymentAsync() seems to ignore the 'TerminationGracePeriod' set for the deployment and force deletes it.  This method instead first scales the deployment to 0 which will observe the 'TerminationGracePeriod'.</remarks>
+        protected async Task ScaleDownAndDeleteDeploymentAsync(String name, Int32 checkInterval, Int32 abortTimeout)
+        {
+            await ScaleDeploymentAsync(name, 0);
+            await WaitForDeploymentScaleDownAsync(name, checkInterval, abortTimeout);
+            await DeleteDeploymentAsync(name);
+        }
+
         #endregion
 
         #region Kubernetes Object Templates
