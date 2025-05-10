@@ -39,7 +39,6 @@ using ApplicationMetrics;
 using Newtonsoft.Json.Linq;
 using k8s;
 using k8s.Models;
-using System.Xml.Linq;
 
 namespace ApplicationAccess.Redistribution.Kubernetes
 {
@@ -832,12 +831,21 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     routerClientConfiguration
                 )
             };
-            IList<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> updatedShardGroupConfiguration = UpdateAndPersistShardConfiguration
-            (
-                dataElement,
-                configurationUpdates,
-                configurationAdditions
-            );
+            IList<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>> updatedShardGroupConfiguration = null;
+            try
+            {
+                updatedShardGroupConfiguration = UpdateAndPersistShardConfiguration
+                (
+                    dataElement,
+                    configurationUpdates,
+                    configurationAdditions
+                );
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
             logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
             // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
@@ -906,7 +914,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             catch (Exception e)
             {
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
-                throw new Exception("Failed to resume incoming operations to the source and target shard groups.", e);
+                throw new Exception("Failed to resume incoming operations in the source and target shard groups.", e);
             }
 
             // Update the instance configuration with the previously updated shard group configuration (required by call to UpdateAndPersistShardConfiguration())
@@ -919,8 +927,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 instanceConfiguration.GroupShardGroupConfiguration = updatedShardGroupConfiguration;
             }
 
-            // Update the shard group configuration to redirect to target shard groups
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to target shard groups...");
+            // Update the shard group configuration to redirect to target shard group
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to target shard group...");
             configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
             {
                 new HashRangeStartAndClientConfigurations
@@ -931,26 +939,122 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 },
             };
             configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
-            updatedShardGroupConfiguration = UpdateAndPersistShardConfiguration
-            (
-                dataElement,
-                configurationUpdates,
-                configurationAdditions
-            );
+            try
+            {
+                updatedShardGroupConfiguration = UpdateAndPersistShardConfiguration
+                (
+                    dataElement,
+                    configurationUpdates,
+                    configurationAdditions
+                );
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
             logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
             // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
             await Task.Delay(configurationUpdateWait);
 
+            // Delete events from the source shard group
+            Boolean includeGroupEvents = false;
+            if (dataElement == DataElement.Group)
+            {
+                includeGroupEvents = true;
+            }
+            try
+            {
+                shardGroupSplitter.DeleteEventsFromSourceShardGroup
+                (
+                    sourceShardGroupEventDeleter, 
+                    hashRangeStart, 
+                    splitHashRangeStart - 1,
+                    includeGroupEvents
+                );
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw new Exception("Error deleting events from source shard group.", e);
+            }
 
-            // TODO:
-            //   (Start delete part)
+            // Pause/hold any incoming operation requests
+            logger.Log(ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
+            try
+            {
+                operationRouter.PauseOperations();
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw new Exception("Failed to hold/pause incoming operations in the source shard group.", e);
+            }
 
+            // Restart the source shard group
+            try
+            {
+                await RestartShardGroupAsync(dataElement, hashRangeStart);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
 
+            // Release all paused/held operation requests
+            logger.Log(ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
+            try
+            {
+                operationRouter.ResumeOperations();
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw new Exception("Failed to resume incoming operations in the source shard group.", e);
+            }
 
+            // Update the instance configuration with the previously updated shard group configuration (required by call to UpdateAndPersistShardConfiguration())
+            if (dataElement == DataElement.User)
+            {
+                instanceConfiguration.UserShardGroupConfiguration = updatedShardGroupConfiguration;
+            }
+            else
+            {
+                instanceConfiguration.GroupShardGroupConfiguration = updatedShardGroupConfiguration;
+            }
 
+            // Update the shard group configuration to redirect to source shard group
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group...");
+            configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
+            {
+                new HashRangeStartAndClientConfigurations
+                {
+                    HashRangeStart = hashRangeStart,
+                    ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Reader, hashRangeStart)),
+                    WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(GenerateNodeServiceUrl(dataElement, NodeType.Writer, hashRangeStart))
+                },
+            };
+            configurationAdditions = new List<KubernetesShardGroupConfiguration<TPersistentStorageCredentials>>();
+            try
+            {
+                updatedShardGroupConfiguration = UpdateAndPersistShardConfiguration
+                (
+                    dataElement,
+                    configurationUpdates,
+                    configurationAdditions
+                );
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
-
+            // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
+            await Task.Delay(configurationUpdateWait);
 
             // Update the instance configuration with the previously updated shard group configuration
             SortShardGroupConfigurationByHashRangeStart(updatedShardGroupConfiguration);
@@ -963,10 +1067,44 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 instanceConfiguration.GroupShardGroupConfiguration = updatedShardGroupConfiguration;
             }
 
-            // ** TODO **: Reverse update to Split Target Writer Service
+            // Undo update to writer load balancer service 
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Reversing update to writer load balancer service...");
+            try
+            {
+                await UpdateServiceAsync(writerLoadBalancerServiceName, NodeType.Writer.ToString().ToLower());
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed reversing update to writer load balancer service.");
 
-            // ** TODO **: Delete router deployment (scale down first as delete doesn't observe termination grace period)
-            //    ScaleDownAndDeleteDeploymentAsync()
+            // Delete the router Cluster IP service
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node cluster ip service...");
+            try
+            {
+                await DeleteServiceAsync($"{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}");
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node cluster ip service.");
+
+            // Delete distributed operation router
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node...");
+            try
+            {
+                await ScaleDownAndDeleteDeploymentAsync(distributedOperationRouterObjectNamePrefix, staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
+            }
+            catch
+            {
+                metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
+                throw;
+            }
+            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node.");
 
             // Dispose persisters and clients
             DisposeObject(sourceShardGroupWriterAdministrator);
