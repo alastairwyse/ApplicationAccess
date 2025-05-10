@@ -44,6 +44,8 @@ using NUnit.Framework.Internal;
 using ApplicationAccess.Distribution.Persistence.SqlServer;
 using ApplicationAccess.Redistribution.Persistence.SqlServer;
 using ApplicationAccess.Persistence.Sql.SqlServer;
+using ApplicationAccess.Hosting.Rest.DistributedOperationRouterClient;
+using ApplicationAccess.Hosting.Rest.DistributedWriterAdministratorClient;
 
 namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 {
@@ -58,7 +60,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         protected IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials> mockAppSettingsConfigurer;
         protected IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer> mockShardConfigurationSetPersister;
         protected IAccessManagerTemporalEventBatchReader mockSourceShardGroupEventReader;
-        protected IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String> mockTargetShardGroupEventPersister;
+        protected IAccessManagerTemporalEventBulkPersister<String, String, String, String> mockTargetShardGroupEventPersister;
         protected IAccessManagerTemporalEventDeleter mocksourceShardGroupEventDeleter;
         protected IDistributedAccessManagerOperationRouter mockOperationRouter;
         protected IDistributedAccessManagerWriterAdministrator mockSourceShardGroupWriterAdministrator;
@@ -68,7 +70,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         protected IMetricLogger mockMetricLogger;
         protected Func<TestPersistentStorageLoginCredentials, IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>> testShardConfigurationSetPersisterCreationFunction;
         protected Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventBatchReader> testSourceShardGroupEventReaderCreationFunction;
-        protected Func<TestPersistentStorageLoginCredentials, IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>> testTargetShardGroupEventPersisterCreationFunction;
+        protected Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> testTargetShardGroupEventPersisterCreationFunction;
         protected Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventDeleter> testSourceShardGroupEventDeleterCreationFunction;
         protected Func<Uri, IDistributedAccessManagerOperationRouter> testOperationRouterCreationFunction;
         protected Func<Uri, IDistributedAccessManagerWriterAdministrator> testSourceShardGroupWriterAdministratorCreationFunction;
@@ -83,7 +85,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockAppSettingsConfigurer = Substitute.For<IPersistentStorageCredentialsAppSettingsConfigurer<TestPersistentStorageLoginCredentials>>();
             mockShardConfigurationSetPersister = Substitute.For<IShardConfigurationSetPersister<AccessManagerRestClientConfiguration, AccessManagerRestClientConfigurationJsonSerializer>>();
             mockSourceShardGroupEventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
-            mockTargetShardGroupEventPersister = Substitute.For<IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>>();
+            mockTargetShardGroupEventPersister = Substitute.For<IAccessManagerTemporalEventBulkPersister<String, String, String, String>>();
             mocksourceShardGroupEventDeleter = Substitute.For<IAccessManagerTemporalEventDeleter>();
             mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
             mockSourceShardGroupWriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
@@ -936,8 +938,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedAccessManagerInstanceCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating distributed AccessManager instance in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed AccessManager instance in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
             // Assertions on the instance shard configuration
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
             Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration.Count);
@@ -1161,8 +1163,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedAccessManagerInstanceCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating distributed AccessManager instance in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed AccessManager instance in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
             // Assertions on the instance shard configuration
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
             Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration.Count);
@@ -1386,8 +1388,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedAccessManagerInstanceCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedAccessManagerInstanceCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating distributed AccessManager instance in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed AccessManager instance in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
             // Assertions on the instance shard configuration
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
             Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration.Count);
@@ -3306,27 +3308,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupSplit>());
             mockMetricLogger.Received(1).End(eventCopyBeginId, Arg.Any<EventCopyTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedOperationRouterNodeCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, $"Splitting User shard group with hash range start value {Int32.MinValue} at new shard group with hash range start value 0...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value 0...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed operation router node.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Updating writer load balancer service to target source shard group writer node...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed updating writer load balancer service.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to target shard group...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to source shard group...");
-            mockApplicationLogger.Received(3).Log(ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Reversing update to writer load balancer service...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed reversing update to writer load balancer service.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Deleting distributed operation router node cluster ip service...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node cluster ip service.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Deleting distributed operation router node...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed splitting shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, $"Splitting User shard group with hash range start value {Int32.MinValue} at new shard group with hash range start value 0...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value 0...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed operation router node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating writer load balancer service to target source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed updating writer load balancer service.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to target shard group...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to source shard group...");
+            mockApplicationLogger.Received(3).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Reversing update to writer load balancer service...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed reversing update to writer load balancer service.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Deleting distributed operation router node cluster ip service...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node cluster ip service.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Deleting distributed operation router node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed splitting shard group.");
             // Assertions on the first updated shard configuration
             //   Fine grained tests on methods CreateShardConfigurationSet() and ShardConfigurationSetPersister.Write() are already performed in tests CreateDistributedAccessManagerInstanceAsync() and UpdateAndPersistShardConfiguration()
             //   Hence will just perform cursory checks here
@@ -3565,27 +3567,27 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupSplit>());
             mockMetricLogger.Received(1).End(eventCopyBeginId, Arg.Any<EventCopyTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedOperationRouterNodeCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, $"Splitting Group shard group with hash range start value {Int32.MinValue} at new shard group with hash range start value -1073741824...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'Group' and hash range start value -1073741824...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed operation router node.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Updating writer load balancer service to target source shard group writer node...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed updating writer load balancer service.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to target shard group...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to source shard group...");
-            mockApplicationLogger.Received(3).Log(ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Reversing update to writer load balancer service...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed reversing update to writer load balancer service.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Deleting distributed operation router node cluster ip service...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node cluster ip service.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Deleting distributed operation router node...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed splitting shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, $"Splitting Group shard group with hash range start value {Int32.MinValue} at new shard group with hash range start value -1073741824...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'Group' and hash range start value -1073741824...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed operation router node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating writer load balancer service to target source shard group writer node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed updating writer load balancer service.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to router...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to target shard group...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Updating shard group configuration to redirect to source shard group...");
+            mockApplicationLogger.Received(3).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed updating shard group configuration.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Reversing update to writer load balancer service...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed reversing update to writer load balancer service.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Deleting distributed operation router node cluster ip service...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node cluster ip service.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Deleting distributed operation router node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed splitting shard group.");
             // Assertions on the first updated shard configuration
             //   Fine grained tests on methods CreateShardConfigurationSet() and ShardConfigurationSetPersister.Write() are already performed in tests CreateDistributedAccessManagerInstanceAsync() and UpdateAndPersistShardConfiguration()
             //   Hence will just perform cursory checks here
@@ -4228,10 +4230,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).End(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId1, Arg.Any<ShardGroupCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating shard group for data element 'User' and hash range start value -400000 in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value -400000...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating shard group for data element 'User' and hash range start value -400000 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value -400000...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
         }
 
         [Test]
@@ -4276,10 +4278,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.DidNotReceive().End(testBeginId2, Arg.Any<PersistentStorageInstanceCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId1, Arg.Any<ShardGroupCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating shard group for data element 'User' and hash range start value -400000 in namespace 'default'...");
-            mockApplicationLogger.DidNotReceive().Log(ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value -400000...");
-            mockApplicationLogger.DidNotReceive().Log(ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating shard group for data element 'User' and hash range start value -400000 in namespace 'default'...");
+            mockApplicationLogger.DidNotReceive().Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating persistent storage instance for data element 'User' and hash range start value -400000...");
+            mockApplicationLogger.DidNotReceive().Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating persistent storage instance.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
         }
 
         [Test]
@@ -4391,8 +4393,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupRestartTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ShardGroupRestartTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupRestarted>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Restarting shard group for data element 'User' and hash range start value -1 in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed restarting shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Restarting shard group for data element 'User' and hash range start value -1 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed restarting shard group.");
         }
 
         [Test]
@@ -4615,8 +4617,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupScaleDownTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ShardGroupScaleDownTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupScaledDown>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Scaling down shard group for data element 'User' and hash range start value -3000000 in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed scaling down shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Scaling down shard group for data element 'User' and hash range start value -3000000 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed scaling down shard group.");
         }
 
         [Test]
@@ -4808,8 +4810,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupScaleUpTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ShardGroupScaleUpTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ShardGroupScaledUp>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Scaling up shard group for data element 'User' and hash range start value -3000000 in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed scaling up shard group.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Scaling up shard group for data element 'User' and hash range start value -3000000 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed scaling up shard group.");
         }
 
         [Test]
@@ -4871,8 +4873,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<ReaderNodeCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<ReaderNodeCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<ReaderNodeCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating reader node for data element 'GroupToGroupMapping' and hash range start value -2147483648 in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating reader node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating reader node for data element 'GroupToGroupMapping' and hash range start value -2147483648 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating reader node.");
         }
 
         [Test]
@@ -4930,8 +4932,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<EventCacheNodeCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EventCacheNodeCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<EventCacheNodeCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating event cache node for data element 'User' and hash range start value -100 in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating event cache node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating event cache node for data element 'User' and hash range start value -100 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating event cache node.");
         }
 
         [Test]
@@ -4993,8 +4995,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<WriterNodeCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<WriterNodeCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<WriterNodeCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating writer node for data element 'Group' and hash range start value 0 in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating writer node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating writer node for data element 'Group' and hash range start value 0 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating writer node.");
         }
 
         [Test]
@@ -5070,8 +5072,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedOperationCoordinatorNodeCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedOperationCoordinatorNodeCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedOperationCoordinatorNodeCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating distributed operation coordinator node in namespace 'default'...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed operation coordinator node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed operation coordinator node in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed operation coordinator node.");
         }
 
         [Test]
@@ -5222,8 +5224,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Received(1).Begin(Arg.Any<DistributedOperationRouterNodeCreateTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<DistributedOperationRouterNodeCreateTime>());
             mockMetricLogger.Received(1).Increment(Arg.Any<DistributedOperationRouterNodeCreated>());
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
-            mockApplicationLogger.Received(1).Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed operation router node.");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Creating distributed operation router node...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed creating distributed operation router node.");
         }
 
         [Test]
@@ -7392,7 +7394,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 Int32 splitHashRangeStart,
                 Int32 splitHashRangeEnd,
                 Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
-                Func<TestPersistentStorageLoginCredentials, IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+                Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
                 Func<TestPersistentStorageLoginCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
                 Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
                 Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,

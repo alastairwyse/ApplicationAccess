@@ -53,7 +53,7 @@ namespace ApplicationAccess.Redistribution
         public void CopyEventsToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader,
-            IAccessManagerIdempotentTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
+            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
             IDistributedAccessManagerOperationRouter operationRouter,
             IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator,
             Int32 hashRangeStart,
@@ -182,10 +182,10 @@ namespace ApplicationAccess.Redistribution
         /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will move all group events if set to false.</param>
         /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard group in each batch.</param>
         /// <returns>The id of the last event that was copied.</returns>
-        protected Guid CopyEventBatchesToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
+        protected Nullable<Guid> CopyEventBatchesToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader,
-            IAccessManagerIdempotentTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
+            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
             ref Int32 currentBatchNumber, 
             Nullable<Guid> firstEventId, 
             Int32 hashRangeStart,
@@ -213,6 +213,12 @@ namespace ApplicationAccess.Redistribution
                 metricLogger.End(beginId, new EventBatchReadTime());
                 logger.Log(this, LogLevel.Information, $"Read {currentEvents.Count} events from source shard group.");
 
+                if (currentEvents.Count == 0)
+                {
+                    // This situation can occur if events exist after the last event persisted, but they are all outside the hash range
+                    break;
+                }
+
                 beginId = metricLogger.Begin(new EventBatchWriteTime());
                 try
                 {
@@ -234,7 +240,7 @@ namespace ApplicationAccess.Redistribution
                 currentBatchNumber++;
             }
 
-            return lastEventId.Value;
+            return lastEventId;
         }
 
         /// <summary>

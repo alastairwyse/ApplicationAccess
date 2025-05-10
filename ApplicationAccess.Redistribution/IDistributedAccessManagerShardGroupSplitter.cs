@@ -51,7 +51,7 @@ namespace ApplicationAccess.Redistribution
         void CopyEventsToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader,
-            IAccessManagerIdempotentTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
+            IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
             IDistributedAccessManagerOperationRouter operationRouter,
             IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator,
             Int32 hashRangeStart,

@@ -247,6 +247,22 @@ namespace ApplicationAccess.Redistribution.UnitTests
             mockMetricLogger.Received(4).End(testBeginId, Arg.Any<EventBatchWriteTime>());
             mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 0);
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<EventProcessingCountCheckRetried>());
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying subset of events from source shard group to target shard group...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Starting initial event batch copy...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 1 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 2 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 3 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 4 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(4).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 events from source shard group.");
+            mockApplicationLogger.Received(4).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 events to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Pausing operations in the source and target shard groups.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Waiting for source writer node event processing to complete...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Source writer node event processing to complete.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Flushing source writer node event buffers...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed flushing source writer node event buffers.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Starting final event batch copy...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed final event batch copy.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed copying subset of events from source shard group to target shard group.");
         }
 
         [Test]
@@ -315,6 +331,100 @@ namespace ApplicationAccess.Redistribution.UnitTests
             mockMetricLogger.Received(3).End(testBeginId, Arg.Any<EventBatchWriteTime>());
             mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 0);
             mockMetricLogger.DidNotReceive().Increment(Arg.Any<EventProcessingCountCheckRetried>());
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying subset of events from source shard group to target shard group...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Starting initial event batch copy...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 1 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 2 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 3 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(3).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 events from source shard group.");
+            mockApplicationLogger.Received(3).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 events to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Pausing operations in the source and target shard groups.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Waiting for source writer node event processing to complete...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Source writer node event processing to complete.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Flushing source writer node event buffers...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed flushing source writer node event buffers.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed copying subset of events from source shard group to target shard group.");
+        }
+
+        [Test]
+        public void CopyEventsToTargetShardGroup_EventsWithHashCodeOutsideHashRangeExistAfterLastEventBatch()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            var batch1FirstEventId = Guid.Parse("5ce76236-0d94-481e-a14b-d9ff5c7ab250");
+            var batch2FirstEventId = Guid.Parse("3c11c947-7fe7-4264-bfff-144272496d90");
+            var outsideHashRangeEventId = Guid.Parse("2fb989e6-54d5-48c3-a3bf-1635c14bade4");
+            var eventBatch1 = new List<TemporalEventBufferItemBase>
+            {
+                GenerateAddUserEvent(batch1FirstEventId, "user1"),
+                GenerateAddUserEvent(Guid.NewGuid(), "user2")
+            };
+            var eventBatch2 = new List<TemporalEventBufferItemBase>
+            {
+                GenerateAddUserEvent(batch2FirstEventId, "user3"),
+                GenerateAddUserEvent(Guid.NewGuid(), "user4")
+            };
+            var emptyEventBatch = new List<TemporalEventBufferItemBase>
+            {
+                // In the case that events after the last event batch are outside the hash code range GetEvents() will return an empty list
+            };
+            mockMetricLogger.Begin(Arg.Any<EventBatchReadTime>()).Returns(testBeginId);
+            mockMetricLogger.Begin(Arg.Any<EventBatchWriteTime>()).Returns(testBeginId);
+            mockSourceShardGroupEventReader.GetInitialEvent().Returns<Guid>(batch1FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch1);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch1[1].EventId).Returns(batch2FirstEventId);
+            mockSourceShardGroupEventReader.GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(eventBatch2);
+            mockSourceShardGroupEventReader.GetNextEventAfter(eventBatch2[1].EventId).Returns(outsideHashRangeEventId);
+            mockSourceShardGroupEventReader.GetEvents(outsideHashRangeEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize).Returns(emptyEventBatch);
+            mockSourceShardGroupWriterAdministrator.GetEventProcessingCount().Returns(0);
+
+            testShardGroupSplitter.CopyEventsToTargetShardGroup
+            (
+                mockSourceShardGroupEventReader,
+                mockTargetShardGroupEventPersister,
+                mockOperationRouter,
+                mockSourceShardGroupWriterAdministrator,
+                testHashRangeStart,
+                testHashRangeEnd,
+                testFilterGroupEventsByHashRange,
+                testEventBatchSize,
+                testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                testSourceWriterNodeOperationsCompleteCheckRetryInterval
+            );
+
+            mockSourceShardGroupEventReader.Received(1).GetInitialEvent();
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch1FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch1);
+            mockSourceShardGroupEventReader.Received(1).GetNextEventAfter(eventBatch1[1].EventId);
+            mockSourceShardGroupEventReader.Received(1).GetEvents(batch2FirstEventId, testHashRangeStart, testHashRangeEnd, testFilterGroupEventsByHashRange, testEventBatchSize);
+            mockTargetShardGroupEventPersister.PersistEvents(eventBatch2);
+            mockSourceShardGroupEventReader.Received(2).GetNextEventAfter(eventBatch2[1].EventId);
+            mockTargetShardGroupEventPersister.DidNotReceive().PersistEvents(emptyEventBatch);
+            mockSourceShardGroupEventReader.DidNotReceive().GetNextEventAfter(outsideHashRangeEventId);
+            mockOperationRouter.Received(1).PauseOperations();
+            mockSourceShardGroupWriterAdministrator.Received(1).GetEventProcessingCount();
+            mockSourceShardGroupWriterAdministrator.Received(1).FlushEventBuffers();
+            mockMetricLogger.Received(4).Begin(Arg.Any<EventBatchReadTime>());
+            mockMetricLogger.Received(4).End(testBeginId, Arg.Any<EventBatchReadTime>());
+            mockMetricLogger.Received(2).Begin(Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(2).End(testBeginId, Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 0);
+            mockMetricLogger.DidNotReceive().Increment(Arg.Any<EventProcessingCountCheckRetried>());
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying subset of events from source shard group to target shard group...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Starting initial event batch copy...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 1 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 2 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 3 of events from source shard group to target shard group.");
+            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 events from source shard group.");
+            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 0 events from source shard group.");
+            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 events to target shard group.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Pausing operations in the source and target shard groups.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Waiting for source writer node event processing to complete...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Source writer node event processing to complete.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Flushing source writer node event buffers...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed flushing source writer node event buffers.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Starting final event batch copy...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed final event batch copy.");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed copying subset of events from source shard group to target shard group.");
         }
 
         [Test]
@@ -349,6 +459,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
             mockSourceShardGroupEventDeleter.Received(1).DeleteEvents(testHashRangeStart, testHashRangeEnd, includeGroupEvents);
             mockMetricLogger.Received(1).Begin(Arg.Any<EventDeleteTime>());
             mockMetricLogger.Received(1).End(testBeginId, Arg.Any<EventDeleteTime>());
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Deleting events from source shard group...");
+            mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Completed deleting events from source shard group.");
         }
 
         [Test]
@@ -625,10 +737,10 @@ namespace ApplicationAccess.Redistribution.UnitTests
             /// <param name="filterGroupEventsByHashRange">Whether to filter <see cref="GroupEventBufferItem{TGroup}">group events</see> by the hash range.  Will move all group events if set to false.</param>
             /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard in each batch.</param>
             /// <returns>The id of the last event that was copied.</returns>
-            public new Guid CopyEventBatchesToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
+            public new Nullable<Guid> CopyEventBatchesToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
             (
                 IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader,
-                IAccessManagerIdempotentTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
+                IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
                 ref Int32 currentBatchNumber,
                 Nullable<Guid> firstEventId,
                 Int32 hashRangeStart,
@@ -639,14 +751,14 @@ namespace ApplicationAccess.Redistribution.UnitTests
             {
                 return base.CopyEventBatchesToTargetShardGroup
                 (
-                sourceShardGroupEventReader,
-                targetShardGroupEventPersister,
-                ref currentBatchNumber,
-                firstEventId,
-                hashRangeStart,
-                hashRangeEnd,
-                filterGroupEventsByHashRange,
-                eventBatchSize
+                    sourceShardGroupEventReader,
+                    targetShardGroupEventPersister,
+                    ref currentBatchNumber,
+                    firstEventId,
+                    hashRangeStart,
+                    hashRangeEnd,
+                    filterGroupEventsByHashRange,
+                    eventBatchSize
                 );
             }
 

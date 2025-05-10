@@ -62,7 +62,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         // Comment about innefficiencies iterating instance config lists... and why I chose to do this.
         // Thing about passing Guid back from Splitter.CopyEvents() method which is a Begin metric guid for when operations were paused
         //   So I can capture the hold time with a normal interval metric
-
+        // Should I change calls to shardConfigurationSetPersister.Write() to NOT delete everything?
+        //   Reduces the number of DB updates required
+        
 
         // Regarding the 'shardConfigurationSetPersisterCreationFunction' parameter... elsewhere in the solution a factory pattern is used to construct instances, 
         //   and following this trend, I would pass a factory for IShardConfigurationSetPersister instances into the constructor of this class.  In fact we already
@@ -82,7 +84,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         //   * Hence implemented approach is to use Func parameters (e.g. 'shardConfigurationSetPersisterCreationFunction' on the constructor) to create the 
         //     IShardConfigurationSetPersister instance instead of a factory class.
 
-        #pragma warning disable 1591
+#pragma warning disable 1591
 
         protected const String appLabel = "app";
         protected const String serviceNamePostfix = "-service";
@@ -308,7 +310,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new InvalidOperationException("A load balancer service for the distributed operation router has already been created.");
 
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation router on port {port} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation router on port {port} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new LoadBalancerServiceCreateTime());
 
             try
@@ -344,7 +346,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new LoadBalancerServiceCreateTime());
             metricLogger.Increment(new LoadBalancerServiceCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
 
             return returnIpAddress;
         }
@@ -361,7 +363,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new InvalidOperationException("A load balancer service for writer components has already been created.");
 
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating load balancer service for writer on port {port} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for writer on port {port} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new LoadBalancerServiceCreateTime());
 
             String appLabelValue = NodeType.Writer.ToString().ToLower();
@@ -398,7 +400,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new LoadBalancerServiceCreateTime());
             metricLogger.Increment(new LoadBalancerServiceCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
 
             return returnIpAddress;
         }
@@ -419,7 +421,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new InvalidOperationException($"A distributed AccessManager instance has already been created.");
 
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating distributed AccessManager instance in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating distributed AccessManager instance in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new DistributedAccessManagerInstanceCreateTime());
 
             try
@@ -514,24 +516,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new DistributedAccessManagerInstanceCreateTime());
             metricLogger.Increment(new DistributedAccessManagerInstanceCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating distributed AccessManager instance.");
         }
 
-        /// <summary>
-        /// Splits a shard group in the distributed AccessManager instance, by moving elements whose hash codes fall within a specified range to a new shard group.
-        /// </summary>
-        /// <param name="dataElement">The data element of the shard group to split..</param>
-        /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes managed by the shard group to split.</param>
-        /// <param name="splitHashRangeStart">The first (inclusive) in the range of hash codes to move to the new shard group.</param>
-        /// <param name="splitHashRangeEnd">The last (inclusive) in the range of hash codes to move to the new shard group.</param>
-        /// <param name="sourceShardGroupEventReaderCreationFunction">A function used to create a reader used to read events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventBatchReader"/> instance.</param>
-        /// <param name="targetShardGroupEventPersisterCreationFunction">A function used to create a persister used to write events to the target shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerIdempotentTemporalEventBulkPersister{TUser, TGroup, TComponent, TAccess}"/> instance.</param>
-        /// <param name="sourceShardGroupEventDeleterCreationFunction">A function used to create a deleter used to delete events from the source shard group persistent storage instance.  Accepts TPersistentStorageCredentials and returns an <see cref="IAccessManagerTemporalEventDeleter"/> instance.</param>
-        /// <param name="operationRouterCreationFunction">A function used to create a client used control the router which directs operations between the source and target shard groups.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerOperationRouter"/> instance.</param>
-        /// <param name="sourceShardGroupWriterAdministratorCreationFunction">A function used to create a client used control the writer node in the target shard group.  Accepts a <see cref="Uri"/> and returns an <see cref="IDistributedAccessManagerWriterAdministrator"/> instance.</param>
-        /// <param name="eventBatchSize">The number of events which should be copied from the source to the target shard group in each batch.</param>
-        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard group, before copying of the final batch of events (event copy will fail if all retries are exhausted before the number of active operations becomes 0).</param>
-        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
+        /// <inheritdoc/>>
         public async Task SplitShardGroupAsync
         (
             DataElement dataElement,
@@ -539,7 +527,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Int32 splitHashRangeStart,
             Int32 splitHashRangeEnd,
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
-            Func<TPersistentStorageCredentials, IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
             Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
             Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
@@ -671,7 +659,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             Int32 splitHashRangeStart, 
             Int32 splitHashRangeEnd, 
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBatchReader> sourceShardGroupEventReaderCreationFunction,
-            Func<TPersistentStorageCredentials, IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
+            Func<TPersistentStorageCredentials, IAccessManagerTemporalEventBulkPersister<String, String, String, String>> targetShardGroupEventPersisterCreationFunction,
             Func<TPersistentStorageCredentials, IAccessManagerTemporalEventDeleter> sourceShardGroupEventDeleterCreationFunction,
             Func<Uri, IDistributedAccessManagerOperationRouter> operationRouterCreationFunction,
             Func<Uri, IDistributedAccessManagerWriterAdministrator> sourceShardGroupWriterAdministratorCreationFunction,
@@ -710,11 +698,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw new ArgumentOutOfRangeException(nameof(splitHashRangeEnd), $"Parameter '{nameof(splitHashRangeEnd)}' with value {splitHashRangeEnd} contains a different hash range end value to the hash range end value {nextShardGroupConfiguration.HashRangeStart - 1} of the shard group being split.");
             }
 
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Splitting {dataElement} shard group with hash range start value {hashRangeStart} at new shard group with hash range start value {splitHashRangeStart}...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Splitting {dataElement} shard group with hash range start value {hashRangeStart} at new shard group with hash range start value {splitHashRangeStart}...");
             Guid beginId = metricLogger.Begin(new ShardGroupSplitTime());
 
             // Create the target persistent storage instance
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating persistent storage instance for data element '{dataElement.ToString()}' and hash range start value {splitHashRangeStart}...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating persistent storage instance for data element '{dataElement.ToString()}' and hash range start value {splitHashRangeStart}...");
             String targetPersistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, splitHashRangeStart);
             Guid storageBeginId = metricLogger.Begin(new PersistentStorageInstanceCreateTime());
             TPersistentStorageCredentials targetPersistentStorageCredentials;
@@ -730,7 +718,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             metricLogger.End(storageBeginId, new PersistentStorageInstanceCreateTime());
             metricLogger.Increment(new PersistentStorageInstanceCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating persistent storage instance.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating persistent storage instance.");
 
             // Create persisters and clients
             IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader = null;
@@ -739,7 +727,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 () => { sourceShardGroupEventReader = sourceShardGroupEventReaderCreationFunction(shardGroupConfiguration.PersistentStorageCredentials); },
                 nameof(sourceShardGroupEventReader)
             );
-            IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String> targetShardGroupEventPersister = null;
+            IAccessManagerTemporalEventBulkPersister<String, String, String, String> targetShardGroupEventPersister = null;
             ConstructInstance
             (
                 () => { targetShardGroupEventPersister = targetShardGroupEventPersisterCreationFunction(targetPersistentStorageCredentials); },
@@ -792,7 +780,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
 
             // Update writer load balancer service to target source shard group writer node
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to target source shard group writer node...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to target source shard group writer node...");
             String writerLoadBalancerServiceName = $"{NodeType.Writer.ToString().ToLower()}{externalServiceNamePostfix}";
             String sourceWriterNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
             try
@@ -804,10 +792,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                 throw;
             }
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating writer load balancer service.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating writer load balancer service.");
 
             // Update the shard group configuration to redirect to the router
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to router...");
             Uri routerInternalUrl = new($"http://{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}:{staticConfiguration.PodPort}");
             AccessManagerRestClientConfiguration routerClientConfiguration = new(routerInternalUrl);
             List<HashRangeStartAndClientConfigurations> configurationUpdates = new()
@@ -846,7 +834,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                 throw;
             }
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
             // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
             Int32 configurationUpdateWait = GetDistributedOperationCoordinatorConfigurationRefreshInterval() + staticConfiguration.DistributedOperationCoordinatorRefreshIntervalWaitBuffer;
@@ -906,7 +894,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
 
             // Release all paused/held operation requests
-            logger.Log(ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source and target shard groups.");
             try
             {
                 operationRouter.ResumeOperations();
@@ -928,7 +916,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
 
             // Update the shard group configuration to redirect to target shard group
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to target shard group...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to target shard group...");
             configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
             {
                 new HashRangeStartAndClientConfigurations
@@ -953,7 +941,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                 throw;
             }
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
             // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
             await Task.Delay(configurationUpdateWait);
@@ -981,7 +969,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
 
             // Pause/hold any incoming operation requests
-            logger.Log(ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Pausing operations in the source shard group.");
             try
             {
                 operationRouter.PauseOperations();
@@ -1004,7 +992,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
 
             // Release all paused/held operation requests
-            logger.Log(ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Resuming operations in the source shard group.");
             try
             {
                 operationRouter.ResumeOperations();
@@ -1026,7 +1014,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
 
             // Update the shard group configuration to redirect to source shard group
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating shard group configuration to redirect to source shard group...");
             configurationUpdates = new List<HashRangeStartAndClientConfigurations>()
             {
                 new HashRangeStartAndClientConfigurations
@@ -1051,7 +1039,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                 throw;
             }
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed updating shard group configuration.");
 
             // Wait for the Updated the shard group configuration to be read by the operation coordinator nodes
             await Task.Delay(configurationUpdateWait);
@@ -1068,7 +1056,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
 
             // Undo update to writer load balancer service 
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Reversing update to writer load balancer service...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reversing update to writer load balancer service...");
             try
             {
                 await UpdateServiceAsync(writerLoadBalancerServiceName, NodeType.Writer.ToString().ToLower());
@@ -1078,10 +1066,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                 throw;
             }
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed reversing update to writer load balancer service.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed reversing update to writer load balancer service.");
 
             // Delete the router Cluster IP service
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node cluster ip service...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node cluster ip service...");
             try
             {
                 await DeleteServiceAsync($"{distributedOperationRouterObjectNamePrefix}{serviceNamePostfix}");
@@ -1091,10 +1079,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                 throw;
             }
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node cluster ip service.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node cluster ip service.");
 
             // Delete distributed operation router
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Deleting distributed operation router node...");
             try
             {
                 await ScaleDownAndDeleteDeploymentAsync(distributedOperationRouterObjectNamePrefix, staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
@@ -1104,7 +1092,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 metricLogger.CancelBegin(beginId, new ShardGroupSplitTime());
                 throw;
             }
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed deleting distributed operation router node.");
 
             // Dispose persisters and clients
             DisposeObject(sourceShardGroupWriterAdministrator);
@@ -1115,7 +1103,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new ShardGroupSplitTime());
             metricLogger.Increment(new ShardGroupSplit());
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed splitting shard group.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed splitting shard group.");
         }
 
         /// <summary>
@@ -1640,13 +1628,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected async Task<TPersistentStorageCredentials> CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, TPersistentStorageCredentials persistentStorageCredentials=null)
         {
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid shardGroupBeginId = metricLogger.Begin(new ShardGroupCreateTime());
 
             if (persistentStorageCredentials == null)
             {
                 // Create a persistent storage instance
-                logger.Log(ApplicationLogging.LogLevel.Information, $"Creating persistent storage instance for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart}...");
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating persistent storage instance for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart}...");
                 String persistentStorageInstanceName = GeneratePersistentStorageInstanceName(dataElement, hashRangeStart);
                 Guid storageBeginId = metricLogger.Begin(new PersistentStorageInstanceCreateTime());
                 try
@@ -1661,7 +1649,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 }
                 metricLogger.End(storageBeginId, new PersistentStorageInstanceCreateTime());
                 metricLogger.Increment(new PersistentStorageInstanceCreated());
-                logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating persistent storage instance.");
+                logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating persistent storage instance.");
             }
 
             // Create event cache node
@@ -1691,7 +1679,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(shardGroupBeginId, new ShardGroupCreateTime());
             metricLogger.Increment(new ShardGroupCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating shard group.");
 
             return persistentStorageCredentials;
         }
@@ -1704,7 +1692,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected async Task RestartShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
         {
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Restarting shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Restarting shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new ShardGroupRestartTime());
 
             try
@@ -1728,7 +1716,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new ShardGroupRestartTime());
             metricLogger.Increment(new ShardGroupRestarted());
-            logger.Log(ApplicationLogging.LogLevel.Information, "Completed restarting shard group.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed restarting shard group.");
         }
 
         /// <summary>
@@ -1739,7 +1727,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected async Task ScaleDownShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
         {
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Scaling down shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Scaling down shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new ShardGroupScaleDownTime());
 
             // Scale down reader and writer nodes
@@ -1784,7 +1772,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new ShardGroupScaleDownTime());
             metricLogger.Increment(new ShardGroupScaledDown());
-            logger.Log(ApplicationLogging.LogLevel.Information, "Completed scaling down shard group.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed scaling down shard group.");
         }
 
         /// <summary>
@@ -1795,7 +1783,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected async Task ScaleUpShardGroupAsync(DataElement dataElement, Int32 hashRangeStart)
         {
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Scaling up shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Scaling up shard group for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new ShardGroupScaleUpTime());
 
             // Scale up event cache node
@@ -1843,7 +1831,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new ShardGroupScaleUpTime());
             metricLogger.Increment(new ShardGroupScaledUp());
-            logger.Log(ApplicationLogging.LogLevel.Information, "Completed scaling up shard group.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed scaling up shard group.");
         }
 
         /// <summary>
@@ -1860,7 +1848,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Reader, hashRangeStart);
             Func<Task> createDeploymentFunction = () => CreateReaderNodeDeploymentAsync(deploymentName, persistentStorageCredentials, eventCacheServiceUrl);
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.ReaderNodeConfigurationTemplate);
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating reader node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating reader node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new ReaderNodeCreateTime());
             try
             {
@@ -1873,7 +1861,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             metricLogger.End(beginId, new ReaderNodeCreateTime());
             metricLogger.Increment(new ReaderNodeCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating reader node.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating reader node.");
         }
 
         /// <summary>
@@ -1887,7 +1875,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.EventCache, hashRangeStart);
             Func<Task> createDeploymentFunction = () => CreateEventCacheNodeDeploymentAsync(deploymentName);
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.EventCacheNodeConfigurationTemplate);
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating event cache node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating event cache node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new EventCacheNodeCreateTime());
             try
             {
@@ -1900,7 +1888,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             metricLogger.End(beginId, new EventCacheNodeCreateTime());
             metricLogger.Increment(new EventCacheNodeCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating event cache node.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating event cache node.");
         }
 
         /// <summary>
@@ -1917,7 +1905,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             String deploymentName = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
             Func<Task> createDeploymentFunction = () => CreateWriterNodeDeploymentAsync(deploymentName, persistentStorageCredentials, eventCacheServiceUrl);
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.WriterNodeConfigurationTemplate);
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating writer node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating writer node for data element '{dataElement.ToString()}' and hash range start value {hashRangeStart} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new WriterNodeCreateTime());
             try
             {
@@ -1930,7 +1918,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             metricLogger.End(beginId, new WriterNodeCreateTime());
             metricLogger.Increment(new WriterNodeCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating writer node.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating writer node.");
         }
 
         /// <summary>
@@ -1942,7 +1930,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             String nameSpace = staticConfiguration.NameSpace;
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.DistributedOperationCoordinatorNodeConfigurationTemplate);
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating distributed operation coordinator node in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating distributed operation coordinator node in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new DistributedOperationCoordinatorNodeCreateTime());
             Task createDeploymentTask = Task.Run(async () =>
             {
@@ -1977,7 +1965,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             metricLogger.End(beginId, new DistributedOperationCoordinatorNodeCreateTime());
             metricLogger.Increment(new DistributedOperationCoordinatorNodeCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating distributed operation coordinator node.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating distributed operation coordinator node.");
         }
 
         /// <summary>
@@ -2009,7 +1997,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             String nameSpace = staticConfiguration.NameSpace;
             Int32 availabilityWaitAbortTimeout = GenerateAvailabilityWaitAbortTimeout(staticConfiguration.DistributedOperationRouterNodeConfigurationTemplate);
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating distributed operation router node...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating distributed operation router node...");
             Guid beginId = metricLogger.Begin(new DistributedOperationRouterNodeCreateTime());
             Task createDeploymentTask = Task.Run(async () =>
             {
@@ -2068,7 +2056,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             }
             metricLogger.End(beginId, new DistributedOperationRouterNodeCreateTime());
             metricLogger.Increment(new DistributedOperationRouterNodeCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Completed creating distributed operation router node.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Completed creating distributed operation router node.");
         }
 
         /// <summary>
@@ -2133,7 +2121,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         protected async Task<IPAddress> CreateDistributedOperationCoordinatorLoadBalancerService(UInt16 port)
         {
             String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation coordinator on port {port} in namespace '{nameSpace}'...");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation coordinator on port {port} in namespace '{nameSpace}'...");
             Guid beginId = metricLogger.Begin(new LoadBalancerServiceCreateTime());
 
             try
@@ -2169,7 +2157,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             metricLogger.End(beginId, new LoadBalancerServiceCreateTime());
             metricLogger.Increment(new LoadBalancerServiceCreated());
-            logger.Log(ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
 
             return returnIpAddress;
         }
