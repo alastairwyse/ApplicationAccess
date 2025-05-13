@@ -17,16 +17,15 @@ GO
 CREATE TABLE $(DatabaseName).dbo.ShardConfiguration
 (
     Id                    bigint         NOT NULL IDENTITY(1,1) PRIMARY KEY,  
-    ShardConfigurationId  int            NOT NULL, 
-    DataElementType       nvarchar(450)  NOT NULL, 
-    OperationType         nvarchar(450)  NOT NULL, 
+    DataElementType       nvarchar(50)  NOT NULL, 
+    OperationType         nvarchar(50)  NOT NULL, 
     HashRangeStart        int            NOT NULL, 
     ClientConfiguration   nvarchar(max)  NOT NULL CHECK (ISJSON(ClientConfiguration)=1), 
     TransactionFrom       datetime2      NOT NULL, 
     TransactionTo         datetime2      NOT NULL
 );
 
-CREATE INDEX ShardConfigurationShardConfigurationIdIndex ON ShardConfiguration (ShardConfigurationId, TransactionTo);
+CREATE INDEX ShardConfigurationKeyIndex ON ShardConfiguration (DataElementType, OperationType, HashRangeStart, TransactionTo);
 CREATE INDEX ShardConfigurationTransactionIndex ON ShardConfiguration (TransactionFrom, TransactionTo);
 
 
@@ -42,9 +41,8 @@ GO
 CREATE TYPE dbo.ShardConfigurationStagingTableType 
 AS TABLE
 (
-    ShardConfigurationId  int            NOT NULL, 
-    DataElementType       nvarchar(450)  NOT NULL, 
-    OperationType         nvarchar(450)  NOT NULL, 
+    DataElementType       nvarchar(50)  NOT NULL, 
+    OperationType         nvarchar(50)  NOT NULL, 
     HashRangeStart        int            NOT NULL, 
     ClientConfiguration   nvarchar(max)  NOT NULL
 );
@@ -102,15 +100,13 @@ BEGIN
     DECLARE @CurrentTimestamp  datetime2;
     DECLARE @CurrentRowId      bigint;
 
-    DECLARE @CurrentShardConfigurationId  int;
-    DECLARE @CurrentDataElementType       nvarchar(450);
-    DECLARE @CurrentOperationType         nvarchar(450);
+    DECLARE @CurrentDataElementType       nvarchar(50);
+    DECLARE @CurrentOperationType         nvarchar(50);
     DECLARE @CurrentHashRangeStart        int;
     DECLARE @CurrentClientConfiguration   nvarchar(max);
 
     DECLARE InputTableCursor CURSOR LOCAL FAST_FORWARD FOR
-    SELECT  ShardConfigurationId, 
-            DataElementType, 
+    SELECT  DataElementType, 
             OperationType, 
             HashRangeStart, 
             ClientConfiguration
@@ -143,8 +139,7 @@ BEGIN
     OPEN InputTableCursor;
     FETCH NEXT 
     FROM        InputTableCursor
-    INTO        @CurrentShardConfigurationId, 
-                @CurrentDataElementType, 
+    INTO        @CurrentDataElementType, 
                 @CurrentOperationType, 
                 @CurrentHashRangeStart, 
                 @CurrentClientConfiguration;
@@ -156,7 +151,9 @@ BEGIN
 
             SELECT  @CurrentRowId = Id 
             FROM    dbo.ShardConfiguration 
-            WHERE   ShardConfigurationId = @CurrentShardConfigurationId
+            WHERE   DataElementType = @CurrentDataElementType 
+              AND   OperationType = @CurrentOperationType 
+              AND   HashRangeStart = @CurrentHashRangeStart 
               AND   @CurrentTimestamp BETWEEN TransactionFrom AND TransactionTo;   
 
             IF (NOT(@CurrentRowId IS NULL))
@@ -168,7 +165,7 @@ BEGIN
                 END TRY
                 BEGIN CATCH
                     ROLLBACK TRANSACTION
-                    SET @ErrorMessage = N'Error occurred when deleting existing shard configuration for Id ' + ISNULL(CONVERT(nvarchar, @CurrentRowId), '(null)') + '; ' + ERROR_MESSAGE();
+                    SET @ErrorMessage = N'Error occurred when deleting existing shard configuration for DataElementType ''' + ISNULL(@CurrentDataElementType, '(null)') + ''' OperationType ''' + ISNULL(@CurrentOperationType, '(null)') + ''' and HashRangeStart ''' + ISNULL(CONVERT(nvarchar, @CurrentHashRangeStart), '(null)') + '''; ' + ERROR_MESSAGE();
                     THROW 50001, @ErrorMessage, 1;
                 END CATCH
             END
@@ -178,7 +175,6 @@ BEGIN
                     INSERT  
                     INTO    dbo.ShardConfiguration 
                             (
-                                ShardConfigurationId, 
                                 DataElementType, 
                                 OperationType, 
                                 HashRangeStart, 
@@ -187,7 +183,6 @@ BEGIN
                                 TransactionTo
                             )
                     VALUES  (
-                                @CurrentShardConfigurationId, 
                                 @CurrentDataElementType, 
                                 @CurrentOperationType, 
                                 @CurrentHashRangeStart, 
@@ -198,15 +193,14 @@ BEGIN
                 END TRY
                 BEGIN CATCH
                     ROLLBACK TRANSACTION
-                    SET @ErrorMessage = N'Error occurred when inserting shard configuration for ShardConfigurationIdId ' + ISNULL(CONVERT(nvarchar, @CurrentShardConfigurationId), '(null)') + ' DataElementType ''' + ISNULL(@CurrentDataElementType, '(null)') + ''' OperationType ''' + ISNULL(@CurrentOperationType, '(null)') + ''' and HashRangeStart ''' + ISNULL(CONVERT(nvarchar, @CurrentHashRangeStart), '(null)') + ''' ; ' + ERROR_MESSAGE();
+                    SET @ErrorMessage = N'Error occurred when inserting shard configuration for DataElementType ''' + ISNULL(@CurrentDataElementType, '(null)') + ''' OperationType ''' + ISNULL(@CurrentOperationType, '(null)') + ''' and HashRangeStart ''' + ISNULL(CONVERT(nvarchar, @CurrentHashRangeStart), '(null)') + '''; ' + ERROR_MESSAGE();
                     THROW 50001, @ErrorMessage, 1;
                 END CATCH
             END
 
             FETCH NEXT 
             FROM        InputTableCursor
-            INTO        @CurrentShardConfigurationId, 
-                        @CurrentDataElementType, 
+            INTO        @CurrentDataElementType, 
                         @CurrentOperationType, 
                         @CurrentHashRangeStart, 
                         @CurrentClientConfiguration;

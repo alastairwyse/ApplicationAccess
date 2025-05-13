@@ -46,8 +46,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        1, 
-                        2, 
                         Int32.MinValue, 
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -58,8 +56,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        3,
-                        4,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
@@ -70,8 +66,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        5,
-                        6,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
@@ -131,8 +125,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    3,
-                    4,
                     Int32.MinValue,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
@@ -140,8 +132,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    5,
-                    6,
                     0,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-0-service:5000/")),
@@ -178,8 +168,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    1,
-                    2,
                     Int32.MinValue,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -187,8 +175,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    3,
-                    4,
                     Int32.MinValue,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -212,8 +198,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    1,
-                    2,
                     3,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_3"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-3-service:5000/")),
@@ -237,8 +221,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    3,
-                    4,
                     0,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-0-service:5000/")),
@@ -262,8 +244,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    5,
-                    6,
                     Int32.MinValue,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
@@ -271,8 +251,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    7,
-                    8,
                     1,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_1"),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-reader-1-service:5000/")),
@@ -280,8 +258,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    9,
-                    10,
                     1,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_1"),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-reader-1-service:5000/")),
@@ -305,8 +281,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    5,
-                    6,
                     2,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_2"),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-reader-2-service:5000/")),
@@ -337,51 +311,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
 
             Assert.That(e.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration 'DistributedOperationCoordinatorUrl' property must null when the '*ShardGroupConfiguration' properties are null."));
             Assert.AreEqual("DistributedOperationCoordinatorUrl", e.ParamName);
-        }
-
-        [Test]
-        public void Validate_DuplicateShardGroupConfigurationNodeIds()
-        {
-            testInstanceConfiguration.GroupShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
-            {
-                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
-                (
-                    2,
-                    6,
-                    Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
-                    new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
-                    new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
-                )
-            };
-
-            var e = Assert.Throws<ArgumentException>(delegate
-            {
-                testInstanceConfigurationValidator.Validate(testInstanceConfiguration);
-            });
-
-            Assert.That(e.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration '*ShardGroupConfiguration' properties contain duplicate node id 2."));
-
-
-            testInstanceConfiguration.GroupShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
-            {
-                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
-                (
-                    5,
-                    2,
-                    Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
-                    new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
-                    new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
-                )
-            };
-
-            e = Assert.Throws<ArgumentException>(delegate
-            {
-                testInstanceConfigurationValidator.Validate(testInstanceConfiguration);
-            });
-
-            Assert.That(e.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration '*ShardGroupConfiguration' properties contain duplicate node id 2."));
         }
 
         [Test]

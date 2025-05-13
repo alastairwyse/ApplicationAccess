@@ -29,16 +29,118 @@ namespace ApplicationAccess.Distribution.UnitTests
         [Test]
         public void Describe()
         {
-            var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(123, DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+            var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
 
             String result = testShardConfiguration.Describe(true);
 
-            Assert.AreEqual($"Id = 123, DataElementType = User, OperationType = Query, HashRangeStart = 16, ClientConfiguration = AccessManagerRestClientConfiguration {{ BaseUrl = http://127.0.0.0.1:5001/ }}", result);
+            Assert.AreEqual($"DataElementType = User, OperationType = Query, HashRangeStart = 16, ClientConfiguration = AccessManagerRestClientConfiguration {{ BaseUrl = http://127.0.0.0.1:5001/ }}", result);
 
 
             result = testShardConfiguration.Describe(false);
 
-            Assert.AreEqual($"Id = 123, DataElementType = User, OperationType = Query, ClientConfiguration = AccessManagerRestClientConfiguration {{ BaseUrl = http://127.0.0.0.1:5001/ }}", result);
+            Assert.AreEqual($"DataElementType = User, OperationType = Query, ClientConfiguration = AccessManagerRestClientConfiguration {{ BaseUrl = http://127.0.0.0.1:5001/ }}", result);
+        }
+
+        [Test]
+        public void ValueEquals()
+        {
+            ShardConfiguration<AccessManagerRestClientConfiguration> testShardConfiguration1 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+            ShardConfiguration<AccessManagerRestClientConfiguration> testShardConfiguration2 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsTrue(testShardConfiguration1.ValueEquals(testShardConfiguration2));
+            Assert.IsTrue(testShardConfiguration2.ValueEquals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5002")));
+
+            Assert.IsFalse(testShardConfiguration1.ValueEquals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.ValueEquals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Query, 17, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.ValueEquals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.ValueEquals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Event, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.ValueEquals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.ValueEquals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.Group, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.ValueEquals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.ValueEquals(testShardConfiguration1));
+        }
+
+        [Test]
+        public void KeyEquals()
+        {
+            ShardConfiguration<AccessManagerRestClientConfiguration> testShardConfiguration1 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+            ShardConfiguration<AccessManagerRestClientConfiguration> testShardConfiguration2 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsTrue(testShardConfiguration1.KeyEquals(testShardConfiguration2));
+            Assert.IsTrue(testShardConfiguration2.KeyEquals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5002")));
+
+            Assert.IsTrue(testShardConfiguration1.KeyEquals(testShardConfiguration2));
+            Assert.IsTrue(testShardConfiguration2.KeyEquals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Query, 17, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.KeyEquals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.KeyEquals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Event, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.KeyEquals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.KeyEquals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.Group, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.KeyEquals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.KeyEquals(testShardConfiguration1));
+        }
+
+        [Test]
+        public void Equals()
+        {
+            ShardConfiguration<AccessManagerRestClientConfiguration> testShardConfiguration1 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+            ShardConfiguration<AccessManagerRestClientConfiguration> testShardConfiguration2 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsTrue(testShardConfiguration1.Equals(testShardConfiguration2));
+            Assert.IsTrue(testShardConfiguration2.Equals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5002")));
+
+            Assert.IsFalse(testShardConfiguration1.Equals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.Equals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Query, 17, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.Equals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.Equals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.User, Operation.Event, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.Equals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.Equals(testShardConfiguration1));
+
+
+            testShardConfiguration2 = new(DataElement.Group, Operation.Query, 16, new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.0.1:5001")));
+
+            Assert.IsFalse(testShardConfiguration1.Equals(testShardConfiguration2));
+            Assert.IsFalse(testShardConfiguration2.Equals(testShardConfiguration1));
         }
     }
 }

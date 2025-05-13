@@ -45,7 +45,6 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         protected const String updateShardConfigurationsStoredProcedureName = "UpdateShardConfiguration";
         protected const String shardConfigurationItemsParameterName = "@ShardConfigurationItems";
         protected const String deleteExistingItemsParameterName = "@DeleteExistingItems";
-        protected const String shardConfigurationIdColumnName = "ShardConfigurationId";
         protected const String dataElementTypeColumnName = "DataElementType";
         protected const String operationTypeColumnName = "OperationType";
         protected const String hashRangeStartColumnName = "HashRangeStart";
@@ -55,8 +54,6 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
 
         /// <summary>Staging table which is populated with all events from a Flush() operation before passing to SQL Server as a <see href="https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/sql/table-valued-parameters">table-valued parameter</see>.  As this table is used to pass all events in a single operation, it contains generic columns holding the event data, the content of which varies according to the type of the event.</summary>
         protected DataTable stagingTable;
-        /// <summary>Column in the staging table which holds the id of the shard configuration item.</summary>
-        protected DataColumn shardConfigurationIdColumn;
         /// <summary>Column in the staging table which holds the type of data element of the shard configuration item.</summary>
         protected DataColumn dataElementTypeColumn;
         /// <summary>Column in the staging table which holds the type of operation of the shard configuration item.</summary>
@@ -95,12 +92,10 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             storedProcedureExecutor = new StoredProcedureExecutionWrapper((String procedureName, IEnumerable<SqlParameter> parameters) => { ExecuteStoredProcedure(procedureName, parameters); });
             disposed = false;
             stagingTable = new DataTable();
-            shardConfigurationIdColumn = new DataColumn(shardConfigurationIdColumnName, typeof(Int32));
             dataElementTypeColumn = new DataColumn(dataElementTypeColumnName, typeof(String));
             operationTypeColumn = new DataColumn(operationTypeColumnName, typeof(String));
             hashRangeStartColumn = new DataColumn(hashRangeStartColumnName, typeof(Int32));
             clientConfigurationColumn = new DataColumn(clientConfigurationColumnName, typeof(String));
-            stagingTable.Columns.Add(shardConfigurationIdColumn);
             stagingTable.Columns.Add(dataElementTypeColumn);
             stagingTable.Columns.Add(operationTypeColumn);
             stagingTable.Columns.Add(hashRangeStartColumn);
@@ -139,7 +134,6 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             foreach (ShardConfiguration<TClientConfiguration> currentShardConfigurationItem in shardConfigurationSet.Items)
             {
                 DataRow row = stagingTable.NewRow();
-                row[shardConfigurationIdColumnName] = currentShardConfigurationItem.Id;
                 row[dataElementTypeColumnName] = currentShardConfigurationItem.DataElementType.ToString();
                 row[operationTypeColumnName] = currentShardConfigurationItem.OperationType.ToString();
                 row[hashRangeStartColumnName] = currentShardConfigurationItem.HashRangeStart;
@@ -149,7 +143,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                 }
                 catch (Exception e)
                 {
-                    throw new Exception($"Failed to serialize shard configuration item for shard configuration id {currentShardConfigurationItem.Id}, data element '{currentShardConfigurationItem.DataElementType.ToString()}', operation '{currentShardConfigurationItem.OperationType.ToString()}', and hash range start {currentShardConfigurationItem.HashRangeStart}.", e);
+                    throw new Exception($"Failed to serialize shard configuration set item with data element '{currentShardConfigurationItem.DataElementType.ToString()}', operation '{currentShardConfigurationItem.OperationType.ToString()}', and hash range start {currentShardConfigurationItem.HashRangeStart}.", e);
                 }
                 stagingTable.Rows.Add(row);
             }
@@ -168,8 +162,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
             DateTime currentDateTime = DateTime.UtcNow;
             String query =
             @$"
-            SELECT  {shardConfigurationIdColumnName}, 
-                    {dataElementTypeColumnName}, 
+            SELECT  {dataElementTypeColumnName}, 
                     {operationTypeColumnName}, 
                     {hashRangeStartColumnName}, 
                     {clientConfigurationColumnName} 
@@ -207,7 +200,6 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
         /// <returns>The <see cref="ShardConfiguration{TClientConfiguration}"/>.</returns>
         protected ShardConfiguration<TClientConfiguration> ReadShardConfigurationItem(SqlDataReader dataReader)
         {
-            Int32 shardConfigurationId = (Int32)dataReader[shardConfigurationIdColumnName];
             Boolean parseResult = Enum.TryParse<DataElement>((String)dataReader[dataElementTypeColumnName], out DataElement dataElement);
             if (parseResult == false)
             {
@@ -229,7 +221,7 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                 throw new DeserializationException($"Failed to deserialize client configuration of type '{typeof(TClientConfiguration).Name}' from string '{(String)dataReader[clientConfigurationColumnName]}'.", e);
             }
 
-            return new ShardConfiguration<TClientConfiguration>(shardConfigurationId, dataElement, operation, hashRangeStart, clientConfiguration);
+            return new ShardConfiguration<TClientConfiguration>(dataElement, operation, hashRangeStart, clientConfiguration);
         }
 
         /// <summary>
@@ -282,7 +274,6 @@ namespace ApplicationAccess.Distribution.Persistence.SqlServer
                 if (disposing)
                 {
                     // Free other state (managed objects).
-                    shardConfigurationIdColumn.Dispose();
                     dataElementTypeColumn.Dispose();
                     operationTypeColumn.Dispose();
                     hashRangeStartColumn.Dispose();

@@ -51,8 +51,6 @@ namespace ApplicationAccess.Distribution.Models
 
             foreach (ShardConfiguration<TClientConfiguration> currentConfigurationItem in configurationItems)
             {
-                if (this.configurationItems.Contains(currentConfigurationItem) == true)
-                    throw new ArgumentException($"Parameter '{nameof(configurationItems)}' contains duplicate items with {nameof(ShardConfiguration<TClientConfiguration>.Id)} {currentConfigurationItem.Id}.", nameof(configurationItems));
                 if (configurationItemKeys.Contains(currentConfigurationItem) == true)
                     throw new ArgumentException($"Parameter '{nameof(configurationItems)}' contains duplicate items with {nameof(ShardConfiguration<TClientConfiguration>.DataElementType)} '{currentConfigurationItem.DataElementType}', {nameof(ShardConfiguration<TClientConfiguration>.OperationType)} '{currentConfigurationItem.OperationType}', and {nameof(ShardConfiguration<TClientConfiguration>.HashRangeStart)} {currentConfigurationItem.HashRangeStart}.", nameof(configurationItems));
 

@@ -25,8 +25,12 @@ namespace ApplicationAccess.Distribution.Models
     public class ShardConfiguration<TClientConfiguration> : IEquatable<ShardConfiguration<TClientConfiguration>>
         where TClientConfiguration : IDistributedAccessManagerAsyncClientConfiguration
     {
-        /// <summary>A unique identifier for the shard configuration.</summary>
-        public Int32 Id { get; protected set; }
+        /// <summary>Prime number used in calculating hash code.</summary>
+        protected const Int32 prime1 = 7;
+        /// <summary>Prime number used in calculating hash code.</summary>
+        protected const Int32 prime2 = 11;
+        /// <summary>Prime number used in calculating hash code.</summary>
+        protected const Int32 prime3 = 13;
 
         /// <summary>The type of data element managed by the shard.</summary>
         public DataElement DataElementType { get; protected set; }
@@ -43,14 +47,12 @@ namespace ApplicationAccess.Distribution.Models
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Distribution.ShardConfiguration class.
         /// </summary>
-        /// <param name="id">A unique identifier for the shard configuration.</param>
         /// <param name="dataElementType">The type of data element managed by the shard.</param>
         /// <param name="operationType">The type of operation supported by the shard.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of data elements the shard manages.</param>
         /// <param name="clientConfiguration">Configuration which can be used to instantiate a client to connect to the shard.</param>
-        public ShardConfiguration(Int32 id, DataElement dataElementType, Operation operationType, Int32 hashRangeStart, TClientConfiguration clientConfiguration)
+        public ShardConfiguration(DataElement dataElementType, Operation operationType, Int32 hashRangeStart, TClientConfiguration clientConfiguration)
         {
-            Id = id;
             DataElementType = dataElementType;
             OperationType = operationType;
             HashRangeStart = hashRangeStart;
@@ -66,24 +68,48 @@ namespace ApplicationAccess.Distribution.Models
         {
             if (includeHashRangeStart == true)
             {
-                return $"{nameof(Id)} = {Id}, {nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(HashRangeStart)} = {HashRangeStart}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
+                return $"{nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(HashRangeStart)} = {HashRangeStart}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
             }
             else
             {
-                return $"{nameof(Id)} = {Id}, {nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
+                return $"{nameof(DataElementType)} = {DataElementType}, {nameof(OperationType)} = {OperationType}, {nameof(ClientConfiguration)} = {ClientConfiguration.Description}";
             }
+        }
+
+        /// <summary>
+        /// Returns true if the key (i.e. the set of unique identifying properties) of another <see cref="ShardConfiguration{TClientConfiguration}"/> instance is equal to the key of this instance.
+        /// </summary>
+        /// <param name="other">The <see cref="ShardConfiguration{TClientConfiguration}"/> instance to compare to.</param>
+        /// <returns>True if the keys are equal.</returns>
+        public Boolean KeyEquals(ShardConfiguration<TClientConfiguration> other)
+        {
+            return (DataElementType == other.DataElementType && OperationType == other.OperationType && HashRangeStart == other.HashRangeStart);
+        }
+
+        /// <summary>
+        /// Returns true if another <see cref="ShardConfiguration{TClientConfiguration}"/> instance is equal to this instance.
+        /// </summary>
+        /// <param name="other">The <see cref="ShardConfiguration{TClientConfiguration}"/> instance to compare to.</param>
+        /// <returns>True if the instances are equal.</returns>
+        public Boolean ValueEquals(ShardConfiguration<TClientConfiguration> other)
+        {
+            return KeyEquals(other) && ClientConfiguration.Equals(other.ClientConfiguration);
         }
 
         /// <inheritdoc/>
         public Boolean Equals(ShardConfiguration<TClientConfiguration> other)
         {
-            return Id == other.Id;
+            return ValueEquals(other);
         }
 
         /// <inheritdoc/>
         public override Int32 GetHashCode()
         {
-            return Id.GetHashCode();
+            return
+                prime1 * DataElementType.GetHashCode() +
+                prime2 * OperationType.GetHashCode() +
+                HashRangeStart.GetHashCode() +
+                prime3 * ClientConfiguration.GetHashCode();
         }
     }
 }

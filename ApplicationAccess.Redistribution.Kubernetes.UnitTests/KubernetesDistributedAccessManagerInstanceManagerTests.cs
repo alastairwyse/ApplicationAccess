@@ -142,8 +142,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        1,
-                        2,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -183,8 +181,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        1,
-                        2,
                         0,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -192,8 +188,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ),
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        3,
-                        4,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -204,8 +198,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        5,
-                        6,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
@@ -216,8 +208,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        7,
-                        8,
                         0,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
@@ -225,8 +215,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     ),
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        9,
-                        10,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
@@ -254,20 +242,58 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public void Constructor_NextShardGroupIdCorrectlyUpdated()
+        public void Constructor_ShardGroupConfigurationSetFieldsPopulated()
         {
-            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> testInstanceConfiguration = CreateInstanceConfiguration();
-            testInstanceConfiguration.GroupShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> testInstanceConfiguration = new()
             {
-                new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
-                (
-                    5,
-                    60,
-                    Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
-                    new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
-                    new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
-                )
+                DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
+                WriterUrl = new Uri("http://10.104.198.19:7001/"),
+                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=ApplicationAccessConfig"),
+                UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+                {
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        0,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
+                    ),
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        Int32.MinValue,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
+                    )
+                },
+                GroupToGroupMappingShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+                {
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        Int32.MinValue,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-writer-n2147483648-service:5000/"))
+                    )
+                },
+                GroupShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
+                {
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        0,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
+                    ),
+                    new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
+                    (
+                        Int32.MinValue,
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
+                        new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
+                    )
+                },
+                DistributedOperationCoordinatorUrl = new Uri("http://10.104.198.19:7000/")
             };
 
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -281,7 +307,104 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
 
-            Assert.AreEqual(61, testKubernetesDistributedAccessManagerInstanceManager.NextShardGroupId);
+            Assert.AreEqual(2, testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items[0].HashRangeStart);
+            Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items[1].HashRangeStart);
+            Assert.AreEqual(1, testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Items[0].HashRangeStart);
+            Assert.AreEqual(2, testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Items[0].HashRangeStart);
+            Assert.AreEqual(0, testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Items[1].HashRangeStart);
+        }
+
+        [Test]
+        public void DistributedOperationRouterUrl_CreateDistributedOperationRouterLoadBalancerServiceAsyncNotPreviouslyCalled()
+        {
+            var e = Assert.Throws<InvalidOperationException>(delegate
+            {
+                testKubernetesDistributedAccessManagerInstanceManager.DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Property 'DistributedOperationRouterUrl' cannot be set if it was not previously created by calling method CreateDistributedOperationRouterLoadBalancerServiceAsync()."));
+        }
+
+        [Test]
+        public void DistributedOperationRouterUrl()
+        {
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(),
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            testKubernetesDistributedAccessManagerInstanceManager.DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/");
+
+            Assert.AreEqual("http://10.104.198.18:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.DistributedOperationRouterUrl.ToString());
+        }
+
+        [Test]
+        public void WriterUrl_CreateWriterLoadBalancerServiceAsyncNotPreviouslyCalled()
+        {
+            var e = Assert.Throws<InvalidOperationException>(delegate
+            {
+                testKubernetesDistributedAccessManagerInstanceManager.WriterUrl = new Uri("http://10.104.198.19:7001/");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Property 'WriterUrl' cannot be set if it was not previously created by calling method CreateWriterLoadBalancerServiceAsync()."));
+        }
+
+        [Test]
+        public void WriterUrl()
+        {
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(),
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            testKubernetesDistributedAccessManagerInstanceManager.WriterUrl = new Uri("http://10.104.198.19:7001/");
+
+            Assert.AreEqual("http://10.104.198.19:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.WriterUrl.ToString());
+        }
+
+        [Test]
+        public void DistributedOperationCoordinatorUrl_CreateDistributedAccessManagerInstanceAsyncNotPreviouslyCalled()
+        {
+            var e = Assert.Throws<InvalidOperationException>(delegate
+            {
+                testKubernetesDistributedAccessManagerInstanceManager.DistributedOperationCoordinatorUrl = new Uri("http://10.104.198.19:7000/");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Property 'DistributedOperationCoordinatorUrl' cannot be set if it was not previously created by calling method CreateDistributedAccessManagerInstanceAsync()."));
+        }
+
+        [Test]
+        public void DistributedOperationCoordinatorUrl()
+        {
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(),
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            testKubernetesDistributedAccessManagerInstanceManager.DistributedOperationCoordinatorUrl = new Uri("http://10.104.198.19:7000/");
+
+            Assert.AreEqual("http://10.104.198.19:7000/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.DistributedOperationCoordinatorUrl.ToString());
         }
 
         [Test]
@@ -664,8 +787,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        1,
-                        2,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -676,8 +797,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        3,
-                        4,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
@@ -688,8 +807,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        5,
-                        6,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
@@ -945,101 +1062,108 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration.Count);
             Assert.AreEqual(1, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
             Assert.AreEqual(3, instanceConfiguration.GroupShardGroupConfiguration.Count);
-            Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(1, instanceConfiguration.UserShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.UserShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(userN2147483648Credentials, instanceConfiguration.UserShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", instanceConfiguration.UserShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", instanceConfiguration.UserShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration[1].ReaderNodeId);
-            Assert.AreEqual(3, instanceConfiguration.UserShardGroupConfiguration[1].WriterNodeId);
             Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration[1].HashRangeStart);
             Assert.AreEqual(user0Credentials, instanceConfiguration.UserShardGroupConfiguration[1].PersistentStorageCredentials);
             Assert.AreEqual("http://user-reader-0-service:5000/", instanceConfiguration.UserShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-0-service:5000/", instanceConfiguration.UserShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(4, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(5, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(groupToGroupN2147483648Credentials, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, instanceConfiguration.GroupShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(7, instanceConfiguration.GroupShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.GroupShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(groupN2147483648Credentials, instanceConfiguration.GroupShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, instanceConfiguration.GroupShardGroupConfiguration[1].ReaderNodeId);
-            Assert.AreEqual(9, instanceConfiguration.GroupShardGroupConfiguration[1].WriterNodeId);
             Assert.AreEqual(-715_827_882, instanceConfiguration.GroupShardGroupConfiguration[1].HashRangeStart);
             Assert.AreEqual(groupN715827882Credentials, instanceConfiguration.GroupShardGroupConfiguration[1].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-n715827882-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n715827882-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, instanceConfiguration.GroupShardGroupConfiguration[2].ReaderNodeId);
-            Assert.AreEqual(11, instanceConfiguration.GroupShardGroupConfiguration[2].WriterNodeId);
             Assert.AreEqual(715_827_884, instanceConfiguration.GroupShardGroupConfiguration[2].HashRangeStart);
             Assert.AreEqual(group715827884Credentials, instanceConfiguration.GroupShardGroupConfiguration[2].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-715827884-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-715827884-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[2].WriterNodeClientConfiguration.BaseUrl.ToString());
+            // Assertions on the *ShardGroupConfigurationSet fields
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupToGroupMappingShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Items;
+            Assert.AreEqual(2, userShardGroupConfigurationSet.Count);
+            Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(3, groupShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, userShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(userN2147483648Credentials, userShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, userShardGroupConfigurationSet[1].HashRangeStart);
+            Assert.AreEqual(user0Credentials, userShardGroupConfigurationSet[1].PersistentStorageCredentials);
+            Assert.AreEqual("http://user-reader-0-service:5000/", userShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-0-service:5000/", userShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(Int32.MinValue, groupToGroupMappingShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(groupToGroupN2147483648Credentials, groupToGroupMappingShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", groupToGroupMappingShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", groupToGroupMappingShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(Int32.MinValue, groupShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(groupN2147483648Credentials, groupShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(-715_827_882, groupShardGroupConfigurationSet[1].HashRangeStart);
+            Assert.AreEqual(groupN715827882Credentials, groupShardGroupConfigurationSet[1].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-n715827882-service:5000/", groupShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-n715827882-service:5000/", groupShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(715_827_884, groupShardGroupConfigurationSet[2].HashRangeStart);
+            Assert.AreEqual(group715827884Credentials, groupShardGroupConfigurationSet[2].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-715827884-service:5000/", groupShardGroupConfigurationSet[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-715827884-service:5000/", groupShardGroupConfigurationSet[2].WriterNodeClientConfiguration.BaseUrl.ToString());
             // Assertions on the persisted shard configuration
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> capturedShardConfigurationList = new(capturedShardConfigurationSet.Items);
             Assert.AreEqual(12, capturedShardConfigurationList.Count);
-            Assert.AreEqual(0, capturedShardConfigurationList[0].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[0].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[0].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[0].HashRangeStart);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", capturedShardConfigurationList[0].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(1, capturedShardConfigurationList[1].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[1].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[1].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[1].HashRangeStart);
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", capturedShardConfigurationList[1].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, capturedShardConfigurationList[2].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[2].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[2].OperationType);
             Assert.AreEqual(0, capturedShardConfigurationList[2].HashRangeStart);
             Assert.AreEqual("http://user-reader-0-service:5000/", capturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(3, capturedShardConfigurationList[3].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[3].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[3].OperationType);
             Assert.AreEqual(0, capturedShardConfigurationList[3].HashRangeStart);
             Assert.AreEqual("http://user-writer-0-service:5000/", capturedShardConfigurationList[3].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(4, capturedShardConfigurationList[4].Id);
             Assert.AreEqual(DataElement.GroupToGroupMapping, capturedShardConfigurationList[4].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[4].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[4].HashRangeStart);
             Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", capturedShardConfigurationList[4].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(5, capturedShardConfigurationList[5].Id);
             Assert.AreEqual(DataElement.GroupToGroupMapping, capturedShardConfigurationList[5].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[5].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[5].HashRangeStart);
             Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", capturedShardConfigurationList[5].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, capturedShardConfigurationList[6].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[6].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[6].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[6].HashRangeStart);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", capturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, capturedShardConfigurationList[7].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[7].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[7].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[7].HashRangeStart);
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", capturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, capturedShardConfigurationList[8].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[8].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[8].OperationType);
             Assert.AreEqual(-715_827_882, capturedShardConfigurationList[8].HashRangeStart);
             Assert.AreEqual("http://group-reader-n715827882-service:5000/", capturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(9, capturedShardConfigurationList[9].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[9].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[9].OperationType);
             Assert.AreEqual(-715_827_882, capturedShardConfigurationList[9].HashRangeStart);
             Assert.AreEqual("http://group-writer-n715827882-service:5000/", capturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, capturedShardConfigurationList[10].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[10].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[10].OperationType);
             Assert.AreEqual(715_827_884, capturedShardConfigurationList[10].HashRangeStart);
             Assert.AreEqual("http://group-reader-715827884-service:5000/", capturedShardConfigurationList[10].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(11, capturedShardConfigurationList[11].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[11].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[11].OperationType);
             Assert.AreEqual(715_827_884, capturedShardConfigurationList[11].HashRangeStart);
@@ -1170,101 +1294,108 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration.Count);
             Assert.AreEqual(1, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
             Assert.AreEqual(3, instanceConfiguration.GroupShardGroupConfiguration.Count);
-            Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(1, instanceConfiguration.UserShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.UserShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(userN2147483648Credentials, instanceConfiguration.UserShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", instanceConfiguration.UserShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", instanceConfiguration.UserShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration[1].ReaderNodeId);
-            Assert.AreEqual(3, instanceConfiguration.UserShardGroupConfiguration[1].WriterNodeId);
             Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration[1].HashRangeStart);
             Assert.AreEqual(user0Credentials, instanceConfiguration.UserShardGroupConfiguration[1].PersistentStorageCredentials);
             Assert.AreEqual("http://user-reader-0-service:5000/", instanceConfiguration.UserShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-0-service:5000/", instanceConfiguration.UserShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(4, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(5, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(groupToGroupN2147483648Credentials, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, instanceConfiguration.GroupShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(7, instanceConfiguration.GroupShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.GroupShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(groupN2147483648Credentials, instanceConfiguration.GroupShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, instanceConfiguration.GroupShardGroupConfiguration[1].ReaderNodeId);
-            Assert.AreEqual(9, instanceConfiguration.GroupShardGroupConfiguration[1].WriterNodeId);
             Assert.AreEqual(-715_827_882, instanceConfiguration.GroupShardGroupConfiguration[1].HashRangeStart);
             Assert.AreEqual(groupN715827882Credentials, instanceConfiguration.GroupShardGroupConfiguration[1].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-n715827882-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n715827882-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, instanceConfiguration.GroupShardGroupConfiguration[2].ReaderNodeId);
-            Assert.AreEqual(11, instanceConfiguration.GroupShardGroupConfiguration[2].WriterNodeId);
             Assert.AreEqual(715_827_884, instanceConfiguration.GroupShardGroupConfiguration[2].HashRangeStart);
             Assert.AreEqual(group715827884Credentials, instanceConfiguration.GroupShardGroupConfiguration[2].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-715827884-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-715827884-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[2].WriterNodeClientConfiguration.BaseUrl.ToString());
+            // Assertions on the *ShardGroupConfigurationSet fields
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupToGroupMappingShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Items;
+            Assert.AreEqual(2, userShardGroupConfigurationSet.Count);
+            Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(3, groupShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, userShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(userN2147483648Credentials, userShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, userShardGroupConfigurationSet[1].HashRangeStart);
+            Assert.AreEqual(user0Credentials, userShardGroupConfigurationSet[1].PersistentStorageCredentials);
+            Assert.AreEqual("http://user-reader-0-service:5000/", userShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-0-service:5000/", userShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(Int32.MinValue, groupToGroupMappingShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(groupToGroupN2147483648Credentials, groupToGroupMappingShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", groupToGroupMappingShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", groupToGroupMappingShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(Int32.MinValue, groupShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(groupN2147483648Credentials, groupShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(-715_827_882, groupShardGroupConfigurationSet[1].HashRangeStart);
+            Assert.AreEqual(groupN715827882Credentials, groupShardGroupConfigurationSet[1].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-n715827882-service:5000/", groupShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-n715827882-service:5000/", groupShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(715_827_884, groupShardGroupConfigurationSet[2].HashRangeStart);
+            Assert.AreEqual(group715827884Credentials, groupShardGroupConfigurationSet[2].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-715827884-service:5000/", groupShardGroupConfigurationSet[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-715827884-service:5000/", groupShardGroupConfigurationSet[2].WriterNodeClientConfiguration.BaseUrl.ToString());
             // Assertions on the persisted shard configuration
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> capturedShardConfigurationList = new(capturedShardConfigurationSet.Items);
             Assert.AreEqual(12, capturedShardConfigurationList.Count);
-            Assert.AreEqual(0, capturedShardConfigurationList[0].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[0].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[0].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[0].HashRangeStart);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", capturedShardConfigurationList[0].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(1, capturedShardConfigurationList[1].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[1].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[1].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[1].HashRangeStart);
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", capturedShardConfigurationList[1].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, capturedShardConfigurationList[2].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[2].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[2].OperationType);
             Assert.AreEqual(0, capturedShardConfigurationList[2].HashRangeStart);
             Assert.AreEqual("http://user-reader-0-service:5000/", capturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(3, capturedShardConfigurationList[3].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[3].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[3].OperationType);
             Assert.AreEqual(0, capturedShardConfigurationList[3].HashRangeStart);
             Assert.AreEqual("http://user-writer-0-service:5000/", capturedShardConfigurationList[3].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(4, capturedShardConfigurationList[4].Id);
             Assert.AreEqual(DataElement.GroupToGroupMapping, capturedShardConfigurationList[4].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[4].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[4].HashRangeStart);
             Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", capturedShardConfigurationList[4].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(5, capturedShardConfigurationList[5].Id);
             Assert.AreEqual(DataElement.GroupToGroupMapping, capturedShardConfigurationList[5].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[5].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[5].HashRangeStart);
             Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", capturedShardConfigurationList[5].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, capturedShardConfigurationList[6].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[6].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[6].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[6].HashRangeStart);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", capturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, capturedShardConfigurationList[7].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[7].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[7].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[7].HashRangeStart);
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", capturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, capturedShardConfigurationList[8].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[8].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[8].OperationType);
             Assert.AreEqual(-715_827_882, capturedShardConfigurationList[8].HashRangeStart);
             Assert.AreEqual("http://group-reader-n715827882-service:5000/", capturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(9, capturedShardConfigurationList[9].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[9].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[9].OperationType);
             Assert.AreEqual(-715_827_882, capturedShardConfigurationList[9].HashRangeStart);
             Assert.AreEqual("http://group-writer-n715827882-service:5000/", capturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, capturedShardConfigurationList[10].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[10].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[10].OperationType);
             Assert.AreEqual(715_827_884, capturedShardConfigurationList[10].HashRangeStart);
             Assert.AreEqual("http://group-reader-715827884-service:5000/", capturedShardConfigurationList[10].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(11, capturedShardConfigurationList[11].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[11].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[11].OperationType);
             Assert.AreEqual(715_827_884, capturedShardConfigurationList[11].HashRangeStart);
@@ -1395,101 +1526,108 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration.Count);
             Assert.AreEqual(1, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
             Assert.AreEqual(3, instanceConfiguration.GroupShardGroupConfiguration.Count);
-            Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(1, instanceConfiguration.UserShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.UserShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(userN2147483648Credentials, instanceConfiguration.UserShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", instanceConfiguration.UserShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", instanceConfiguration.UserShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, instanceConfiguration.UserShardGroupConfiguration[1].ReaderNodeId);
-            Assert.AreEqual(3, instanceConfiguration.UserShardGroupConfiguration[1].WriterNodeId);
             Assert.AreEqual(0, instanceConfiguration.UserShardGroupConfiguration[1].HashRangeStart);
             Assert.AreEqual(user0Credentials, instanceConfiguration.UserShardGroupConfiguration[1].PersistentStorageCredentials);
             Assert.AreEqual("http://user-reader-0-service:5000/", instanceConfiguration.UserShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-0-service:5000/", instanceConfiguration.UserShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(4, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(5, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(groupToGroupN2147483648Credentials, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", instanceConfiguration.GroupToGroupMappingShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, instanceConfiguration.GroupShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(7, instanceConfiguration.GroupShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, instanceConfiguration.GroupShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual(groupN2147483648Credentials, instanceConfiguration.GroupShardGroupConfiguration[0].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, instanceConfiguration.GroupShardGroupConfiguration[1].ReaderNodeId);
-            Assert.AreEqual(9, instanceConfiguration.GroupShardGroupConfiguration[1].WriterNodeId);
             Assert.AreEqual(-715_827_882, instanceConfiguration.GroupShardGroupConfiguration[1].HashRangeStart);
             Assert.AreEqual(groupN715827882Credentials, instanceConfiguration.GroupShardGroupConfiguration[1].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-n715827882-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n715827882-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, instanceConfiguration.GroupShardGroupConfiguration[2].ReaderNodeId);
-            Assert.AreEqual(11, instanceConfiguration.GroupShardGroupConfiguration[2].WriterNodeId);
             Assert.AreEqual(715_827_884, instanceConfiguration.GroupShardGroupConfiguration[2].HashRangeStart);
             Assert.AreEqual(group715827884Credentials, instanceConfiguration.GroupShardGroupConfiguration[2].PersistentStorageCredentials);
             Assert.AreEqual("http://group-reader-715827884-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-715827884-service:5000/", instanceConfiguration.GroupShardGroupConfiguration[2].WriterNodeClientConfiguration.BaseUrl.ToString());
+            // Assertions on the *ShardGroupConfigurationSet fields
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupToGroupMappingShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Items;
+            Assert.AreEqual(2, userShardGroupConfigurationSet.Count);
+            Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(3, groupShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, userShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(userN2147483648Credentials, userShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, userShardGroupConfigurationSet[1].HashRangeStart);
+            Assert.AreEqual(user0Credentials, userShardGroupConfigurationSet[1].PersistentStorageCredentials);
+            Assert.AreEqual("http://user-reader-0-service:5000/", userShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-0-service:5000/", userShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(Int32.MinValue, groupToGroupMappingShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(groupToGroupN2147483648Credentials, groupToGroupMappingShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", groupToGroupMappingShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", groupToGroupMappingShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(Int32.MinValue, groupShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual(groupN2147483648Credentials, groupShardGroupConfigurationSet[0].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(-715_827_882, groupShardGroupConfigurationSet[1].HashRangeStart);
+            Assert.AreEqual(groupN715827882Credentials, groupShardGroupConfigurationSet[1].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-n715827882-service:5000/", groupShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-n715827882-service:5000/", groupShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(715_827_884, groupShardGroupConfigurationSet[2].HashRangeStart);
+            Assert.AreEqual(group715827884Credentials, groupShardGroupConfigurationSet[2].PersistentStorageCredentials);
+            Assert.AreEqual("http://group-reader-715827884-service:5000/", groupShardGroupConfigurationSet[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-715827884-service:5000/", groupShardGroupConfigurationSet[2].WriterNodeClientConfiguration.BaseUrl.ToString());
             // Assertions on the persisted shard configuration
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> capturedShardConfigurationList = new(capturedShardConfigurationSet.Items);
             Assert.AreEqual(12, capturedShardConfigurationList.Count);
-            Assert.AreEqual(0, capturedShardConfigurationList[0].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[0].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[0].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[0].HashRangeStart);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", capturedShardConfigurationList[0].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(1, capturedShardConfigurationList[1].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[1].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[1].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[1].HashRangeStart);
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", capturedShardConfigurationList[1].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, capturedShardConfigurationList[2].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[2].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[2].OperationType);
             Assert.AreEqual(0, capturedShardConfigurationList[2].HashRangeStart);
             Assert.AreEqual("http://user-reader-0-service:5000/", capturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(3, capturedShardConfigurationList[3].Id);
             Assert.AreEqual(DataElement.User, capturedShardConfigurationList[3].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[3].OperationType);
             Assert.AreEqual(0, capturedShardConfigurationList[3].HashRangeStart);
             Assert.AreEqual("http://user-writer-0-service:5000/", capturedShardConfigurationList[3].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(4, capturedShardConfigurationList[4].Id);
             Assert.AreEqual(DataElement.GroupToGroupMapping, capturedShardConfigurationList[4].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[4].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[4].HashRangeStart);
             Assert.AreEqual("http://grouptogroupmapping-reader-n2147483648-service:5000/", capturedShardConfigurationList[4].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(5, capturedShardConfigurationList[5].Id);
             Assert.AreEqual(DataElement.GroupToGroupMapping, capturedShardConfigurationList[5].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[5].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[5].HashRangeStart);
             Assert.AreEqual("http://grouptogroupmapping-writer-n2147483648-service:5000/", capturedShardConfigurationList[5].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, capturedShardConfigurationList[6].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[6].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[6].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[6].HashRangeStart);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", capturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, capturedShardConfigurationList[7].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[7].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[7].OperationType);
             Assert.AreEqual(Int32.MinValue, capturedShardConfigurationList[7].HashRangeStart);
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", capturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, capturedShardConfigurationList[8].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[8].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[8].OperationType);
             Assert.AreEqual(-715_827_882, capturedShardConfigurationList[8].HashRangeStart);
             Assert.AreEqual("http://group-reader-n715827882-service:5000/", capturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(9, capturedShardConfigurationList[9].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[9].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[9].OperationType);
             Assert.AreEqual(-715_827_882, capturedShardConfigurationList[9].HashRangeStart);
             Assert.AreEqual("http://group-writer-n715827882-service:5000/", capturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, capturedShardConfigurationList[10].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[10].DataElementType);
             Assert.AreEqual(Operation.Query, capturedShardConfigurationList[10].OperationType);
             Assert.AreEqual(715_827_884, capturedShardConfigurationList[10].HashRangeStart);
             Assert.AreEqual("http://group-reader-715827884-service:5000/", capturedShardConfigurationList[10].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(11, capturedShardConfigurationList[11].Id);
             Assert.AreEqual(DataElement.Group, capturedShardConfigurationList[11].DataElementType);
             Assert.AreEqual(Operation.Event, capturedShardConfigurationList[11].OperationType);
             Assert.AreEqual(715_827_884, capturedShardConfigurationList[11].HashRangeStart);
@@ -1685,8 +1823,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    1,
-                    2,
                     Int32.MinValue,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -1694,8 +1830,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    7,
-                    8,
                     0,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
@@ -1782,8 +1916,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    1,
-                    2,
                     Int32.MinValue,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -1791,8 +1923,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    7,
-                    8,
                     0,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
@@ -3330,70 +3460,58 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed splitting shard group.");
             // Assertions on the first updated shard configuration
-            //   Fine grained tests on methods CreateShardConfigurationSet() and ShardConfigurationSetPersister.Write() are already performed in tests CreateDistributedAccessManagerInstanceAsync() and UpdateAndPersistShardConfiguration()
+            //   Fine grained tests on methods CreateShardConfigurationSet() and ShardConfigurationSetPersister.Write() are already performed in tests CreateDistributedAccessManagerInstanceAsync() and UpdateAndPersistShardConfigurationSets()
             //   Hence will just perform cursory checks here
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> firstCapturedShardConfigurationList = new(firstCapturedShardConfigurationSet.Items);
             Assert.AreEqual(8, firstCapturedShardConfigurationList.Count);
-            Assert.AreEqual(1, firstCapturedShardConfigurationList[0].Id);
             Assert.AreEqual(DataElement.User, firstCapturedShardConfigurationList[0].DataElementType);
             Assert.AreEqual(Operation.Query, firstCapturedShardConfigurationList[0].OperationType);
             Assert.AreEqual(Int32.MinValue, firstCapturedShardConfigurationList[0].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[0].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, firstCapturedShardConfigurationList[1].Id);
             Assert.AreEqual(DataElement.User, firstCapturedShardConfigurationList[1].DataElementType);
             Assert.AreEqual(Operation.Event, firstCapturedShardConfigurationList[1].OperationType);
             Assert.AreEqual(Int32.MinValue, firstCapturedShardConfigurationList[1].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[1].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, firstCapturedShardConfigurationList[2].Id);
             Assert.AreEqual(DataElement.User, firstCapturedShardConfigurationList[2].DataElementType);
             Assert.AreEqual(Operation.Query, firstCapturedShardConfigurationList[2].OperationType);
             Assert.AreEqual(0, firstCapturedShardConfigurationList[2].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, firstCapturedShardConfigurationList[3].Id);
             Assert.AreEqual(DataElement.User, firstCapturedShardConfigurationList[3].DataElementType);
             Assert.AreEqual(Operation.Event, firstCapturedShardConfigurationList[3].OperationType);
             Assert.AreEqual(0, firstCapturedShardConfigurationList[3].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[3].ClientConfiguration.BaseUrl.ToString());
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> secondCapturedShardConfigurationList = new(secondCapturedShardConfigurationSet.Items);
             Assert.AreEqual(8, secondCapturedShardConfigurationList.Count);
-            Assert.AreEqual(1, secondCapturedShardConfigurationList[0].Id);
             Assert.AreEqual(DataElement.User, secondCapturedShardConfigurationList[0].DataElementType);
             Assert.AreEqual(Operation.Query, secondCapturedShardConfigurationList[0].OperationType);
             Assert.AreEqual(Int32.MinValue, secondCapturedShardConfigurationList[0].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", secondCapturedShardConfigurationList[0].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, secondCapturedShardConfigurationList[1].Id);
             Assert.AreEqual(DataElement.User, secondCapturedShardConfigurationList[1].DataElementType);
             Assert.AreEqual(Operation.Event, secondCapturedShardConfigurationList[1].OperationType);
             Assert.AreEqual(Int32.MinValue, secondCapturedShardConfigurationList[1].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", secondCapturedShardConfigurationList[1].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, secondCapturedShardConfigurationList[2].Id);
             Assert.AreEqual(DataElement.User, secondCapturedShardConfigurationList[2].DataElementType);
             Assert.AreEqual(Operation.Query, secondCapturedShardConfigurationList[2].OperationType);
             Assert.AreEqual(0, secondCapturedShardConfigurationList[2].HashRangeStart);
             Assert.AreEqual("http://user-reader-0-service:5000/", secondCapturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, secondCapturedShardConfigurationList[3].Id);
             Assert.AreEqual(DataElement.User, secondCapturedShardConfigurationList[3].DataElementType);
             Assert.AreEqual(Operation.Event, secondCapturedShardConfigurationList[3].OperationType);
             Assert.AreEqual(0, secondCapturedShardConfigurationList[3].HashRangeStart);
             Assert.AreEqual("http://user-writer-0-service:5000/", secondCapturedShardConfigurationList[3].ClientConfiguration.BaseUrl.ToString());
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> thirdCapturedShardConfigurationList = new(thirdCapturedShardConfigurationSet.Items);
             Assert.AreEqual(8, thirdCapturedShardConfigurationList.Count);
-            Assert.AreEqual(1, thirdCapturedShardConfigurationList[0].Id);
             Assert.AreEqual(DataElement.User, thirdCapturedShardConfigurationList[0].DataElementType);
             Assert.AreEqual(Operation.Query, thirdCapturedShardConfigurationList[0].OperationType);
             Assert.AreEqual(Int32.MinValue, thirdCapturedShardConfigurationList[0].HashRangeStart);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", thirdCapturedShardConfigurationList[0].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(2, thirdCapturedShardConfigurationList[1].Id);
             Assert.AreEqual(DataElement.User, thirdCapturedShardConfigurationList[1].DataElementType);
             Assert.AreEqual(Operation.Event, thirdCapturedShardConfigurationList[1].OperationType);
             Assert.AreEqual(Int32.MinValue, thirdCapturedShardConfigurationList[1].HashRangeStart);
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", thirdCapturedShardConfigurationList[1].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, thirdCapturedShardConfigurationList[2].Id);
             Assert.AreEqual(DataElement.User, thirdCapturedShardConfigurationList[2].DataElementType);
             Assert.AreEqual(Operation.Query, thirdCapturedShardConfigurationList[2].OperationType);
             Assert.AreEqual(0, thirdCapturedShardConfigurationList[2].HashRangeStart);
             Assert.AreEqual("http://user-reader-0-service:5000/", thirdCapturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, thirdCapturedShardConfigurationList[3].Id);
             Assert.AreEqual(DataElement.User, thirdCapturedShardConfigurationList[3].DataElementType);
             Assert.AreEqual(Operation.Event, thirdCapturedShardConfigurationList[3].OperationType);
             Assert.AreEqual(0, thirdCapturedShardConfigurationList[3].HashRangeStart);
@@ -3404,18 +3522,29 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(1, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
             Assert.AreEqual(1, instanceConfiguration.GroupShardGroupConfiguration.Count);
             IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfiguration = instanceConfiguration.UserShardGroupConfiguration;
-            Assert.AreEqual(1, userShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(2, userShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, userShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, userShardGroupConfiguration[1].ReaderNodeId);
-            Assert.AreEqual(8, userShardGroupConfiguration[1].WriterNodeId);
             Assert.AreEqual(0, userShardGroupConfiguration[1].HashRangeStart);
             Assert.AreEqual(persistentStorageInstanceName, userShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-0-service:5000/", userShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-0-service:5000/", userShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            // Assertions on the *ShardGroupConfigurationSet fields
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupToGroupMappingShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Items;
+            Assert.AreEqual(2, userShardGroupConfigurationSet.Count);
+            Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(1, groupShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, userShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648", userShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, userShardGroupConfigurationSet[1].HashRangeStart);
+            Assert.AreEqual(persistentStorageInstanceName, userShardGroupConfigurationSet[1].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("http://user-reader-0-service:5000/", userShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-0-service:5000/", userShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
         }
 
         [Test]
@@ -3455,8 +3584,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    5,
-                    6,
                     Int32.MinValue,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
@@ -3464,8 +3591,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    7,
-                    8,
                     0,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-reader-0-service:5000/")),
@@ -3589,160 +3714,127 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed deleting distributed operation router node.");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager,  ApplicationLogging.LogLevel.Information, "Completed splitting shard group.");
             // Assertions on the first updated shard configuration
-            //   Fine grained tests on methods CreateShardConfigurationSet() and ShardConfigurationSetPersister.Write() are already performed in tests CreateDistributedAccessManagerInstanceAsync() and UpdateAndPersistShardConfiguration()
+            //   Fine grained tests on methods CreateShardConfigurationSet() and ShardConfigurationSetPersister.Write() are already performed in tests CreateDistributedAccessManagerInstanceAsync() and UpdateAndPersistShardConfigurationSets()
             //   Hence will just perform cursory checks here
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> firstCapturedShardConfigurationList = new(firstCapturedShardConfigurationSet.Items);
             Assert.AreEqual(10, firstCapturedShardConfigurationList.Count);
-            Assert.AreEqual(5, firstCapturedShardConfigurationList[4].Id);
             Assert.AreEqual(DataElement.Group, firstCapturedShardConfigurationList[4].DataElementType);
             Assert.AreEqual(Operation.Query, firstCapturedShardConfigurationList[4].OperationType);
             Assert.AreEqual(Int32.MinValue, firstCapturedShardConfigurationList[4].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[4].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, firstCapturedShardConfigurationList[5].Id);
             Assert.AreEqual(DataElement.Group, firstCapturedShardConfigurationList[5].DataElementType);
             Assert.AreEqual(Operation.Event, firstCapturedShardConfigurationList[5].OperationType);
             Assert.AreEqual(Int32.MinValue, firstCapturedShardConfigurationList[5].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[5].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, firstCapturedShardConfigurationList[6].Id);
             Assert.AreEqual(DataElement.Group, firstCapturedShardConfigurationList[6].DataElementType);
             Assert.AreEqual(Operation.Query, firstCapturedShardConfigurationList[6].OperationType);
-            Assert.AreEqual(0, firstCapturedShardConfigurationList[6].HashRangeStart);
-            Assert.AreEqual("http://group-reader-0-service:5000/", firstCapturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, firstCapturedShardConfigurationList[7].Id);
+            Assert.AreEqual(-1073741824, firstCapturedShardConfigurationList[6].HashRangeStart);
+            Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, firstCapturedShardConfigurationList[7].DataElementType);
             Assert.AreEqual(Operation.Event, firstCapturedShardConfigurationList[7].OperationType);
-            Assert.AreEqual(0, firstCapturedShardConfigurationList[7].HashRangeStart);
-            Assert.AreEqual("http://group-writer-0-service:5000/", firstCapturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(9, firstCapturedShardConfigurationList[8].Id);
+            Assert.AreEqual(-1073741824, firstCapturedShardConfigurationList[7].HashRangeStart);
+            Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, firstCapturedShardConfigurationList[8].DataElementType);
             Assert.AreEqual(Operation.Query, firstCapturedShardConfigurationList[8].OperationType);
-            Assert.AreEqual(-1073741824, firstCapturedShardConfigurationList[8].HashRangeStart);
-            Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, firstCapturedShardConfigurationList[9].Id);
+            Assert.AreEqual(0, firstCapturedShardConfigurationList[8].HashRangeStart);
+            Assert.AreEqual("http://group-reader-0-service:5000/", firstCapturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, firstCapturedShardConfigurationList[9].DataElementType);
             Assert.AreEqual(Operation.Event, firstCapturedShardConfigurationList[9].OperationType);
-            Assert.AreEqual(-1073741824, firstCapturedShardConfigurationList[9].HashRangeStart);
-            Assert.AreEqual("http://operation-router-service:5000/", firstCapturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, firstCapturedShardConfigurationList[9].HashRangeStart);
+            Assert.AreEqual("http://group-writer-0-service:5000/", firstCapturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> secondCapturedShardConfigurationList = new(secondCapturedShardConfigurationSet.Items);
             Assert.AreEqual(10, secondCapturedShardConfigurationList.Count);
-            Assert.AreEqual(5, secondCapturedShardConfigurationList[4].Id);
             Assert.AreEqual(DataElement.Group, secondCapturedShardConfigurationList[4].DataElementType);
             Assert.AreEqual(Operation.Query, secondCapturedShardConfigurationList[4].OperationType);
             Assert.AreEqual(Int32.MinValue, secondCapturedShardConfigurationList[4].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", secondCapturedShardConfigurationList[4].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, secondCapturedShardConfigurationList[5].Id);
             Assert.AreEqual(DataElement.Group, secondCapturedShardConfigurationList[5].DataElementType);
             Assert.AreEqual(Operation.Event, secondCapturedShardConfigurationList[5].OperationType);
             Assert.AreEqual(Int32.MinValue, secondCapturedShardConfigurationList[5].HashRangeStart);
             Assert.AreEqual("http://operation-router-service:5000/", secondCapturedShardConfigurationList[5].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, secondCapturedShardConfigurationList[6].Id);
             Assert.AreEqual(DataElement.Group, secondCapturedShardConfigurationList[6].DataElementType);
             Assert.AreEqual(Operation.Query, secondCapturedShardConfigurationList[6].OperationType);
-            Assert.AreEqual(0, secondCapturedShardConfigurationList[6].HashRangeStart);
-            Assert.AreEqual("http://group-reader-0-service:5000/", secondCapturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, secondCapturedShardConfigurationList[7].Id);
+            Assert.AreEqual(-1073741824, secondCapturedShardConfigurationList[6].HashRangeStart);
+            Assert.AreEqual("http://group-reader-n1073741824-service:5000/", secondCapturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, secondCapturedShardConfigurationList[7].DataElementType);
             Assert.AreEqual(Operation.Event, secondCapturedShardConfigurationList[7].OperationType);
-            Assert.AreEqual(0, secondCapturedShardConfigurationList[7].HashRangeStart);
-            Assert.AreEqual("http://group-writer-0-service:5000/", secondCapturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(9, secondCapturedShardConfigurationList[8].Id);
+            Assert.AreEqual(-1073741824, secondCapturedShardConfigurationList[7].HashRangeStart);
+            Assert.AreEqual("http://group-writer-n1073741824-service:5000/", secondCapturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, secondCapturedShardConfigurationList[8].DataElementType);
             Assert.AreEqual(Operation.Query, secondCapturedShardConfigurationList[8].OperationType);
-            Assert.AreEqual(-1073741824, secondCapturedShardConfigurationList[8].HashRangeStart);
-            Assert.AreEqual("http://group-reader-n1073741824-service:5000/", secondCapturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, secondCapturedShardConfigurationList[9].Id);
+            Assert.AreEqual(0, secondCapturedShardConfigurationList[8].HashRangeStart);
+            Assert.AreEqual("http://group-reader-0-service:5000/", secondCapturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, secondCapturedShardConfigurationList[9].DataElementType);
             Assert.AreEqual(Operation.Event, secondCapturedShardConfigurationList[9].OperationType);
-            Assert.AreEqual(-1073741824, secondCapturedShardConfigurationList[9].HashRangeStart);
-            Assert.AreEqual("http://group-writer-n1073741824-service:5000/", secondCapturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, secondCapturedShardConfigurationList[9].HashRangeStart);
+            Assert.AreEqual("http://group-writer-0-service:5000/", secondCapturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> thirdCapturedShardConfigurationList = new(thirdCapturedShardConfigurationSet.Items);
             Assert.AreEqual(10, thirdCapturedShardConfigurationList.Count);
-            Assert.AreEqual(5, thirdCapturedShardConfigurationList[4].Id);
             Assert.AreEqual(DataElement.Group, thirdCapturedShardConfigurationList[4].DataElementType);
             Assert.AreEqual(Operation.Query, thirdCapturedShardConfigurationList[4].OperationType);
             Assert.AreEqual(Int32.MinValue, thirdCapturedShardConfigurationList[4].HashRangeStart);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", thirdCapturedShardConfigurationList[4].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(6, thirdCapturedShardConfigurationList[5].Id);
             Assert.AreEqual(DataElement.Group, thirdCapturedShardConfigurationList[5].DataElementType);
             Assert.AreEqual(Operation.Event, thirdCapturedShardConfigurationList[5].OperationType);
             Assert.AreEqual(Int32.MinValue, thirdCapturedShardConfigurationList[5].HashRangeStart);
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", thirdCapturedShardConfigurationList[5].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, thirdCapturedShardConfigurationList[6].Id);
             Assert.AreEqual(DataElement.Group, thirdCapturedShardConfigurationList[6].DataElementType);
             Assert.AreEqual(Operation.Query, thirdCapturedShardConfigurationList[6].OperationType);
-            Assert.AreEqual(0, thirdCapturedShardConfigurationList[6].HashRangeStart);
-            Assert.AreEqual("http://group-reader-0-service:5000/", thirdCapturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(8, thirdCapturedShardConfigurationList[7].Id);
+            Assert.AreEqual(-1073741824, thirdCapturedShardConfigurationList[6].HashRangeStart);
+            Assert.AreEqual("http://group-reader-n1073741824-service:5000/", thirdCapturedShardConfigurationList[6].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, thirdCapturedShardConfigurationList[7].DataElementType);
             Assert.AreEqual(Operation.Event, thirdCapturedShardConfigurationList[7].OperationType);
-            Assert.AreEqual(0, thirdCapturedShardConfigurationList[7].HashRangeStart);
-            Assert.AreEqual("http://group-writer-0-service:5000/", thirdCapturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(9, thirdCapturedShardConfigurationList[8].Id);
+            Assert.AreEqual(-1073741824, thirdCapturedShardConfigurationList[7].HashRangeStart);
+            Assert.AreEqual("http://group-writer-n1073741824-service:5000/", thirdCapturedShardConfigurationList[7].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, thirdCapturedShardConfigurationList[8].DataElementType);
             Assert.AreEqual(Operation.Query, thirdCapturedShardConfigurationList[8].OperationType);
-            Assert.AreEqual(-1073741824, thirdCapturedShardConfigurationList[8].HashRangeStart);
-            Assert.AreEqual("http://group-reader-n1073741824-service:5000/", thirdCapturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, thirdCapturedShardConfigurationList[9].Id);
+            Assert.AreEqual(0, thirdCapturedShardConfigurationList[8].HashRangeStart);
+            Assert.AreEqual("http://group-reader-0-service:5000/", thirdCapturedShardConfigurationList[8].ClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(DataElement.Group, thirdCapturedShardConfigurationList[9].DataElementType);
             Assert.AreEqual(Operation.Event, thirdCapturedShardConfigurationList[9].OperationType);
-            Assert.AreEqual(-1073741824, thirdCapturedShardConfigurationList[9].HashRangeStart);
-            Assert.AreEqual("http://group-writer-n1073741824-service:5000/", thirdCapturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, thirdCapturedShardConfigurationList[9].HashRangeStart);
+            Assert.AreEqual("http://group-writer-0-service:5000/", thirdCapturedShardConfigurationList[9].ClientConfiguration.BaseUrl.ToString());
             // Assert that the instance configuration was updated correctly (including sorting)
             instanceConfiguration = testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration;
             Assert.AreEqual(1, instanceConfiguration.UserShardGroupConfiguration.Count);
             Assert.AreEqual(1, instanceConfiguration.GroupToGroupMappingShardGroupConfiguration.Count);
             Assert.AreEqual(3, instanceConfiguration.GroupShardGroupConfiguration.Count);
             IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupShardGroupConfiguration = instanceConfiguration.GroupShardGroupConfiguration;
-            Assert.AreEqual(5, groupShardGroupConfiguration[0].ReaderNodeId);
-            Assert.AreEqual(6, groupShardGroupConfiguration[0].WriterNodeId);
             Assert.AreEqual(Int32.MinValue, groupShardGroupConfiguration[0].HashRangeStart);
             Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648", groupShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(9, groupShardGroupConfiguration[1].ReaderNodeId);
-            Assert.AreEqual(10, groupShardGroupConfiguration[1].WriterNodeId);
             Assert.AreEqual(-1073741824, groupShardGroupConfiguration[1].HashRangeStart);
             Assert.AreEqual(persistentStorageInstanceName, groupShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-n1073741824-service:5000/", groupShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n1073741824-service:5000/", groupShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(7, groupShardGroupConfiguration[2].ReaderNodeId);
-            Assert.AreEqual(8, groupShardGroupConfiguration[2].WriterNodeId);
             Assert.AreEqual(0, groupShardGroupConfiguration[2].HashRangeStart);
             Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_0", groupShardGroupConfiguration[2].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-0-service:5000/", groupShardGroupConfiguration[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-0-service:5000/", groupShardGroupConfiguration[2].WriterNodeClientConfiguration.BaseUrl.ToString());
-        }
-        [Test]
-        public void UpdateAndPersistShardConfiguration_ConfigurationUpdatesParameterContainsDuplicateHashRangeStartValues()
-        {
-            Uri testUri = new("http://127.0.0.1/");
-            List<HashRangeStartAndClientConfigurations> testConfigurationUpdates = new()
-            {
-                new HashRangeStartAndClientConfigurations 
-                { 
-                    HashRangeStart = -1, 
-                    ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(testUri), 
-                    WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(testUri)
-                },
-                new HashRangeStartAndClientConfigurations
-                {
-                    HashRangeStart = -1,
-                    ReaderNodeClientConfiguration = new AccessManagerRestClientConfiguration(testUri),
-                    WriterNodeClientConfiguration = new AccessManagerRestClientConfiguration(testUri)
-                }
-            };
-
-            var e = Assert.Throws<ArgumentException>(delegate
-            {
-                testKubernetesDistributedAccessManagerInstanceManager.UpdateAndPersistShardConfiguration(DataElement.User, testConfigurationUpdates, new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>());
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Parameter 'configurationUpdates' contains elements with duplicate 'HashRangeStart' values -1."));
-            Assert.AreEqual("configurationUpdates", e.ParamName);
+            // Assertions on the *ShardGroupConfigurationSet fields
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupToGroupMappingShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupToGroupMappingShardGroupConfigurationSet.Items;
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupShardGroupConfigurationSet = testKubernetesDistributedAccessManagerInstanceManager.GroupShardGroupConfigurationSet.Items;
+            Assert.AreEqual(1, userShardGroupConfigurationSet.Count);
+            Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
+            Assert.AreEqual(3, groupShardGroupConfigurationSet.Count);
+            Assert.AreEqual(Int32.MinValue, groupShardGroupConfigurationSet[0].HashRangeStart);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648", groupShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(-1073741824, groupShardGroupConfigurationSet[1].HashRangeStart);
+            Assert.AreEqual(persistentStorageInstanceName, groupShardGroupConfigurationSet[1].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("http://group-reader-n1073741824-service:5000/", groupShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-n1073741824-service:5000/", groupShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, groupShardGroupConfigurationSet[2].HashRangeStart);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_0", groupShardGroupConfigurationSet[2].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("http://group-reader-0-service:5000/", groupShardGroupConfigurationSet[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://group-writer-0-service:5000/", groupShardGroupConfigurationSet[2].WriterNodeClientConfiguration.BaseUrl.ToString());
         }
 
         [Test]
-        public void UpdateAndPersistShardConfiguration_ExceptionCreatingShardConfigurationSetPersister()
+        public void UpdateAndPersistShardConfigurationSets_ExceptionCreatingShardConfigurationSetPersister()
         {
             var mockException = new Exception("Mock exception");
             testShardConfigurationSetPersisterCreationFunction = (TestPersistentStorageLoginCredentials credentials) => { throw mockException; };
@@ -3760,7 +3852,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testKubernetesDistributedAccessManagerInstanceManager.UpdateAndPersistShardConfiguration
+                testKubernetesDistributedAccessManagerInstanceManager.UpdateAndPersistShardConfigurationSets
                 (
                     DataElement.User,
                     new List<HashRangeStartAndClientConfigurations>(),
@@ -3773,7 +3865,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public void UpdateAndPersistShardConfiguration_ExceptionUpdatingShardConfigurationInPersistentStorage()
+        public void UpdateAndPersistShardConfigurationSets_ExceptionUpdatingShardConfigurationInPersistentStorage()
         {
             var mockException = new Exception("Mock exception");
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -3791,7 +3883,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.Throws<Exception>(delegate
             {
-                testKubernetesDistributedAccessManagerInstanceManager.UpdateAndPersistShardConfiguration
+                testKubernetesDistributedAccessManagerInstanceManager.UpdateAndPersistShardConfigurationSets
                 (
                     DataElement.User, 
                     new List<HashRangeStartAndClientConfigurations>(), 
@@ -3805,15 +3897,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public void UpdateAndPersistShardConfiguration()
+        public void UpdateAndPersistShardConfigurationSets()
         {
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = CreateInstanceConfiguration();
             instanceConfiguration.UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    1,
-                    2,
                     Int32.MinValue,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -3821,8 +3911,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    7,
-                    8,
                     0,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
@@ -3863,8 +3951,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
-                    9,
-                    10,
                     -1_073_741_824,
                     new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n1073741824"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n1073741824-service:5000/")),
@@ -3874,7 +3960,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             ShardConfigurationSet<AccessManagerRestClientConfiguration> capturedShardConfigurationSet = null;
             mockShardConfigurationSetPersister.Write(Arg.Do<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(argumentValue => capturedShardConfigurationSet = argumentValue), true);
 
-            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> result = testKubernetesDistributedAccessManagerInstanceManager.UpdateAndPersistShardConfiguration
+            testKubernetesDistributedAccessManagerInstanceManager.UpdateAndPersistShardConfigurationSets
             (
                 DataElement.User, 
                 testConfigurationUpdates,
@@ -3883,39 +3969,32 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             mockShardConfigurationSetPersister.Received(1).Write(Arg.Any<ShardConfigurationSet<AccessManagerRestClientConfiguration>>(), true);
             // Assert contents of the returned shard group configuration
-            Assert.AreEqual(3, result.Count);
-            Assert.AreEqual(1, result[0].ReaderNodeId);
-            Assert.AreEqual(2, result[0].WriterNodeId);
-            Assert.AreEqual(Int32.MinValue, result[0].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648", result[0].PersistentStorageCredentials.ConnectionString);
-            Assert.AreEqual(testUri1, result[0].ReaderNodeClientConfiguration.BaseUrl);
-            Assert.AreEqual(testUri2, result[0].WriterNodeClientConfiguration.BaseUrl);
-            Assert.AreEqual(7, result[1].ReaderNodeId);
-            Assert.AreEqual(8, result[1].WriterNodeId);
-            Assert.AreEqual(0, result[1].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0", result[1].PersistentStorageCredentials.ConnectionString);
-            Assert.AreEqual(testUri3, result[1].ReaderNodeClientConfiguration.BaseUrl);
-            Assert.AreEqual(testUri4, result[1].WriterNodeClientConfiguration.BaseUrl);
-            Assert.AreEqual(9, result[2].ReaderNodeId);
-            Assert.AreEqual(10, result[2].WriterNodeId);
-            Assert.AreEqual(-1_073_741_824, result[2].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n1073741824", result[2].PersistentStorageCredentials.ConnectionString);
-            Assert.AreEqual("http://user-reader-n1073741824-service:5000/", result[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual("http://user-writer-n1073741824-service:5000/", result[2].WriterNodeClientConfiguration.BaseUrl.ToString());
+            IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfiguration = testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items;
+            Assert.AreEqual(3, userShardGroupConfiguration.Count);
+            Assert.AreEqual(Int32.MinValue, userShardGroupConfiguration[0].HashRangeStart);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual(testUri1, userShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl);
+            Assert.AreEqual(testUri2, userShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl);
+            Assert.AreEqual(-1_073_741_824, userShardGroupConfiguration[1].HashRangeStart);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n1073741824", userShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("http://user-reader-n1073741824-service:5000/", userShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual("http://user-writer-n1073741824-service:5000/", userShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(0, userShardGroupConfiguration[2].HashRangeStart);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0", userShardGroupConfiguration[2].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual(testUri3, userShardGroupConfiguration[2].ReaderNodeClientConfiguration.BaseUrl);
+            Assert.AreEqual(testUri4, userShardGroupConfiguration[2].WriterNodeClientConfiguration.BaseUrl);
             // Assert the persisted shard configuration
             //   Fine grained tests on methods CreateShardConfigurationSet() and ShardConfigurationSetPersister.Write() are already performed in test CreateDistributedAccessManagerInstanceAsync()
             //   Hence will just perform cursory checks here
             List<ShardConfiguration<AccessManagerRestClientConfiguration>> capturedShardConfigurationList = new(capturedShardConfigurationSet.Items);
-            Assert.AreEqual(9, capturedShardConfigurationList[4].Id);
-            Assert.AreEqual(DataElement.User, capturedShardConfigurationList[4].DataElementType);
-            Assert.AreEqual(Operation.Query, capturedShardConfigurationList[4].OperationType);
-            Assert.AreEqual(-1_073_741_824, capturedShardConfigurationList[4].HashRangeStart);
-            Assert.AreEqual("http://user-reader-n1073741824-service:5000/", capturedShardConfigurationList[4].ClientConfiguration.BaseUrl.ToString());
-            Assert.AreEqual(10, capturedShardConfigurationList[5].Id);
-            Assert.AreEqual(DataElement.User, capturedShardConfigurationList[5].DataElementType);
-            Assert.AreEqual(Operation.Event, capturedShardConfigurationList[5].OperationType);
-            Assert.AreEqual(-1_073_741_824, capturedShardConfigurationList[5].HashRangeStart);
-            Assert.AreEqual("http://user-writer-n1073741824-service:5000/", capturedShardConfigurationList[5].ClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(DataElement.User, capturedShardConfigurationList[2].DataElementType);
+            Assert.AreEqual(Operation.Query, capturedShardConfigurationList[2].OperationType);
+            Assert.AreEqual(-1_073_741_824, capturedShardConfigurationList[2].HashRangeStart);
+            Assert.AreEqual("http://user-reader-n1073741824-service:5000/", capturedShardConfigurationList[2].ClientConfiguration.BaseUrl.ToString());
+            Assert.AreEqual(DataElement.User, capturedShardConfigurationList[3].DataElementType);
+            Assert.AreEqual(Operation.Event, capturedShardConfigurationList[3].OperationType);
+            Assert.AreEqual(-1_073_741_824, capturedShardConfigurationList[3].HashRangeStart);
+            Assert.AreEqual("http://user-writer-n1073741824-service:5000/", capturedShardConfigurationList[3].ClientConfiguration.BaseUrl.ToString());
         }
 
         [Test]
@@ -3999,29 +4078,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             result = testKubernetesDistributedAccessManagerInstanceManager.GetLoadBalancerServiceScheme();
 
             Assert.AreEqual("https", result);
-        }
-
-        [Test]
-        public void SortShardGroupConfigurationByHashRangeStart()
-        {
-            TestPersistentStorageLoginCredentials credentials1 = new("connString1");
-            TestPersistentStorageLoginCredentials credentials2 = new("connString2");
-            TestPersistentStorageLoginCredentials credentials3 = new("connString3");
-            List<ShardGroupConfiguration<TestPersistentStorageLoginCredentials>> testShardGroupConfiguration = new()
-            {
-                new ShardGroupConfiguration<TestPersistentStorageLoginCredentials>(Int32.MaxValue, credentials3),
-                new ShardGroupConfiguration<TestPersistentStorageLoginCredentials>(0, credentials2),
-                new ShardGroupConfiguration<TestPersistentStorageLoginCredentials>(Int32.MinValue, credentials1),
-            };
-
-            testKubernetesDistributedAccessManagerInstanceManager.SortShardGroupConfigurationByHashRangeStart(testShardGroupConfiguration);
-
-            Assert.AreEqual(Int32.MinValue, testShardGroupConfiguration[0].HashRangeStart);
-            Assert.AreSame(credentials1, testShardGroupConfiguration[0].PersistentStorageCredentials);
-            Assert.AreEqual(0, testShardGroupConfiguration[1].HashRangeStart);
-            Assert.AreSame(credentials2, testShardGroupConfiguration[1].PersistentStorageCredentials);
-            Assert.AreEqual(Int32.MaxValue, testShardGroupConfiguration[2].HashRangeStart);
-            Assert.AreSame(credentials3, testShardGroupConfiguration[2].PersistentStorageCredentials);
         }
 
         [Test]
@@ -7251,8 +7307,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        1,
-                        2,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
@@ -7263,8 +7317,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        3,
-                        4,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
@@ -7275,8 +7327,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
-                        5,
-                        6,
                         Int32.MinValue,
                         new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
@@ -7307,11 +7357,24 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         /// </summary>
         protected class KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers : KubernetesDistributedAccessManagerInstanceManager<TestPersistentStorageLoginCredentials>
         {
-            /// <summary>The unique id to use for newly created shard groups.</summary>
-            public Int32 NextShardGroupId 
+            #pragma warning disable 1591
+
+            public KubernetesShardGroupConfigurationSet<TestPersistentStorageLoginCredentials> UserShardGroupConfigurationSet
             {
-                get { return nextShardGroupId; }
+                get { return userShardGroupConfigurationSet; }
             }
+
+            public KubernetesShardGroupConfigurationSet<TestPersistentStorageLoginCredentials> GroupToGroupMappingShardGroupConfigurationSet
+            {
+                get { return groupToGroupMappingShardGroupConfigurationSet; }
+            }
+
+            public KubernetesShardGroupConfigurationSet<TestPersistentStorageLoginCredentials> GroupShardGroupConfigurationSet
+            {
+                get { return groupShardGroupConfigurationSet; }
+            }
+
+            #pragma warning restore 1591
 
             /// <summary>
             /// Initialises a new instance of the ApplicationAccess.Redistribution.Kubernetes.UnitTests.KubernetesDistributedAccessManagerInstanceManagerTests+KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers class.
@@ -7422,14 +7485,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             }
 
-            public new IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> UpdateAndPersistShardConfiguration
+            public new void UpdateAndPersistShardConfigurationSets
             (
                 DataElement dataElement,
                 IEnumerable<HashRangeStartAndClientConfigurations> configurationUpdates,
                 IEnumerable<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> configurationAdditions
             )
             {
-                return base.UpdateAndPersistShardConfiguration(dataElement, configurationUpdates, configurationAdditions);
+                base.UpdateAndPersistShardConfigurationSets(dataElement, configurationUpdates, configurationAdditions);
             }
 
             public new Int32 GetDistributedOperationCoordinatorConfigurationRefreshInterval()
@@ -7450,12 +7513,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             public new String GetLoadBalancerServiceScheme()
             {
                 return base.GetLoadBalancerServiceScheme();
-            }
-
-            public new void SortShardGroupConfigurationByHashRangeStart<TShardGroupConfiguration>(IList<TShardGroupConfiguration> shardGroupConfiguration)
-            where TShardGroupConfiguration : ShardGroupConfiguration<TestPersistentStorageLoginCredentials>
-            {
-                base.SortShardGroupConfigurationByHashRangeStart(shardGroupConfiguration);
             }
 
             public new async Task<TestPersistentStorageLoginCredentials> CreateShardGroupAsync(DataElement dataElement, Int32 hashRangeStart, TestPersistentStorageLoginCredentials persistentStorageCredentials = null)

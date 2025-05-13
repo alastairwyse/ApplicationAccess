@@ -50,7 +50,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var testClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var testClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-            var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
+            var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>() { testShardConfiguration }
@@ -79,11 +79,11 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var userQueryClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userQueryClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-            var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, 0, userQueryClientConfiguration);
-            var userQuery4ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(2, DataElement.User, Operation.Query, 4, userQueryClientConfiguration);
-            var userQuery8ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(3, DataElement.User, Operation.Query, 8, userQueryClientConfiguration);
-            var userQuery12ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(4, DataElement.User, Operation.Query, 12, userQueryClientConfiguration);
-            var userQuery16ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(5, DataElement.User, Operation.Query, 16, userQueryClientConfiguration);
+            var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQueryClientConfiguration);
+            var userQuery4ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 4, userQueryClientConfiguration);
+            var userQuery8ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 8, userQueryClientConfiguration);
+            var userQuery12ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 12, userQueryClientConfiguration);
+            var userQuery16ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 16, userQueryClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
@@ -120,14 +120,14 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var testClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var testClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-            var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
+            var testShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>() { testShardConfiguration }
             );
             var testRefreshClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var testRefreshClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-            var testRefreshShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
+            var testRefreshShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, Int32.MinValue, testClientConfiguration);
             var testRefreshShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>() { testShardConfiguration }
@@ -155,48 +155,48 @@ namespace ApplicationAccess.Distribution.UnitTests
                 // Setup test client and shard config
                 var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-                var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
+                var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
                 var userQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5001/"));
-                var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(2, DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
+                var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
                 var userEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5002/"));
-                var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(3, DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
+                var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
                 var userEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5003/"));
-                var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(4, DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
+                var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
                 var groupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5004/"));
-                var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(5, DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
+                var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
                 var groupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5005/"));
-                var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(6, DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
+                var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
                 var groupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5006/"));
-                var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(7, DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
+                var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
                 var groupEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5007/"));
-                var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(8, DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
+                var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
                 var groupToGroupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5008/"));
-                var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(9, DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
+                var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
                 var groupToGroupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5009/"));
-                var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(10, DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
+                var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
                 var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (
                     new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
                     {
-                    userQuery0ShardConfiguration,
-                    userQuery32ShardConfiguration,
-                    userEvent0ShardConfiguration,
-                    userEvent32ShardConfiguration,
-                    groupQuery0ShardConfiguration,
-                    groupQuery32ShardConfiguration,
-                    groupEvent0ShardConfiguration,
-                    groupEvent32ShardConfiguration,
-                    groupToGroupQuery0ShardConfiguration,
-                    groupToGroupEvent0ShardConfiguration
+                        userQuery0ShardConfiguration,
+                        userQuery32ShardConfiguration,
+                        userEvent0ShardConfiguration,
+                        userEvent32ShardConfiguration,
+                        groupQuery0ShardConfiguration,
+                        groupQuery32ShardConfiguration,
+                        groupEvent0ShardConfiguration,
+                        groupEvent32ShardConfiguration,
+                        groupToGroupQuery0ShardConfiguration,
+                        groupToGroupEvent0ShardConfiguration
                     }
                 );
                 mockClientFactory.GetClient(userQuery0ClientConfiguration).Returns(userQuery0Client);
@@ -291,7 +291,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             {
                 var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-                var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
+                var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
                 var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (
                     new List<ShardConfiguration<AccessManagerRestClientConfiguration>>(){ userQuery0ShardConfiguration }
@@ -316,7 +316,7 @@ namespace ApplicationAccess.Distribution.UnitTests
             {
                 var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
                 var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-                var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
+                var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
                 var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (
                     new List<ShardConfiguration<AccessManagerRestClientConfiguration>>() { userQuery0ShardConfiguration }
@@ -339,34 +339,34 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-            var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
+            var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
             var userQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5001/"));
-            var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(2, DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
+            var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
             var userEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5002/"));
-            var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(3, DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
+            var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
             var userEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5003/"));
-            var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(4, DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
+            var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
             var groupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5004/"));
-            var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(5, DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
+            var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
             var groupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5005/"));
-            var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(6, DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
+            var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
             var groupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5006/"));
-            var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(7, DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
+            var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
             var groupEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5007/"));
-            var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(8, DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
+            var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
             var groupToGroupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5008/"));
-            var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(9, DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
+            var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
             var groupToGroupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5009/"));
-            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(10, DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
+            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
@@ -443,34 +443,34 @@ namespace ApplicationAccess.Distribution.UnitTests
             IHashCodeGenerator<String> mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-            var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
+            var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
             var userQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5001/"));
-            var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(2, DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
+            var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
             var userEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5002/"));
-            var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(3, DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
+            var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
             var userEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5003/"));
-            var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(4, DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
+            var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
             var groupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5004/"));
-            var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(5, DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
+            var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
             var groupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5005/"));
-            var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(6, DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
+            var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
             var groupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5006/"));
-            var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(7, DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
+            var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
             var groupEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5007/"));
-            var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(8, DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
+            var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
             var groupToGroupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5008/"));
-            var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(9, DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
+            var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
             var groupToGroupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5009/"));
-            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(10, DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
+            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
@@ -547,34 +547,34 @@ namespace ApplicationAccess.Distribution.UnitTests
             IHashCodeGenerator<String> mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             var userQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-            var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
+            var userQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQuery0ClientConfiguration);
             var userQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5001/"));
-            var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(2, DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
+            var userQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 32, userQuery32ClientConfiguration);
             var userEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5002/"));
-            var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(3, DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
+            var userEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 0, userEvent0ClientConfiguration);
             var userEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5003/"));
-            var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(4, DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
+            var userEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Event, 32, userEvent32ClientConfiguration);
             var groupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5004/"));
-            var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(5, DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
+            var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
             var groupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5005/"));
-            var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(6, DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
+            var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
             var groupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5006/"));
-            var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(7, DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
+            var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
             var groupEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5007/"));
-            var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(8, DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
+            var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
             var groupToGroupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5008/"));
-            var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(9, DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
+            var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
             var groupToGroupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5009/"));
-            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(10, DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
+            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()
@@ -645,25 +645,25 @@ namespace ApplicationAccess.Distribution.UnitTests
             IHashCodeGenerator<String> mockGroupHashCodeGenerator = Substitute.For<IHashCodeGenerator<String>>();
             var groupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5004/"));
-            var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
+            var groupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 0, groupQuery0ClientConfiguration);
             var groupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5005/"));
-            var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(2, DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
+            var groupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Query, 32, groupQuery32ClientConfiguration);
             var groupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5006/"));
-            var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(3, DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
+            var groupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 0, groupEvent0ClientConfiguration);
             var groupEvent32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupEvent32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5007/"));
-            var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(4, DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
+            var groupEvent32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.Group, Operation.Event, 32, groupEvent32ClientConfiguration);
             var groupToGroupQuery0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupQuery0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5008/"));
-            var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(5, DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
+            var groupToGroupQuery0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 0, groupToGroupQuery0ClientConfiguration);
             var groupToGroupQuery32Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupQuery32ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5009/"));
-            var groupToGroupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(6, DataElement.GroupToGroupMapping, Operation.Query, 32, groupToGroupQuery32ClientConfiguration);
+            var groupToGroupQuery32ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Query, 32, groupToGroupQuery32ClientConfiguration);
             var groupToGroupEvent0Client = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var groupToGroupEvent0ClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5010/"));
-            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(7, DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
+            var groupToGroupEvent0ShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.GroupToGroupMapping, Operation.Event, 0, groupToGroupEvent0ClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>()

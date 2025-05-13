@@ -61,21 +61,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Validation
                 ValidateShardGroupConfigurationList(nameof(instanceConfiguration.UserShardGroupConfiguration), instanceConfiguration.UserShardGroupConfiguration);
                 ValidateShardGroupConfigurationList(nameof(instanceConfiguration.GroupToGroupMappingShardGroupConfiguration), instanceConfiguration.GroupToGroupMappingShardGroupConfiguration);
                 ValidateShardGroupConfigurationList(nameof(instanceConfiguration.GroupShardGroupConfiguration), instanceConfiguration.GroupShardGroupConfiguration);
-                // Check that node ids are unique
-                var encounteredNodeIds = new HashSet<Int32>();
-                foreach (KubernetesShardGroupConfiguration<TPersistentStorageCredentials> currentShardGroupConfiguration in instanceConfiguration.UserShardGroupConfiguration.Concat(instanceConfiguration.GroupToGroupMappingShardGroupConfiguration).Concat(instanceConfiguration.GroupShardGroupConfiguration))
-                {
-                    if (encounteredNodeIds.Contains(currentShardGroupConfiguration.ReaderNodeId) == true)
-                    {
-                        throw new ArgumentException($"{nameof(KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>)} '*ShardGroupConfiguration' properties contain duplicate node id {currentShardGroupConfiguration.ReaderNodeId}.");
-                    }
-                    encounteredNodeIds.Add(currentShardGroupConfiguration.ReaderNodeId);
-                    if (encounteredNodeIds.Contains(currentShardGroupConfiguration.WriterNodeId) == true)
-                    {
-                        throw new ArgumentException($"{nameof(KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>)} '*ShardGroupConfiguration' properties contain duplicate node id {currentShardGroupConfiguration.WriterNodeId}.");
-                    }
-                    encounteredNodeIds.Add(currentShardGroupConfiguration.WriterNodeId);
-                }
                 ThrowExceptionIfPropertyNullWhenShardGroupConfigurationIsPopulated(nameof(KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>), instanceConfiguration.DistributedOperationRouterUrl, nameof(instanceConfiguration.DistributedOperationRouterUrl));
                 ThrowExceptionIfPropertyNullWhenShardGroupConfigurationIsPopulated(nameof(KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>), instanceConfiguration.WriterUrl, nameof(instanceConfiguration.WriterUrl));
                 ThrowExceptionIfPropertyNullWhenShardGroupConfigurationIsPopulated(nameof(KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>), instanceConfiguration.ShardConfigurationPersistentStorageCredentials, nameof(instanceConfiguration.ShardConfigurationPersistentStorageCredentials));

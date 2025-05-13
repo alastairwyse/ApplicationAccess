@@ -220,22 +220,21 @@ namespace ApplicationAccess.Hosting.Rest.DistributedOperationRouter
                 var sourceEventShardClientConfiguration = new AccessManagerRestClientConfiguration(sourceEventShardUrl);
                 var targetQueryShardClientConfiguration = new AccessManagerRestClientConfiguration(targetQueryShardUrl);
                 var targetEventShardClientConfiguration = new AccessManagerRestClientConfiguration(targetEventShardUrl);
-                Int32 currentId = 0;
                 var sourceQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    currentId++, shardRoutingOptions.DataElementType.Value, Operation.Query, shardRoutingOptions.SourceShardHashRangeStart.Value, sourceQueryShardClientConfiguration
+                    shardRoutingOptions.DataElementType.Value, Operation.Query, shardRoutingOptions.SourceShardHashRangeStart.Value, sourceQueryShardClientConfiguration
                 );
                 var sourceEventShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    currentId++, shardRoutingOptions.DataElementType.Value, Operation.Event, shardRoutingOptions.SourceShardHashRangeStart.Value, sourceEventShardClientConfiguration
+                    shardRoutingOptions.DataElementType.Value, Operation.Event, shardRoutingOptions.SourceShardHashRangeStart.Value, sourceEventShardClientConfiguration
                 );
                 var targetQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    currentId++, shardRoutingOptions.DataElementType.Value, Operation.Query, shardRoutingOptions.TargetShardHashRangeStart.Value, targetQueryShardClientConfiguration
+                    shardRoutingOptions.DataElementType.Value, Operation.Query, shardRoutingOptions.TargetShardHashRangeStart.Value, targetQueryShardClientConfiguration
                 );
                 var targetEventShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>
                 (
-                    currentId++, shardRoutingOptions.DataElementType.Value, Operation.Event, shardRoutingOptions.TargetShardHashRangeStart.Value, targetEventShardClientConfiguration
+                    shardRoutingOptions.DataElementType.Value, Operation.Event, shardRoutingOptions.TargetShardHashRangeStart.Value, targetEventShardClientConfiguration
                 );
                 var initialConfiguration = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
                 (

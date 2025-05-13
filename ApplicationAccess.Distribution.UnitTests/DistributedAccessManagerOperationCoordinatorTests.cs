@@ -9246,7 +9246,7 @@ namespace ApplicationAccess.Distribution.UnitTests
         {
             var userQueryClient = Substitute.For<IDistributedAccessManagerAsyncClient<String, String, String, String>>();
             var userQueryClientConfiguration = new AccessManagerRestClientConfiguration(new Uri("http://127.0.0.1:5000/"));
-            var userQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(1, DataElement.User, Operation.Query, 0, userQueryClientConfiguration);
+            var userQueryShardConfiguration = new ShardConfiguration<AccessManagerRestClientConfiguration>(DataElement.User, Operation.Query, 0, userQueryClientConfiguration);
             var testShardConfigurationSet = new ShardConfigurationSet<AccessManagerRestClientConfiguration>
             (
                 new List<ShardConfiguration<AccessManagerRestClientConfiguration>>() { userQueryShardConfiguration }
