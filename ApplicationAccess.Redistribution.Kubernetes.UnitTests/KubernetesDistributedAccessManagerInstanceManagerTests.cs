@@ -2807,7 +2807,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, Int32.MinValue, -1, false);
+            mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, 0, Int32.MaxValue, false);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
             mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupSplitTime>());
             Assert.That(e.Message, Does.StartWith($"Error deleting events from source shard group."));
@@ -3420,7 +3420,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 2000
             );
             mockOperationRouter.Received(1).RoutingOn = true;
-            mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, Int32.MinValue, -1, false);
+            mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, Int32.MinValue, 0, false);
             mockOperationRouter.Received(1).PauseOperations();
             mockOperationRouter.Received(2).ResumeOperations();
             await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace);
@@ -6885,7 +6885,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        [Ignore("Integration test")]
+        //[Ignore("Integration test")]
         public async Task IntegrationTests_REMOVETHIS()
         {
         }

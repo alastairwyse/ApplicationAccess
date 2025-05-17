@@ -995,9 +995,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             {
                 shardGroupSplitter.DeleteEventsFromSourceShardGroup
                 (
-                    sourceShardGroupEventDeleter, 
-                    hashRangeStart, 
-                    splitHashRangeStart - 1,
+                    sourceShardGroupEventDeleter,
+                    splitHashRangeStart, 
+                    splitHashRangeEnd,
                     includeGroupEvents
                 );
             }
