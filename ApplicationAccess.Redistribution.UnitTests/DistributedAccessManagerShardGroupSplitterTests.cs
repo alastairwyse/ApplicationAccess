@@ -46,9 +46,9 @@ namespace ApplicationAccess.Redistribution.UnitTests
         private IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String> mockTargetShardGroupEventPersister;
         private IAccessManagerTemporalEventDeleter mockSourceShardGroupEventDeleter;
         private IDistributedAccessManagerOperationRouter mockOperationRouter;
+        private IDistributedAccessManagerWriterAdministrator mockSourceShardGroupWriterAdministrator;
         private IApplicationLogger mockApplicationLogger;
         private IMetricLogger mockMetricLogger;
-        private IDistributedAccessManagerWriterAdministrator mockSourceShardGroupWriterAdministrator;
         private DistributedAccessManagerShardGroupSplitterWithProtectedMembers testShardGroupSplitter;
 
         [SetUp]
@@ -592,97 +592,6 @@ namespace ApplicationAccess.Redistribution.UnitTests
             Assert.AreSame(mockException, e.InnerException);
         }
 
-        [Test]
-        public void GetNextEventAfter_EventRetrievalFails()
-        {
-            var testEventId = Guid.Parse("5ce76236-0d94-481e-a14b-d9ff5c7ab250");
-            var mockException = new Exception("Mock exception");
-            mockSourceShardGroupEventReader.When(reader => reader.GetNextEventAfter(testEventId)).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                testShardGroupSplitter.GetNextEventAfter(mockSourceShardGroupEventReader, testEventId);
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Failed to retrieve next event after event with id '{testEventId.ToString()}'."));
-            Assert.AreSame(mockException, e.InnerException);
-        }
-
-        [Test]
-        public void WaitForSourceWriterNodeEventProcessingCompletion_RetrievingEventProcessingCountFails()
-        {
-            var mockException = new Exception("Mock exception");
-            mockSourceShardGroupWriterAdministrator.When(administrator => administrator.GetEventProcessingCount()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                testShardGroupSplitter.WaitForSourceWriterNodeEventProcessingCompletion
-                (
-                    mockSourceShardGroupWriterAdministrator,
-                    testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
-                    testSourceWriterNodeOperationsCompleteCheckRetryInterval
-                );
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Failed to check for active operations in the source shard group event writer node."));
-            Assert.AreSame(mockException, e.InnerException);
-        }
-
-        [Test]
-        public void WaitForSourceWriterNodeEventProcessingCompletion_ProcessingNotCompletedAfterRetries()
-        {
-            mockSourceShardGroupWriterAdministrator.GetEventProcessingCount().Returns(3);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                testShardGroupSplitter.WaitForSourceWriterNodeEventProcessingCompletion
-                (
-                    mockSourceShardGroupWriterAdministrator,
-                    testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
-                    testSourceWriterNodeOperationsCompleteCheckRetryInterval
-                );
-            });
-
-            mockSourceShardGroupWriterAdministrator.Received(4).GetEventProcessingCount();
-            mockMetricLogger.Received(4).Set(Arg.Any<WriterNodeEventProcessingCount>(), 3);
-            mockMetricLogger.Received(3).Increment(Arg.Any<EventProcessingCountCheckRetried>());
-            Assert.That(e.Message, Does.StartWith($"Active operations in the source shard group event writer node remains at 3 after 3 retries with 50ms interval."));
-        }
-
-        [Test]
-        public void WaitForSourceWriterNodeEventProcessingCompletion_SuccessAfterRetries()
-        {
-            mockSourceShardGroupWriterAdministrator.GetEventProcessingCount().Returns(3, 2, 0);
-
-            testShardGroupSplitter.WaitForSourceWriterNodeEventProcessingCompletion
-            (
-                mockSourceShardGroupWriterAdministrator,
-                testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
-                testSourceWriterNodeOperationsCompleteCheckRetryInterval
-            );
-
-            mockSourceShardGroupWriterAdministrator.Received(3).GetEventProcessingCount();
-            mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 3);
-            mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 2);
-            mockMetricLogger.Received(1).Set(Arg.Any<WriterNodeEventProcessingCount>(), 0);
-            mockMetricLogger.Received(2).Increment(Arg.Any<EventProcessingCountCheckRetried>());
-        }
-
-        [Test]
-        public void FlushSourceWriterNodeEventBuffers_FlushFails()
-        {
-            var mockException = new Exception("Mock exception");
-            mockSourceShardGroupWriterAdministrator.When(administrator => administrator.FlushEventBuffers()).Do((callInfo) => throw mockException);
-
-            var e = Assert.Throws<Exception>(delegate
-            {
-                testShardGroupSplitter.FlushSourceWriterNodeEventBuffers(mockSourceShardGroupWriterAdministrator);
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Failed to flush event buffer(s) in the source shard group event writer node."));
-            Assert.AreSame(mockException, e.InnerException);
-        }
-
         #region Private/Protected Methods
 
         /// <summary>
@@ -742,7 +651,7 @@ namespace ApplicationAccess.Redistribution.UnitTests
                 IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader,
                 IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
                 ref Int32 currentBatchNumber,
-                Nullable<Guid> firstEventId,
+                Guid firstEventId,
                 Int32 hashRangeStart,
                 Int32 hashRangeEnd,
                 Boolean filterGroupEventsByHashRange,
@@ -760,42 +669,6 @@ namespace ApplicationAccess.Redistribution.UnitTests
                     filterGroupEventsByHashRange,
                     eventBatchSize
                 );
-            }
-
-            /// <summary>
-            /// Retrieves the id of the next event after the specified event. 
-            /// </summary>
-            /// <param name="reader">The <see cref="IAccessManagerTemporalEventBatchReader"/> to get the event from.</param>
-            /// <param name="inputEventId">The id of the preceding event.</param>
-            /// <returns>The next event, or null of the specified event is the latest.</returns>
-            public new Nullable<Guid> GetNextEventAfter(IAccessManagerTemporalEventBatchReader reader, Guid inputEventId)
-            {
-                return base.GetNextEventAfter(reader, inputEventId);
-            }
-
-            /// <summary>
-            /// Waits until any active event processing in the source shard group writer node is completed.
-            /// </summary>
-            /// <param name="sourceShardGroupWriterAdministrator">The source shard group writer node client.</param>
-            /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking active operations.</param>
-            /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
-            public new void WaitForSourceWriterNodeEventProcessingCompletion
-            (
-                IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator,
-                Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
-                Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
-            )
-            { 
-                base.WaitForSourceWriterNodeEventProcessingCompletion(sourceShardGroupWriterAdministrator, sourceWriterNodeOperationsCompleteCheckRetryAttempts, sourceWriterNodeOperationsCompleteCheckRetryInterval);
-            }
-
-            /// <summary>
-            /// Flushes the event buffer(s) on the source shard group's writer node.
-            /// </summary>
-            /// <param name="sourceShardGroupWriterAdministrator">The source shard group writer node client.</param>
-            public new void FlushSourceWriterNodeEventBuffers(IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator)
-            {
-                base.FlushSourceWriterNodeEventBuffers(sourceShardGroupWriterAdministrator);
             }
         }
 

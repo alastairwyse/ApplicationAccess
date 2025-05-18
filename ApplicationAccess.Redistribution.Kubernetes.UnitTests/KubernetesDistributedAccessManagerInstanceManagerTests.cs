@@ -143,7 +143,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                     )
@@ -176,20 +176,20 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
                 WriterUrl = new Uri("http://10.104.198.19:7001/"),
-                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=ApplicationAccessConfig"),
+                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         0,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                     ),
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                     )
@@ -199,7 +199,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-writer-n2147483648-service:5000/"))
                     )
@@ -209,14 +209,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         0,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                     ),
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                     )
@@ -248,20 +248,20 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
                 WriterUrl = new Uri("http://10.104.198.19:7001/"),
-                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=ApplicationAccessConfig"),
+                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         0,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                     ),
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                     )
@@ -271,7 +271,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-writer-n2147483648-service:5000/"))
                     )
@@ -281,14 +281,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         0,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                     ),
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                     )
@@ -782,13 +782,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
                 WriterUrl = new Uri("http://10.104.198.19:7001/"),
-                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=ApplicationAccessConfig"),
+                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                     )
@@ -798,7 +798,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-writer-n2147483648-service:5000/"))
                     )
@@ -808,7 +808,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                     )
@@ -1824,14 +1824,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     0,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
                 )
@@ -1917,14 +1917,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     0,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
                 )
@@ -2782,8 +2782,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockShardGroupSplitter.When((splitter) => splitter.DeleteEventsFromSourceShardGroup
             (
                 mocksourceShardGroupEventDeleter, 
-                Int32.MinValue, 
-                -1, 
+                0, 
+                Int32.MaxValue, 
                 false
             )).Do((callInfo) => throw mockException);
 
@@ -3420,7 +3420,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 2000
             );
             mockOperationRouter.Received(1).RoutingOn = true;
-            mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, Int32.MinValue, 0, false);
+            mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, 0, Int32.MaxValue, false);
             mockOperationRouter.Received(1).PauseOperations();
             mockOperationRouter.Received(2).ResumeOperations();
             await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace);
@@ -3523,7 +3523,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(1, instanceConfiguration.GroupShardGroupConfiguration.Count);
             IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfiguration = instanceConfiguration.UserShardGroupConfiguration;
             Assert.AreEqual(Int32.MinValue, userShardGroupConfiguration[0].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, userShardGroupConfiguration[1].HashRangeStart);
@@ -3538,7 +3538,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
             Assert.AreEqual(1, groupShardGroupConfigurationSet.Count);
             Assert.AreEqual(Int32.MinValue, userShardGroupConfigurationSet[0].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648", userShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648", userShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-n2147483648-service:5000/", userShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n2147483648-service:5000/", userShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, userShardGroupConfigurationSet[1].HashRangeStart);
@@ -3585,14 +3585,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     0,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_0"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-reader-0-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://group-writer-0-service:5000/"))
                 )
@@ -3674,7 +3674,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 2000
             );
             mockOperationRouter.Received(1).RoutingOn = true;
-            mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, Int32.MinValue, -1073741825, true);
+            mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, -1073741824, -1, true);
             mockOperationRouter.Received(1).PauseOperations();
             mockOperationRouter.Received(2).ResumeOperations();
             await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace);
@@ -3801,7 +3801,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(3, instanceConfiguration.GroupShardGroupConfiguration.Count);
             IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> groupShardGroupConfiguration = instanceConfiguration.GroupShardGroupConfiguration;
             Assert.AreEqual(Int32.MinValue, groupShardGroupConfiguration[0].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648", groupShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648", groupShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(-1073741824, groupShardGroupConfiguration[1].HashRangeStart);
@@ -3809,7 +3809,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual("http://group-reader-n1073741824-service:5000/", groupShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n1073741824-service:5000/", groupShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, groupShardGroupConfiguration[2].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_0", groupShardGroupConfiguration[2].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_0", groupShardGroupConfiguration[2].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-0-service:5000/", groupShardGroupConfiguration[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-0-service:5000/", groupShardGroupConfiguration[2].WriterNodeClientConfiguration.BaseUrl.ToString());
             // Assertions on the *ShardGroupConfigurationSet fields
@@ -3820,7 +3820,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual(1, groupToGroupMappingShardGroupConfigurationSet.Count);
             Assert.AreEqual(3, groupShardGroupConfigurationSet.Count);
             Assert.AreEqual(Int32.MinValue, groupShardGroupConfigurationSet[0].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648", groupShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648", groupShardGroupConfigurationSet[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n2147483648-service:5000/", groupShardGroupConfigurationSet[0].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(-1073741824, groupShardGroupConfigurationSet[1].HashRangeStart);
@@ -3828,7 +3828,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual("http://group-reader-n1073741824-service:5000/", groupShardGroupConfigurationSet[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-n1073741824-service:5000/", groupShardGroupConfigurationSet[1].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, groupShardGroupConfigurationSet[2].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_0", groupShardGroupConfigurationSet[2].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_0", groupShardGroupConfigurationSet[2].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://group-reader-0-service:5000/", groupShardGroupConfigurationSet[2].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://group-writer-0-service:5000/", groupShardGroupConfigurationSet[2].WriterNodeClientConfiguration.BaseUrl.ToString());
         }
@@ -3905,14 +3905,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     Int32.MinValue,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                 ),
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     0,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-0-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-0-service:5000/"))
                 )
@@ -3952,7 +3952,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                 (
                     -1_073_741_824,
-                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n1073741824"),
+                    new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n1073741824"),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n1073741824-service:5000/")),
                     new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n1073741824-service:5000/"))
                 )
@@ -3972,15 +3972,15 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             IList<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>> userShardGroupConfiguration = testKubernetesDistributedAccessManagerInstanceManager.UserShardGroupConfigurationSet.Items;
             Assert.AreEqual(3, userShardGroupConfiguration.Count);
             Assert.AreEqual(Int32.MinValue, userShardGroupConfiguration[0].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648", userShardGroupConfiguration[0].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual(testUri1, userShardGroupConfiguration[0].ReaderNodeClientConfiguration.BaseUrl);
             Assert.AreEqual(testUri2, userShardGroupConfiguration[0].WriterNodeClientConfiguration.BaseUrl);
             Assert.AreEqual(-1_073_741_824, userShardGroupConfiguration[1].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n1073741824", userShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n1073741824", userShardGroupConfiguration[1].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual("http://user-reader-n1073741824-service:5000/", userShardGroupConfiguration[1].ReaderNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual("http://user-writer-n1073741824-service:5000/", userShardGroupConfiguration[1].WriterNodeClientConfiguration.BaseUrl.ToString());
             Assert.AreEqual(0, userShardGroupConfiguration[2].HashRangeStart);
-            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_0", userShardGroupConfiguration[2].PersistentStorageCredentials.ConnectionString);
+            Assert.AreEqual("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_0", userShardGroupConfiguration[2].PersistentStorageCredentials.ConnectionString);
             Assert.AreEqual(testUri3, userShardGroupConfiguration[2].ReaderNodeClientConfiguration.BaseUrl);
             Assert.AreEqual(testUri4, userShardGroupConfiguration[2].WriterNodeClientConfiguration.BaseUrl);
             // Assert the persisted shard configuration
@@ -6885,7 +6885,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        //[Ignore("Integration test")]
+        [Ignore("Integration test")]
         public async Task IntegrationTests_REMOVETHIS()
         {
         }
@@ -7302,13 +7302,13 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
                 WriterUrl = new Uri("http://10.104.198.19:7001/"),
-                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=ApplicationAccessConfig"),
+                ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=user_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=user_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://user-writer-n2147483648-service:5000/"))
                     )
@@ -7318,7 +7318,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=grouptogroup_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=grouptogroup_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://grouptogroup-writer-n2147483648-service:5000/"))
                     )
@@ -7328,7 +7328,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                     new KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>
                     (
                         Int32.MinValue,
-                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=group_n2147483648"),
+                        new TestPersistentStorageLoginCredentials("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=group_n2147483648"),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-reader-n2147483648-service:5000/")),
                         new AccessManagerRestClientConfiguration(new Uri("http://group-writer-n2147483648-service:5000/"))
                     )

@@ -31,22 +31,16 @@ namespace ApplicationAccess.Redistribution
     /// <summary>
     /// Moves a subset of events (defined by a range of hash codes) from a source shard group to a target shard group in a distributed AccessManager implementation.
     /// </summary>
-    public class DistributedAccessManagerShardGroupSplitter : IDistributedAccessManagerShardGroupSplitter
+    public class DistributedAccessManagerShardGroupSplitter : DistributedAccessManagerShardGroupMergerSplitterBase, IDistributedAccessManagerShardGroupSplitter
     {
-        /// <summary>The logger for general logging.</summary>
-        protected IApplicationLogger logger;
-        /// <summary>The logger for metrics.</summary>
-        protected IMetricLogger metricLogger;
-
         /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Redistribution.DistributedAccessManagerShardGroupSplitter class.
         /// </summary>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
         public DistributedAccessManagerShardGroupSplitter(IApplicationLogger logger, IMetricLogger metricLogger)
+            : base(logger, metricLogger)
         {
-            this.logger = logger;
-            this.metricLogger = metricLogger;
         }
 
         /// <inheritdoc/>
@@ -134,39 +128,6 @@ namespace ApplicationAccess.Redistribution
         #region Private/Protected Methods
 
         /// <summary>
-        /// Gets the id of the first event returned from the specified <see cref="IAccessManagerTemporalEventBatchReader"/>.
-        /// </summary>
-        /// <param name="reader">The <see cref="IAccessManagerTemporalEventBatchReader"/> to get the event from.</param>
-        /// <returns>The event id.</returns>
-        protected Nullable<Guid> GetInitialEvent(IAccessManagerTemporalEventBatchReader reader)
-        {
-            try
-            {
-                return reader.GetInitialEvent();
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to retrieve initial event id from the source shard group.", e);
-            }
-        }
-
-        /// <summary>
-        /// Pauses/holds any incoming operation requests to the specified <see cref="IDistributedAccessManagerOperationRouter"/>.
-        /// </summary>
-        /// <param name="operationRouter">The <see cref="IDistributedAccessManagerOperationRouter"/> to pause operations on.</param>
-        protected void PauseOperations(IDistributedAccessManagerOperationRouter operationRouter)
-        {
-            try
-            {
-                operationRouter.PauseOperations();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Failed to hold/pause incoming operations to the source and target shard groups.", e);
-            }
-        }
-
-        /// <summary>
         /// Copies a portion of events from a source to a target shard group in batches
         /// </summary>
         /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
@@ -187,7 +148,7 @@ namespace ApplicationAccess.Redistribution
             IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
             ref Int32 currentBatchNumber, 
-            Nullable<Guid> firstEventId, 
+            Guid firstEventId, 
             Int32 hashRangeStart,
             Int32 hashRangeEnd,
             Boolean filterGroupEventsByHashRange,
@@ -241,89 +202,6 @@ namespace ApplicationAccess.Redistribution
             }
 
             return lastEventId;
-        }
-
-        /// <summary>
-        /// Retrieves the id of the next event after the specified event. 
-        /// </summary>
-        /// <param name="reader">The <see cref="IAccessManagerTemporalEventBatchReader"/> to get the event from.</param>
-        /// <param name="inputEventId">The id of the preceding event.</param>
-        /// <returns>The next event, or null of the specified event is the latest.</returns>
-        protected Nullable<Guid> GetNextEventAfter(IAccessManagerTemporalEventBatchReader reader, Guid inputEventId)
-        {
-            try
-            {
-                return reader.GetNextEventAfter(inputEventId);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to retrieve next event after event with id '{inputEventId.ToString()}'.", e);
-            }
-        }
-
-        /// <summary>
-        /// Waits until any active event processing in the source shard group writer node is completed.
-        /// </summary>
-        /// <param name="sourceShardGroupWriterAdministrator">The source shard group writer node client.</param>
-        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking active operations.</param>
-        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
-        protected void WaitForSourceWriterNodeEventProcessingCompletion
-        (
-            IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator,
-            Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts,
-            Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
-        )
-        {
-            Int32 originalRetryAttemptsValue = sourceWriterNodeOperationsCompleteCheckRetryAttempts;
-            Int32 currentEventProcessingCount = -1;
-            while (sourceWriterNodeOperationsCompleteCheckRetryAttempts >= 0)
-            {
-                try
-                {
-                    currentEventProcessingCount = sourceShardGroupWriterAdministrator.GetEventProcessingCount();
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Failed to check for active operations in the source shard group event writer node.", e);
-                }
-                metricLogger.Set(new WriterNodeEventProcessingCount(), currentEventProcessingCount); 
-                if (currentEventProcessingCount == 0)
-                {
-                    break;
-                }
-                else
-                {
-                    if (sourceWriterNodeOperationsCompleteCheckRetryInterval > 0)
-                    {
-                        Thread.Sleep(sourceWriterNodeOperationsCompleteCheckRetryInterval);
-                    }
-                    sourceWriterNodeOperationsCompleteCheckRetryAttempts--;
-                    if (sourceWriterNodeOperationsCompleteCheckRetryAttempts >= 0)
-                    {
-                        metricLogger.Increment(new EventProcessingCountCheckRetried());
-                    }
-                }
-            }
-            if (currentEventProcessingCount != 0)
-            {
-                throw new Exception($"Active operations in the source shard group event writer node remains at {currentEventProcessingCount} after {originalRetryAttemptsValue} retries with {sourceWriterNodeOperationsCompleteCheckRetryInterval}ms interval.");
-            }
-        }
-
-        /// <summary>
-        /// Flushes the event buffer(s) on the source shard group's writer node.
-        /// </summary>
-        /// <param name="sourceShardGroupWriterAdministrator">The source shard group writer node client.</param>
-        protected void FlushSourceWriterNodeEventBuffers(IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator)
-        {
-            try
-            {
-                sourceShardGroupWriterAdministrator.FlushEventBuffers();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Failed to flush event buffer(s) in the source shard group event writer node.", e);
-            }
         }
 
         #endregion

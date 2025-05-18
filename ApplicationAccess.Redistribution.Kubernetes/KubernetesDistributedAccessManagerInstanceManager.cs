@@ -49,22 +49,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
     public class KubernetesDistributedAccessManagerInstanceManager<TPersistentStorageCredentials> : IDistributedAccessManagerInstanceManager<TPersistentStorageCredentials>, IDisposable
         where TPersistentStorageCredentials : class, IPersistentStorageLoginCredentials
     {
-        // TODO:
-        //   Test creating dist instance with TPersistentStorageCredentials already set in static config
-        //   In the thosted version of thie class, InvalidOperationException should be mapped to maybe 400?
-        //     e.g. trying to create LB when it's already been created
-        // Test with proper metrics setup in each node config...configure all nodes as they would be in real prod...
-        //   Metric category for distOpCoord coming up as 'DistributedOperationCoordinatorNode-operation-coordinator'... do we need suffix (or prefix)?
-        //   'AppSettingsConfigurationTemplate' property
-        //     Also, use connection strings rather than individual params
-        //     Up the log level to warning.  Info is logging every request
-        //     Test with db name prefix
-        // Thing about passing Guid back from Splitter.CopyEvents() method which is a Begin metric guid for when operations were paused
-        //   So I can capture the hold time with a normal interval metric
-        // Should I change calls to shardConfigurationSetPersister.Write() to NOT delete everything?
-        //   Reduces the number of DB updates required
-        
-
         // Regarding the 'shardConfigurationSetPersisterCreationFunction' parameter... elsewhere in the solution a factory pattern is used to construct instances, 
         //   and following this trend, I would pass a factory for IShardConfigurationSetPersister instances into the constructor of this class.  In fact we already
         //   have such a factory defined in ApplicationAccess.Hosting.Persistence.Sql.SqlShardConfigurationSetPersisterFactory.  The problem with reusing this is as
