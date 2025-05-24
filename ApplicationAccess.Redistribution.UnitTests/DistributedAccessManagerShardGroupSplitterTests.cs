@@ -253,8 +253,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 2 of events from source shard group to target shard group.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 3 of events from source shard group to target shard group.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 4 of events from source shard group to target shard group.");
-            mockApplicationLogger.Received(4).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 events from source shard group.");
-            mockApplicationLogger.Received(4).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 events to target shard group.");
+            mockApplicationLogger.Received(4).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 event(s) from source shard group.");
+            mockApplicationLogger.Received(4).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 event(s) to target shard group.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Pausing operations in the source and target shard groups.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Waiting for source writer node event processing to complete...");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Source writer node event processing to complete.");
@@ -336,8 +336,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 1 of events from source shard group to target shard group.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 2 of events from source shard group to target shard group.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 3 of events from source shard group to target shard group.");
-            mockApplicationLogger.Received(3).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 events from source shard group.");
-            mockApplicationLogger.Received(3).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 events to target shard group.");
+            mockApplicationLogger.Received(3).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 event(s) from source shard group.");
+            mockApplicationLogger.Received(3).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 event(s) to target shard group.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Pausing operations in the source and target shard groups.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Waiting for source writer node event processing to complete...");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Source writer node event processing to complete.");
@@ -414,9 +414,9 @@ namespace ApplicationAccess.Redistribution.UnitTests
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 1 of events from source shard group to target shard group.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 2 of events from source shard group to target shard group.");
             mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Copying batch 3 of events from source shard group to target shard group.");
-            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 events from source shard group.");
-            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 0 events from source shard group.");
-            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 events to target shard group.");
+            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 2 event(s) from source shard group.");
+            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Read 0 event(s) from source shard group.");
+            mockApplicationLogger.Received(2).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Wrote 2 event(s) to target shard group.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Pausing operations in the source and target shard groups.");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Waiting for source writer node event processing to complete...");
             mockApplicationLogger.Received(1).Log(testShardGroupSplitter, ApplicationLogging.LogLevel.Information, "Source writer node event processing to complete.");

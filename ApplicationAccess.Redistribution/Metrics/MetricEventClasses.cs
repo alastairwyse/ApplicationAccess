@@ -24,12 +24,12 @@ namespace ApplicationAccess.Redistribution.Metrics
     #pragma warning disable 1591
 
     /// <summary>
-    /// Amount metric which records the number of events copied from a source to a target shard group as part of a shard group split operation.
+    /// Amount metric which records the number of events copied from one or more source shard groups to a target shard group as part of a shard group split or merge operation.
     /// </summary>
     public class EventsCopiedFromSourceToTargetShardGroup : AmountMetric
     {
         protected static String staticName = "EventsCopiedFromSourceToTargetShardGroup";
-        protected static String staticDescription = "The number of events copied from a source to a target shard group as part of a shard group split operation";
+        protected static String staticDescription = "The number of events copied from one or more source shard groups to a target shard group as part of a shard group split or merge operation";
 
         public EventsCopiedFromSourceToTargetShardGroup()
         {
@@ -287,6 +287,36 @@ namespace ApplicationAccess.Redistribution.Metrics
         protected static String staticDescription = "A shard group in a distributed AccessManager instance was split";
 
         public ShardGroupSplit()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that an invalid 'add' event for a primary element was received when attempting to merge shard groups.
+    /// </summary>
+    public class InvalidAddPrimaryElementEventReceived : CountMetric
+    {
+        protected static String staticName = "InvalidAddPrimaryElementEventReceived";
+        protected static String staticDescription = "An invalid 'add' event for a primary element was received when attempting to merge shard groups";
+
+        public InvalidAddPrimaryElementEventReceived()
+        {
+            base.name = staticName;
+            base.description = staticDescription;
+        }
+    }
+
+    /// <summary>
+    /// Count metric which records that an invalid 'remove' event for a primary element was received when attempting to merge shard groups.
+    /// </summary>
+    public class InvalidRemovePrimaryElementEventReceived : CountMetric
+    {
+        protected static String staticName = "InvalidRemovePrimaryElementEventReceived";
+        protected static String staticDescription = "An invalid 'remove' event for a primary element was received when attempting to merge shard groups";
+
+        public InvalidRemovePrimaryElementEventReceived()
         {
             base.name = staticName;
             base.description = staticDescription;

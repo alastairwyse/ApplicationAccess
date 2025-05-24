@@ -224,6 +224,30 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         }
 
         [Test]
+        public void RenamePersistentStorage_ExceptionExecutingRenameDatabaseScript()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test]
+        public void RenamePersistentStorage()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test]
+        public void DeletePersistentStorage_ExceptionExecutingDeleteDatabaseScript()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test]
+        public void DeletePersistentStorage()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test]
         public void CreateAccessManagerPersistentStorage()
         {
             String testPersistentStorageInstanceName = "applicationaccess_user_n2147483648";

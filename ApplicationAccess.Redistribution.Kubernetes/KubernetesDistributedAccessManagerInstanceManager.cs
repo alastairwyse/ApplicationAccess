@@ -1158,7 +1158,6 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// <returns>The Kubernetes configuration.</returns>
         protected KubernetesShardGroupConfiguration<TPersistentStorageCredentials> CreateKubernetesShardGroupConfiguration(ShardGroupConfiguration<TPersistentStorageCredentials> shardGroupConfiguration, DataElement dataElement)
         {
-            // Set id and then increment nextShardGroupId
             Uri readerNodeServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.Reader, shardGroupConfiguration.HashRangeStart);
             Uri writerNodeServiceUrl = GenerateNodeServiceUrl(dataElement, NodeType.Writer, shardGroupConfiguration.HashRangeStart);
             AccessManagerRestClientConfiguration readerNodeClientConfiguration = new(readerNodeServiceUrl);

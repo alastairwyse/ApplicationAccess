@@ -38,5 +38,18 @@ namespace ApplicationAccess.Redistribution
         /// <param name="persistentStorageInstanceName">The name of the persistent storage instance.</param>
         /// <returns>Credentials which can be used to connect to the persistent storage instance.</returns>
         TPersistentStorageCredentials CreateAccessManagerConfigurationPersistentStorage(String persistentStorageInstanceName);
+
+        /// <summary>
+        /// Renames a persistent storage instance.
+        /// </summary>
+        /// <param name="currentPersistentStorageInstanceName">The current name of the persistent storage instance.</param>
+        /// <param name="newPersistentStorageInstanceName">The new name of the persistent storage instance.</param>
+        void RenamePersistentStorage(String currentPersistentStorageInstanceName, String newPersistentStorageInstanceName);
+
+        /// <summary>
+        /// Deletes a persistent storage instance.
+        /// </summary>
+        /// <param name="persistentStorageInstanceName">The name of the persistent storage instance.</param>
+        void DeletePersistentStorage(String persistentStorageInstanceName);
     }
 }

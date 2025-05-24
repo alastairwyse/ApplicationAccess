@@ -2093,7 +2093,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"Failed to construct targetShardGroupEventPersister."));
+            Assert.That(e.Message, Does.StartWith($"Failed to construct shardGroupEventPersister."));
             Assert.AreSame(mockException, e.InnerException);
         }
 

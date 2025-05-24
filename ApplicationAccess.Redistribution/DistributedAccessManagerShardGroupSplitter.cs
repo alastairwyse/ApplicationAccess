@@ -136,7 +136,7 @@ namespace ApplicationAccess.Redistribution
         /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         /// <param name="sourceShardGroupEventReader">The event reader for the source shard group.</param>
         /// <param name="targetShardGroupEventPersister">The event persister for the target shard group.</param>
-        /// <param name="currentBatchNumber">The sequential number of the first batch of events (may be set to greater than 1 if this method is called multiple times).</param>
+        /// <param name="nextBatchNumber">The sequential number of the next batch of events to copy (may be set to greater than 1 if this method is called multiple times).</param>
         /// <param name="firstEventId">The id of the first event in the sequence of events to copy.</param>
         /// <param name="hashRangeStart">The first (inclusive) in the range of hash codes of events to copy.</param>
         /// <param name="hashRangeEnd">The last (inclusive) in the range of hash codes of events to copy.</param>
@@ -147,7 +147,7 @@ namespace ApplicationAccess.Redistribution
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
-            ref Int32 currentBatchNumber, 
+            ref Int32 nextBatchNumber, 
             Guid firstEventId, 
             Int32 hashRangeStart,
             Int32 hashRangeEnd,
@@ -159,7 +159,7 @@ namespace ApplicationAccess.Redistribution
             Nullable<Guid> lastEventId = null;
             while (nextEventId.HasValue)
             {
-                logger.Log(this, LogLevel.Information, $"Copying batch {currentBatchNumber} of events from source shard group to target shard group.");
+                logger.Log(this, LogLevel.Information, $"Copying batch {nextBatchNumber} of events from source shard group to target shard group.");
                 IList<TemporalEventBufferItemBase> currentEvents;
                 Guid beginId = metricLogger.Begin(new EventBatchReadTime());
                 try
@@ -172,7 +172,7 @@ namespace ApplicationAccess.Redistribution
                     throw new Exception($"Failed to retrieve event batch from the source shard group beginning with event with id '{nextEventId.Value}'.", e);
                 }
                 metricLogger.End(beginId, new EventBatchReadTime());
-                logger.Log(this, LogLevel.Information, $"Read {currentEvents.Count} events from source shard group.");
+                logger.Log(this, LogLevel.Information, $"Read {currentEvents.Count} event(s) from source shard group.");
 
                 if (currentEvents.Count == 0)
                 {
@@ -193,12 +193,12 @@ namespace ApplicationAccess.Redistribution
                 metricLogger.End(beginId, new EventBatchWriteTime());
                 metricLogger.Add(new EventsCopiedFromSourceToTargetShardGroup(), currentEvents.Count);
                 metricLogger.Increment(new EventBatchCopyCompleted());
-                logger.Log(this, LogLevel.Information, $"Wrote {currentEvents.Count} events to target shard group.");
+                logger.Log(this, LogLevel.Information, $"Wrote {currentEvents.Count} event(s) to target shard group.");
 
                 // GetNextEventAfter() will return null if no subsequent event exist, which will drop out of while loop on next iteration
                 lastEventId = currentEvents[currentEvents.Count - 1].EventId;
                 nextEventId = GetNextEventAfter(sourceShardGroupEventReader, lastEventId.Value);
-                currentBatchNumber++;
+                nextBatchNumber++;
             }
 
             return lastEventId;

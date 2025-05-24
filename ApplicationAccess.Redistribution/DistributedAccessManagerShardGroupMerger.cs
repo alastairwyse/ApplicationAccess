@@ -16,12 +16,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Redistribution.Metrics;
+using ApplicationAccess.Redistribution.Models;
 using ApplicationLogging;
 using ApplicationMetrics;
 
@@ -55,14 +55,7 @@ namespace ApplicationAccess.Redistribution
             Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
         )
         {
-            // Don't need to use a heap since there's just 2 sources
-            //   But will need queue or linked list to buffer events from the dbs
-            // Algo should be
-            //   Take the lowest from one side
-            //   If one side buffer is empty, attempt to re-populated buffer from DB
-            //   If no events come from the DB, then write all from the other side (incl trying to take from DB once all are written from the buffer)
-            //   In this case GetEvents() should always return events since we won't be filtering by hash code
-
+            
             // After this method will need to 
             //   Shutdown source shard group
             //   Rename the DBs appropriately
@@ -72,68 +65,117 @@ namespace ApplicationAccess.Redistribution
 
         #region Private/Protected Methods
 
+        /// <summary>
+        /// Merges events from two source source shard groups to a target shard group in batches.
+        /// </summary>
+        /// <typeparam name="TUser">The type of users in the application managed by the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TGroup">The type of groups in the application managed by the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TComponent">The type of components in the application managed by the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        /// <param name="sourceShardGroup1EventReader">The event reader for the first source shard group.</param>
+        /// <param name="sourceShardGroup2EventReader">The event reader for the second source shard group.</param>
+        /// <param name="targetShardGroupEventPersister">The event persister for the target shard group.</param>
+        /// <param name="nextBatchNumber">The sequential number of the next batch of events to merge (may be set to greater than 1 if this method is called multiple times).</param>
+        /// <param name="sourceShardGroup1FirstEventId">The id of the first event from the first source shard group in the sequence of events to merge.</param>
+        /// <param name="sourceShardGroup2FirstEventId">The id of the first event from the second source shard group in the sequence of events to merge.</param>
+        /// <param name="eventBatchSize">The number of events to read or persist in each batch.</param>
+        /// <param name="noEventsReadDuringMergeAction">The action to take when 0 events are read from one of the source shard group readers/</param>
+        /// <returns>A tuple containing 2 values: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
         protected Tuple<Nullable<Guid>, Nullable<Guid>> MergeEventBatchesToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroup1EventReader,
             IAccessManagerTemporalEventBatchReader sourceShardGroup2EventReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
-            ref Int32 currentBatchNumber,
+            ref Int32 nextBatchNumber,
             Guid sourceShardGroup1FirstEventId,
             Guid sourceShardGroup2FirstEventId,
-            Int32 eventBatchSize
+            Int32 eventBatchSize, 
+            NoEventsReadDuringMergeAction noEventsReadDuringMergeAction
         )
         {
-            logger.Log(this, LogLevel.Information, $"Copying batch {currentBatchNumber} of events from source shard groups to target shard group.");
-
-            // Retrieve the initial batches of events
+            // Setup retrieve the initial batches of events
+            var eventBuffer = new EventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(targetShardGroupEventPersister, eventBatchSize, nextBatchNumber, logger, metricLogger);
+            var eventFilter = new PrimaryElementEventDuplicateFilter<TUser, TGroup>(eventBuffer, false, logger, metricLogger);
             var sourceShardGroup1EventQueue = new Queue<TemporalEventBufferItemBase>();
             var sourceShardGroup2EventQueue = new Queue<TemporalEventBufferItemBase>();
-            IList<TemporalEventBufferItemBase> sourceShardGroup1CurrentEvents;
-            IList<TemporalEventBufferItemBase> sourceShardGroup2CurrentEvents;
-            Nullable<Guid> sourceShardGroup1LastEventId = null;
-            Nullable<Guid> sourceShardGroup2LastEventId = null;
+            Nullable<Guid> sourceShardGroup1LastReadEventId = null, sourceShardGroup2LastReadEventId = null;
+            var lastPersistedEventIds = new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null);
             Guid beginId = metricLogger.Begin(new EventBatchReadTime());
-            try
-            {
-                sourceShardGroup1CurrentEvents = sourceShardGroup1EventReader.GetEvents(sourceShardGroup1FirstEventId, Int32.MinValue, Int32.MaxValue, false, eventBatchSize);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new EventBatchReadTime());
-                throw new Exception($"Failed to retrieve event batch from first source shard group beginning with event with id '{sourceShardGroup1FirstEventId}'.", e);
-            }
-            metricLogger.End(beginId, new EventBatchReadTime());
-            beginId = metricLogger.Begin(new EventBatchReadTime());
-            try
-            {
-                sourceShardGroup2CurrentEvents = sourceShardGroup2EventReader.GetEvents(sourceShardGroup2FirstEventId, Int32.MinValue, Int32.MaxValue, false, eventBatchSize);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new EventBatchReadTime());
-                throw new Exception($"Failed to retrieve event batch from second source shard group beginning with event with id '{sourceShardGroup2FirstEventId}'.", e);
-            }
-            metricLogger.End(beginId, new EventBatchReadTime());
-            foreach (TemporalEventBufferItemBase currentEvent in sourceShardGroup1CurrentEvents)
-            {
-                sourceShardGroup1EventQueue.Enqueue(currentEvent);
-            }
-            foreach (TemporalEventBufferItemBase currentEvent in sourceShardGroup2CurrentEvents)
-            {
-                sourceShardGroup2EventQueue.Enqueue(currentEvent);
-            }
-            sourceShardGroup1LastEventId = sourceShardGroup1CurrentEvents[sourceShardGroup1CurrentEvents.Count - 1].EventId;
-            sourceShardGroup2LastEventId = sourceShardGroup2CurrentEvents[sourceShardGroup2CurrentEvents.Count - 1].EventId;
+            sourceShardGroup1LastReadEventId = ReadSourceShardGroupEventsIntoQueue(sourceShardGroup1FirstEventId, sourceShardGroup1EventReader, sourceShardGroup1EventQueue, eventBatchSize, true);
+            sourceShardGroup2LastReadEventId = ReadSourceShardGroupEventsIntoQueue(sourceShardGroup2FirstEventId, sourceShardGroup2EventReader, sourceShardGroup2EventQueue, eventBatchSize, false);
 
             // Write events to the target in batches
-            while (true)
+            if (sourceShardGroup1EventQueue.Count > 0 || sourceShardGroup2EventQueue.Count > 0)
             {
-                if (sourceShardGroup1EventQueue.Count == 0)
+                while (true)
                 {
-
+                    if (sourceShardGroup1EventQueue.Count == 0)
+                    {
+                        if (noEventsReadDuringMergeAction == NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource)
+                        {
+                            BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
+                            (
+                                sourceShardGroup2EventReader,
+                                sourceShardGroup2EventQueue,
+                                eventFilter,
+                                eventBatchSize,
+                                false
+                            );
+                            lastPersistedEventIds = eventBuffer.Flush();
+                        }
+                        break;
+                    }
+                    else if (sourceShardGroup2EventQueue.Count == 0)
+                    {
+                        if (noEventsReadDuringMergeAction == NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource)
+                        {
+                            BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
+                            (
+                                sourceShardGroup1EventReader,
+                                sourceShardGroup1EventQueue,
+                                eventFilter,
+                                eventBatchSize,
+                                true
+                            );
+                            lastPersistedEventIds = eventBuffer.Flush();
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        while (sourceShardGroup1EventQueue.Count > 0 && sourceShardGroup2EventQueue.Count > 0)
+                        {
+                            if (sourceShardGroup1EventQueue.Peek().OccurredTime <= sourceShardGroup2EventQueue.Peek().OccurredTime)
+                            {
+                                lastPersistedEventIds = eventFilter.BufferEvent(sourceShardGroup1EventQueue.Dequeue(), true);
+                            }
+                            else
+                            {
+                                lastPersistedEventIds = eventFilter.BufferEvent(sourceShardGroup2EventQueue.Dequeue(), false);
+                            }
+                        }
+                        if (sourceShardGroup1EventQueue.Count == 0)
+                        {
+                            Nullable<Guid> nextEventId = GetNextEventIdAfter(lastPersistedEventIds.Item1.Value, sourceShardGroup1EventReader);
+                            if (nextEventId.HasValue)
+                            {
+                                sourceShardGroup1LastReadEventId = ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroup1EventReader, sourceShardGroup1EventQueue, eventBatchSize, true);
+                            }
+                        }
+                        else
+                        {
+                            Nullable<Guid> nextEventId = GetNextEventIdAfter(lastPersistedEventIds.Item2.Value, sourceShardGroup2EventReader);
+                            if (nextEventId.HasValue)
+                            {
+                                sourceShardGroup2LastReadEventId = ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroup2EventReader, sourceShardGroup2EventQueue, eventBatchSize, false);
+                            }
+                        }
+                    }
                 }
             }
+            nextBatchNumber = eventBuffer.NextBatchNumber;
 
+            return lastPersistedEventIds;
         }
 
         /// <summary>
@@ -174,6 +216,7 @@ namespace ApplicationAccess.Redistribution
                 throw new Exception($"Failed to retrieve event batch from {shardGroupReaderName} source shard group beginning with event with id '{initialEventId}'.", e);
             }
             metricLogger.End(beginId, new EventBatchReadTime());
+            logger.Log(this, LogLevel.Information, $"Read {eventList.Count} events from {shardGroupReaderName} source shard group.");
             foreach (TemporalEventBufferItemBase currentEvent in eventList)
             {
                 destinationEventQueue.Enqueue(currentEvent);
@@ -186,6 +229,64 @@ namespace ApplicationAccess.Redistribution
             else
             {
                 return eventList[eventList.Count - 1].EventId;
+            }
+        }
+
+        /// <summary>
+        /// Buffers all remaining events in the specified event queue and reader.
+        /// </summary>
+        /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
+        /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
+        /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+        /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        /// <param name="sourceShardGroupEventReader">The event reader for the source shard group.</param>
+        /// <param name="sourceShardGroupEventQueue">Queue containing the next events to persist.</param>
+        /// <param name="targetShardGroupEventPersisterBuffer">The event persister buffer for the target shard group.</param>
+        /// <param name="eventBatchSize">The number of events to read or persist in each batch.</param>
+        /// <param name="sourceShardGroupIsFirst">Whether the events in parameters <paramref name="sourceShardGroupEventReader"/> and <paramref name="sourceShardGroupEventQueue"/> are from the first shard group being merged.</param>
+        protected void BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
+        (
+            IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader, 
+            Queue<TemporalEventBufferItemBase> sourceShardGroupEventQueue, 
+            IEventPersisterBuffer targetShardGroupEventPersisterBuffer,
+            Int32 eventBatchSize,
+            Boolean sourceShardGroupIsFirst
+        )
+        {
+            Nullable<Guid> lastReadEventId = null;
+            while (sourceShardGroupEventQueue.Count > 0)
+            {
+                TemporalEventBufferItemBase nextEvent = sourceShardGroupEventQueue.Dequeue();
+                lastReadEventId = nextEvent.EventId;
+                targetShardGroupEventPersisterBuffer.BufferEvent(nextEvent, sourceShardGroupIsFirst);
+            }
+            Nullable<Guid> nextEventId = GetNextEventIdAfter(lastReadEventId.Value, sourceShardGroupEventReader);
+            while (nextEventId.HasValue)
+            {
+                lastReadEventId = ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroupEventReader, sourceShardGroupEventQueue, eventBatchSize, sourceShardGroupIsFirst);
+                while (sourceShardGroupEventQueue.Count > 0)
+                {
+                    targetShardGroupEventPersisterBuffer.BufferEvent(sourceShardGroupEventQueue.Dequeue(), sourceShardGroupIsFirst);
+                }
+                nextEventId = GetNextEventIdAfter(lastReadEventId.Value, sourceShardGroupEventReader);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the id of the next event after the specified event. 
+        /// </summary>
+        /// <param name="inputEventId">The id of the preceding event.</param>
+        /// <param name="sourceShardGroupEventReader">The event reader to retrieve the id from.</param>
+        /// <returns>The next event, or null of the specified event is the latest.</returns>
+        protected Nullable<Guid> GetNextEventIdAfter(Guid inputEventId, IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader)
+        {
+            try
+            {
+                return sourceShardGroupEventReader.GetNextEventAfter(inputEventId);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to read event following event with id '{inputEventId}' from event reader.", e);
             }
         }
 

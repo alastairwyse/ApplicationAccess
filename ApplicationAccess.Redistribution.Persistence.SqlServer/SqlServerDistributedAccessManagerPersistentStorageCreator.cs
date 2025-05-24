@@ -139,6 +139,25 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
         }
 
         /// <summary>
+        /// Renames a database instance.
+        /// </summary>
+        /// <param name="currentPersistentStorageInstanceName">The current name of the database instance.</param>
+        /// <param name="newPersistentStorageInstanceName">The new name of the database instance.</param>
+        public void RenamePersistentStorage(String currentPersistentStorageInstanceName, String newPersistentStorageInstanceName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Deletes a database instance.
+        /// </summary>
+        /// <param name="persistentStorageInstanceName">The name of the database instance.</param>
+        public void DeletePersistentStorage(String persistentStorageInstanceName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Creates a new distributed AccessManager configuration database instance.
         /// </summary>
         /// <param name="persistentStorageInstanceName">The name of the databse instance.</param>
