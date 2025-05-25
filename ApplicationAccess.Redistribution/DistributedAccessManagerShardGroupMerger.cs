@@ -98,77 +98,75 @@ namespace ApplicationAccess.Redistribution
             var eventFilter = new PrimaryElementEventDuplicateFilter<TUser, TGroup>(eventBuffer, false, logger, metricLogger);
             var sourceShardGroup1EventQueue = new Queue<TemporalEventBufferItemBase>();
             var sourceShardGroup2EventQueue = new Queue<TemporalEventBufferItemBase>();
-            Nullable<Guid> sourceShardGroup1LastReadEventId = null, sourceShardGroup2LastReadEventId = null;
+            Nullable<Guid> sourceShardGroup1LastBufferedEventId = null, sourceShardGroup2LastBufferedEventId = null;
             var lastPersistedEventIds = new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null);
-            Guid beginId = metricLogger.Begin(new EventBatchReadTime());
-            sourceShardGroup1LastReadEventId = ReadSourceShardGroupEventsIntoQueue(sourceShardGroup1FirstEventId, sourceShardGroup1EventReader, sourceShardGroup1EventQueue, eventBatchSize, true);
-            sourceShardGroup2LastReadEventId = ReadSourceShardGroupEventsIntoQueue(sourceShardGroup2FirstEventId, sourceShardGroup2EventReader, sourceShardGroup2EventQueue, eventBatchSize, false);
+            ReadSourceShardGroupEventsIntoQueue(sourceShardGroup1FirstEventId, sourceShardGroup1EventReader, sourceShardGroup1EventQueue, eventBatchSize, true);
+            ReadSourceShardGroupEventsIntoQueue(sourceShardGroup2FirstEventId, sourceShardGroup2EventReader, sourceShardGroup2EventQueue, eventBatchSize, false);
 
             // Write events to the target in batches
-            if (sourceShardGroup1EventQueue.Count > 0 || sourceShardGroup2EventQueue.Count > 0)
+            while (true)
             {
-                while (true)
+                if (sourceShardGroup1EventQueue.Count == 0)
                 {
-                    if (sourceShardGroup1EventQueue.Count == 0)
+                    if (noEventsReadDuringMergeAction == NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource)
                     {
-                        if (noEventsReadDuringMergeAction == NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource)
-                        {
-                            BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
-                            (
-                                sourceShardGroup2EventReader,
-                                sourceShardGroup2EventQueue,
-                                eventFilter,
-                                eventBatchSize,
-                                false
-                            );
-                            lastPersistedEventIds = eventBuffer.Flush();
-                        }
-                        break;
+                        BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
+                        (
+                            sourceShardGroup2EventReader,
+                            sourceShardGroup2EventQueue,
+                            eventFilter,
+                            eventBatchSize,
+                            false
+                        );
                     }
-                    else if (sourceShardGroup2EventQueue.Count == 0)
+                    lastPersistedEventIds = eventBuffer.Flush();
+                    break;
+                }
+                else if (sourceShardGroup2EventQueue.Count == 0)
+                {
+                    if (noEventsReadDuringMergeAction == NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource)
                     {
-                        if (noEventsReadDuringMergeAction == NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource)
-                        {
-                            BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
-                            (
-                                sourceShardGroup1EventReader,
-                                sourceShardGroup1EventQueue,
-                                eventFilter,
-                                eventBatchSize,
-                                true
-                            );
-                            lastPersistedEventIds = eventBuffer.Flush();
-                        }
-                        break;
+                        BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
+                        (
+                            sourceShardGroup1EventReader,
+                            sourceShardGroup1EventQueue,
+                            eventFilter,
+                            eventBatchSize,
+                            true
+                        );
                     }
-                    else
+                    lastPersistedEventIds = eventBuffer.Flush();
+                    break;
+                }
+                else
+                {
+                    while (sourceShardGroup1EventQueue.Count > 0 && sourceShardGroup2EventQueue.Count > 0)
                     {
-                        while (sourceShardGroup1EventQueue.Count > 0 && sourceShardGroup2EventQueue.Count > 0)
+                        if (sourceShardGroup1EventQueue.Peek().OccurredTime <= sourceShardGroup2EventQueue.Peek().OccurredTime)
                         {
-                            if (sourceShardGroup1EventQueue.Peek().OccurredTime <= sourceShardGroup2EventQueue.Peek().OccurredTime)
-                            {
-                                lastPersistedEventIds = eventFilter.BufferEvent(sourceShardGroup1EventQueue.Dequeue(), true);
-                            }
-                            else
-                            {
-                                lastPersistedEventIds = eventFilter.BufferEvent(sourceShardGroup2EventQueue.Dequeue(), false);
-                            }
-                        }
-                        if (sourceShardGroup1EventQueue.Count == 0)
-                        {
-                            Nullable<Guid> nextEventId = GetNextEventIdAfter(lastPersistedEventIds.Item1.Value, sourceShardGroup1EventReader);
-                            if (nextEventId.HasValue)
-                            {
-                                sourceShardGroup1LastReadEventId = ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroup1EventReader, sourceShardGroup1EventQueue, eventBatchSize, true);
-                            }
+                            sourceShardGroup1LastBufferedEventId = sourceShardGroup1EventQueue.Peek().EventId;
+                            lastPersistedEventIds = eventFilter.BufferEvent(sourceShardGroup1EventQueue.Dequeue(), true);
                         }
                         else
                         {
-                            Nullable<Guid> nextEventId = GetNextEventIdAfter(lastPersistedEventIds.Item2.Value, sourceShardGroup2EventReader);
-                            if (nextEventId.HasValue)
-                            {
-                                sourceShardGroup2LastReadEventId = ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroup2EventReader, sourceShardGroup2EventQueue, eventBatchSize, false);
-                            }
+                            sourceShardGroup2LastBufferedEventId = sourceShardGroup2EventQueue.Peek().EventId;
+                            lastPersistedEventIds = eventFilter.BufferEvent(sourceShardGroup2EventQueue.Dequeue(), false);
+                        }
+                    }
+                    if (sourceShardGroup1EventQueue.Count == 0)
+                    {
+                        Nullable<Guid> nextEventId = GetNextEventIdAfter(sourceShardGroup1LastBufferedEventId.Value, sourceShardGroup1EventReader);
+                        if (nextEventId.HasValue)
+                        {
+                            ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroup1EventReader, sourceShardGroup1EventQueue, eventBatchSize, true);
+                        }
+                    }
+                    else
+                    {
+                        Nullable<Guid> nextEventId = GetNextEventIdAfter(sourceShardGroup2LastBufferedEventId.Value, sourceShardGroup2EventReader);
+                        if (nextEventId.HasValue)
+                        {
+                            ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroup2EventReader, sourceShardGroup2EventQueue, eventBatchSize, false);
                         }
                     }
                 }
@@ -216,7 +214,7 @@ namespace ApplicationAccess.Redistribution
                 throw new Exception($"Failed to retrieve event batch from {shardGroupReaderName} source shard group beginning with event with id '{initialEventId}'.", e);
             }
             metricLogger.End(beginId, new EventBatchReadTime());
-            logger.Log(this, LogLevel.Information, $"Read {eventList.Count} events from {shardGroupReaderName} source shard group.");
+            logger.Log(this, LogLevel.Information, $"Read {eventList.Count} event(s) from {shardGroupReaderName} source shard group.");
             foreach (TemporalEventBufferItemBase currentEvent in eventList)
             {
                 destinationEventQueue.Enqueue(currentEvent);
@@ -253,22 +251,22 @@ namespace ApplicationAccess.Redistribution
             Boolean sourceShardGroupIsFirst
         )
         {
-            Nullable<Guid> lastReadEventId = null;
+            Nullable<Guid> lastBufferedEventId = null;
             while (sourceShardGroupEventQueue.Count > 0)
             {
                 TemporalEventBufferItemBase nextEvent = sourceShardGroupEventQueue.Dequeue();
-                lastReadEventId = nextEvent.EventId;
+                lastBufferedEventId = nextEvent.EventId;
                 targetShardGroupEventPersisterBuffer.BufferEvent(nextEvent, sourceShardGroupIsFirst);
             }
-            Nullable<Guid> nextEventId = GetNextEventIdAfter(lastReadEventId.Value, sourceShardGroupEventReader);
+            Nullable<Guid> nextEventId = GetNextEventIdAfter(lastBufferedEventId.Value, sourceShardGroupEventReader);
             while (nextEventId.HasValue)
             {
-                lastReadEventId = ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroupEventReader, sourceShardGroupEventQueue, eventBatchSize, sourceShardGroupIsFirst);
+                lastBufferedEventId = ReadSourceShardGroupEventsIntoQueue(nextEventId.Value, sourceShardGroupEventReader, sourceShardGroupEventQueue, eventBatchSize, sourceShardGroupIsFirst);
                 while (sourceShardGroupEventQueue.Count > 0)
                 {
                     targetShardGroupEventPersisterBuffer.BufferEvent(sourceShardGroupEventQueue.Dequeue(), sourceShardGroupIsFirst);
                 }
-                nextEventId = GetNextEventIdAfter(lastReadEventId.Value, sourceShardGroupEventReader);
+                nextEventId = GetNextEventIdAfter(lastBufferedEventId.Value, sourceShardGroupEventReader);
             }
         }
 

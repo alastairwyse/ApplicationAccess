@@ -16,8 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using ApplicationAccess.Distribution.Models;
-using ApplicationAccess.Hosting.Rest.DistributedAsyncClient;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
 using ApplicationAccess.Redistribution.Metrics;
@@ -48,8 +46,23 @@ namespace ApplicationAccess.Redistribution.UnitTests
         }
 
         [Test]
+        public void Constructor_BufferSizeParameterLessThan1()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testEventPersisterBuffer = new EventPersisterBuffer<String, String, String, String>(mockEventBulkPersister, 0, 1, mockApplicationLogger, mockMetricLogger);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'bufferSize' with value 0 must be greater than 0."));
+            Assert.AreEqual("bufferSize", e.ParamName);
+        }
+
+        [Test]
         public void BufferEvent()
         {
+            Guid beginId1 = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            Guid beginId2 = Guid.Parse("00000000-0000-0000-0000-000000000002");
+            mockMetricLogger.Begin(Arg.Any<EventBatchWriteTime>()).Returns(beginId1);
             var testEvent1 = GenerateUserEventBufferItem(1);
             var testEvent2 = GenerateUserEventBufferItem(2);
             var testEvent3 = GenerateUserEventBufferItem(3);
@@ -80,8 +93,17 @@ namespace ApplicationAccess.Redistribution.UnitTests
             Assert.AreSame(testEvent1, capturedeventList[0]);
             Assert.AreSame(testEvent2, capturedeventList[1]);
             Assert.AreSame(testEvent3, capturedeventList[2]);
+            mockMetricLogger.Received(1).Begin(Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(1).End(beginId1, Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsCopiedFromSourceToTargetShardGroup>(), 3);
+            mockMetricLogger.Received(1).Increment(Arg.Any<EventBatchCopyCompleted>());
+            mockApplicationLogger.Received(1).Log(testEventPersisterBuffer, LogLevel.Information, "Writing batch 1 of events from source shard groups to target shard group.");
+            mockApplicationLogger.Received(1).Log(testEventPersisterBuffer, LogLevel.Information, "Wrote 3 event(s) to target shard group.");
 
 
+            mockMetricLogger.ClearReceivedCalls();
+            mockMetricLogger.Begin(Arg.Any<EventBatchWriteTime>()).Returns(beginId1, beginId2);
+            mockApplicationLogger.ClearReceivedCalls();
             testEventPersisterBuffer = new EventPersisterBuffer<String, String, String, String>(mockEventBulkPersister, 3, 1, mockApplicationLogger, mockMetricLogger);
             result = testEventPersisterBuffer.BufferEvent(testEvent4, false);
 
@@ -103,6 +125,12 @@ namespace ApplicationAccess.Redistribution.UnitTests
             Assert.AreSame(testEvent4, capturedeventList[0]);
             Assert.AreSame(testEvent5, capturedeventList[1]);
             Assert.AreSame(testEvent6, capturedeventList[2]);
+            mockMetricLogger.Received(1).Begin(Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(1).End(beginId1, Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(1).Add(Arg.Any<EventsCopiedFromSourceToTargetShardGroup>(), 3);
+            mockMetricLogger.Received(1).Increment(Arg.Any<EventBatchCopyCompleted>());
+            mockApplicationLogger.Received(1).Log(testEventPersisterBuffer, LogLevel.Information, "Writing batch 1 of events from source shard groups to target shard group.");
+            mockApplicationLogger.Received(1).Log(testEventPersisterBuffer, LogLevel.Information, "Wrote 3 event(s) to target shard group.");
 
 
             result = testEventPersisterBuffer.BufferEvent(testEvent7, false);
@@ -125,24 +153,20 @@ namespace ApplicationAccess.Redistribution.UnitTests
             Assert.AreSame(testEvent7, capturedeventList[0]);
             Assert.AreSame(testEvent1, capturedeventList[1]);
             Assert.AreSame(testEvent2, capturedeventList[2]);
+            mockMetricLogger.Received(2).Begin(Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(1).End(beginId1, Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(1).End(beginId2, Arg.Any<EventBatchWriteTime>());
+            mockMetricLogger.Received(2).Add(Arg.Any<EventsCopiedFromSourceToTargetShardGroup>(), 3);
+            mockMetricLogger.Received(2).Increment(Arg.Any<EventBatchCopyCompleted>());
+            mockApplicationLogger.Received(1).Log(testEventPersisterBuffer, LogLevel.Information, "Writing batch 1 of events from source shard groups to target shard group.");
+            mockApplicationLogger.Received(1).Log(testEventPersisterBuffer, LogLevel.Information, "Writing batch 2 of events from source shard groups to target shard group.");
+            mockApplicationLogger.Received(2).Log(testEventPersisterBuffer, LogLevel.Information, "Wrote 3 event(s) to target shard group.");
 
 
             result = testEventPersisterBuffer.BufferEvent(testEvent7, true);
 
             Assert.AreEqual("00000000-0000-0000-0000-000000000001", result.Item1.ToString());
             Assert.AreEqual("00000000-0000-0000-0000-000000000002", result.Item2.ToString());
-        }
-
-        [Test]
-        public void Constructor_BufferSizeParameterLessThan1()
-        {
-            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
-            {
-                testEventPersisterBuffer = new EventPersisterBuffer<String, String, String, String>(mockEventBulkPersister, 0, 1, mockApplicationLogger, mockMetricLogger);
-            });
-
-            Assert.That(e.Message, Does.StartWith($"Parameter 'bufferSize' with value 0 must be greater than 0."));
-            Assert.AreEqual("bufferSize", e.ParamName);
         }
 
         [Test]
@@ -212,6 +236,25 @@ namespace ApplicationAccess.Redistribution.UnitTests
             mockMetricLogger.Received(1).Increment(Arg.Any<EventBatchCopyCompleted>());
             mockApplicationLogger.Received(1).Log(testEventPersisterBuffer, LogLevel.Information, $"Writing batch 2 of events from source shard groups to target shard group.");
             mockApplicationLogger.Received(1).Log(testEventPersisterBuffer, LogLevel.Information, $"Wrote 2 event(s) to target shard group.");
+        }
+
+        [Test]
+        public void Flush_BufferEmpty()
+        {
+            var testEvent1 = GenerateUserEventBufferItem(1);
+            var testEvent2 = GenerateUserEventBufferItem(2);
+            var testEvent3 = GenerateUserEventBufferItem(3);
+            testEventPersisterBuffer.BufferEvent(testEvent1, true);
+            testEventPersisterBuffer.BufferEvent(testEvent2, true);
+            testEventPersisterBuffer.BufferEvent(testEvent3, false);
+            mockEventBulkPersister.Received(1).PersistEvents(Arg.Any<IList<TemporalEventBufferItemBase>>());
+            mockEventBulkPersister.ClearReceivedCalls();
+
+            Tuple<Nullable<Guid>, Nullable<Guid>> result = testEventPersisterBuffer.Flush();
+
+            Assert.AreEqual("00000000-0000-0000-0000-000000000002", result.Item1.ToString());
+            Assert.AreEqual("00000000-0000-0000-0000-000000000003", result.Item2.ToString());
+            mockEventBulkPersister.DidNotReceive().PersistEvents(Arg.Any<IList<TemporalEventBufferItemBase>>());
         }
 
         #region Private/Protected Methods

@@ -114,29 +114,32 @@ namespace ApplicationAccess.Redistribution
         /// <returns>A tuple containing 2 values: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
         public Tuple<Nullable<Guid>, Nullable<Guid>> Flush()
         {
-            var eventList = new List<TemporalEventBufferItemBase>();
-            while (eventBuffer.Count > 0)
+            if (eventBuffer.Count > 0)
             {
-                eventList.Add(eventBuffer.Dequeue());
+                var eventList = new List<TemporalEventBufferItemBase>();
+                while (eventBuffer.Count > 0)
+                {
+                    eventList.Add(eventBuffer.Dequeue());
+                }
+                logger.Log(this, LogLevel.Information, $"Writing batch {nextBatchNumber} of events from source shard groups to target shard group.");
+                Guid beginId = metricLogger.Begin(new EventBatchWriteTime());
+                try
+                {
+                    shardGroupEventPersister.PersistEvents(eventList);
+                }
+                catch (Exception e)
+                {
+                    metricLogger.CancelBegin(beginId, new EventBatchWriteTime());
+                    throw new Exception($"Failed to write events to the target shard group.", e);
+                }
+                metricLogger.End(beginId, new EventBatchWriteTime());
+                metricLogger.Add(new EventsCopiedFromSourceToTargetShardGroup(), eventList.Count);
+                metricLogger.Increment(new EventBatchCopyCompleted());
+                logger.Log(this, LogLevel.Information, $"Wrote {eventList.Count} event(s) to target shard group.");
+                nextBatchNumber++;
+                sourceShardGroup1LastPersistedEventId = sourceShardGroup1LastBufferedEventId;
+                sourceShardGroup2LastPersistedEventId = sourceShardGroup2LastBufferedEventId;
             }
-            logger.Log(this, LogLevel.Information, $"Writing batch {nextBatchNumber} of events from source shard groups to target shard group.");
-            Guid beginId = metricLogger.Begin(new EventBatchWriteTime());
-            try
-            {
-                shardGroupEventPersister.PersistEvents(eventList);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new EventBatchWriteTime());
-                throw new Exception($"Failed to write events to the target shard group.", e);
-            }
-            metricLogger.End(beginId, new EventBatchWriteTime());
-            metricLogger.Add(new EventsCopiedFromSourceToTargetShardGroup(), eventList.Count);
-            metricLogger.Increment(new EventBatchCopyCompleted());
-            logger.Log(this, LogLevel.Information, $"Wrote {eventList.Count} event(s) to target shard group.");
-            nextBatchNumber++;
-            sourceShardGroup1LastPersistedEventId = sourceShardGroup1LastBufferedEventId;
-            sourceShardGroup2LastPersistedEventId = sourceShardGroup2LastBufferedEventId;
 
             return Tuple.Create(sourceShardGroup1LastPersistedEventId, sourceShardGroup2LastPersistedEventId);
         }
