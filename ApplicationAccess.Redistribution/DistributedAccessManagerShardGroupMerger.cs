@@ -42,6 +42,22 @@ namespace ApplicationAccess.Redistribution
         {
         }
 
+        /// <summary>
+        /// Merges all events from two source shard groups into a target shard group in batches, blocking events from reaching the source shard groups during merging of the final batch to ensure consistency and completeness.
+        /// </summary>
+        /// <typeparam name="TUser">The type of users in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TGroup">The type of groups in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TComponent">The type of components in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
+        /// <param name="sourceShardGroup1EventReader">The event reader for the first source shard group.</param>
+        /// <param name="sourceShardGroup2EventReader">The event reader for the second source shard group.</param>
+        /// <param name="targetShardGroupEventPersister">The event persister for the target shard group.</param>
+        /// <param name="operationRouter">An operation router which sits in front of the shard groups, and is used to pause incoming events during copying of the final batch.</param>
+        /// <param name="sourceShardGroup1WriterAdministrator">Used to clear/flush all buffered events from the first source shard group to ensure completeness of the copying process.</param>
+        /// <param name="sourceShardGroup2WriterAdministrator">Used to clear/flush all buffered events from the second source shard group to ensure completeness of the copying process.</param>
+        /// <param name="eventBatchSize">The number of events which should be read from and persisted to the shard group in each batch.</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryAttempts">The number of times to retry checking that there are no active operations in the source shard groups, before merging of the final batch of events (event merge will fail if all retries are exhausted before the number of active operations becomes 0).</param>
+        /// <param name="sourceWriterNodeOperationsCompleteCheckRetryInterval">The time in milliseconds to wait between retries specified in parameter <paramref name="sourceWriterNodeOperationsCompleteCheckRetryAttempts"/>.</param>
         public void MergeEventsToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroup1EventReader,
@@ -55,12 +71,81 @@ namespace ApplicationAccess.Redistribution
             Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
         )
         {
-            
             // After this method will need to 
             //   Shutdown source shard group
             //   Rename the DBs appropriately
             //   Start source shard group
             //   Resume operations
+
+
+            ThrowExceptionIfSourceWriterNodeOperationsCompleteCheckRetryAttemptsParameterLessThan0(sourceWriterNodeOperationsCompleteCheckRetryAttempts);
+            ThrowExceptionIfSourceWriterNodeOperationsCompleteCheckRetryIntervalParameterLessThan0(sourceWriterNodeOperationsCompleteCheckRetryInterval);
+            ThrowExceptionIfEventBatchSizeParameterLessThan1(eventBatchSize);
+
+            // Get the ids of the first events in the source shard groups
+            Guid sourceShardGroup1FirstEventId = GetInitialEvent(sourceShardGroup1EventReader);
+            Guid sourceShardGroup2FirstEventId = GetInitialEvent(sourceShardGroup2EventReader);
+
+            // Merge the events in batches
+            logger.Log(this, LogLevel.Information, "Merging events from source shard groups to target shard group...");
+            Int32 currentBatchNumber = 1;
+            logger.Log(this, LogLevel.Information, "Starting initial event batch merge...");
+            Tuple<Nullable<Guid>, Nullable<Guid>> lastPersistedEventIds = MergeEventBatchesToTargetShardGroup
+            (
+                sourceShardGroup1EventReader,
+                sourceShardGroup2EventReader, 
+                targetShardGroupEventPersister, 
+                ref currentBatchNumber,
+                sourceShardGroup1FirstEventId,
+                sourceShardGroup2FirstEventId,
+                eventBatchSize, 
+                NoEventsReadDuringMergeAction.StopMerging
+            );
+            logger.Log(this, LogLevel.Information, "Completed initial event batch merge.");
+
+            // Hold any incoming operations to the source and target shard groups
+            logger.Log(this, LogLevel.Information, "Pausing operations in the source and target shard groups.");
+            PauseOperations(operationRouter);
+
+            // Wait until all events are finished processing in the source writer node
+            logger.Log(this, LogLevel.Information, "Waiting for source writer nodes event processing to complete...");
+            WaitForSourceWriterNodeEventProcessingCompletion(sourceShardGroup1WriterAdministrator, sourceWriterNodeOperationsCompleteCheckRetryAttempts, sourceWriterNodeOperationsCompleteCheckRetryInterval);
+            WaitForSourceWriterNodeEventProcessingCompletion(sourceShardGroup2WriterAdministrator, sourceWriterNodeOperationsCompleteCheckRetryAttempts, sourceWriterNodeOperationsCompleteCheckRetryInterval);
+            logger.Log(this, LogLevel.Information, "Source writer nodes event processing to complete.");
+
+            // Flush the event buffer(s) in the source writer nodes
+            //   TODO: Make these methods async and run in parallel for faster merging
+            logger.Log(this, LogLevel.Information, "Flushing source writer nodes event buffers...");
+            FlushSourceWriterNodeEventBuffers(sourceShardGroup1WriterAdministrator);
+            FlushSourceWriterNodeEventBuffers(sourceShardGroup2WriterAdministrator);
+            logger.Log(this, LogLevel.Information, "Completed flushing source writer nodes event buffers.");
+
+            // Merge the final event batches to the target shard group
+            Nullable<Guid> sourceShardGroup1NextEventId = GetNextEventAfter(sourceShardGroup1EventReader, lastPersistedEventIds.Item1.Value);
+            Nullable<Guid> sourceShardGroup2NextEventId = GetNextEventAfter(sourceShardGroup2EventReader, lastPersistedEventIds.Item2.Value);
+            if (sourceShardGroup1NextEventId.HasValue || sourceShardGroup2NextEventId.HasValue)
+            {
+                logger.Log(this, LogLevel.Information, "Starting final event batch merge...");
+                lastPersistedEventIds = MergeEventBatchesToTargetShardGroup
+                (
+                    sourceShardGroup1EventReader,
+                    sourceShardGroup2EventReader,
+                    targetShardGroupEventPersister,
+                    ref currentBatchNumber,
+
+
+                    // TODO: These params are a problem
+                    //   It's legitimate that one might be null if all events from that side were already persisted
+                    //   MergeEventBatchesToTargetShardGroup() has to be updated to support this, and relevant tests created
+
+                    sourceShardGroup1NextEventId.Value,
+                    sourceShardGroup2NextEventId.Value,
+                    eventBatchSize,
+                    NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource
+                );
+                logger.Log(this, LogLevel.Information, "Completed final event batch merge.");
+            }
+            logger.Log(this, LogLevel.Information, "Completed merging events from source shard groups to target shard group.");
         }
 
         #region Private/Protected Methods
@@ -68,9 +153,9 @@ namespace ApplicationAccess.Redistribution
         /// <summary>
         /// Merges events from two source source shard groups to a target shard group in batches.
         /// </summary>
-        /// <typeparam name="TUser">The type of users in the application managed by the distributed AccessManager implementation that the shard groups are part of.</typeparam>
-        /// <typeparam name="TGroup">The type of groups in the application managed by the distributed AccessManager implementation that the shard groups are part of.</typeparam>
-        /// <typeparam name="TComponent">The type of components in the application managed by the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TUser">The type of users in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TGroup">The type of groups in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TComponent">The type of components in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
         /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         /// <param name="sourceShardGroup1EventReader">The event reader for the first source shard group.</param>
         /// <param name="sourceShardGroup2EventReader">The event reader for the second source shard group.</param>

@@ -163,6 +163,28 @@ namespace ApplicationAccess.Redistribution
             }
         }
 
+        #pragma warning disable 1591
+
+        protected void ThrowExceptionIfSourceWriterNodeOperationsCompleteCheckRetryAttemptsParameterLessThan0(Int32 sourceWriterNodeOperationsCompleteCheckRetryAttempts)
+        {
+            if (sourceWriterNodeOperationsCompleteCheckRetryAttempts < 0)
+                throw new ArgumentOutOfRangeException(nameof(sourceWriterNodeOperationsCompleteCheckRetryAttempts), $"Parameter '{nameof(sourceWriterNodeOperationsCompleteCheckRetryAttempts)}' with value {sourceWriterNodeOperationsCompleteCheckRetryAttempts} must be greater than or equal to 0.");
+        }
+
+        protected void ThrowExceptionIfSourceWriterNodeOperationsCompleteCheckRetryIntervalParameterLessThan0(Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval)
+        {
+            if (sourceWriterNodeOperationsCompleteCheckRetryInterval < 0)
+                throw new ArgumentOutOfRangeException(nameof(sourceWriterNodeOperationsCompleteCheckRetryInterval), $"Parameter '{nameof(sourceWriterNodeOperationsCompleteCheckRetryInterval)}' with value {sourceWriterNodeOperationsCompleteCheckRetryInterval} must be greater than or equal to 0.");
+        }
+
+        protected void ThrowExceptionIfEventBatchSizeParameterLessThan1(Int32 eventBatchSize)
+        {
+            if (eventBatchSize < 1)
+                throw new ArgumentOutOfRangeException(nameof(eventBatchSize), $"Parameter '{nameof(eventBatchSize)}' with value {eventBatchSize} must be greater than 0.");
+        }
+
+        #pragma warning restore 1591
+
         #endregion
     }
 }

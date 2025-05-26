@@ -58,12 +58,9 @@ namespace ApplicationAccess.Redistribution
             Int32 sourceWriterNodeOperationsCompleteCheckRetryInterval
         )
         {
-            if (sourceWriterNodeOperationsCompleteCheckRetryAttempts < 0)
-                throw new ArgumentOutOfRangeException(nameof(sourceWriterNodeOperationsCompleteCheckRetryAttempts), $"Parameter '{nameof(sourceWriterNodeOperationsCompleteCheckRetryAttempts)}' with value {sourceWriterNodeOperationsCompleteCheckRetryAttempts} must be greater than or equal to 0.");
-            if (sourceWriterNodeOperationsCompleteCheckRetryInterval < 0)
-                throw new ArgumentOutOfRangeException(nameof(sourceWriterNodeOperationsCompleteCheckRetryInterval), $"Parameter '{nameof(sourceWriterNodeOperationsCompleteCheckRetryInterval)}' with value {sourceWriterNodeOperationsCompleteCheckRetryInterval} must be greater than or equal to 0.");
-            if (eventBatchSize < 1)
-                throw new ArgumentOutOfRangeException(nameof(eventBatchSize), $"Parameter '{nameof(eventBatchSize)}' with value {eventBatchSize} must be greater than 0.");
+            ThrowExceptionIfSourceWriterNodeOperationsCompleteCheckRetryAttemptsParameterLessThan0(sourceWriterNodeOperationsCompleteCheckRetryAttempts);
+            ThrowExceptionIfSourceWriterNodeOperationsCompleteCheckRetryIntervalParameterLessThan0(sourceWriterNodeOperationsCompleteCheckRetryInterval);
+            ThrowExceptionIfEventBatchSizeParameterLessThan1(eventBatchSize);
 
             // Get the id of the first event in the source shard group
             Nullable<Guid> lastEventId = null;

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using ApplicationAccess.Distribution;
 using ApplicationAccess.Distribution.Persistence;
 using ApplicationAccess.Persistence;
 using ApplicationAccess.Persistence.Models;
@@ -34,10 +35,15 @@ namespace ApplicationAccess.Redistribution.UnitTests
     /// </summary>
     public class DistributedAccessManagerShardGroupMergerTests
     {
+        private Int32 testSourceWriterNodeOperationsCompleteCheckRetryAttempts;
+        private Int32 testSourceWriterNodeOperationsCompleteCheckRetryInterval;
         private IAccessManagerTemporalEventBatchReader mockSourceShardGroup1EventReader;
         private IAccessManagerTemporalEventBatchReader mockSourceShardGroup2EventReader;
         private IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String> mockTargetShardGroupEventPersister;
         private IEventPersisterBuffer mockTargetShardGroupEventPersisterBuffer;
+        private IDistributedAccessManagerOperationRouter mockOperationRouter;
+        private IDistributedAccessManagerWriterAdministrator mockSourceShardGroup1WriterAdministrator;
+        private IDistributedAccessManagerWriterAdministrator mockSourceShardGroup2WriterAdministrator;
         private IApplicationLogger mockApplicationLogger;
         private IMetricLogger mockMetricLogger;
         private DistributedAccessManagerShardGroupMergerWithProtectedMembers testShardGroupMerger;
@@ -46,13 +52,145 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [SetUp]
         protected void SetUp()
         {
+            testSourceWriterNodeOperationsCompleteCheckRetryAttempts = 3;
+            testSourceWriterNodeOperationsCompleteCheckRetryInterval = 50;
             mockSourceShardGroup1EventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
             mockSourceShardGroup2EventReader = Substitute.For<IAccessManagerTemporalEventBatchReader>();
             mockTargetShardGroupEventPersister = Substitute.For<IAccessManagerIdempotentTemporalEventBulkPersister<String, String, String, String>>();
             mockTargetShardGroupEventPersisterBuffer = Substitute.For<IEventPersisterBuffer>();
+            mockOperationRouter = Substitute.For<IDistributedAccessManagerOperationRouter>();
+            mockSourceShardGroup1WriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
+            mockSourceShardGroup2WriterAdministrator = Substitute.For<IDistributedAccessManagerWriterAdministrator>();
             mockApplicationLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
             testShardGroupMerger = new DistributedAccessManagerShardGroupMergerWithProtectedMembers(mockApplicationLogger, mockMetricLogger);
+        }
+
+        [Test]
+        public void MergeEventsToTargetShardGroup_SourceWriterNodeOperationsCompleteCheckRetryAttemptsParameterLessThan0()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testShardGroupMerger.MergeEventsToTargetShardGroup
+                (
+                    mockSourceShardGroup1EventReader,
+                    mockSourceShardGroup2EventReader,
+                    mockTargetShardGroupEventPersister,
+                    mockOperationRouter,
+                    mockSourceShardGroup1WriterAdministrator,
+                    mockSourceShardGroup2WriterAdministrator,
+                    3,
+                    -1,
+                    testSourceWriterNodeOperationsCompleteCheckRetryInterval
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceWriterNodeOperationsCompleteCheckRetryAttempts' with value -1 must be greater than or equal to 0."));
+            Assert.AreEqual("sourceWriterNodeOperationsCompleteCheckRetryAttempts", e.ParamName);
+        }
+
+        [Test]
+        public void MergeEventsToTargetShardGroup_SourceWriterNodeOperationsCompleteCheckRetryIntervalParameterLessThan0()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testShardGroupMerger.MergeEventsToTargetShardGroup
+                (
+                    mockSourceShardGroup1EventReader,
+                    mockSourceShardGroup2EventReader,
+                    mockTargetShardGroupEventPersister,
+                    mockOperationRouter,
+                    mockSourceShardGroup1WriterAdministrator,
+                    mockSourceShardGroup2WriterAdministrator,
+                    3,
+                    testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                    -1
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'sourceWriterNodeOperationsCompleteCheckRetryInterval' with value -1 must be greater than or equal to 0."));
+            Assert.AreEqual("sourceWriterNodeOperationsCompleteCheckRetryInterval", e.ParamName);
+        }
+
+        [Test]
+        public void MergeEventsToTargetShardGroup_EventBatchSizeParameterLessThan1()
+        {
+            var e = Assert.Throws<ArgumentOutOfRangeException>(delegate
+            {
+                testShardGroupMerger.MergeEventsToTargetShardGroup
+                (
+                    mockSourceShardGroup1EventReader,
+                    mockSourceShardGroup2EventReader,
+                    mockTargetShardGroupEventPersister,
+                    mockOperationRouter,
+                    mockSourceShardGroup1WriterAdministrator,
+                    mockSourceShardGroup2WriterAdministrator,
+                    0,
+                    testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                    testSourceWriterNodeOperationsCompleteCheckRetryInterval
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'eventBatchSize' with value 0 must be greater than 0."));
+            Assert.AreEqual("eventBatchSize", e.ParamName);
+        }
+
+        [Test]
+        public void MergeEventsToTargetShardGroup_NoEventsExistInSourceShardGroup1()
+        {
+            var mockException = new Exception("Mock exception");
+            mockSourceShardGroup1EventReader.When(reader => reader.GetInitialEvent()).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testShardGroupMerger.MergeEventsToTargetShardGroup
+                (
+                    mockSourceShardGroup1EventReader,
+                    mockSourceShardGroup2EventReader,
+                    mockTargetShardGroupEventPersister,
+                    mockOperationRouter,
+                    mockSourceShardGroup1WriterAdministrator,
+                    mockSourceShardGroup2WriterAdministrator,
+                    1000,
+                    testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                    testSourceWriterNodeOperationsCompleteCheckRetryInterval
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve initial event id from the source shard group."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeEventsToTargetShardGroup_NoEventsExistInSourceShardGroup2()
+        {
+            var mockException = new Exception("Mock exception");
+            mockSourceShardGroup2EventReader.When(reader => reader.GetInitialEvent()).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testShardGroupMerger.MergeEventsToTargetShardGroup
+                (
+                    mockSourceShardGroup1EventReader,
+                    mockSourceShardGroup2EventReader,
+                    mockTargetShardGroupEventPersister,
+                    mockOperationRouter,
+                    mockSourceShardGroup1WriterAdministrator,
+                    mockSourceShardGroup2WriterAdministrator,
+                    1000,
+                    testSourceWriterNodeOperationsCompleteCheckRetryAttempts,
+                    testSourceWriterNodeOperationsCompleteCheckRetryInterval
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Failed to retrieve initial event id from the source shard group."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void MergeEventsToTargetShardGroup()
+        {
+            throw new NotImplementedException();
         }
 
         [Test]

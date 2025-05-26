@@ -28,11 +28,11 @@ namespace ApplicationAccess.Redistribution
     public interface IDistributedAccessManagerShardGroupSplitter
     {
         /// <summary>
-        /// Copies a subset of events from a source group to a target shard group in batches, blocking events from reaching the source shard group during moving of the final batch to ensure consistency and completeness.
+        /// Copies a subset of events from a source shard group to a target shard group in batches, blocking events from reaching the source shard group during moving of the final batch to ensure consistency and completeness.
         /// </summary>
-        /// <typeparam name="TUser">The type of users in the application managed by the AccessManager.</typeparam>
-        /// <typeparam name="TGroup">The type of groups in the application managed by the AccessManager.</typeparam>
-        /// <typeparam name="TComponent">The type of components in the application managed by the AccessManager.</typeparam>
+        /// <typeparam name="TUser">The type of users in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TGroup">The type of groups in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
+        /// <typeparam name="TComponent">The type of components in the distributed AccessManager implementation that the shard groups are part of.</typeparam>
         /// <typeparam name="TAccess">The type of levels of access which can be assigned to an application component.</typeparam>
         /// <param name="sourceShardGroupEventReader">The event reader for the source shard group.</param>
         /// <param name="targetShardGroupEventPersister">The event persister for the target shard group.</param>
