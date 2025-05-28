@@ -29,7 +29,7 @@ namespace ApplicationAccess.Redistribution
         /// </summary>
         /// <param name="inputEvent">The event to buffer.</param>
         /// <param name="sourcedFromFirstShardGroup">Whether the event was sourced from the first shard group being merged (assumed that the event was sourced from the second shard group if set false).</param>
-        /// <returns>A tuple containing 2 values: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
+        /// <returns>A tuple containing: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
         Tuple<Nullable<Guid>, Nullable<Guid>> BufferEvent(TemporalEventBufferItemBase inputEvent, Boolean sourcedFromFirstShardGroup);
     }
 }

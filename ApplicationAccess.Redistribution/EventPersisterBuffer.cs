@@ -111,7 +111,7 @@ namespace ApplicationAccess.Redistribution
         /// <summary>
         /// Persists all events currently buffered.
         /// </summary>
-        /// <returns>A tuple containing 2 values: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
+        /// <returns>A tuple containing: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
         public Tuple<Nullable<Guid>, Nullable<Guid>> Flush()
         {
             if (eventBuffer.Count > 0)

@@ -27,11 +27,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.Models
     public class KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TPersistentStorageCredentials>
         where TPersistentStorageCredentials : class, IPersistentStorageLoginCredentials
     {
-        /// <summary>URL for the distributed router component used for shard group splitting.</summary>
+        /// <summary>URL for the distributed router component used for shard group splitting or merging.</summary>
         public Uri DistributedOperationRouterUrl;
 
-        /// <summary>URL for a writer component which is part of a shard group undergoing a split operation.</summary>
-        public Uri WriterUrl;
+        /// <summary>URL for a writer component which is part of a shard group undergoing a split or merge operation (the first of two).</summary>
+        public Uri Writer1Url;
+
+        /// <summary>URL for a writer component which is part of a shard group undergoing a split or merge operation (the second of two).</summary>
+        public Uri Writer2Url;
 
         /// <summary>The login credentials for the persistent storage instance used to store shard configuration.</summary>
         public TPersistentStorageCredentials ShardConfigurationPersistentStorageCredentials;

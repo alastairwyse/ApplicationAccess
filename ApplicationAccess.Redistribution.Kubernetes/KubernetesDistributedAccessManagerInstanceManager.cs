@@ -160,17 +160,32 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
-        /// URL for a writer component which is part of a shard group undergoing a split operation.
+        /// URL for a first writer component which is part of a shard group undergoing a split or merge operation.
         /// </summary>
-        /// <remarks>This property is included in classes' instance configuration, and is set when the <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}.CreateWriterLoadBalancerServiceAsync(ushort)">CreateWriterLoadBalancerServiceAsync()</see> method is called.  However it may be initially set to a URL which is internal to the Kubernetes cluster host (e.g. when running in Minikube) and require a proxy or similar to expose it publically.  This setter allows the value to be overridden with the publically accessible URL.</remarks>
-        public Uri WriterUrl
+        /// <remarks>This property is included in classes' instance configuration, and is set when the <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}.CreateWriter1LoadBalancerServiceAsync(ushort)">CreateWriter1LoadBalancerServiceAsync()</see> method is called.  However it may be initially set to a URL which is internal to the Kubernetes cluster host (e.g. when running in Minikube) and require a proxy or similar to expose it publically.  This setter allows the value to be overridden with the publically accessible URL.</remarks>
+        public Uri Writer1Url
         {
             set
             {
-                if (instanceConfiguration.WriterUrl == null)
-                    throw new InvalidOperationException($"Property '{nameof(WriterUrl)}' cannot be set if it was not previously created by calling method {nameof(CreateWriterLoadBalancerServiceAsync)}().");
+                if (instanceConfiguration.Writer1Url == null)
+                    throw new InvalidOperationException($"Property '{nameof(Writer1Url)}' cannot be set if it was not previously created by calling method {nameof(CreateWriter1LoadBalancerServiceAsync)}().");
 
-                instanceConfiguration.WriterUrl = value;
+                instanceConfiguration.Writer1Url = value;
+            }
+        }
+
+        /// <summary>
+        /// URL for a second writer component which is part of a shard group undergoing a split or merge operation.
+        /// </summary>
+        /// <remarks>This property is included in classes' instance configuration, and is set when the <see cref="KubernetesDistributedAccessManagerInstanceManager{TPersistentStorageCredentials}.CreateWriter2LoadBalancerServiceAsync(ushort)">CreateWriter2LoadBalancerServiceAsync()</see> method is called.  However it may be initially set to a URL which is internal to the Kubernetes cluster host (e.g. when running in Minikube) and require a proxy or similar to expose it publically.  This setter allows the value to be overridden with the publically accessible URL.</remarks>
+        public Uri Writer2Url
+        {
+            set
+            {
+                if (instanceConfiguration.Writer2Url == null)
+                    throw new InvalidOperationException($"Property '{nameof(Writer2Url)}' cannot be set if it was not previously created by calling method {nameof(CreateWriter2LoadBalancerServiceAsync)}().");
+
+                instanceConfiguration.Writer2Url = value;
             }
         }
 
@@ -384,57 +399,37 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
-        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a writer component which is part of a shard group undergoing a split operation, from outside the Kubernetes cluster.
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a first writer component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
         /// </summary>
         /// <param name="port">The external port to expose the writer service on.</param>
         /// <returns>The IP address of the load balancer service.</returns>
         /// <remarks>This method should be called before creating a distributed AccessManager instance.  Some Kubernetes hosting platforms (e.g. Minikube) require additional actions outside of the cluster to allow Kubernetes services to be accessed from outside of the host machine (e.g. in the case if Minikube the IP address and port of the load balancer service must exposed outside the machine using 'simpleproxy' or a similar tool).  Hence this method can be called, and then any required additional actions be performed.</remarks>
-        public async Task<IPAddress> CreateWriterLoadBalancerServiceAsync(UInt16 port)
+        public async Task<IPAddress> CreateWriter1LoadBalancerServiceAsync(UInt16 port)
         {
-            if (instanceConfiguration.WriterUrl != null)
-                throw new InvalidOperationException("A load balancer service for writer components has already been created.");
+            if (instanceConfiguration.Writer1Url != null)
+                throw new InvalidOperationException("A load balancer service for the first writer component has already been created.");
 
-            String nameSpace = staticConfiguration.NameSpace;
-            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for writer on port {port} in namespace '{nameSpace}'...");
-            Guid beginId = metricLogger.Begin(new LoadBalancerServiceCreateTime());
+            IPAddress writer1IpAddress = await CreateWriterLoadBalancerServiceAsync(GenerateWriter1LoadBalancerServiceName(), port);
+            instanceConfiguration.Writer1Url = new($"{GetLoadBalancerServiceScheme()}://{writer1IpAddress.ToString()}:{port}");
 
-            String appLabelValue = NodeType.Writer.ToString().ToLower();
-            try
-            {
-                await CreateLoadBalancerServiceAsync(appLabelValue, externalServiceNamePostfix, port, staticConfiguration.PodPort);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Error creating writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
-            }
-            try
-            {
-                await WaitForLoadBalancerServiceAsync($"{appLabelValue}{externalServiceNamePostfix}", staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Failed to wait for writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}' to become available.", e);
-            }
-            IPAddress returnIpAddress = null;
-            try
-            {
-                returnIpAddress = await GetLoadBalancerServiceIpAddressAsync($"{appLabelValue}{externalServiceNamePostfix}");
-            }
-            catch (Exception e)
-            {
-                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
-                throw new Exception($"Error retrieving IP address for writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
-            }
-            Uri writerUrl = new($"{GetLoadBalancerServiceScheme()}://{returnIpAddress.ToString()}:{port}");
-            instanceConfiguration.WriterUrl = writerUrl;
+            return writer1IpAddress;
+        }
 
-            metricLogger.End(beginId, new LoadBalancerServiceCreateTime());
-            metricLogger.Increment(new LoadBalancerServiceCreated());
-            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
+        /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a second writer component which is part of a shard group undergoing a split or merge operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="port">The external port to expose the writer service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        /// <remarks>This method should be called before creating a distributed AccessManager instance.  Some Kubernetes hosting platforms (e.g. Minikube) require additional actions outside of the cluster to allow Kubernetes services to be accessed from outside of the host machine (e.g. in the case if Minikube the IP address and port of the load balancer service must exposed outside the machine using 'simpleproxy' or a similar tool).  Hence this method can be called, and then any required additional actions be performed.</remarks>
+        public async Task<IPAddress> CreateWriter2LoadBalancerServiceAsync(UInt16 port)
+        {
+            if (instanceConfiguration.Writer2Url != null)
+                throw new InvalidOperationException("A load balancer service for the second writer component has already been created.");
 
-            return returnIpAddress;
+            IPAddress writer2IpAddress = await CreateWriterLoadBalancerServiceAsync(GenerateWriter2LoadBalancerServiceName(), port);
+            instanceConfiguration.Writer1Url = new($"{GetLoadBalancerServiceScheme()}://{writer2IpAddress.ToString()}:{port}");
+
+            return writer2IpAddress;
         }
 
         /// <inheritdoc/>>
@@ -447,8 +442,10 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         {
             if (instanceConfiguration.DistributedOperationRouterUrl == null)
                 throw new InvalidOperationException($"A distributed operation router load balancer service must be created via method {nameof(CreateDistributedOperationRouterLoadBalancerServiceAsync)}() before creating a distributed AccessManager instance.");
-            if (instanceConfiguration.WriterUrl == null)
-                throw new InvalidOperationException($"A writer load balancer service must be created via method {nameof(CreateWriterLoadBalancerServiceAsync)}() before creating a distributed AccessManager instance.");
+            if (instanceConfiguration.Writer1Url == null)
+                throw new InvalidOperationException($"A first writer load balancer service must be created via method {nameof(CreateWriter1LoadBalancerServiceAsync)}() before creating a distributed AccessManager instance.");
+            if (instanceConfiguration.Writer2Url == null)
+                throw new InvalidOperationException($"A second writer load balancer service must be created via method {nameof(CreateWriter2LoadBalancerServiceAsync)}() before creating a distributed AccessManager instance.");
             if (userShardGroupConfigurationSet.Items.Count != 0 || groupToGroupMappingShardGroupConfigurationSet.Items.Count != 0 || groupShardGroupConfigurationSet.Items.Count != 0)
                 throw new InvalidOperationException($"A distributed AccessManager instance has already been created.");
 
@@ -536,7 +533,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
                 // Create the distributed operation coordinator node(s) and service
                 await CreateDistributedOperationCoordinatorNodeAsync(instanceConfiguration.ShardConfigurationPersistentStorageCredentials);
-                IPAddress distributedOperationCoordinatorIpAddress = await CreateDistributedOperationCoordinatorLoadBalancerService(staticConfiguration.ExternalPort);
+                IPAddress distributedOperationCoordinatorIpAddress = await CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(staticConfiguration.ExternalPort);
                 Uri distributedOperationCoordinatorUrl = new($"{GetLoadBalancerServiceScheme()}://{distributedOperationCoordinatorIpAddress.ToString()}:{staticConfiguration.ExternalPort}");
                 instanceConfiguration.DistributedOperationCoordinatorUrl = distributedOperationCoordinatorUrl;
             }
@@ -683,6 +680,55 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         }
 
         /// <summary>
+        /// Creates a Kubernetes service of type 'LoadBalancer' which is used to access a writer component which is part of a shard group undergoing a split operation, from outside the Kubernetes cluster.
+        /// </summary>
+        /// <param name="appLabelValue">The name of the pod/deployment targetted by the service.</param>
+        /// <param name="port">The external port to expose the writer service on.</param>
+        /// <returns>The IP address of the load balancer service.</returns>
+        protected async Task<IPAddress> CreateWriterLoadBalancerServiceAsync(String appLabelValue, UInt16 port)
+        {
+            String nameSpace = staticConfiguration.NameSpace;
+            logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service '{appLabelValue}{externalServiceNamePostfix}' for writer on port {port} in namespace '{nameSpace}'...");
+            Guid beginId = metricLogger.Begin(new LoadBalancerServiceCreateTime());
+
+            try
+            {
+                await CreateLoadBalancerServiceAsync(appLabelValue, externalServiceNamePostfix, port, staticConfiguration.PodPort);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
+                throw new Exception($"Error creating writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
+            }
+            try
+            {
+                await WaitForLoadBalancerServiceAsync($"{appLabelValue}{externalServiceNamePostfix}", staticConfiguration.DeploymentWaitPollingInterval, staticConfiguration.ServiceAvailabilityWaitAbortTimeout);
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
+                throw new Exception($"Failed to wait for writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}' to become available.", e);
+            }
+            IPAddress returnIpAddress = null;
+            try
+            {
+                returnIpAddress = await GetLoadBalancerServiceIpAddressAsync($"{appLabelValue}{externalServiceNamePostfix}");
+            }
+            catch (Exception e)
+            {
+                metricLogger.CancelBegin(beginId, new LoadBalancerServiceCreateTime());
+                throw new Exception($"Error retrieving IP address for writer load balancer service '{appLabelValue}{externalServiceNamePostfix}' in namespace '{nameSpace}'.", e);
+            }
+            Uri writerUrl = new($"{GetLoadBalancerServiceScheme()}://{returnIpAddress.ToString()}:{port}");
+
+            metricLogger.End(beginId, new LoadBalancerServiceCreateTime());
+            metricLogger.Increment(new LoadBalancerServiceCreated());
+            logger.Log(this, ApplicationLogging.LogLevel.Information, "Completed creating load balancer service.");
+
+            return returnIpAddress;
+        }
+
+        /// <summary>
         /// Splits a shard group in the distributed AccessManager instance, by moving elements whose hash codes fall within a specified range to a new shard group.
         /// </summary>
         /// <param name="dataElement">The data element of the shard group to split..</param>
@@ -794,7 +840,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             IDistributedAccessManagerWriterAdministrator sourceShardGroupWriterAdministrator = null;
             ConstructInstance
             (
-                () => { sourceShardGroupWriterAdministrator = sourceShardGroupWriterAdministratorCreationFunction(instanceConfiguration.WriterUrl); },
+                () => { sourceShardGroupWriterAdministrator = sourceShardGroupWriterAdministratorCreationFunction(instanceConfiguration.Writer1Url); },
                 nameof(sourceShardGroupWriterAdministrator)
             );
 
@@ -827,7 +873,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
 
             // Update writer load balancer service to target source shard group writer node
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Updating writer load balancer service to target source shard group writer node...");
-            String writerLoadBalancerServiceName = $"{NodeType.Writer.ToString().ToLower()}{externalServiceNamePostfix}";
+            String writerLoadBalancerServiceName = $"{GenerateWriter1LoadBalancerServiceName()}{externalServiceNamePostfix}";
             String sourceWriterNodeIdentifier = GenerateNodeIdentifier(dataElement, NodeType.Writer, hashRangeStart);
             try
             {
@@ -1059,7 +1105,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Reversing update to writer load balancer service...");
             try
             {
-                await UpdateServiceAsync(writerLoadBalancerServiceName, NodeType.Writer.ToString().ToLower());
+                await UpdateServiceAsync(writerLoadBalancerServiceName, GenerateWriter1LoadBalancerServiceName());
             }
             catch
             {
@@ -1417,6 +1463,24 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                     throw new Exception($"JSON path '{currentPath}' was not found in JSON document containing {jsonDocumentContentsDescription}.", e);
                 }
             }
+        }
+
+        /// <summary>
+        /// Generates the name ('app' label) for the first load balancer service used to access a writer component.
+        /// </summary>
+        /// <returns>The name.</returns>
+        protected String GenerateWriter1LoadBalancerServiceName()
+        {
+            return $"{NodeType.Writer.ToString().ToLower()}1";
+        }
+
+        /// <summary>
+        /// Generates the name ('app' label) for the second load balancer service used to access a writer component.
+        /// </summary>
+        /// <returns>The name.</returns>
+        protected String GenerateWriter2LoadBalancerServiceName()
+        {
+            return $"{NodeType.Writer.ToString().ToLower()}2";
         }
 
         /// <summary>
@@ -2018,7 +2082,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
         /// </summary>
         /// <param name="port">The external port to expose the load balancer service on.</param>
         /// <returns>The IP address of the load balancer service.</returns>
-        protected async Task<IPAddress> CreateDistributedOperationCoordinatorLoadBalancerService(UInt16 port)
+        protected async Task<IPAddress> CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(UInt16 port)
         {
             String nameSpace = staticConfiguration.NameSpace;
             logger.Log(this, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation coordinator on port {port} in namespace '{nameSpace}'...");

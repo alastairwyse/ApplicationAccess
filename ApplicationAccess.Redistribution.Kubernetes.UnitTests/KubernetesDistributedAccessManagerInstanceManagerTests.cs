@@ -38,7 +38,6 @@ using k8s.Models;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 
 // TODO: ** Remove these references and Project references **
 using ApplicationAccess.Distribution.Persistence.SqlServer;
@@ -175,7 +174,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> testInstanceConfiguration = new()
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
-                WriterUrl = new Uri("http://10.104.198.19:7001/"),
+                Writer1Url = new Uri("http://10.104.198.19:7001/"),
+                Writer2Url = new Uri("http://10.104.198.20:7001/"),
                 ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
@@ -247,7 +247,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> testInstanceConfiguration = new()
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
-                WriterUrl = new Uri("http://10.104.198.19:7001/"),
+                Writer1Url = new Uri("http://10.104.198.19:7001/"),
+                Writer2Url = new Uri("http://10.104.198.20:7001/"),
                 ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
@@ -348,18 +349,18 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public void WriterUrl_CreateWriterLoadBalancerServiceAsyncNotPreviouslyCalled()
+        public void Writer1Url_CreateWriter1LoadBalancerServiceAsyncNotPreviouslyCalled()
         {
             var e = Assert.Throws<InvalidOperationException>(delegate
             {
-                testKubernetesDistributedAccessManagerInstanceManager.WriterUrl = new Uri("http://10.104.198.19:7001/");
+                testKubernetesDistributedAccessManagerInstanceManager.Writer1Url = new Uri("http://10.104.198.19:7001/");
             });
 
-            Assert.That(e.Message, Does.StartWith($"Property 'WriterUrl' cannot be set if it was not previously created by calling method CreateWriterLoadBalancerServiceAsync()."));
+            Assert.That(e.Message, Does.StartWith($"Property 'Writer1Url' cannot be set if it was not previously created by calling method CreateWriter1LoadBalancerServiceAsync()."));
         }
 
         [Test]
-        public void WriterUrl()
+        public void Writer1Url()
         {
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -372,9 +373,39 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 mockMetricLogger
             );
 
-            testKubernetesDistributedAccessManagerInstanceManager.WriterUrl = new Uri("http://10.104.198.19:7001/");
+            testKubernetesDistributedAccessManagerInstanceManager.Writer1Url = new Uri("http://10.104.198.19:7001/");
 
-            Assert.AreEqual("http://10.104.198.19:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.WriterUrl.ToString());
+            Assert.AreEqual("http://10.104.198.19:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.Writer1Url.ToString());
+        }
+
+        [Test]
+        public void Writer2Url_CreateWriter2LoadBalancerServiceAsyncNotPreviouslyCalled()
+        {
+            var e = Assert.Throws<InvalidOperationException>(delegate
+            {
+                testKubernetesDistributedAccessManagerInstanceManager.Writer2Url = new Uri("http://10.104.198.20:7001/");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Property 'Writer2Url' cannot be set if it was not previously created by calling method CreateWriter2LoadBalancerServiceAsync()."));
+        }
+
+        [Test]
+        public void Writer2Url()
+        {
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                CreateInstanceConfiguration(),
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            testKubernetesDistributedAccessManagerInstanceManager.Writer2Url = new Uri("http://10.104.198.20:7001/");
+
+            Assert.AreEqual("http://10.104.198.20:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.Writer2Url.ToString());
         }
 
         [Test]
@@ -408,7 +439,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public void CreateDistributedOperationRouterLoadBalancerService_ServiceAlreadyCreated()
+        public void CreateDistributedOperationRouterLoadBalancerServiceAsync_ServiceAlreadyCreated()
         {
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = new()
             {
@@ -436,7 +467,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateDistributedOperationRouterLoadBalancerService_ExceptionCreatingService()
+        public async Task CreateDistributedOperationRouterLoadBalancerServiceAsync_ExceptionCreatingService()
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -457,7 +488,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateDistributedOperationRouterLoadBalancerService_ExceptionWaitingForService()
+        public async Task CreateDistributedOperationRouterLoadBalancerServiceAsync_ExceptionWaitingForService()
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -480,7 +511,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateDistributedOperationRouterLoadBalancerService_ExceptionRetrievingServiceIpAddress()
+        public async Task CreateDistributedOperationRouterLoadBalancerServiceAsync_ExceptionRetrievingServiceIpAddress()
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -528,7 +559,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateDistributedOperationRouterLoadBalancerService()
+        public async Task CreateDistributedOperationRouterLoadBalancerServiceAsync()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             UInt16 port = 7001;
@@ -562,17 +593,19 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
             await mockKubernetesClientShim.Received(2).ListNamespacedServiceAsync(null, testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
-            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>()); 
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation router on port 7001 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Completed creating load balancer service.");
             Assert.AreEqual(IPAddress.Parse("10.104.198.18"), result);
             Assert.AreEqual("http://10.104.198.18:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.DistributedOperationRouterUrl.ToString());
         }
 
         [Test]
-        public void CreateWriterLoadBalancerService_ServiceAlreadyCreated()
+        public void CreateWriter1LoadBalancerServiceAsync_ServiceAlreadyCreated()
         {
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = new()
             {
-                WriterUrl = new Uri("http://10.104.198.18:5000/")
+                Writer1Url = new Uri("http://10.104.198.18:7001/")
             };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -589,118 +622,23 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<InvalidOperationException>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(port);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriter1LoadBalancerServiceAsync(port);
             });
 
-            Assert.That(e.Message, Does.StartWith($"A load balancer service for writer components has already been created."));
+            Assert.That(e.Message, Does.StartWith($"A load balancer service for the first writer component has already been created."));
         }
 
         [Test]
-        public async Task CreateWriterLoadBalancerService_ExceptionCreatingService()
+        public async Task CreateWriter1LoadBalancerServiceAsync()
         {
-            var mockException = new Exception("Mock exception");
-            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             UInt16 port = 7001;
-            mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromException<V1Service>(mockException));
-
-            var e = Assert.ThrowsAsync<Exception>(async delegate
-            {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(port);
-            });
-
-            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
-            mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
-            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
-            Assert.That(e.Message, Does.StartWith($"Error creating writer load balancer service 'writer-externalservice' in namespace '{testNameSpace}'."));
-            Assert.AreSame(mockException, e.InnerException.InnerException);
-        }
-
-        [Test]
-        public async Task CreateWriterLoadBalancerService_ExceptionWaitingForService()
-        {
-            var mockException = new Exception("Mock exception");
-            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            UInt16 port = 7001;
-            mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
-            mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromException<V1ServiceList>(mockException));
-
-            var e = Assert.ThrowsAsync<Exception>(async delegate
-            {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(port);
-            });
-
-            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
-            await mockKubernetesClientShim.Received(1).ListNamespacedServiceAsync(null, testNameSpace);
-            mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
-            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
-            Assert.That(e.Message, Does.StartWith($"Failed to wait for writer load balancer service 'writer-externalservice' in namespace '{testNameSpace}' to become available."));
-            Assert.AreSame(mockException, e.InnerException.InnerException);
-        }
-
-        [Test]
-        public async Task CreateWriterLoadBalancerService_ExceptionRetrievingServiceIpAddress()
-        {
-            var mockException = new Exception("Mock exception");
-            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            UInt16 port = 7001;
-            mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
             V1ServiceList returnServices = new
             (
                 new List<V1Service>
                 {
-                    new V1Service() { Metadata = new V1ObjectMeta() { Name = "OtherService" } },
                     new V1Service()
                     {
-                        Metadata = new V1ObjectMeta() { Name = "writer-externalservice" },
-                        Status = new V1ServiceStatus()
-                        {
-                            LoadBalancer = new V1LoadBalancerStatus()
-                            {
-                                Ingress = new List<V1LoadBalancerIngress>()
-                                {
-                                    new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
-                                }
-                            }
-                        }
-                    }
-                }
-            );
-            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
-            mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns
-            (
-                Task.FromResult<V1ServiceList>(returnServices),
-                Task.FromException<V1ServiceList>(mockException)
-            );
-
-            var e = Assert.ThrowsAsync<Exception>(async delegate
-            {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(port);
-            });
-
-            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
-            await mockKubernetesClientShim.Received(2).ListNamespacedServiceAsync(null, testNameSpace);
-            mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
-            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
-            Assert.That(e.Message, Does.StartWith($"Error retrieving IP address for writer load balancer service 'writer-externalservice' in namespace '{testNameSpace}'."));
-            Assert.AreSame(mockException, e.InnerException.InnerException);
-        }
-
-        [Test]
-        public async Task CreateWriterLoadBalancerService()
-        {
-            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
-            UInt16 port = 7001;
-            mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
-            V1ServiceList returnServices = new
-            (
-                new List<V1Service>
-                {
-                    new V1Service() { Metadata = new V1ObjectMeta() { Name = "OtherService" } },
-                    new V1Service()
-                    {
-                        Metadata = new V1ObjectMeta() { Name = "writer-externalservice" },
+                        Metadata = new V1ObjectMeta() { Name = "writer1-externalservice" },
                         Status = new V1ServiceStatus()
                         {
                             LoadBalancer = new V1LoadBalancerStatus()
@@ -717,14 +655,75 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
             mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromResult<V1ServiceList>(returnServices));
 
-            IPAddress result = await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(port);
+            IPAddress result = await testKubernetesDistributedAccessManagerInstanceManager.CreateWriter1LoadBalancerServiceAsync(port);
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
-            await mockKubernetesClientShim.Received(2).ListNamespacedServiceAsync(null, testNameSpace);
-            mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
-            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Creating load balancer service 'writer1-externalservice' for writer on port 7001 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Completed creating load balancer service.");
             Assert.AreEqual(IPAddress.Parse("10.104.198.18"), result);
-            Assert.AreEqual("http://10.104.198.18:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.WriterUrl.ToString());
+        }
+
+        [Test]
+        public void CreateWriter2LoadBalancerServiceAsync_ServiceAlreadyCreated()
+        {
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = new()
+            {
+                Writer2Url = new Uri("http://10.104.198.20:7005/")
+            };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+            UInt16 port = 7005;
+
+            var e = Assert.ThrowsAsync<InvalidOperationException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriter2LoadBalancerServiceAsync(port);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"A load balancer service for the second writer component has already been created."));
+        }
+
+        [Test]
+        public async Task CreateWriter2LoadBalancerServiceAsync()
+        {
+            UInt16 port = 7005;
+            V1ServiceList returnServices = new
+            (
+                new List<V1Service>
+                {
+                    new V1Service()
+                    {
+                        Metadata = new V1ObjectMeta() { Name = "writer2-externalservice" },
+                        Status = new V1ServiceStatus()
+                        {
+                            LoadBalancer = new V1LoadBalancerStatus()
+                            {
+                                Ingress = new List<V1LoadBalancerIngress>()
+                                {
+                                    new V1LoadBalancerIngress() { Ip = "10.104.198.20" }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromResult<V1ServiceList>(returnServices));
+
+            IPAddress result = await testKubernetesDistributedAccessManagerInstanceManager.CreateWriter2LoadBalancerServiceAsync(port);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Creating load balancer service 'writer2-externalservice' for writer on port 7005 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Completed creating load balancer service.");
+            Assert.AreEqual(IPAddress.Parse("10.104.198.20"), result);
         }
 
         [Test]
@@ -744,7 +743,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public void CreateDistributedAccessManagerInstanceAsync_WriterLoadBalancerServiceNotCreated()
+        public void CreateDistributedAccessManagerInstanceAsync_Writer1LoadBalancerServiceNotCreated()
         {
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = new()
             {
@@ -772,7 +771,40 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            Assert.That(e.Message, Does.StartWith($"A writer load balancer service must be created via method CreateWriterLoadBalancerServiceAsync() before creating a distributed AccessManager instance."));
+            Assert.That(e.Message, Does.StartWith($"A first writer load balancer service must be created via method CreateWriter1LoadBalancerServiceAsync() before creating a distributed AccessManager instance."));
+        }
+
+        [Test]
+        public void CreateDistributedAccessManagerInstanceAsync_Writer2LoadBalancerServiceNotCreated()
+        {
+            KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = new()
+            {
+                DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"), 
+                Writer1Url = new Uri("http://10.104.198.20:7001/")
+            };
+            testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
+            (
+                CreateStaticConfiguration(),
+                instanceConfiguration,
+                mockPersistentStorageCreator,
+                mockAppSettingsConfigurer,
+                testShardConfigurationSetPersisterCreationFunction,
+                mockKubernetesClientShim,
+                mockApplicationLogger,
+                mockMetricLogger
+            );
+
+            var e = Assert.ThrowsAsync<InvalidOperationException>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedAccessManagerInstanceAsync
+                (
+                    new List<ShardGroupConfiguration<TestPersistentStorageLoginCredentials>>(),
+                    new List<ShardGroupConfiguration<TestPersistentStorageLoginCredentials>>(),
+                    new List<ShardGroupConfiguration<TestPersistentStorageLoginCredentials>>()
+                );
+            });
+
+            Assert.That(e.Message, Does.StartWith($"A second writer load balancer service must be created via method CreateWriter2LoadBalancerServiceAsync() before creating a distributed AccessManager instance."));
         }
 
         [Test]
@@ -781,7 +813,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = new()
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
-                WriterUrl = new Uri("http://10.104.198.19:7001/"),
+                Writer1Url = new Uri("http://10.104.198.19:7001/"),
+                Writer2Url = new Uri("http://10.104.198.20:7001/"),
                 ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
@@ -1246,7 +1279,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> testInstanceConfiguration = new()
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
-                WriterUrl = new Uri("http://10.104.198.19:7001/"),
+                Writer1Url = new Uri("http://10.104.198.19:7001/"),
+                Writer2Url = new Uri("http://10.104.198.20:7001/"),
                 ShardConfigurationPersistentStorageCredentials = new TestPersistentStorageLoginCredentials("alreadyPopulatedConnectionString")
             };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -1478,7 +1512,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> testInstanceConfiguration = new()
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
-                WriterUrl = new Uri("http://10.104.198.19:7001/"),
+                Writer1Url = new Uri("http://10.104.198.19:7001/"),
+                Writer2Url = new Uri("http://10.104.198.20:7001/"),
                 ShardConfigurationPersistentStorageCredentials = new TestPersistentStorageLoginCredentials("alreadyPopulatedConnectionString")
             };
             testKubernetesDistributedAccessManagerInstanceManager = new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
@@ -1634,6 +1669,143 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             Assert.AreEqual("http://group-writer-715827884-service:5000/", capturedShardConfigurationList[11].ClientConfiguration.BaseUrl.ToString());
             // Assertions on the instance configuration distributed operation coordinator URL
             Assert.AreEqual("http://10.104.198.18:7000/", instanceConfiguration.DistributedOperationCoordinatorUrl.ToString());
+        }
+
+        [Test]
+        public async Task CreateWriterLoadBalancerServiceAsync_ExceptionCreatingService()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String appLabelValue = "writer1";
+            UInt16 port = 7001;
+            mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromException<V1Service>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(appLabelValue, port);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error creating writer load balancer service 'writer1-externalservice' in namespace '{testNameSpace}'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateWriterLoadBalancerServiceAsync_ExceptionWaitingForService()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String appLabelValue = "writer1";
+            UInt16 port = 7001;
+            mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromException<V1ServiceList>(mockException));
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(appLabelValue, port);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
+            await mockKubernetesClientShim.Received(1).ListNamespacedServiceAsync(null, testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Failed to wait for writer load balancer service 'writer1-externalservice' in namespace '{testNameSpace}' to become available."));
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateWriterLoadBalancerServiceAsync_ExceptionRetrievingServiceIpAddress()
+        {
+            var mockException = new Exception("Mock exception");
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String appLabelValue = "writer1";
+            UInt16 port = 7001;
+            mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
+            V1ServiceList returnServices = new
+            (
+                new List<V1Service>
+                {
+                    new V1Service() { Metadata = new V1ObjectMeta() { Name = "OtherService" } },
+                    new V1Service()
+                    {
+                        Metadata = new V1ObjectMeta() { Name = "writer1-externalservice" },
+                        Status = new V1ServiceStatus()
+                        {
+                            LoadBalancer = new V1LoadBalancerStatus()
+                            {
+                                Ingress = new List<V1LoadBalancerIngress>()
+                                {
+                                    new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns
+            (
+                Task.FromResult<V1ServiceList>(returnServices),
+                Task.FromException<V1ServiceList>(mockException)
+            );
+
+            var e = Assert.ThrowsAsync<Exception>(async delegate
+            {
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(appLabelValue, port);
+            });
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
+            await mockKubernetesClientShim.Received(2).ListNamespacedServiceAsync(null, testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
+            mockMetricLogger.Received(1).CancelBegin(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
+            Assert.That(e.Message, Does.StartWith($"Error retrieving IP address for writer load balancer service 'writer1-externalservice' in namespace '{testNameSpace}'."));
+            Assert.AreSame(mockException, e.InnerException.InnerException);
+        }
+
+        [Test]
+        public async Task CreateWriterLoadBalancerServiceAsync()
+        {
+            Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
+            String appLabelValue = "writer1";
+            UInt16 port = 7001;
+            mockMetricLogger.Begin(Arg.Any<LoadBalancerServiceCreateTime>()).Returns(testBeginId);
+            V1ServiceList returnServices = new
+            (
+                new List<V1Service>
+                {
+                    new V1Service() { Metadata = new V1ObjectMeta() { Name = "OtherService" } },
+                    new V1Service()
+                    {
+                        Metadata = new V1ObjectMeta() { Name = "writer1-externalservice" },
+                        Status = new V1ServiceStatus()
+                        {
+                            LoadBalancer = new V1LoadBalancerStatus()
+                            {
+                                Ingress = new List<V1LoadBalancerIngress>()
+                                {
+                                    new V1LoadBalancerIngress() { Ip = "10.104.198.18" }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
+            mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromResult<V1ServiceList>(returnServices));
+
+            IPAddress result = await testKubernetesDistributedAccessManagerInstanceManager.CreateWriterLoadBalancerServiceAsync(appLabelValue, port);
+
+            await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
+            await mockKubernetesClientShim.Received(2).ListNamespacedServiceAsync(null, testNameSpace);
+            mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Creating load balancer service 'writer1-externalservice' for writer on port 7001 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Completed creating load balancer service.");
+            Assert.AreEqual(IPAddress.Parse("10.104.198.18"), result);
         }
 
         [Test]
@@ -2311,7 +2483,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockMetricLogger.Begin(Arg.Any<ShardGroupSplitTime>()).Returns(shardGroupSplitBeginId);
             mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
-            mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
+            mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace).Returns(Task.FromException<V1Service>(mockException));
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
@@ -2333,7 +2505,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace);
+            await mockKubernetesClientShim.Received(1).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
             mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupSplitTime>());
             Assert.AreSame(mockException, e.InnerException);
@@ -3144,7 +3316,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockPersistentStorageCreator.CreateAccessManagerPersistentStorage(persistentStorageInstanceName).Returns<TestPersistentStorageLoginCredentials>(storageCredentials);
             mockKubernetesClientShim.ListNamespacedDeploymentAsync(null, testNameSpace).Returns(Task.FromResult<V1DeploymentList>(returnDeployments));
             mockKubernetesClientShim.ListNamespacedPodAsync(null, testNameSpace).Returns(Task.FromResult<V1PodList>(returnPods));
-            mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace).Returns
+            mockKubernetesClientShim.PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace).Returns
             (
                 Task.FromResult<V1Service>(new V1Service()),
                 Task.FromException<V1Service>(mockException)
@@ -3170,7 +3342,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 );
             });
 
-            await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace);
+            await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<ShardGroupSplitTime>());
             mockMetricLogger.Received(1).CancelBegin(shardGroupSplitBeginId, Arg.Any<ShardGroupSplitTime>());
             Assert.AreSame(mockException, e.InnerException);
@@ -3423,7 +3595,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, 0, Int32.MaxValue, false);
             mockOperationRouter.Received(1).PauseOperations();
             mockOperationRouter.Received(2).ResumeOperations();
-            await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace);
+            await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace);
             await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "operation-router-service", testNameSpace);
             await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "operation-router", testNameSpace);
             // First 3 calls are made as part of the source shard group restart, the other 1 is made as part of scaling down and deleting the operation router
@@ -3677,7 +3849,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockShardGroupSplitter.Received(1).DeleteEventsFromSourceShardGroup(mocksourceShardGroupEventDeleter, -1073741824, -1, true);
             mockOperationRouter.Received(1).PauseOperations();
             mockOperationRouter.Received(2).ResumeOperations();
-            await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer-externalservice", testNameSpace);
+            await mockKubernetesClientShim.Received(2).PatchNamespacedServiceAsync(null, Arg.Any<V1Patch>(), "writer1-externalservice", testNameSpace);
             await mockKubernetesClientShim.Received(1).DeleteNamespacedServiceAsync(null, "operation-router-service", testNameSpace);
             await mockKubernetesClientShim.Received(1).PatchNamespacedDeploymentScaleAsync(null, Arg.Any<V1Patch>(), "operation-router", testNameSpace);
             // First 3 calls are made as part of the source shard group restart, the other 1 is made as part of scaling down and deleting the operation router
@@ -5372,7 +5544,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateDistributedOperationCoordinatorLoadBalancerService_ExceptionCreatingService()
+        public async Task CreateDistributedOperationCoordinatorLoadBalancerServiceAsync_ExceptionCreatingService()
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -5382,7 +5554,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorLoadBalancerService(port);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(port);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
@@ -5393,7 +5565,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateDistributedOperationCoordinatorLoadBalancerService_ExceptionWaitingForService()
+        public async Task CreateDistributedOperationCoordinatorLoadBalancerServiceAsync_ExceptionWaitingForService()
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -5404,7 +5576,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorLoadBalancerService(port);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(port);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
@@ -5416,7 +5588,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateDistributedOperationCoordinatorLoadBalancerService_ExceptionRetrievingServiceIpAddress()
+        public async Task CreateDistributedOperationCoordinatorLoadBalancerServiceAsync_ExceptionRetrievingServiceIpAddress()
         {
             var mockException = new Exception("Mock exception");
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
@@ -5452,7 +5624,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
 
             var e = Assert.ThrowsAsync<Exception>(async delegate
             {
-                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorLoadBalancerService(port);
+                await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(port);
             });
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
@@ -5464,7 +5636,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         }
 
         [Test]
-        public async Task CreateDistributedOperationCoordinatorLoadBalancerService()
+        public async Task CreateDistributedOperationCoordinatorLoadBalancerServiceAsync()
         {
             Guid testBeginId = Guid.Parse("5c8ab5fa-f438-4ab4-8da4-9e5728c0ed32");
             UInt16 port = 7001;
@@ -5493,12 +5665,14 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockKubernetesClientShim.CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace).Returns(Task.FromResult<V1Service>(new V1Service()));
             mockKubernetesClientShim.ListNamespacedServiceAsync(null, testNameSpace).Returns(Task.FromResult<V1ServiceList>(returnServices));
 
-            IPAddress result = await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorLoadBalancerService(port);
+            IPAddress result = await testKubernetesDistributedAccessManagerInstanceManager.CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(port);
 
             await mockKubernetesClientShim.Received(1).CreateNamespacedServiceAsync(null, Arg.Any<V1Service>(), testNameSpace);
             await mockKubernetesClientShim.Received(2).ListNamespacedServiceAsync(null, testNameSpace);
             mockMetricLogger.Received(1).Begin(Arg.Any<LoadBalancerServiceCreateTime>());
-            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>());
+            mockMetricLogger.Received(1).End(testBeginId, Arg.Any<LoadBalancerServiceCreateTime>()); 
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Creating load balancer service for distributed operation coordinator on port 7001 in namespace 'default'...");
+            mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Completed creating load balancer service.");
             Assert.AreEqual(IPAddress.Parse("10.104.198.18"), result);
             Assert.AreEqual("http://10.104.198.18:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.DistributedOperationCoordinatorUrl.ToString());
         }
@@ -6900,7 +7074,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials> instanceConfiguration = new()
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
-                WriterUrl = new Uri("http://10.104.198.19:7001/")
+                Writer1Url = new Uri("http://10.104.198.19:7001/"),
+                Writer2Url = new Uri("http://10.104.198.20:7001/"),
             };
             return new KubernetesDistributedAccessManagerInstanceManagerWithProtectedMembers
             (
@@ -7301,7 +7476,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             return new()
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.18:7001/"),
-                WriterUrl = new Uri("http://10.104.198.19:7001/"),
+                Writer1Url = new Uri("http://10.104.198.19:7001/"),
+                Writer2Url = new Uri("http://10.104.198.20:7001/"),
                 ShardConfigurationPersistentStorageCredentials = new("Server=127.0.0.1;User Id=sa;Password=password;Initial Catalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
@@ -7449,6 +7625,11 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             }
 
             #pragma warning disable 1591
+
+            public new Task<IPAddress> CreateWriterLoadBalancerServiceAsync(String appLabelValue, UInt16 port)
+            {
+                return base.CreateWriterLoadBalancerServiceAsync(appLabelValue, port);
+            }
 
             public new async Task SplitShardGroupAsync
             (
@@ -7634,9 +7815,9 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
                 await base.CreateDistributedOperationCoordinatorNodeDeploymentAsync(name, persistentStorageCredentials);
             }
 
-            public new async Task<IPAddress> CreateDistributedOperationCoordinatorLoadBalancerService(UInt16 port)
+            public new async Task<IPAddress> CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(UInt16 port)
             {
-                return await base.CreateDistributedOperationCoordinatorLoadBalancerService(port);
+                return await base.CreateDistributedOperationCoordinatorLoadBalancerServiceAsync(port);
             }
 
             public new async Task CreateDistributedOperationRouterNodeDeploymentAsync

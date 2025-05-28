@@ -40,7 +40,8 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
             testInstanceConfiguration = new KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration<TestPersistentStorageLoginCredentials>
             {
                 DistributedOperationRouterUrl = new Uri("http://10.104.198.17:5000/"),
-                WriterUrl = new Uri("http://10.104.198.18:5000/"),
+                Writer1Url = new Uri("http://10.104.198.18:5000/"),
+                Writer2Url = new Uri("http://10.104.198.20:5000/"),
                 ShardConfigurationPersistentStorageCredentials = new ("Server=127.0.0.1;User Id=sa;Password=password;InitialCatalog=ApplicationAccessConfig"),
                 UserShardGroupConfiguration = new List<KubernetesShardGroupConfiguration<TestPersistentStorageLoginCredentials>>
                 {
@@ -328,17 +329,31 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
         }
 
         [Test]
-        public void Validate_WriterUrlPropertyNullWhenShardGroupConfigurationPropertiesNotNull()
+        public void Validate_Writer1UrlPropertyNullWhenShardGroupConfigurationPropertiesNotNull()
         {
-            testInstanceConfiguration.WriterUrl = null;
+            testInstanceConfiguration.Writer1Url = null;
 
             var e = Assert.Throws<ArgumentNullException>(delegate
             {
                 testInstanceConfigurationValidator.Validate(testInstanceConfiguration);
             });
 
-            Assert.That(e.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration property 'WriterUrl' cannot be null when the '*ShardGroupConfiguration' properties are non-null."));
-            Assert.AreEqual("WriterUrl", e.ParamName);
+            Assert.That(e.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration property 'Writer1Url' cannot be null when the '*ShardGroupConfiguration' properties are non-null."));
+            Assert.AreEqual("Writer1Url", e.ParamName);
+        }
+
+        [Test]
+        public void Validate_Writer2UrlPropertyNullWhenShardGroupConfigurationPropertiesNotNull()
+        {
+            testInstanceConfiguration.Writer2Url = null;
+
+            var e = Assert.Throws<ArgumentNullException>(delegate
+            {
+                testInstanceConfigurationValidator.Validate(testInstanceConfiguration);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"KubernetesDistributedAccessManagerInstanceManagerInstanceConfiguration property 'Writer2Url' cannot be null when the '*ShardGroupConfiguration' properties are non-null."));
+            Assert.AreEqual("Writer2Url", e.ParamName);
         }
 
         [Test]
@@ -388,11 +403,22 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests.Validation
             testInstanceConfigurationValidator.Validate(testInstanceConfiguration);
 
 
-            testInstanceConfiguration.WriterUrl = null;
+            testInstanceConfiguration.Writer2Url = null;
 
             testInstanceConfigurationValidator.Validate(testInstanceConfiguration);
 
 
+            testInstanceConfiguration.Writer1Url = null;
+
+            testInstanceConfigurationValidator.Validate(testInstanceConfiguration);
+
+
+            testInstanceConfiguration.Writer2Url = new Uri("http://10.104.198.20:5000/");
+
+            testInstanceConfigurationValidator.Validate(testInstanceConfiguration);
+
+
+            testInstanceConfiguration.Writer2Url = null;
             testInstanceConfiguration.DistributedOperationRouterUrl = null;
 
             testInstanceConfigurationValidator.Validate(testInstanceConfiguration);

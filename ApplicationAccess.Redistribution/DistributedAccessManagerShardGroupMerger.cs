@@ -152,7 +152,7 @@ namespace ApplicationAccess.Redistribution
         /// <param name="sourceShardGroup2FirstEventId">The id of the first event from the second source shard group in the sequence of events to merge.</param>
         /// <param name="eventBatchSize">The number of events to read or persist in each batch.</param>
         /// <param name="noEventsReadDuringMergeAction">The action to take when 0 events are read from one of the source shard group readers/</param>
-        /// <returns>A tuple containing 2 values: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
+        /// <returns>A tuple containing: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
         protected Tuple<Nullable<Guid>, Nullable<Guid>> MergeEventBatchesToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroup1EventReader,
