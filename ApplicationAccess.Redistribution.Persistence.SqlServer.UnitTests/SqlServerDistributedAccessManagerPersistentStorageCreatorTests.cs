@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using ApplicationAccess.Distribution.Models;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.Utilities;
@@ -224,30 +225,6 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
         }
 
         [Test]
-        public void RenamePersistentStorage_ExceptionExecutingRenameDatabaseScript()
-        {
-            throw new NotImplementedException();
-        }
-
-        [Test]
-        public void RenamePersistentStorage()
-        {
-            throw new NotImplementedException();
-        }
-
-        [Test]
-        public void DeletePersistentStorage_ExceptionExecutingDeleteDatabaseScript()
-        {
-            throw new NotImplementedException();
-        }
-
-        [Test]
-        public void DeletePersistentStorage()
-        {
-            throw new NotImplementedException();
-        }
-
-        [Test]
         public void CreateAccessManagerPersistentStorage()
         {
             String testPersistentStorageInstanceName = "applicationaccess_user_n2147483648";
@@ -270,6 +247,114 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer.UnitTests
             mockFileShim.Received(1).ReadAllText(accessManagerDatabaseUpdateScriptPath);
             mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
             Assert.AreEqual("Data Source=127.0.0.1;Initial Catalog=applicationaccess_user_n2147483648;User ID=sa;Password=password;Encrypt=False;Authentication=SqlPassword", result.ConnectionString);
+        }
+
+        [Test]
+        public void RenamePersistentStorage_CurrentPersistentStorageInstanceNameParameterWhiteSpace()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testSqlServerDistributedAccessManagerPersistentStorageCreator.RenamePersistentStorage(" ", "user_n2147483648");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'currentPersistentStorageInstanceName' must contain a value."));
+            Assert.AreEqual("currentPersistentStorageInstanceName", e.ParamName);
+        }
+
+        [Test]
+        public void RenamePersistentStorage_NewPersistentStorageInstanceNameParameterWhiteSpace()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testSqlServerDistributedAccessManagerPersistentStorageCreator.RenamePersistentStorage("merge_temp", " ");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'newPersistentStorageInstanceName' must contain a value."));
+            Assert.AreEqual("newPersistentStorageInstanceName", e.ParamName);
+        }
+
+        [Test]
+        public void RenamePersistentStorage_ExceptionExecutingRenameDatabaseScript()
+        {
+            var mockException = new Exception("Mock exception");
+            String testCurrentPersistentStorageInstanceName = "merge_temp";
+            String testNewPersistentStorageInstanceName = "user_n2147483648";
+            mockSqlServerScriptExecutor.When((scriptExecutor) => scriptExecutor.ExecuteScripts(Arg.Any<List<Tuple<String, String>>>())).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testSqlServerDistributedAccessManagerPersistentStorageCreator.RenamePersistentStorage(testCurrentPersistentStorageInstanceName, testNewPersistentStorageInstanceName);
+            });
+
+            mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
+            Assert.That(e.Message, Does.StartWith($"Failed to rename database 'merge_temp' to 'user_n2147483648' in SQL Server."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void RenamePersistentStorage()
+        {
+            String testCurrentPersistentStorageInstanceName = "merge_temp";
+            String testNewPersistentStorageInstanceName = "user_n2147483648";
+            StringBuilder testRenameScriptBuider = new();
+            testRenameScriptBuider.AppendLine("ALTER DATABASE merge_temp SET SINGLE_USER WITH ROLLBACK IMMEDIATE;");
+            testRenameScriptBuider.AppendLine("GO ");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE merge_temp MODIFY NAME = user_n2147483648;");
+            testRenameScriptBuider.AppendLine("GO ");
+            testRenameScriptBuider.AppendLine("ALTER DATABASE Test2 SET user_n2147483648;");
+            testRenameScriptBuider.AppendLine("GO ");
+            List<Tuple<String, String>> capturedScriptsAndContents = null;
+            mockSqlServerScriptExecutor.ExecuteScripts(Arg.Do<List<Tuple<String, String>>>(argumentValue => capturedScriptsAndContents = argumentValue));
+
+            testSqlServerDistributedAccessManagerPersistentStorageCreator.RenamePersistentStorage(testCurrentPersistentStorageInstanceName, testNewPersistentStorageInstanceName);
+
+            mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
+            Assert.AreEqual(testRenameScriptBuider.ToString(), capturedScriptsAndContents[0].Item1);
+        }
+
+        [Test]
+        public void DeletePersistentStorage_PersistentStorageInstanceNameParameterWhiteSpace()
+        {
+            var e = Assert.Throws<ArgumentException>(delegate
+            {
+                testSqlServerDistributedAccessManagerPersistentStorageCreator.DeletePersistentStorage(" ");
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Parameter 'persistentStorageInstanceName' must contain a value."));
+            Assert.AreEqual("persistentStorageInstanceName", e.ParamName);
+        }
+
+        [Test]
+        public void DeletePersistentStorage_ExceptionExecutingDeleteDatabaseScript()
+        {
+            var mockException = new Exception("Mock exception");
+            String testPersistentStorageInstanceName = "user_0";
+            mockSqlServerScriptExecutor.When((scriptExecutor) => scriptExecutor.ExecuteScripts(Arg.Any<List<Tuple<String, String>>>())).Do((callInfo) => throw mockException);
+
+            var e = Assert.Throws<Exception>(delegate
+            {
+                testSqlServerDistributedAccessManagerPersistentStorageCreator.DeletePersistentStorage(testPersistentStorageInstanceName);
+            });
+
+            mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
+            Assert.That(e.Message, Does.StartWith($"Failed to delete database 'user_0' in SQL Server."));
+            Assert.AreSame(mockException, e.InnerException);
+        }
+
+        [Test]
+        public void DeletePersistentStorage()
+        {
+            String testPersistentStorageInstanceName = "user_0";
+            StringBuilder testRenameScriptBuider = new();
+            testRenameScriptBuider.AppendLine("DROP DATABASE user_0;");
+            testRenameScriptBuider.AppendLine("GO ");
+            List<Tuple<String, String>> capturedScriptsAndContents = null;
+            mockSqlServerScriptExecutor.ExecuteScripts(Arg.Do<List<Tuple<String, String>>>(argumentValue => capturedScriptsAndContents = argumentValue));
+
+            testSqlServerDistributedAccessManagerPersistentStorageCreator.DeletePersistentStorage(testPersistentStorageInstanceName);
+
+            mockSqlServerScriptExecutor.Received(1).ExecuteScripts(Arg.Any<List<Tuple<String, String>>>());
+            Assert.AreEqual(testRenameScriptBuider.ToString(), capturedScriptsAndContents[0].Item1);
         }
 
         [Test]

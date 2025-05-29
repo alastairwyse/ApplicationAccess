@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Microsoft.Data.SqlClient;
 using ApplicationAccess.Persistence.Sql.SqlServer;
 using ApplicationAccess.Redistribution;
@@ -145,7 +146,32 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
         /// <param name="newPersistentStorageInstanceName">The new name of the database instance.</param>
         public void RenamePersistentStorage(String currentPersistentStorageInstanceName, String newPersistentStorageInstanceName)
         {
-            throw new NotImplementedException();
+            ThrowExceptionIfStringParameterNullOrWhiteSpace(currentPersistentStorageInstanceName, nameof(currentPersistentStorageInstanceName));
+            ThrowExceptionIfStringParameterNullOrWhiteSpace(newPersistentStorageInstanceName, nameof(newPersistentStorageInstanceName));
+
+            // As per below link need to put the database in single-user mode before renaming
+            //   https://learn.microsoft.com/en-us/sql/relational-databases/databases/rename-a-database?view=sql-server-ver17#rename-a-sql-server-database-by-placing-it-in-single-user-mode
+            StringBuilder renameScriptBuider = new();
+            renameScriptBuider.AppendLine($"ALTER DATABASE {currentPersistentStorageInstanceName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;");
+            renameScriptBuider.AppendLine("GO ");
+            renameScriptBuider.AppendLine($"ALTER DATABASE {currentPersistentStorageInstanceName} MODIFY NAME = {newPersistentStorageInstanceName};");
+            renameScriptBuider.AppendLine("GO ");
+            renameScriptBuider.AppendLine($"ALTER DATABASE Test2 SET {newPersistentStorageInstanceName};");
+            renameScriptBuider.AppendLine("GO ");
+
+            // Rename the database
+            List<Tuple<String, String>> scriptsAndContents = new()
+            {
+                Tuple.Create(renameScriptBuider.ToString(), $"rename database '{currentPersistentStorageInstanceName}' to '{newPersistentStorageInstanceName}'")
+            };
+            try
+            {
+                scriptExecutor.ExecuteScripts(scriptsAndContents);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to rename database '{currentPersistentStorageInstanceName}' to '{newPersistentStorageInstanceName}' in SQL Server.", e);
+            }
         }
 
         /// <summary>
@@ -154,7 +180,25 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
         /// <param name="persistentStorageInstanceName">The name of the database instance.</param>
         public void DeletePersistentStorage(String persistentStorageInstanceName)
         {
-            throw new NotImplementedException();
+            ThrowExceptionIfStringParameterNullOrWhiteSpace(persistentStorageInstanceName, nameof(persistentStorageInstanceName));
+
+            StringBuilder deleteScriptBuider = new();
+            deleteScriptBuider.AppendLine($"DROP DATABASE {persistentStorageInstanceName};");
+            deleteScriptBuider.AppendLine("GO ");
+
+            // Delete the database
+            List<Tuple<String, String>> scriptsAndContents = new()
+            {
+                Tuple.Create(deleteScriptBuider.ToString(), $"delete database '{persistentStorageInstanceName}'")
+            };
+            try
+            {
+                scriptExecutor.ExecuteScripts(scriptsAndContents);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to delete database '{persistentStorageInstanceName}' in SQL Server.", e);
+            }
         }
 
         /// <summary>
@@ -204,5 +248,19 @@ namespace ApplicationAccess.Redistribution.Persistence.SqlServer
 
             return returnLoginCredentials;
         }
+
+        #region Private/Protected Methods
+
+        #pragma warning disable 1591
+
+        protected void ThrowExceptionIfStringParameterNullOrWhiteSpace(String parameterValue, String parameterName)
+        {
+            if (String.IsNullOrWhiteSpace(parameterValue) == true)
+                throw new ArgumentException($"Parameter '{parameterName}' must contain a value.", parameterName);
+        }
+
+        #pragma warning restore 1591
+
+        #endregion
     }
 }
