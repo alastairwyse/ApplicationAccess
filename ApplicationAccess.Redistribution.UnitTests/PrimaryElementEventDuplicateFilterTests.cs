@@ -43,7 +43,23 @@ namespace ApplicationAccess.Redistribution.UnitTests
             testEventPersisterBuffer = Substitute.For<IEventPersisterBuffer>();
             mockApplicationLogger = Substitute.For<IApplicationLogger>();
             mockMetricLogger = Substitute.For<IMetricLogger>();
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, false, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(false, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
+        }
+
+        [Test]
+        public void BufferEvent_EventPersisterBufferPropertyNotSet()
+        {
+            String testUser = "User1";
+            var addUserEvent = new UserEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000001"), EventAction.Add, testUser, DateTime.Now.ToUniversalTime(), testUser.GetHashCode());
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(false, mockApplicationLogger, mockMetricLogger);
+
+            var e = Assert.Throws<InvalidOperationException>(delegate
+            {
+                testPrimaryElementEventDuplicateFilter.BufferEvent(addUserEvent, false);
+            });
+
+            Assert.That(e.Message, Does.StartWith($"Property 'EventPersisterBuffer' has not been set."));
         }
 
         [Test]
@@ -205,6 +221,47 @@ namespace ApplicationAccess.Redistribution.UnitTests
             testEventPersisterBuffer.Received(1).BufferEvent(removeEntityTypeEvent, true);
             testEventPersisterBuffer.Received(1).BufferEvent(addEntityEvent, false);
             testEventPersisterBuffer.Received(1).BufferEvent(removeEntityEvent, false);
+        }
+
+        [Test]
+        public void BufferEvent_SecondaryEventsNotFiltered()
+        {
+            // Tests that secondary event subclasses of primary events are recognizes as those secondary events and not the primary
+            String testUser = "User1";
+            String testGroup = "Group1";
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            var addUserToEntityMappingEvent = new UserToEntityMappingEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000001"), EventAction.Add, testUser, testEntityType, testEntity, DateTime.Now.ToUniversalTime(), testUser.GetHashCode());
+            var addGroupToEntityMappingEvent = new GroupToEntityMappingEventBufferItem<String>(Guid.Parse("00000000-0000-0000-0000-000000000001"), EventAction.Add, testGroup, testEntityType, testEntity, DateTime.Now.ToUniversalTime(), testGroup.GetHashCode());
+            testEventPersisterBuffer.BufferEvent(addUserToEntityMappingEvent, true).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null));
+            testEventPersisterBuffer.BufferEvent(addUserToEntityMappingEvent, false).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null));
+            testEventPersisterBuffer.BufferEvent(addGroupToEntityMappingEvent, true).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null));
+            testEventPersisterBuffer.BufferEvent(addGroupToEntityMappingEvent, false).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null));
+
+            testPrimaryElementEventDuplicateFilter.BufferEvent(addUserToEntityMappingEvent, true);
+            testPrimaryElementEventDuplicateFilter.BufferEvent(addUserToEntityMappingEvent, false);
+            testPrimaryElementEventDuplicateFilter.BufferEvent(addGroupToEntityMappingEvent, true);
+            testPrimaryElementEventDuplicateFilter.BufferEvent(addGroupToEntityMappingEvent, false);
+
+            testEventPersisterBuffer.Received(1).BufferEvent(addUserToEntityMappingEvent, true);
+            testEventPersisterBuffer.Received(1).BufferEvent(addUserToEntityMappingEvent, false);
+            testEventPersisterBuffer.Received(1).BufferEvent(addGroupToEntityMappingEvent, true);
+            testEventPersisterBuffer.Received(1).BufferEvent(addGroupToEntityMappingEvent, false);
+        }
+
+        [Test]
+        public void BufferEvent_EntityAndEntityTypeEventsProcessedSeparately()
+        {
+            // Since EntityEventBufferItem derives from EntityTypeEventBufferItem, these can fail to be distinguished properly depending on the implementation
+            String testEntityType = "ClientAccount";
+            String testEntity = "CompanyA";
+            var addEntityTypeEvent = new EntityTypeEventBufferItem(Guid.Parse("00000000-0000-0000-0000-000000000001"), EventAction.Add, testEntityType, DateTime.Now.ToUniversalTime(), testEntityType.GetHashCode());
+            var addEntityEvent = new EntityEventBufferItem(Guid.Parse("00000000-0000-0000-0000-000000000002"), EventAction.Add, testEntityType, testEntity, DateTime.Now.ToUniversalTime(), testEntity.GetHashCode());
+            testEventPersisterBuffer.BufferEvent(addEntityTypeEvent, true).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null));
+            testEventPersisterBuffer.BufferEvent(addEntityEvent, true).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null));
+            
+            testPrimaryElementEventDuplicateFilter.BufferEvent(addEntityTypeEvent, true);
+            testPrimaryElementEventDuplicateFilter.BufferEvent(addEntityEvent, true);
         }
 
         // The following tests cover all paths in protected method FilterPrimaryElementEvent()
@@ -523,7 +580,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [Test]
         public void FilterPrimaryElementEvent_AddEvent_SourceShard1_EventExistsInSource1_IgnoreInvalidEventsTrue()
         {
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
             UserEventBufferItem<String> addUserEvent = GenerateAddUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
             testEventPersisterBuffer.BufferEvent(addUserEvent, true).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(addUserEvent.EventId, null));
             testPrimaryElementEventDuplicateFilter.BufferEvent(addUserEvent, true);
@@ -539,7 +597,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [Test]
         public void FilterPrimaryElementEvent_AddEvent_SourceShard1_EventExistsInBoth_IgnoreInvalidEventsTrue()
         {
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
             UserEventBufferItem<String> addUserEvent = GenerateAddUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
             testEventPersisterBuffer.BufferEvent(addUserEvent, true).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(addUserEvent.EventId, null));
             testEventPersisterBuffer.BufferEvent(addUserEvent, false).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, addUserEvent.EventId));
@@ -557,7 +616,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [Test]
         public void FilterPrimaryElementEvent_AddEvent_SourceShard2_EventExistsInSource2_IgnoreInvalidEventsTrue()
         {
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
             UserEventBufferItem<String> addUserEvent = GenerateAddUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
             testEventPersisterBuffer.BufferEvent(addUserEvent, false).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, addUserEvent.EventId));
             testPrimaryElementEventDuplicateFilter.BufferEvent(addUserEvent, false);
@@ -573,7 +633,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [Test]
         public void FilterPrimaryElementEvent_AddEvent_SourceShard2_EventExistsInBoth_IgnoreInvalidEventsTrue()
         {
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
             UserEventBufferItem<String> addUserEvent = GenerateAddUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
             testEventPersisterBuffer.BufferEvent(addUserEvent, true).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(addUserEvent.EventId, null));
             testEventPersisterBuffer.BufferEvent(addUserEvent, false).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, addUserEvent.EventId));
@@ -591,7 +652,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [Test]
         public void FilterPrimaryElementEvent_RemoveEvent_SourceShard1_NoEventsExist_IgnoreInvalidEventsTrue()
         {
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
             UserEventBufferItem<String> removeUserEvent = GenerateRemoveUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
 
             Tuple<Nullable<Guid>, Nullable<Guid>> result = testPrimaryElementEventDuplicateFilter.BufferEvent(removeUserEvent, true);
@@ -604,7 +666,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [Test]
         public void FilterPrimaryElementEvent_RemoveEvent_SourceShard1_EventExistsInSource2_IgnoreInvalidEventsTrue()
         {
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
             UserEventBufferItem<String> addUserEvent = GenerateAddUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
             UserEventBufferItem<String> removeUserEvent = GenerateRemoveUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
             testEventPersisterBuffer.BufferEvent(addUserEvent, false).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(null, addUserEvent.EventId));
@@ -621,7 +684,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [Test]
         public void FilterPrimaryElementEvent_RemoveEvent_SourceShard2_NoEventsExist_IgnoreInvalidEventsTrue()
         {
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
             UserEventBufferItem<String> removeUserEvent = GenerateRemoveUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
 
             Tuple<Nullable<Guid>, Nullable<Guid>> result = testPrimaryElementEventDuplicateFilter.BufferEvent(removeUserEvent, false);
@@ -634,7 +698,8 @@ namespace ApplicationAccess.Redistribution.UnitTests
         [Test]
         public void FilterPrimaryElementEvent_RemoveEvent_SourceShard2_EventExistsInSource1_IgnoreInvalidEventsTrue()
         {
-            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(testEventPersisterBuffer, true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter = new PrimaryElementEventDuplicateFilter<String, String>(true, mockApplicationLogger, mockMetricLogger);
+            testPrimaryElementEventDuplicateFilter.EventPersisterBuffer = testEventPersisterBuffer;
             UserEventBufferItem<String> addUserEvent = GenerateAddUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
             UserEventBufferItem<String> removeUserEvent = GenerateRemoveUserEvent(Guid.Parse("00000000-0000-0000-0000-000000000001"), "user1");
             testEventPersisterBuffer.BufferEvent(addUserEvent, true).Returns(new Tuple<Nullable<Guid>, Nullable<Guid>>(addUserEvent.EventId, null));

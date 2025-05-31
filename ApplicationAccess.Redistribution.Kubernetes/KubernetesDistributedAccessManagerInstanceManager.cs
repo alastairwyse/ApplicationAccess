@@ -427,7 +427,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes
                 throw new InvalidOperationException("A load balancer service for the second writer component has already been created.");
 
             IPAddress writer2IpAddress = await CreateWriterLoadBalancerServiceAsync(GenerateWriter2LoadBalancerServiceName(), port);
-            instanceConfiguration.Writer1Url = new($"{GetLoadBalancerServiceScheme()}://{writer2IpAddress.ToString()}:{port}");
+            instanceConfiguration.Writer2Url = new($"{GetLoadBalancerServiceScheme()}://{writer2IpAddress.ToString()}:{port}");
 
             return writer2IpAddress;
         }

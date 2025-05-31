@@ -68,11 +68,13 @@ namespace ApplicationAccess.Redistribution
             logger.Log(this, LogLevel.Information, "Merging events from source shard groups to target shard group...");
             Int32 currentBatchNumber = 1;
             logger.Log(this, LogLevel.Information, "Starting initial event batch merge...");
+            var eventFilter = new PrimaryElementEventDuplicateFilter<TUser, TGroup>(false, logger, metricLogger);
             Tuple<Nullable<Guid>, Nullable<Guid>> lastPersistedEventIds = MergeEventBatchesToTargetShardGroup
             (
                 sourceShardGroup1EventReader,
                 sourceShardGroup2EventReader, 
-                targetShardGroupEventPersister, 
+                targetShardGroupEventPersister,
+                eventFilter,
                 ref currentBatchNumber,
                 sourceShardGroup1FirstEventId,
                 sourceShardGroup2FirstEventId,
@@ -124,6 +126,7 @@ namespace ApplicationAccess.Redistribution
                     sourceShardGroup1EventReader,
                     sourceShardGroup2EventReader,
                     targetShardGroupEventPersister,
+                    eventFilter,
                     ref currentBatchNumber,
                     sourceShardGroup1NextEventId,
                     sourceShardGroup2NextEventId,
@@ -147,17 +150,20 @@ namespace ApplicationAccess.Redistribution
         /// <param name="sourceShardGroup1EventReader">The event reader for the first source shard group.</param>
         /// <param name="sourceShardGroup2EventReader">The event reader for the second source shard group.</param>
         /// <param name="targetShardGroupEventPersister">The event persister for the target shard group.</param>
+        /// <param name="eventFilter">Duplicate filter for primary element events.</param>
         /// <param name="nextBatchNumber">The sequential number of the next batch of events to merge (may be set to greater than 1 if this method is called multiple times).</param>
         /// <param name="sourceShardGroup1FirstEventId">The id of the first event from the first source shard group in the sequence of events to merge.</param>
         /// <param name="sourceShardGroup2FirstEventId">The id of the first event from the second source shard group in the sequence of events to merge.</param>
         /// <param name="eventBatchSize">The number of events to read or persist in each batch.</param>
         /// <param name="noEventsReadDuringMergeAction">The action to take when 0 events are read from one of the source shard group readers/</param>
-        /// <returns>A tuple containing: the id of the first shard group event most recently persisted (null if no events have been persisted from the first shard group), and the id of the second shard group event most recently persisted (null if no events have been persisted from the second shard group).</returns>
+        /// <returns>A tuple containing: the id of the first shard group event most recently processed (i.e. either filtered or persisted) or null if no events have been processed from the first shard group, and the id of the second shard group event most recently processed or null if no events have been processed from the second shard group.</returns>
+        /// <remarks>Parameter <paramref name="eventFilter"/> is passed to allow the state of the filter to be preserved between calls to the method (i.e. passed instead of creating an instance within the method).</remarks>
         protected Tuple<Nullable<Guid>, Nullable<Guid>> MergeEventBatchesToTargetShardGroup<TUser, TGroup, TComponent, TAccess>
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroup1EventReader,
             IAccessManagerTemporalEventBatchReader sourceShardGroup2EventReader,
             IAccessManagerTemporalEventBulkPersister<TUser, TGroup, TComponent, TAccess> targetShardGroupEventPersister,
+            PrimaryElementEventDuplicateFilter<TUser, TGroup> eventFilter,
             ref Int32 nextBatchNumber,
             Nullable<Guid> sourceShardGroup1FirstEventId,
             Nullable<Guid> sourceShardGroup2FirstEventId,
@@ -170,11 +176,10 @@ namespace ApplicationAccess.Redistribution
 
             // Setup retrieve the initial batches of events
             var eventBuffer = new EventPersisterBuffer<TUser, TGroup, TComponent, TAccess>(targetShardGroupEventPersister, eventBatchSize, nextBatchNumber, logger, metricLogger);
-            var eventFilter = new PrimaryElementEventDuplicateFilter<TUser, TGroup>(eventBuffer, false, logger, metricLogger);
+            eventFilter.EventPersisterBuffer = eventBuffer;
             var sourceShardGroup1EventQueue = new Queue<TemporalEventBufferItemBase>();
             var sourceShardGroup2EventQueue = new Queue<TemporalEventBufferItemBase>();
             Nullable<Guid> sourceShardGroup1LastBufferedEventId = null, sourceShardGroup2LastBufferedEventId = null;
-            var lastPersistedEventIds = new Tuple<Nullable<Guid>, Nullable<Guid>>(null, null);
 
             if (sourceShardGroup1FirstEventId.HasValue)
             {
@@ -192,7 +197,7 @@ namespace ApplicationAccess.Redistribution
                 {
                     if (noEventsReadDuringMergeAction == NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource)
                     {
-                        BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
+                        sourceShardGroup2LastBufferedEventId = BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
                         (
                             sourceShardGroup2EventReader,
                             sourceShardGroup2EventQueue,
@@ -201,14 +206,14 @@ namespace ApplicationAccess.Redistribution
                             false
                         );
                     }
-                    lastPersistedEventIds = eventBuffer.Flush();
+                    eventBuffer.Flush();
                     break;
                 }
                 else if (sourceShardGroup2EventQueue.Count == 0)
                 {
                     if (noEventsReadDuringMergeAction == NoEventsReadDuringMergeAction.PersistAllEventsFromOtherSource)
                     {
-                        BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
+                        sourceShardGroup1LastBufferedEventId = BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
                         (
                             sourceShardGroup1EventReader,
                             sourceShardGroup1EventQueue,
@@ -217,7 +222,7 @@ namespace ApplicationAccess.Redistribution
                             true
                         );
                     }
-                    lastPersistedEventIds = eventBuffer.Flush();
+                    eventBuffer.Flush();
                     break;
                 }
                 else
@@ -227,12 +232,12 @@ namespace ApplicationAccess.Redistribution
                         if (sourceShardGroup1EventQueue.Peek().OccurredTime <= sourceShardGroup2EventQueue.Peek().OccurredTime)
                         {
                             sourceShardGroup1LastBufferedEventId = sourceShardGroup1EventQueue.Peek().EventId;
-                            lastPersistedEventIds = eventFilter.BufferEvent(sourceShardGroup1EventQueue.Dequeue(), true);
+                            eventFilter.BufferEvent(sourceShardGroup1EventQueue.Dequeue(), true);
                         }
                         else
                         {
                             sourceShardGroup2LastBufferedEventId = sourceShardGroup2EventQueue.Peek().EventId;
-                            lastPersistedEventIds = eventFilter.BufferEvent(sourceShardGroup2EventQueue.Dequeue(), false);
+                            eventFilter.BufferEvent(sourceShardGroup2EventQueue.Dequeue(), false);
                         }
                     }
                     if (sourceShardGroup1EventQueue.Count == 0)
@@ -255,7 +260,7 @@ namespace ApplicationAccess.Redistribution
             }
             nextBatchNumber = eventBuffer.NextBatchNumber;
 
-            return lastPersistedEventIds;
+            return Tuple.Create(sourceShardGroup1LastBufferedEventId, sourceShardGroup2LastBufferedEventId);
         }
 
         /// <summary>
@@ -324,7 +329,8 @@ namespace ApplicationAccess.Redistribution
         /// <param name="targetShardGroupEventPersisterBuffer">The event persister buffer for the target shard group.</param>
         /// <param name="eventBatchSize">The number of events to read or persist in each batch.</param>
         /// <param name="sourceShardGroupIsFirst">Whether the events in parameters <paramref name="sourceShardGroupEventReader"/> and <paramref name="sourceShardGroupEventQueue"/> are from the first shard group being merged.</param>
-        protected void BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
+        /// <returns>The id of the last event buffered, or null if no events were buffered.</returns>
+        protected Nullable<Guid> BufferAllRemainingEvents<TUser, TGroup, TComponent, TAccess>
         (
             IAccessManagerTemporalEventBatchReader sourceShardGroupEventReader, 
             Queue<TemporalEventBufferItemBase> sourceShardGroupEventQueue, 
@@ -333,6 +339,9 @@ namespace ApplicationAccess.Redistribution
             Boolean sourceShardGroupIsFirst
         )
         {
+            if (sourceShardGroupEventQueue.Count == 0)
+                throw new ArgumentException($"The queue in parameter '{nameof(sourceShardGroupEventQueue)}' cannot be empty.", nameof(sourceShardGroupEventQueue));
+
             Nullable<Guid> lastBufferedEventId = null;
             while (sourceShardGroupEventQueue.Count > 0)
             {
@@ -350,6 +359,8 @@ namespace ApplicationAccess.Redistribution
                 }
                 nextEventId = GetNextEventIdAfter(lastBufferedEventId.Value, sourceShardGroupEventReader);
             }
+
+            return lastBufferedEventId;
         }
 
         /// <summary>

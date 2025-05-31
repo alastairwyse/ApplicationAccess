@@ -82,13 +82,20 @@ namespace ApplicationAccess.Redistribution
         protected IMetricLogger metricLogger;
 
         /// <summary>
+        /// The <see cref="IEventPersisterBuffer"/> to pass unfiltered events to.
+        /// </summary>
+        public IEventPersisterBuffer EventPersisterBuffer
+        {
+            set { eventPersisterBuffer = value; }
+        }
+
+        /// <summary>
         /// Initialises a new instance of the ApplicationAccess.Redistribution.PrimaryElementEventDuplicateFilter class.
         /// </summary>
-        /// <param name="eventPersisterBuffer">The <see cref="IEventPersisterBuffer"/> to pass unfiltered events to.</param>
         /// <param name="ignoreInvalidPrimaryElementEvents">Whether invalid events for primary elements (e.g. receiving a delete event for an element from a source where that element doesn't already exist) should be ignored.  Setting to false will throw an exception when such events are received.</param>
         /// <param name="logger">The logger for general logging.</param>
         /// <param name="metricLogger">The logger for metrics.</param>
-        public PrimaryElementEventDuplicateFilter(IEventPersisterBuffer eventPersisterBuffer, Boolean ignoreInvalidPrimaryElementEvents, IApplicationLogger logger, IMetricLogger metricLogger)
+        public PrimaryElementEventDuplicateFilter(Boolean ignoreInvalidPrimaryElementEvents, IApplicationLogger logger, IMetricLogger metricLogger)
         {
             sourceShardGroup1LastPersistedEventId = null;
             sourceShardGroup2LastPersistedEventId = null;
@@ -96,7 +103,6 @@ namespace ApplicationAccess.Redistribution
             currentGroups = new Dictionary<TGroup, PrimaryElementEventSources>();
             currentEntityTypes = new Dictionary<String, PrimaryElementEventSources>();
             currentEntities = new Dictionary<Tuple<String, String>, PrimaryElementEventSources>();
-            this.eventPersisterBuffer = eventPersisterBuffer;
             this.ignoreInvalidPrimaryElementEvents = ignoreInvalidPrimaryElementEvents;
             this.logger = logger;
             this.metricLogger = metricLogger;
@@ -105,20 +111,23 @@ namespace ApplicationAccess.Redistribution
         /// <inheritdoc/>
         public Tuple<Nullable<Guid>, Nullable<Guid>> BufferEvent(TemporalEventBufferItemBase inputEvent, Boolean sourcedFromFirstShardGroup)
         {
+            if (eventPersisterBuffer == null)
+                throw new InvalidOperationException($"Property '{nameof(EventPersisterBuffer)}' has not been set.");
+
             Boolean bufferEvent = true;
-            if (inputEvent is UserEventBufferItem<TUser>)
+            if (inputEvent.GetType() == typeof(UserEventBufferItem<TUser>))
             {
                 bufferEvent = FilterPrimaryElementEvent(inputEvent, sourcedFromFirstShardGroup, currentUsers, "user", ((UserEventBufferItem<TUser>)inputEvent).User);
             }
-            else if (inputEvent is GroupEventBufferItem<TGroup>)
+            else if (inputEvent.GetType() == typeof(GroupEventBufferItem<TGroup>))
             {
                 bufferEvent = FilterPrimaryElementEvent(inputEvent, sourcedFromFirstShardGroup, currentGroups, "group", ((GroupEventBufferItem<TGroup>)inputEvent).Group);
             }
-            else if (inputEvent is EntityTypeEventBufferItem)
+            else if (inputEvent.GetType() == typeof(EntityTypeEventBufferItem))
             {
                 bufferEvent = FilterPrimaryElementEvent(inputEvent, sourcedFromFirstShardGroup, currentEntityTypes, "entity type", ((EntityTypeEventBufferItem)inputEvent).EntityType);
             }
-            else if (inputEvent is EntityEventBufferItem)
+            else if (inputEvent.GetType() == typeof(EntityEventBufferItem))
             {
                 var typedInputEvent = (EntityEventBufferItem)inputEvent;
                 String entityType = typedInputEvent.EntityType;

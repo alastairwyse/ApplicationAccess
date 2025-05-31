@@ -661,6 +661,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Creating load balancer service 'writer1-externalservice' for writer on port 7001 in namespace 'default'...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Completed creating load balancer service.");
             Assert.AreEqual(IPAddress.Parse("10.104.198.18"), result);
+            Assert.AreEqual("http://10.104.198.18:7001/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.Writer1Url.ToString());
         }
 
         [Test]
@@ -724,6 +725,7 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Creating load balancer service 'writer2-externalservice' for writer on port 7005 in namespace 'default'...");
             mockApplicationLogger.Received(1).Log(testKubernetesDistributedAccessManagerInstanceManager, ApplicationLogging.LogLevel.Information, $"Completed creating load balancer service.");
             Assert.AreEqual(IPAddress.Parse("10.104.198.20"), result);
+            Assert.AreEqual("http://10.104.198.20:7005/", testKubernetesDistributedAccessManagerInstanceManager.InstanceConfiguration.Writer2Url.ToString());
         }
 
         [Test]
@@ -7061,6 +7063,12 @@ namespace ApplicationAccess.Redistribution.Kubernetes.UnitTests
         [Test]
         [Ignore("Integration test")]
         public async Task IntegrationTests_REMOVETHIS()
+        {
+        }
+
+        [Test]
+        [Ignore("Integration test")]
+        public async Task IntegrationTests2_REMOVETHIS()
         {
         }
 
